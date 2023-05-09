@@ -1,0 +1,89 @@
+@startuml Target_HAL_Class_Diag
+
+Title Target HAL Class Diagram
+
+package "HAL" as hal {
+
+    class Board << namespace >> {
+        + getButton() : IButton&
+        + getBattery() : IBattery&
+        + getDevice() : IDevice&
+        + getNetwork() : INetwork&
+        + getLedRed() : ILed&
+        + getLedGreen() : iLed&
+        + getLedBlue() : ILed&
+    }
+
+    package "Interfaces" as interfaces {
+        interface "IButton" as iButton {
+            + {abstract} isShortPressed() : bool
+            + {abstract} isLongPressed()  : bool
+            + {abstract} waitForRelease() : void
+        }
+
+        interface "IBattery" as iBattery {
+            + {abstract} getBatteryVoltage() : uint32_t
+            + {abstract} getChargeLevel()    : uint8_t
+        }
+
+        interface "IDevice" as iDevice {
+            + {abstract} init() : bool
+            + {abstract} process() : bool
+            + {abstract} getStream() : Stream
+            + {abstract} resetDevice() : void
+        }
+
+        interface "INetwork" as iNetwork {
+            + {abstract} init() : bool
+            + {abstract} process() : bool
+            + {abstract} getStream() : Stream
+        }
+
+        interface "ILed" as iLed {
+            + {abstract} enable(enableIt : bool) : void
+        }
+    }
+
+    package "Target" as target {
+        class "Button" as Button
+        class "Battery" as Battery
+        class "USB-Host" as Device
+        class "MQTT" as Network
+        class "LedRed" as LedRed
+        class "LedGreen" as LedGreen
+        class "LedBlue" as LedBlue
+    }
+
+    iButton <|... Button : <<realize>>
+    iBattery <|... Battery : <<realize>>
+    iDevice <|... Device : <<realize>>
+    iNetwork <|... Network : <<realize>>
+    iLed <|... LedRed : <<realize>>
+    iLed <|... LedGreen : <<realize>>
+    iLed <|... LedBlue : <<realize>>
+
+}
+
+package "Libraries" as libs
+{
+    class "PubSubClient" as NetworkLib
+    class "USB_Host_Shield_2.0" as DeviceLib
+
+    package "Arduino" as arduino {
+        class "IO" as IO
+        class "Stream" as Stream
+    }
+}
+
+Device *--> DeviceLib
+Network *--> NetworkLib
+
+Device *--> Stream
+Network *--> Stream
+Button ..> IO : <<use>>
+Battery ..> IO : <<use>>
+LedRed ..> IO : <<use>>
+LedGreen ..> IO : <<use>>
+LedBlue ..> IO : <<use>>
+
+@enduml
