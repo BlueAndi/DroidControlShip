@@ -75,3 +75,4 @@ extern unsigned long millis();
 extern void delay(unsigned long ms);
 
 #endif  /* ARDUINO_H */
+/** @} */
