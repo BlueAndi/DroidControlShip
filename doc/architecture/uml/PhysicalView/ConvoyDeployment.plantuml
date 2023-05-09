@@ -1,0 +1,28 @@
+@startuml Convoy_Deployment
+
+Title Convoy Deployment
+
+node "ConvoyLeader" as leader {
+    node ESP32 as esp32
+    node Zumo32U4 as zumo
+    component RGB_LED as led
+    component Button as button
+    component Battery as batt
+    component USB_Host as maxim
+
+    esp32 -- led : <<Digital IO>>
+    esp32 -- button : <<Digital IO>>
+    esp32 -- batt : <<Analog IO>>
+    esp32 -down- maxim : <<SPI>>
+    maxim -down- zumo : <<USB>>
+    note right
+        Uses RadonUlzer Application
+        https://github.com/BlueAndi/RadonUlzer
+    end note
+}
+
+node "ConvoyFollower" as follower
+
+esp32 -right- follower : <<WiFi>>
+
+@enduml
