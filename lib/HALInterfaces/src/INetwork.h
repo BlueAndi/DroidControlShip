@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Board interface, which abstracts the physical board
+ * @brief  Abstract network interface
  * @author Andreas Merkle <web@blue-andi.de>
  * 
  * @addtogroup HALInterfaces
@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef IBOARD_H
-#define IBOARD_H
+#ifndef INETWORK_H
+#define INETWORK_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdint.h>
-#include "IBattery.h"
-#include "IButton.h"
-#include "IDevice.h"
-#include "ILed.h"
-#include "INetwork.h"
+#include <stdbool.h>
+#include <Stream.h>
 
 /******************************************************************************
  * Macros
@@ -58,90 +54,52 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Abstracts the physical board interface.
- */
-class IBoard
+/** The abstract network interface. */
+class INetwork
 {
 public:
-
     /**
-     * Destroys the board interface.
+     * Destroys the interface.
      */
-    virtual ~IBoard()
+    virtual ~INetwork()
     {
     }
 
     /**
-     * Initialize the hardware.
-     */
-    virtual void init() = 0;
-
-    /**
-     * Get battery driver.
+     * Initialize network driver.
      * 
-     * @return Battery driver.
+     * @return If successfully initialized, returns true. Otherwise, false.
      */
-    virtual IBattery& getBattery() = 0;
+    virtual bool init() = 0;
 
     /**
-     * Get button driver.
+     * Process communication with the network.
      *
-     * @return Button driver.
+     * @return If communication is successful, returns true. Otherwise, false.
      */
-    virtual IButton& getButton() = 0;
+    virtual bool process() = 0;
 
     /**
-     * Get Device driver.
+     * Get comunication Stream.
      * 
-     * @return Device driver.
+     * @return Network data Stream.
      */
-    virtual IDevice& getDevice() = 0;
-
-    /**
-     * Get red LED driver.
-     *
-     * @return Red LED driver.
-     */
-    virtual ILed& getRedLed() = 0;
-
-    /**
-     * Get green LED driver.
-     *
-     * @return Green LED driver.
-     */
-    virtual ILed& getGreenLed() = 0;
-    
-    /**
-     * Get yellow LED driver.
-     *
-     * @return Yellow LED driver.
-     */
-    virtual ILed& getBlueLed() = 0;
-
-    /**
-     * Get Network driver.
-     * 
-     * @return Network driver.
-     */
-    virtual INetwork& getNetwork() = 0;
+    virtual Stream& getStream() = 0;
 
 protected:
-
     /**
-     * Constructs the board interface.
+     * Constructs the interface.
      */
-    IBoard()
+    INetwork()
     {
     }
 
 private:
-
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IBOARD_H */
+#endif /* INETWORK_H */
 /** @} */
