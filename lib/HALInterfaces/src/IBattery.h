@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Board interface, which abstracts the physical board
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Abstract battery interface
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  * 
  * @addtogroup HALInterfaces
  *
  * @{
  */
 
-#ifndef IBOARD_H
-#define IBOARD_H
+#ifndef IBATTERY_H
+#define IBATTERY_H
 
 /******************************************************************************
  * Compile Switches
@@ -44,9 +44,6 @@
  * Includes
  *****************************************************************************/
 #include <stdint.h>
-#include "IBattery.h"
-#include "IButton.h"
-#include "ILed.h"
 
 /******************************************************************************
  * Macros
@@ -56,76 +53,46 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Abstracts the physical board interface.
- */
-class IBoard
+/** The abstract battery interface. */
+class IBattery
 {
 public:
-
     /**
-     * Destroys the board interface.
+     * Destroys the interface.
      */
-    virtual ~IBoard()
+    virtual ~IBattery()
     {
     }
 
     /**
-     * Initialize the hardware.
+     * Get battery voltage read.
+     *
+     * @return Battery voltage in millivolts.
      */
-    virtual void init() = 0;
+    virtual uint32_t getVoltage() = 0;
 
     /**
-     * Get battery driver.
-     * 
-     * @return Battery driver.
+     * Get battery charge level.
+     *
+     * @return Charge level in percentage.
      */
-    virtual IBattery& getBattery() = 0;
+    virtual uint8_t getChargeLevel() = 0;
 
-    /**
-     * Get button driver.
-     *
-     * @return Button driver.
-     */
-    virtual IButton& getButton() = 0;
-
-    /**
-     * Get red LED driver.
-     *
-     * @return Red LED driver.
-     */
-    virtual ILed& getRedLed() = 0;
-
-    /**
-     * Get green LED driver.
-     *
-     * @return Green LED driver.
-     */
-    virtual ILed& getGreenLed() = 0;
-    
-    /**
-     * Get yellow LED driver.
-     *
-     * @return Yellow LED driver.
-     */
-    virtual ILed& getBlueLed() = 0;
 
 protected:
-
     /**
-     * Constructs the board interface.
+     * Constructs the interface.
      */
-    IBoard()
+    IBattery()
     {
     }
 
 private:
-
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IBOARD_H */
+#endif /* IBATTERY_H */
 /** @} */
