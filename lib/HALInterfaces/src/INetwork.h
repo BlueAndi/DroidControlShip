@@ -27,7 +27,7 @@
 /**
  * @brief  Abstract network interface
  * @author Andreas Merkle <web@blue-andi.de>
- * 
+ *
  * @addtogroup HALInterfaces
  *
  * @{
@@ -67,7 +67,7 @@ public:
 
     /**
      * Initialize network driver.
-     * 
+     *
      * @return If successfully initialized, returns true. Otherwise, false.
      */
     virtual bool init() = 0;
@@ -81,7 +81,7 @@ public:
 
     /**
      * Get comunication Stream.
-     * 
+     *
      * @return Network data Stream.
      */
     virtual Stream& getStream() = 0;

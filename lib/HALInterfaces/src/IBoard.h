@@ -27,7 +27,7 @@
 /**
  * @brief  Board interface, which abstracts the physical board
  * @author Andreas Merkle <web@blue-andi.de>
- * 
+ *
  * @addtogroup HALInterfaces
  *
  * @{
@@ -64,7 +64,6 @@
 class IBoard
 {
 public:
-
     /**
      * Destroys the board interface.
      */
@@ -79,7 +78,7 @@ public:
 
     /**
      * Get battery driver.
-     * 
+     *
      * @return Battery driver.
      */
     virtual IBattery& getBattery() = 0;
@@ -93,7 +92,7 @@ public:
 
     /**
      * Get Device driver.
-     * 
+     *
      * @return Device driver.
      */
     virtual IDevice& getDevice() = 0;
@@ -111,7 +110,7 @@ public:
      * @return Green LED driver.
      */
     virtual ILed& getGreenLed() = 0;
-    
+
     /**
      * Get yellow LED driver.
      *
@@ -121,13 +120,12 @@ public:
 
     /**
      * Get Network driver.
-     * 
+     *
      * @return Network driver.
      */
     virtual INetwork& getNetwork() = 0;
 
 protected:
-
     /**
      * Constructs the board interface.
      */
@@ -136,7 +134,6 @@ protected:
     }
 
 private:
-
 };
 
 /******************************************************************************

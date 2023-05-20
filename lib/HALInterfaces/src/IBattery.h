@@ -27,7 +27,7 @@
 /**
  * @brief  Abstract battery interface
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
- * 
+ *
  * @addtogroup HALInterfaces
  *
  * @{
@@ -77,7 +77,6 @@ public:
      * @return Charge level in percentage.
      */
     virtual uint8_t getChargeLevel() = 0;
-
 
 protected:
     /**

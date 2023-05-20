@@ -27,7 +27,7 @@
 /**
  * @brief  Abstract LED interface
  * @author Andreas Merkle <web@blue-andi.de>
- * 
+ *
  * @addtogroup HALInterfaces
  *
  * @{
