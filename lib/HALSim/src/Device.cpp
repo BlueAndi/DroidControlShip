@@ -60,6 +60,9 @@ const char* Device::DEFAULT_SERVER_ADDRESS = "localhost";
 /* Default server port of the device. */
 const char* Device::DEFAULT_SERVER_PORT = "65432";
 
+/* Maximum number of connection retries. */
+const uint8_t Device::MAX_CONN_RETRY_COUNT = 2U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -71,7 +74,29 @@ bool Device::init()
 
 bool Device::process()
 {
-    return m_socket.process();;
+    bool isSuccess = true;
+
+    /* Process SocketClient. */
+    if (false == m_socket.process())
+    {
+        m_retryConnectionCounter++;
+
+        /* Device can retry to connect before returning an error. */
+        if (MAX_CONN_RETRY_COUNT <= m_retryConnectionCounter)
+        {
+            isSuccess = false;
+        }
+    }
+    else
+    {
+        /* Reset connection counter. */
+        if (0U < m_retryConnectionCounter)
+        {
+            m_retryConnectionCounter = 0U;
+        }
+    }
+
+    return isSuccess;
 }
 
 Stream& Device::getStream()

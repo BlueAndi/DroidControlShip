@@ -61,7 +61,7 @@ public:
     /**
      * Constructs the device adapter.
      */
-    Device() : IDevice(), m_socket()
+    Device() : IDevice(), m_retryConnectionCounter(0U), m_socket()
     {
     }
 
@@ -104,6 +104,12 @@ private:
 
     /** Default server port of the device. */
     static const char* DEFAULT_SERVER_PORT;
+
+    /** Maximum number of connection retries. */
+    static const uint8_t MAX_CONN_RETRY_COUNT;
+
+    /** Retry connection counter. */
+    uint8_t m_retryConnectionCounter;
 
     /**
      * Socket stream for communication with the device.
