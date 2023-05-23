@@ -67,7 +67,7 @@ public:
     /**
      * Destroy Serial_.
      */
-    ~Serial_();
+    virtual ~Serial_();
 
     /**
      * Begin Serial_ Communication.

@@ -66,7 +66,7 @@ public:
     /**
      * Destroy Terminal.
      */
-    ~Terminal();
+    virtual ~Terminal();
 
     /**
      * Print argument to the Output Stream.
