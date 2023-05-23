@@ -53,7 +53,7 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the robot simulation button. */
+/** This class provides access to the simulation button. */
 class Button : public IButton
 {
 public:

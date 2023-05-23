@@ -59,7 +59,7 @@
  *****************************************************************************/
 
 /**
- * The concrete simulation robot board.
+ * The concrete simulation board.
  */
 class Board : public IBoard
 {
@@ -101,7 +101,7 @@ public:
     /**
      * Process board components.
      *
-     * @returns If all components are correct, returns true. Otherwise, false;
+     * @returns If all components are processed correctly, returns true. Otherwise, false
      */
     bool process() final
     {
@@ -201,10 +201,10 @@ private:
     /** Device driver */
     Device m_device;
 
-    /** Red LED driver */
+    /** Blue LED driver */
     LedBlue m_ledBlue;
 
-    /** Red LED driver */
+    /** Green LED driver */
     LedGreen m_ledGreen;
 
     /** Red LED driver */

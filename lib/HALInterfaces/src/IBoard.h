@@ -81,7 +81,7 @@ public:
     /**
      * Process board components.
      *
-     * @returns If all components are correct, returns true. Otherwise, false;
+     * @returns If all components are processed correctly, returns true. Otherwise, false.
      */
     virtual bool process() = 0;
 

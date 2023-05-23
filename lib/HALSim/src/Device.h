@@ -54,7 +54,7 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the robot simulation device. */
+/** This class provides access to the simulation device. */
 class Device : public IDevice
 {
 public:
