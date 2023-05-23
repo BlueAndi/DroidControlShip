@@ -85,9 +85,13 @@ public:
     {
         bool isReady = false;
 
-        if (false == m_device.init())
+        if (MIN_BATT_CHARGE <= m_battery.getChargeLevel())
         {
-            /* Handle Device error */
+            /* Log Battery error */
+        }
+        else if (false == m_device.init())
+        {
+            /* Log Device error */
         }
         else
         {
@@ -107,9 +111,13 @@ public:
     {
         bool isSuccess = false;
 
-        if (false == m_device.process())
+        if (MIN_BATT_CHARGE <= m_battery.getChargeLevel())
         {
-            /* Handle Device error */
+            /* Log Battery error */
+        }
+        else if (false == m_device.process())
+        {
+            /* Log Device error */
         }
         else
         {
@@ -191,6 +199,10 @@ public:
     }
 
 protected:
+private:
+    /** Minimum battery charge level in percentage. */
+    static const uint8_t MIN_BATT_CHARGE = 10U;
+
 private:
     /** Battery driver */
     Battery m_battery;
