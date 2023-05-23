@@ -61,19 +61,22 @@
 
 void App::setup()
 {
+    /* Initialize HAL. */
     if (false == Board::getInstance().init())
     {
-        /* Handle Board initialization error */
-        while (true)
-        {
-            ;
-        }
+        /* Log and Handle Board initialization error */
+        fatalErrorHandler();
     }
 }
 
 void App::loop()
 {
-    (void)Board::getInstance().process();
+    /* Process Battery, Device and Network. */
+    if (false == Board::getInstance().process())
+    {
+        /* Log and Handle Board processing error */
+        fatalErrorHandler();
+    }
 }
 
 /******************************************************************************
@@ -83,6 +86,14 @@ void App::loop()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+void App::fatalErrorHandler()
+{
+    while (true)
+    {
+        ;
+    }
+}
 
 /******************************************************************************
  * External Functions
