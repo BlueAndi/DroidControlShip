@@ -312,6 +312,8 @@ bool SocketClient::process()
     {
         if (INVALID_SOCKET != m_members->m_serverSocket)
         {
+            isConnected = true;
+
             fd_set         readFDS, writeFDS, exceptFDS;
             int            result;
             struct timeval timeout;
@@ -348,11 +350,10 @@ bool SocketClient::process()
                         /* Client disconnected or error on the socket. */
                         closeListeningSocket();
                         m_members->m_serverSocket = INVALID_SOCKET;
+                        isConnected               = false;
                     }
                 }
             }
-
-            isConnected = true;
         }
         else
         {
