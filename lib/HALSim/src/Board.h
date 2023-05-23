@@ -77,6 +77,8 @@ public:
 
     /**
      * Initialize the hardware.
+     *
+     * @returns If all components are correctly initialized, returns true. Otherwise, false.
      */
     bool init() final
     {
@@ -86,6 +88,8 @@ public:
 
     /**
      * Process board components.
+     *
+     * @returns If all components are correct, returns true. Otherwise, false;
      */
     bool process() final
     {

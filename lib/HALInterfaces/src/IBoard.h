@@ -73,11 +73,15 @@ public:
 
     /**
      * Initialize the hardware.
+     *
+     * @returns If all components are correctly initialized, returns true. Otherwise, false.
      */
     virtual bool init() = 0;
 
     /**
      * Process board components.
+     *
+     * @returns If all components are correct, returns true. Otherwise, false;
      */
     virtual bool process() = 0;
 
