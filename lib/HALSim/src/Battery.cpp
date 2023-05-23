@@ -60,14 +60,14 @@
 
 uint32_t Battery::getVoltage()
 {
-    /* Not implemented. */
-    return 0U;
+    /* Simulate fully charged battery. */
+    return 7000U;
 }
 
 uint8_t Battery::getChargeLevel()
 {
-    /* Not implemented. */
-    return 0U;
+    /* Simulate fully charged battery. */
+    return 100U;
 }
 
 /******************************************************************************
