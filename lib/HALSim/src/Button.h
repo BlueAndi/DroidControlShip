@@ -67,7 +67,7 @@ public:
     /**
      * Destroys the button adapter.
      */
-    ~Button()
+    virtual ~Button()
     {
     }
 

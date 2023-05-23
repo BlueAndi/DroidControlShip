@@ -67,7 +67,7 @@ public:
     /**
      * Destroys the blue LED adapter.
      */
-    ~LedBlue()
+    virtual ~LedBlue()
     {
     }
 

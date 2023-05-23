@@ -220,7 +220,7 @@ private:
     /**
      * Destroys the concrete board.
      */
-    ~Board()
+    virtual ~Board()
     {
     }
 };

@@ -64,7 +64,7 @@ public:
     /**
      * Destruct the SocketClient.
      */
-    ~SocketClient();
+    virtual ~SocketClient();
 
     /**
      * Initialize the SocketClient.

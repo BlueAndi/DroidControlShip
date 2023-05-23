@@ -67,7 +67,7 @@ public:
     /**
      * Destroys the battery adapter.
      */
-    ~Battery()
+    virtual ~Battery()
     {
     }
 

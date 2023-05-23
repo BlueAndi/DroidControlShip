@@ -68,7 +68,7 @@ public:
     /**
      * Destroys the device adapter.
      */
-    ~Device()
+    virtual ~Device()
     {
     }
 
