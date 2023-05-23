@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "App.h"
+#include <Board.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -60,10 +61,19 @@
 
 void App::setup()
 {
+    if (false == Board::getInstance().init())
+    {
+        /* Handle Board initialization error */
+        while (true)
+        {
+            ;
+        }
+    }
 }
 
 void App::loop()
 {
+    (void)Board::getInstance().process();
 }
 
 /******************************************************************************
