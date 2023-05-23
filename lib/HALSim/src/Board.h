@@ -45,6 +45,7 @@
 #include <IBoard.h>
 #include "Battery.h"
 #include "Button.h"
+#include "Device.h"
 #include "LedBlue.h"
 #include "LedGreen.h"
 #include "LedRed.h"
@@ -77,20 +78,46 @@ public:
 
     /**
      * Initialize the hardware.
+     *
+     * @returns If all components are correctly initialized, returns true. Otherwise, false.
      */
     bool init() final
     {
-        /* Not implemented. */
-        return true;
+        bool isReady = false;
+
+        if (false == m_device.init())
+        {
+            /* Handle Device error */
+        }
+        else
+        {
+            /* Ready */
+            isReady = true;
+        }
+
+        return isReady;
     }
 
     /**
      * Process board components.
+     *
+     * @returns If all components are correct, returns true. Otherwise, false;
      */
     bool process() final
     {
-        /* Not implemented. */
-        return true;
+        bool isSuccess = false;
+
+        if (false == m_device.process())
+        {
+            /* Handle Device error */
+        }
+        else
+        {
+            /* No Errors */
+            isSuccess = true;
+        }
+
+        return isSuccess;
     }
 
     /**
@@ -120,7 +147,7 @@ public:
      */
     IDevice& getDevice() final
     {
-        /* Not implemented. */
+        return m_device;
     }
 
     /**
@@ -171,6 +198,9 @@ private:
     /** Button driver */
     Button m_button;
 
+    /** Device driver */
+    Device m_device;
+
     /** Red LED driver */
     LedBlue m_ledBlue;
 
@@ -183,7 +213,7 @@ private:
     /**
      * Constructs the concrete board.
      */
-    Board() : IBoard(), m_battery(), m_button(), m_ledBlue(), m_ledGreen(), m_ledRed()
+    Board() : IBoard(), m_battery(), m_button(), m_device(), m_ledBlue(), m_ledGreen(), m_ledRed()
     {
     }
 
