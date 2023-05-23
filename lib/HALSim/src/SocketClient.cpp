@@ -310,7 +310,7 @@ bool SocketClient::process()
 
     if (nullptr != m_members)
     {
-        if (INVALID_SOCKET != m_members->m_serverSocket)
+        if (true == connectSocket())
         {
             isConnected = true;
 
@@ -354,10 +354,6 @@ bool SocketClient::process()
                     }
                 }
             }
-        }
-        else
-        {
-            isConnected = connectSocket();
         }
     }
 
