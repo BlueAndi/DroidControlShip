@@ -94,9 +94,14 @@ struct SocketClient::SocketClientImpl
     std::queue<uint8_t> m_rcvQueue;
 
     /**
+     * Socket server address information.
+     */
+    struct addrinfo* m_addrInfo;
+
+    /**
      * Construct an SocketClientImpl instance.
      */
-    SocketClientImpl() : m_serverSocket(INVALID_SOCKET), m_rcvQueue()
+    SocketClientImpl() : m_serverSocket(INVALID_SOCKET), m_rcvQueue(), m_addrInfo(nullptr)
     {
     }
 };
@@ -122,77 +127,47 @@ SocketClient::~SocketClient()
 
 bool SocketClient::init(const char* serverAddress, const char* portNumber)
 {
-    int              result;
-    struct addrinfo  hints;
-    struct addrinfo* addrInfo = nullptr;
-    struct addrinfo* itr      = nullptr;
+    int             result    = 0;
+    bool            isSuccess = false;
+    struct addrinfo hints;
 
-    if (nullptr == m_members)
+    if (nullptr != m_members)
     {
-        return false;
-    }
+        memset(&hints, 0, sizeof(struct addrinfo));
 
-    memset(&hints, 0, sizeof(struct addrinfo));
-
-    hints.ai_family   = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
+        hints.ai_family   = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
 
 #ifdef _WIN32
-    WSADATA wsaData;
+        WSADATA wsaData;
 
-    /* Initialize Winsock */
-    result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (0 != result)
-    {
-        printf("WSAStartup failed with error: %d\n", result);
-        return false;
-    }
+        /* Initialize Winsock */
+        result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+        if (0 != result)
+        {
+            printf("WSAStartup failed with error: %d\n", result);
+        }
 
 #endif
 
-    /* Resolve the server address and port */
-    result = getaddrinfo(serverAddress, portNumber, &hints, &addrInfo);
-    if (0 != result)
-    {
-        printf("getaddrinfo failed with error: %d\n", result);
-        closeListeningSocket();
-        return false;
-    }
-
-    /* Attempt to connect to an address until one succeeds. */
-    for (itr = addrInfo; itr != NULL; itr = itr->ai_next)
-    {
-        /* Create a SOCKET for connecting to server */
-        m_members->m_serverSocket = socket(itr->ai_family, itr->ai_socktype, itr->ai_protocol);
-        if (INVALID_SOCKET == m_members->m_serverSocket)
+        if (0 == result)
         {
-            printf("socket failed\n");
-            closeListeningSocket();
-            return false;
+            /* Resolve the server address and port */
+            result = getaddrinfo(serverAddress, portNumber, &hints, &m_members->m_addrInfo);
+            if (0 != result)
+            {
+                printf("getaddrinfo failed with error: %d\n", result);
+                closeListeningSocket();
+            }
+            else
+            {
+                isSuccess = true;
+            }
         }
-
-        /* Connect to server. */
-        result = connect(m_members->m_serverSocket, itr->ai_addr, (int)itr->ai_addrlen);
-        if (result == SOCKET_ERROR)
-        {
-            m_members->m_serverSocket = INVALID_SOCKET;
-            continue;
-        }
-        break;
     }
 
-    freeaddrinfo(addrInfo);
-
-    if (INVALID_SOCKET == m_members->m_serverSocket)
-    {
-        printf("socket failed\n");
-        freeaddrinfo(addrInfo);
-        closeListeningSocket();
-        return false;
-    }
-
-    return true;
+    return isSuccess;
 }
 
 void SocketClient::print(const char str[])
@@ -331,7 +306,7 @@ size_t SocketClient::readBytes(uint8_t* buffer, size_t length)
 
 bool SocketClient::process()
 {
-    bool isActive = false;
+    bool isConnected = false;
 
     if (nullptr != m_members)
     {
@@ -377,16 +352,67 @@ bool SocketClient::process()
                 }
             }
 
-            isActive = true;
+            isConnected = true;
+        }
+        else
+        {
+            isConnected = connectSocket();
         }
     }
 
-    return isActive;
+    return isConnected;
 }
 
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+bool SocketClient::connectSocket()
+{
+    bool             isConnected = false;
+    struct addrinfo* itr         = nullptr;
+
+    if ((nullptr == m_members) || (nullptr == m_members->m_addrInfo))
+    {
+        /* No address configuration found. */
+        closeListeningSocket();
+    }
+    else if (INVALID_SOCKET != m_members->m_serverSocket)
+    {
+        /* Already connected to socket server. */
+        isConnected = true;
+    }
+    else
+    {
+        /* Attempt to connect to an address until one succeeds. */
+        for (itr = m_members->m_addrInfo; itr != NULL; itr = itr->ai_next)
+        {
+            /* Create a SOCKET for connecting to server */
+            m_members->m_serverSocket = socket(itr->ai_family, itr->ai_socktype, itr->ai_protocol);
+            if (INVALID_SOCKET == m_members->m_serverSocket)
+            {
+                printf("Socket creation failed\n");
+                break;
+            }
+
+            /* Connect to server. */
+            if (SOCKET_ERROR == connect(m_members->m_serverSocket, itr->ai_addr, (int)itr->ai_addrlen))
+            {
+                m_members->m_serverSocket = INVALID_SOCKET;
+                continue;
+            }
+            break;
+        }
+
+        /* Check validity of socket. */
+        if (INVALID_SOCKET != m_members->m_serverSocket)
+        {
+            isConnected = true;
+        }
+    }
+
+    return isConnected;
+}
 
 void SocketClient::closeListeningSocket()
 {
@@ -400,6 +426,11 @@ void SocketClient::closeListeningSocket()
 #else
             close(m_members->m_serverSocket);
 #endif
+        }
+
+        if (nullptr != m_members->m_addrInfo)
+        {
+            freeaddrinfo(m_members->m_addrInfo);
         }
     }
 

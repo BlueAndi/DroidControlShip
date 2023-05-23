@@ -202,6 +202,13 @@ private:
     SocketClientImpl* m_members;
 
     /**
+     * Connect to the socket server.
+     * 
+     * @returns true if successfully connected to socket server. Otherwise, false.
+     */
+    bool connectSocket();
+
+    /**
      * Close the listening socket connection.
      */
     void closeListeningSocket();
