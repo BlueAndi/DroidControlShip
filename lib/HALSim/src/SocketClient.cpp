@@ -348,7 +348,6 @@ bool SocketClient::process()
                     else
                     {
                         /* Client disconnected or error on the socket. */
-                        closeListeningSocket();
                         m_members->m_serverSocket = INVALID_SOCKET;
                         isConnected               = false;
                     }
