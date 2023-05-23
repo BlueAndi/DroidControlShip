@@ -74,7 +74,12 @@ public:
     /**
      * Initialize the hardware.
      */
-    virtual void init() = 0;
+    virtual bool init() = 0;
+
+    /**
+     * Process board components.
+     */
+    virtual bool process() = 0;
 
     /**
      * Get battery driver.
