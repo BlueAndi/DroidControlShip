@@ -26,7 +26,7 @@
 *******************************************************************************/
 /**
  * @brief  Blue LED realization
- * @author Andreas Merkle <web@blue-andi.de>
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup HALSim
  *

@@ -26,7 +26,7 @@
 *******************************************************************************/
 /**
  * @brief  Red LED realization
- * @author Andreas Merkle <web@blue-andi.de>
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
