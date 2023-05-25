@@ -25,20 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Arduino native
- * @author Andreas Merkle <web@blue-andi.de>
+ *  @brief  Implementation of Arduino Serial
+ *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <time.h>
-#include "Terminal.h"
 
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include "Serial.h"
 
 /******************************************************************************
  * Macros
@@ -52,79 +47,119 @@
  * Prototypes
  *****************************************************************************/
 
-extern void setup();
-extern void loop();
-
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
-/** Terminal/Console stream. */
-static Terminal gTerminalStream;
-
-/** Serial driver, used by Arduino applications. */
-Serial_ Serial(gTerminalStream);
 
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
+Serial_::Serial_(Stream& stream) : Stream(), m_stream(stream)
+{
+}
+
+Serial_::~Serial_()
+{
+}
+
+void Serial_::begin(unsigned long baudrate)
+{
+    (void)baudrate;
+}
+
+void Serial_::end()
+{
+}
+
+void Serial_::print(const char str[])
+{
+    m_stream.print(str);
+}
+
+void Serial_::print(uint8_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::print(uint16_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::print(uint32_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::print(int8_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::print(int16_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::print(int32_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::println(const char str[])
+{
+    m_stream.println(str);
+}
+
+void Serial_::println(uint8_t value)
+{
+    m_stream.println(value);
+}
+
+void Serial_::println(uint16_t value)
+{
+    m_stream.println(value);
+}
+
+void Serial_::println(uint32_t value)
+{
+    m_stream.println(value);
+}
+
+void Serial_::println(int8_t value)
+{
+    m_stream.println(value);
+}
+
+void Serial_::println(int16_t value)
+{
+    m_stream.println(value);
+}
+
+void Serial_::println(int32_t value)
+{
+    m_stream.println(value);
+}
+
+size_t Serial_::write(const uint8_t* buffer, size_t length)
+{
+    return m_stream.write(buffer, length);
+}
+
+int Serial_::available() const
+{
+    return m_stream.available();
+}
+
+size_t Serial_::readBytes(uint8_t* buffer, size_t length)
+{
+    return m_stream.readBytes(buffer, length);
+}
 
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-#ifdef UNIT_TEST
-
-extern int main(int argc, char** argv)
-{
-    setup(); /* Prepare test */
-    loop();  /* Run test once */
-
-    return 0;
-}
-
-#else
-
-extern int main(int argc, char** argv)
-{
-    int status = 0;
-
-    setup();
-
-    while (1)
-    {
-        loop();
-    }
-
-    return status;
-}
-
-#endif
-
-extern unsigned long millis()
-{
-    clock_t now = clock();
-
-    return (now * 1000UL) / CLOCKS_PER_SEC;
-}
-
-extern void delay(unsigned long ms)
-{
-    unsigned long timestamp = millis();
-
-    while ((millis() - timestamp) < ms)
-    {
-        ;
-    }
-}
 
 /******************************************************************************
  * Local Functions

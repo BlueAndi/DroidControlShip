@@ -25,20 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Arduino native
- * @author Andreas Merkle <web@blue-andi.de>
+ *  @brief  Implementation of the Terminal/Console Stream
+ *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <time.h>
-#include "Terminal.h"
 
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <stdio.h>
+#include "Terminal.h"
 
 /******************************************************************************
  * Macros
@@ -52,79 +48,124 @@
  * Prototypes
  *****************************************************************************/
 
-extern void setup();
-extern void loop();
-
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
-/** Terminal/Console stream. */
-static Terminal gTerminalStream;
-
-/** Serial driver, used by Arduino applications. */
-Serial_ Serial(gTerminalStream);
 
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
+Terminal::Terminal() : Stream()
+{
+}
+
+Terminal::~Terminal()
+{
+}
+
+void Terminal::print(const char str[])
+{
+    printf("%s", str);
+}
+
+void Terminal::print(uint8_t value)
+{
+    printf("%u", value);
+}
+
+void Terminal::print(uint16_t value)
+{
+    printf("%u", value);
+}
+
+void Terminal::print(uint32_t value)
+{
+    printf("%u", value);
+}
+
+void Terminal::print(int8_t value)
+{
+    printf("%d", value);
+}
+
+void Terminal::print(int16_t value)
+{
+    printf("%d", value);
+}
+
+void Terminal::print(int32_t value)
+{
+    printf("%d", value);
+}
+
+void Terminal::println(const char str[])
+{
+    printf("%s\n", str);
+}
+
+void Terminal::println(uint8_t value)
+{
+    printf("%u\n", value);
+}
+
+void Terminal::println(uint16_t value)
+{
+    printf("%u\n", value);
+}
+
+void Terminal::println(uint32_t value)
+{
+    printf("%u\n", value);
+}
+
+void Terminal::println(int8_t value)
+{
+    printf("%d\n", value);
+}
+
+void Terminal::println(int16_t value)
+{
+    printf("%d\n", value);
+}
+
+void Terminal::println(int32_t value)
+{
+    printf("%d\n", value);
+}
+
+size_t Terminal::write(const uint8_t* buffer, size_t length)
+{
+    size_t count = 0;
+
+    if ((nullptr != buffer) && (0U != length))
+    {
+        for (count = 0; count < length; count++)
+        {
+            printf("%u", buffer[count]);
+        }
+    }
+
+    return count;
+}
+
+int Terminal::available() const
+{
+    /* Not implemented*/
+    return 0;
+}
+
+size_t Terminal::readBytes(uint8_t* buffer, size_t length)
+{
+    /* Not implemented*/
+    (void) buffer;
+    (void) length;
+    return 0;
+}
 
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-#ifdef UNIT_TEST
-
-extern int main(int argc, char** argv)
-{
-    setup(); /* Prepare test */
-    loop();  /* Run test once */
-
-    return 0;
-}
-
-#else
-
-extern int main(int argc, char** argv)
-{
-    int status = 0;
-
-    setup();
-
-    while (1)
-    {
-        loop();
-    }
-
-    return status;
-}
-
-#endif
-
-extern unsigned long millis()
-{
-    clock_t now = clock();
-
-    return (now * 1000UL) / CLOCKS_PER_SEC;
-}
-
-extern void delay(unsigned long ms)
-{
-    unsigned long timestamp = millis();
-
-    while ((millis() - timestamp) < ms)
-    {
-        ;
-    }
-}
 
 /******************************************************************************
  * Local Functions
