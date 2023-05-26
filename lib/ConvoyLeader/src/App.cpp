@@ -89,6 +89,7 @@ void App::setup()
     if (false == Board::getInstance().init())
     {
         /* Log and Handle Board initialization error */
+        LOG_FATAL("HAL init failed.");
         fatalErrorHandler();
     }
 }
@@ -99,6 +100,7 @@ void App::loop()
     if (false == Board::getInstance().process())
     {
         /* Log and Handle Board processing error */
+        LOG_FATAL("HAL process failed.");
         fatalErrorHandler();
     }
 }
