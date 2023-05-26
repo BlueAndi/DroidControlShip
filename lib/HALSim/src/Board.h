@@ -43,6 +43,7 @@
  * Includes
  *****************************************************************************/
 #include <IBoard.h>
+#include <Logging.h>
 #include "Battery.h"
 #include "Button.h"
 #include "Device.h"
@@ -88,10 +89,12 @@ public:
         if (MIN_BATT_CHARGE <= m_battery.getChargeLevel())
         {
             /* Log Battery error */
+            LOG_ERROR("Battery charge below allowed limit. ");
         }
         else if (false == m_device.init())
         {
             /* Log Device error */
+            LOG_ERROR("Device not initialized. ");
         }
         else
         {
@@ -114,10 +117,12 @@ public:
         if (MIN_BATT_CHARGE <= m_battery.getChargeLevel())
         {
             /* Log Battery error */
+            LOG_ERROR("Battery charge below allowed limit. ");
         }
         else if (false == m_device.process())
         {
             /* Log Device error */
+            LOG_ERROR("Device failed to connect. ");
         }
         else
         {
