@@ -25,29 +25,20 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
+ *  @brief  Implementation of the Terminal/Console Stream
+ *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "App.h"
-#include <Board.h>
-#include <Logging.h>
-#include <LogSinkPrinter.h>
 
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <stdio.h>
+#include "Terminal.h"
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
-
-#ifndef CONFIG_LOG_SEVERITY
-#define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
-#endif /* CONFIG_LOG_SEVERITY */
 
 /******************************************************************************
  * Types and classes
@@ -61,66 +52,119 @@
  * Local Variables
  *****************************************************************************/
 
-/** Serial interface baudrate. */
-static const uint32_t SERIAL_BAUDRATE = 115200U;
-
-/** Serial log sink */
-static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-void App::setup()
+Terminal::Terminal() : Stream()
 {
-    Serial.begin(SERIAL_BAUDRATE);
-
-    /* Register serial log sink and select it per default. */
-    if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
-    {
-        (void)Logging::getInstance().selectSink("Serial");
-
-        /* Set severity of logging system. */
-        Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
-    }
-    /* Initialize HAL. */
-    if (false == Board::getInstance().init())
-    {
-        /* Log and Handle Board initialization error */
-        fatalErrorHandler();
-    }
 }
 
-void App::loop()
+Terminal::~Terminal()
 {
-    /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
-    {
-        /* Log and Handle Board processing error */
-        fatalErrorHandler();
-    }
 }
 
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
+void Terminal::print(const char str[])
+{
+    printf("%s", str);
+}
+
+void Terminal::print(uint8_t value)
+{
+    printf("%u", value);
+}
+
+void Terminal::print(uint16_t value)
+{
+    printf("%u", value);
+}
+
+void Terminal::print(uint32_t value)
+{
+    printf("%u", value);
+}
+
+void Terminal::print(int8_t value)
+{
+    printf("%d", value);
+}
+
+void Terminal::print(int16_t value)
+{
+    printf("%d", value);
+}
+
+void Terminal::print(int32_t value)
+{
+    printf("%d", value);
+}
+
+void Terminal::println(const char str[])
+{
+    printf("%s\n", str);
+}
+
+void Terminal::println(uint8_t value)
+{
+    printf("%u\n", value);
+}
+
+void Terminal::println(uint16_t value)
+{
+    printf("%u\n", value);
+}
+
+void Terminal::println(uint32_t value)
+{
+    printf("%u\n", value);
+}
+
+void Terminal::println(int8_t value)
+{
+    printf("%d\n", value);
+}
+
+void Terminal::println(int16_t value)
+{
+    printf("%d\n", value);
+}
+
+void Terminal::println(int32_t value)
+{
+    printf("%d\n", value);
+}
+
+size_t Terminal::write(const uint8_t* buffer, size_t length)
+{
+    size_t count = 0;
+
+    if ((nullptr != buffer) && (0U != length))
+    {
+        for (count = 0; count < length; count++)
+        {
+            printf("%u", buffer[count]);
+        }
+    }
+
+    return count;
+}
+
+int Terminal::available() const
+{
+    /* Not implemented*/
+    return 0;
+}
+
+size_t Terminal::readBytes(uint8_t* buffer, size_t length)
+{
+    /* Not implemented*/
+    (void) buffer;
+    (void) length;
+    return 0;
+}
 
 /******************************************************************************
  * Private Methods
- *****************************************************************************/
-
-void App::fatalErrorHandler()
-{
-    while (true)
-    {
-        ;
-    }
-}
-
-/******************************************************************************
- * External Functions
  *****************************************************************************/
 
 /******************************************************************************
