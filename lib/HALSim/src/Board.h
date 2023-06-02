@@ -50,6 +50,7 @@
 #include "LedBlue.h"
 #include "LedGreen.h"
 #include "LedRed.h"
+#include "Network.h"
 
 /******************************************************************************
  * Macros
@@ -91,6 +92,12 @@ public:
             /* Log Device error */
             LOG_ERROR("Device not initialized. ");
         }
+        else 
+        if (false == m_network.init())
+        {
+            /* Log Network error */
+            LOG_ERROR("Network not initialized. ");
+        }
         else
         {
             /* Ready */
@@ -113,6 +120,12 @@ public:
         {
             /* Log Device error */
             LOG_ERROR("Device failed to connect. ");
+        }
+        else 
+        if (false == m_network.process())
+        {
+            /* Log Network error */
+            LOG_ERROR("Network failed to connect. ");
         }
         else
         {
@@ -190,7 +203,7 @@ public:
      */
     INetwork& getNetwork() final
     {
-        /* Not implemented. */
+        return m_network;
     }
 
 protected:
@@ -213,10 +226,13 @@ private:
     /** Red LED driver */
     LedRed m_ledRed;
 
+    /** Network driver */
+    Network m_network;
+
     /**
      * Constructs the concrete board.
      */
-    Board() : IBoard(), m_battery(), m_button(), m_device(), m_ledBlue(), m_ledGreen(), m_ledRed()
+    Board() : IBoard(), m_battery(), m_button(), m_device(), m_ledBlue(), m_ledGreen(), m_ledRed(), m_network()
     {
     }
 
