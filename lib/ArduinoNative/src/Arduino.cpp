@@ -34,6 +34,7 @@
  *****************************************************************************/
 #include <Arduino.h>
 #include <time.h>
+#include "Terminal.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -57,6 +58,12 @@ extern void loop();
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+
+/** Terminal/Console stream. */
+static Terminal gTerminalStream;
+
+/** Serial driver, used by Arduino applications. */
+Serial_ Serial(gTerminalStream);
 
 /******************************************************************************
  * Public Methods

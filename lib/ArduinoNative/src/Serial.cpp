@@ -25,29 +25,19 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
+ *  @brief  Implementation of Arduino Serial
+ *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "App.h"
-#include <Board.h>
-#include <Logging.h>
-#include <LogSinkPrinter.h>
 
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include "Serial.h"
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
-
-#ifndef CONFIG_LOG_SEVERITY
-#define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
-#endif /* CONFIG_LOG_SEVERITY */
 
 /******************************************************************************
  * Types and classes
@@ -61,66 +51,114 @@
  * Local Variables
  *****************************************************************************/
 
-/** Serial interface baudrate. */
-static const uint32_t SERIAL_BAUDRATE = 115200U;
-
-/** Serial log sink */
-static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-void App::setup()
+Serial_::Serial_(Stream& stream) : Stream(), m_stream(stream)
 {
-    Serial.begin(SERIAL_BAUDRATE);
-
-    /* Register serial log sink and select it per default. */
-    if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
-    {
-        (void)Logging::getInstance().selectSink("Serial");
-
-        /* Set severity of logging system. */
-        Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
-    }
-    /* Initialize HAL. */
-    if (false == Board::getInstance().init())
-    {
-        /* Log and Handle Board initialization error */
-        fatalErrorHandler();
-    }
 }
 
-void App::loop()
+Serial_::~Serial_()
 {
-    /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
-    {
-        /* Log and Handle Board processing error */
-        fatalErrorHandler();
-    }
 }
 
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
+void Serial_::begin(unsigned long baudrate)
+{
+    (void)baudrate;
+}
+
+void Serial_::end()
+{
+}
+
+void Serial_::print(const char str[])
+{
+    m_stream.print(str);
+}
+
+void Serial_::print(uint8_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::print(uint16_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::print(uint32_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::print(int8_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::print(int16_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::print(int32_t value)
+{
+    m_stream.print(value);
+}
+
+void Serial_::println(const char str[])
+{
+    m_stream.println(str);
+}
+
+void Serial_::println(uint8_t value)
+{
+    m_stream.println(value);
+}
+
+void Serial_::println(uint16_t value)
+{
+    m_stream.println(value);
+}
+
+void Serial_::println(uint32_t value)
+{
+    m_stream.println(value);
+}
+
+void Serial_::println(int8_t value)
+{
+    m_stream.println(value);
+}
+
+void Serial_::println(int16_t value)
+{
+    m_stream.println(value);
+}
+
+void Serial_::println(int32_t value)
+{
+    m_stream.println(value);
+}
+
+size_t Serial_::write(const uint8_t* buffer, size_t length)
+{
+    return m_stream.write(buffer, length);
+}
+
+int Serial_::available() const
+{
+    return m_stream.available();
+}
+
+size_t Serial_::readBytes(uint8_t* buffer, size_t length)
+{
+    return m_stream.readBytes(buffer, length);
+}
 
 /******************************************************************************
  * Private Methods
- *****************************************************************************/
-
-void App::fatalErrorHandler()
-{
-    while (true)
-    {
-        ;
-    }
-}
-
-/******************************************************************************
- * External Functions
  *****************************************************************************/
 
 /******************************************************************************
