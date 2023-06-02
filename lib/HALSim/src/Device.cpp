@@ -25,17 +25,14 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Device realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "App.h"
-#include <Board.h>
-#include <Logging.h>
-#include <LogSinkPrinter.h>
+#include "Device.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -44,10 +41,6 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-
-#ifndef CONFIG_LOG_SEVERITY
-#define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
-#endif /* CONFIG_LOG_SEVERITY */
 
 /******************************************************************************
  * Types and classes
@@ -61,48 +54,59 @@
  * Local Variables
  *****************************************************************************/
 
-/** Serial interface baudrate. */
-static const uint32_t SERIAL_BAUDRATE = 115200U;
+/* Default server address of the device. */
+const char* Device::DEFAULT_SERVER_ADDRESS = "localhost";
 
-/** Serial log sink */
-static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
+/* Default server port of the device. */
+const char* Device::DEFAULT_SERVER_PORT = "65432";
+
+/* Maximum number of connection retries. */
+const uint8_t Device::MAX_CONN_RETRY_COUNT = 2U;
 
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-void App::setup()
+bool Device::init()
 {
-    Serial.begin(SERIAL_BAUDRATE);
-
-    /* Register serial log sink and select it per default. */
-    if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
-    {
-        (void)Logging::getInstance().selectSink("Serial");
-
-        /* Set severity of logging system. */
-        Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
-    }
-    /* Initialize HAL. */
-    if (false == Board::getInstance().init())
-    {
-        /* Log and Handle Board initialization error */
-        LOG_FATAL("HAL init failed.");
-        fatalErrorHandler();
-    }
+    return m_socket.init(DEFAULT_SERVER_ADDRESS, DEFAULT_SERVER_PORT);
 }
 
-void App::loop()
+bool Device::process()
 {
-    /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
+    bool isSuccess = true;
+
+    /* Process SocketClient. */
+    if (false == m_socket.process())
     {
-        /* Log and Handle Board processing error */
-        LOG_FATAL("HAL process failed.");
-        fatalErrorHandler();
+        m_retryConnectionCounter++;
+
+        /* Device can retry to connect before returning an error. */
+        if (MAX_CONN_RETRY_COUNT <= m_retryConnectionCounter)
+        {
+            isSuccess = false;
+        }
     }
+    else
+    {
+        /* Reset connection counter. */
+        if (0U < m_retryConnectionCounter)
+        {
+            m_retryConnectionCounter = 0U;
+        }
+    }
+
+    return isSuccess;
+}
+
+Stream& Device::getStream()
+{
+    return m_socket;
+}
+
+void Device::reset()
+{
+    /* Not Implemented. */
 }
 
 /******************************************************************************
@@ -112,14 +116,6 @@ void App::loop()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-void App::fatalErrorHandler()
-{
-    while (true)
-    {
-        ;
-    }
-}
 
 /******************************************************************************
  * External Functions

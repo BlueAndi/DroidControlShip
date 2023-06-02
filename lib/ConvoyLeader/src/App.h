@@ -83,6 +83,12 @@ public:
     void loop();
 
 private:
+    /**
+     * Handler of fatal errors in the Application.
+     */
+    void fatalErrorHandler();
+
+private:
 
     App(const App& app);
     App& operator=(const App& app);

@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Board interface, which abstracts the physical board
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Device realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALInterfaces
+ * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef IBOARD_H
-#define IBOARD_H
+#ifndef DEVICE_H
+#define DEVICE_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdint.h>
-#include "IBattery.h"
-#include "IButton.h"
 #include "IDevice.h"
-#include "ILed.h"
-#include "INetwork.h"
+#include "SocketClient.h"
 
 /******************************************************************************
  * Macros
@@ -58,96 +54,72 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Abstracts the physical board interface.
- */
-class IBoard
+/** This class provides access to the simulation device. */
+class Device : public IDevice
 {
 public:
     /**
-     * Destroys the board interface.
+     * Constructs the device adapter.
      */
-    virtual ~IBoard()
+    Device() : IDevice(), m_retryConnectionCounter(0U), m_socket()
     {
     }
 
     /**
-     * Initialize the hardware.
-     *
-     * @returns If all components are correctly initialized, returns true. Otherwise, false.
+     * Destroys the device adapter.
      */
-    virtual bool init() = 0;
-
-    /**
-     * Process board components.
-     *
-     * @returns If all components are processed correctly, returns true. Otherwise, false.
-     */
-    virtual bool process() = 0;
-
-    /**
-     * Get battery driver.
-     *
-     * @return Battery driver.
-     */
-    virtual IBattery& getBattery() = 0;
-
-    /**
-     * Get button driver.
-     *
-     * @return Button driver.
-     */
-    virtual IButton& getButton() = 0;
-
-    /**
-     * Get Device driver.
-     *
-     * @return Device driver.
-     */
-    virtual IDevice& getDevice() = 0;
-
-    /**
-     * Get red LED driver.
-     *
-     * @return Red LED driver.
-     */
-    virtual ILed& getRedLed() = 0;
-
-    /**
-     * Get green LED driver.
-     *
-     * @return Green LED driver.
-     */
-    virtual ILed& getGreenLed() = 0;
-
-    /**
-     * Get yellow LED driver.
-     *
-     * @return Yellow LED driver.
-     */
-    virtual ILed& getBlueLed() = 0;
-
-    /**
-     * Get Network driver.
-     *
-     * @return Network driver.
-     */
-    virtual INetwork& getNetwork() = 0;
-
-protected:
-    /**
-     * Constructs the board interface.
-     */
-    IBoard()
+    virtual ~Device()
     {
     }
+
+    /**
+     * Initialize device driver.
+     *
+     * @return If successfully initialized, returns true. Otherwise, false.
+     */
+    bool init() final;
+
+    /**
+     * Process communication with the device.
+     *
+     * @return If communication is successful, returns true. Otherwise, false.
+     */
+    bool process() final;
+
+    /**
+     * Get comunication Stream.
+     *
+     * @return Device data Stream.
+     */
+    Stream& getStream() final;
+
+    /**
+     * Reset the device.
+     */
+    void reset() final;
 
 private:
+    /** Default server address of the device. */
+    static const char* DEFAULT_SERVER_ADDRESS;
+
+    /** Default server port of the device. */
+    static const char* DEFAULT_SERVER_PORT;
+
+    /** Maximum number of connection retries. */
+    static const uint8_t MAX_CONN_RETRY_COUNT;
+
+    /** Retry connection counter. */
+    uint8_t m_retryConnectionCounter;
+
+    /**
+     * Socket stream for communication with the device.
+     */
+    SocketClient m_socket;
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IBOARD_H */
+#endif /* DEVICE_H */
 /** @} */

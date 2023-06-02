@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Board interface, which abstracts the physical board
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  The simulation board realization.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALInterfaces
+ * @addtogroup HALSim
  *
  * @{
  */
-
-#ifndef IBOARD_H
-#define IBOARD_H
+#ifndef BOARD_H
+#define BOARD_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +42,14 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdint.h>
-#include "IBattery.h"
-#include "IButton.h"
-#include "IDevice.h"
-#include "ILed.h"
-#include "INetwork.h"
+#include <IBoard.h>
+#include <Logging.h>
+#include "Battery.h"
+#include "Button.h"
+#include "Device.h"
+#include "LedBlue.h"
+#include "LedGreen.h"
+#include "LedRed.h"
 
 /******************************************************************************
  * Macros
@@ -59,16 +60,21 @@
  *****************************************************************************/
 
 /**
- * Abstracts the physical board interface.
+ * The concrete simulation board.
  */
-class IBoard
+class Board : public IBoard
 {
 public:
     /**
-     * Destroys the board interface.
+     * Get board instance.
+     *
+     * @return Board instance
      */
-    virtual ~IBoard()
+    static Board& getInstance()
     {
+        static Board instance; /* idiom */
+
+        return instance;
     }
 
     /**
@@ -76,78 +82,155 @@ public:
      *
      * @returns If all components are correctly initialized, returns true. Otherwise, false.
      */
-    virtual bool init() = 0;
+    bool init() final
+    {
+        bool isReady = false;
+
+        if (false == m_device.init())
+        {
+            /* Log Device error */
+            LOG_ERROR("Device not initialized. ");
+        }
+        else
+        {
+            /* Ready */
+            isReady = true;
+        }
+
+        return isReady;
+    }
 
     /**
      * Process board components.
      *
-     * @returns If all components are processed correctly, returns true. Otherwise, false.
+     * @returns If all components are processed correctly, returns true. Otherwise, false
      */
-    virtual bool process() = 0;
+    bool process() final
+    {
+        bool isSuccess = false;
+
+        if (false == m_device.process())
+        {
+            /* Log Device error */
+            LOG_ERROR("Device failed to connect. ");
+        }
+        else
+        {
+            /* No Errors */
+            isSuccess = true;
+        }
+
+        return isSuccess;
+    }
 
     /**
      * Get battery driver.
      *
      * @return Battery driver.
      */
-    virtual IBattery& getBattery() = 0;
+    IBattery& getBattery() final
+    {
+        return m_battery;
+    }
 
     /**
      * Get button driver.
      *
      * @return Button driver.
      */
-    virtual IButton& getButton() = 0;
+    IButton& getButton() final
+    {
+        return m_button;
+    }
 
     /**
      * Get Device driver.
      *
      * @return Device driver.
      */
-    virtual IDevice& getDevice() = 0;
-
-    /**
-     * Get red LED driver.
-     *
-     * @return Red LED driver.
-     */
-    virtual ILed& getRedLed() = 0;
-
-    /**
-     * Get green LED driver.
-     *
-     * @return Green LED driver.
-     */
-    virtual ILed& getGreenLed() = 0;
+    IDevice& getDevice() final
+    {
+        return m_device;
+    }
 
     /**
      * Get yellow LED driver.
      *
      * @return Yellow LED driver.
      */
-    virtual ILed& getBlueLed() = 0;
+    ILed& getBlueLed() final
+    {
+        return m_ledBlue;
+    }
+
+    /**
+     * Get green LED driver.
+     *
+     * @return Green LED driver.
+     */
+    ILed& getGreenLed() final
+    {
+        return m_ledGreen;
+    }
+
+    /**
+     * Get red LED driver.
+     *
+     * @return Red LED driver.
+     */
+    ILed& getRedLed() final
+    {
+        return m_ledRed;
+    }
 
     /**
      * Get Network driver.
      *
      * @return Network driver.
      */
-    virtual INetwork& getNetwork() = 0;
+    INetwork& getNetwork() final
+    {
+        /* Not implemented. */
+    }
 
 protected:
+private:
+    /** Battery driver */
+    Battery m_battery;
+
+    /** Button driver */
+    Button m_button;
+
+    /** Device driver */
+    Device m_device;
+
+    /** Blue LED driver */
+    LedBlue m_ledBlue;
+
+    /** Green LED driver */
+    LedGreen m_ledGreen;
+
+    /** Red LED driver */
+    LedRed m_ledRed;
+
     /**
-     * Constructs the board interface.
+     * Constructs the concrete board.
      */
-    IBoard()
+    Board() : IBoard(), m_battery(), m_button(), m_device(), m_ledBlue(), m_ledGreen(), m_ledRed()
     {
     }
 
-private:
+    /**
+     * Destroys the concrete board.
+     */
+    virtual ~Board()
+    {
+    }
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IBOARD_H */
+#endif /* BOARD_H */
 /** @} */

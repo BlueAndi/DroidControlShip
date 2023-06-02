@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Board interface, which abstracts the physical board
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Battery realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALInterfaces
+ * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef IBOARD_H
-#define IBOARD_H
+#ifndef BATTERY_H
+#define BATTERY_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +43,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdint.h>
 #include "IBattery.h"
-#include "IButton.h"
-#include "IDevice.h"
-#include "ILed.h"
-#include "INetwork.h"
 
 /******************************************************************************
  * Macros
@@ -58,89 +53,37 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Abstracts the physical board interface.
- */
-class IBoard
+/** This class provides access to the robot simulation battery. */
+class Battery : public IBattery
 {
 public:
     /**
-     * Destroys the board interface.
+     * Constructs the battery adapter.
      */
-    virtual ~IBoard()
+    Battery() : IBattery()
     {
     }
 
     /**
-     * Initialize the hardware.
-     *
-     * @returns If all components are correctly initialized, returns true. Otherwise, false.
+     * Destroys the battery adapter.
      */
-    virtual bool init() = 0;
-
-    /**
-     * Process board components.
-     *
-     * @returns If all components are processed correctly, returns true. Otherwise, false.
-     */
-    virtual bool process() = 0;
-
-    /**
-     * Get battery driver.
-     *
-     * @return Battery driver.
-     */
-    virtual IBattery& getBattery() = 0;
-
-    /**
-     * Get button driver.
-     *
-     * @return Button driver.
-     */
-    virtual IButton& getButton() = 0;
-
-    /**
-     * Get Device driver.
-     *
-     * @return Device driver.
-     */
-    virtual IDevice& getDevice() = 0;
-
-    /**
-     * Get red LED driver.
-     *
-     * @return Red LED driver.
-     */
-    virtual ILed& getRedLed() = 0;
-
-    /**
-     * Get green LED driver.
-     *
-     * @return Green LED driver.
-     */
-    virtual ILed& getGreenLed() = 0;
-
-    /**
-     * Get yellow LED driver.
-     *
-     * @return Yellow LED driver.
-     */
-    virtual ILed& getBlueLed() = 0;
-
-    /**
-     * Get Network driver.
-     *
-     * @return Network driver.
-     */
-    virtual INetwork& getNetwork() = 0;
-
-protected:
-    /**
-     * Constructs the board interface.
-     */
-    IBoard()
+    virtual ~Battery()
     {
     }
+
+    /**
+     * Get battery voltage read.
+     *
+     * @return Battery voltage in millivolts.
+     */
+    uint32_t getVoltage() final;
+
+    /**
+     * Get battery charge level.
+     *
+     * @return Charge level in percentage.
+     */
+    uint8_t getChargeLevel() final;
 
 private:
 };
@@ -149,5 +92,5 @@ private:
  * Functions
  *****************************************************************************/
 
-#endif /* IBOARD_H */
+#endif /* BATTERY_H */
 /** @} */

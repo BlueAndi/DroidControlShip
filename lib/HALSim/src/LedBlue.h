@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Board interface, which abstracts the physical board
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Blue LED realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALInterfaces
+ * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef IBOARD_H
-#define IBOARD_H
+#ifndef LEDBLUE_H
+#define LEDBLUE_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +43,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdint.h>
-#include "IBattery.h"
-#include "IButton.h"
-#include "IDevice.h"
 #include "ILed.h"
-#include "INetwork.h"
 
 /******************************************************************************
  * Macros
@@ -58,89 +53,30 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Abstracts the physical board interface.
- */
-class IBoard
+/** This class provides access to the blue LED. */
+class LedBlue : public ILed
 {
 public:
     /**
-     * Destroys the board interface.
+     * Constructs the blue LED adapter.
      */
-    virtual ~IBoard()
+    LedBlue() : ILed()
     {
     }
 
     /**
-     * Initialize the hardware.
-     *
-     * @returns If all components are correctly initialized, returns true. Otherwise, false.
+     * Destroys the blue LED adapter.
      */
-    virtual bool init() = 0;
-
-    /**
-     * Process board components.
-     *
-     * @returns If all components are processed correctly, returns true. Otherwise, false.
-     */
-    virtual bool process() = 0;
-
-    /**
-     * Get battery driver.
-     *
-     * @return Battery driver.
-     */
-    virtual IBattery& getBattery() = 0;
-
-    /**
-     * Get button driver.
-     *
-     * @return Button driver.
-     */
-    virtual IButton& getButton() = 0;
-
-    /**
-     * Get Device driver.
-     *
-     * @return Device driver.
-     */
-    virtual IDevice& getDevice() = 0;
-
-    /**
-     * Get red LED driver.
-     *
-     * @return Red LED driver.
-     */
-    virtual ILed& getRedLed() = 0;
-
-    /**
-     * Get green LED driver.
-     *
-     * @return Green LED driver.
-     */
-    virtual ILed& getGreenLed() = 0;
-
-    /**
-     * Get yellow LED driver.
-     *
-     * @return Yellow LED driver.
-     */
-    virtual ILed& getBlueLed() = 0;
-
-    /**
-     * Get Network driver.
-     *
-     * @return Network driver.
-     */
-    virtual INetwork& getNetwork() = 0;
-
-protected:
-    /**
-     * Constructs the board interface.
-     */
-    IBoard()
+    virtual ~LedBlue()
     {
     }
+
+    /**
+     * Enables/Disables the LED.
+     *
+     * @param[in] enableIt  Enable LED with true, disable it with false.
+     */
+    void enable(bool enableIt) final;
 
 private:
 };
@@ -149,5 +85,5 @@ private:
  * Functions
  *****************************************************************************/
 
-#endif /* IBOARD_H */
+#endif /* LEDBLUE_H */
 /** @} */
