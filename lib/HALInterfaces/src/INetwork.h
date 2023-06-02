@@ -43,8 +43,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdbool.h>
-#include <Stream.h>
+#include <stdint.h>
+#include <WString.h>
+#include <functional>
 
 /******************************************************************************
  * Macros
@@ -58,6 +59,11 @@
 class INetwork
 {
 public:
+    /**
+     * Topic callback prototype.
+     */
+    typedef std::function<void(const String& payload)> TopicCallback;
+
     /**
      * Destroys the interface.
      */
@@ -80,11 +86,61 @@ public:
     virtual bool process() = 0;
 
     /**
-     * Get comunication Stream.
+     * Set client configuration.
      *
-     * @return Network data Stream.
+     * @param[in] clientId      Client ID.
+     * @param[in] brokerAddress Broker address to connect to.
+     * @param[in] brokerPort    Broker port to connect to.
+     * @param[in] willTopic     Last will topic. If empty, no last will is used.
+     * @param[in] willMessage   Last will message.
+     * @param[in] reconnect     If true, the client will try to reconnect to the broker, if the connection is lost.
+     * @return If successfully set, returns true. Otherwise, false.
      */
-    virtual Stream& getStream() = 0;
+    virtual bool setConfig(const String& clientId, const String& brokerAddress, uint16_t brokerPort,
+                           const String& willTopic, const String& willMessage, bool reconnect) = 0;
+
+    /**
+     * Connect to the network.
+     *
+     * @return If successfully connected, returns true. Otherwise, false.
+     */
+    virtual bool connect() = 0;
+
+    /**
+     * Disconnect from the network.
+     */
+    virtual void disconnect() = 0;
+
+    /**
+     * Is connected to the network?
+     *
+     * @return If connected, it will return true otherwise false.
+     */
+    virtual bool isConnected() const = 0;
+
+    /**
+     * Publishes a message to the network.
+     *
+     * @param[in] topic     Topic to publish to.
+     * @param[in] message   Message to publish.
+     */
+    virtual bool publish(const String& topic, const String& message) = 0;
+
+    /**
+     * Subscribes to a topic.
+     *
+     * @param[in] topic     Topic to subscribe to.
+     * @param[in] callback  Callback function, which is called on a new message.
+     * @return If successfully subscribed, returns true. Otherwise, false.
+     */
+    virtual bool subscribe(const String& topic, TopicCallback callback) = 0;
+
+    /**
+     * Unsubscribes from a topic.
+     *
+     * @param[in] topic     Topic to unsubscribe from.
+     */
+    virtual void unsubscribe(const String& topic) = 0;
 
 protected:
     /**
