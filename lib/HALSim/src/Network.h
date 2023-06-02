@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Abstract network interface
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Network realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALInterfaces
+ * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef INETWORK_H
-#define INETWORK_H
+#ifndef NETWORK_H
+#define NETWORK_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,9 +43,10 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdint.h>
-#include <WString.h>
-#include <functional>
+#include "INetwork.h"
+#include <mosquitto.h>
+#include <SimpleTimer.hpp>
+#include <vector>
 
 /******************************************************************************
  * Macros
@@ -55,35 +56,33 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The abstract network interface. */
-class INetwork
+/** This class provides access to the simulation network. */
+class Network : public INetwork
 {
 public:
     /**
-     * Topic callback prototype.
+     * Constructs the network adapter.
      */
-    typedef std::function<void(const String& payload)> TopicCallback;
+    Network();
 
     /**
-     * Destroys the interface.
+     * Destroys the network adapter.
      */
-    virtual ~INetwork()
-    {
-    }
+    virtual ~Network();
 
     /**
      * Initialize network driver.
      *
      * @return If successfully initialized, returns true. Otherwise, false.
      */
-    virtual bool init() = 0;
+    bool init() final;
 
     /**
      * Process communication with the network.
      *
      * @return If communication is successful, returns true. Otherwise, false.
      */
-    virtual bool process() = 0;
+    bool process() final;
 
     /**
      * Set client configuration.
@@ -96,27 +95,27 @@ public:
      * @param[in] reconnect     If true, the client will try to reconnect to the broker, if the connection is lost.
      * @return If successfully set, returns true. Otherwise, false.
      */
-    virtual bool setConfig(const String& clientId, const String& brokerAddress, uint16_t brokerPort,
-                           const String& willTopic, const String& willMessage, bool reconnect) = 0;
+    bool setConfig(const String& clientId, const String& brokerAddress, uint16_t brokerPort, const String& willTopic,
+                   const String& willMessage, bool reconnect) final;
 
     /**
      * Connect to the network.
      *
      * @return If successfully connected, returns true. Otherwise, false.
      */
-    virtual bool connect() = 0;
+    bool connect() final;
 
     /**
      * Disconnect from the network.
      */
-    virtual void disconnect() = 0;
+    void disconnect() final;
 
     /**
      * Is connected to the network?
      *
      * @return If connected, it will return true otherwise false.
      */
-    virtual bool isConnected() const = 0;
+    bool isConnected() const final;
 
     /**
      * Publishes a message to the network.
@@ -124,7 +123,7 @@ public:
      * @param[in] topic     Topic to publish to.
      * @param[in] message   Message to publish.
      */
-    virtual bool publish(const String& topic, const String& message) = 0;
+    bool publish(const String& topic, const String& message) final;
 
     /**
      * Subscribes to a topic.
@@ -133,29 +132,115 @@ public:
      * @param[in] callback  Callback function, which is called on a new message.
      * @return If successfully subscribed, returns true. Otherwise, false.
      */
-    virtual bool subscribe(const String& topic, TopicCallback callback) = 0;
+    bool subscribe(const String& topic, TopicCallback callback) final;
 
     /**
      * Unsubscribes from a topic.
      *
      * @param[in] topic     Topic to unsubscribe from.
      */
-    virtual void unsubscribe(const String& topic) = 0;
+    void unsubscribe(const String& topic) final;
 
-protected:
+public:
     /**
-     * Constructs the interface.
+     * Callback function, which is called on disconnect.
+     *
+     * @param[in] rc    Result code.
      */
-    INetwork()
-    {
-    }
+    void onDisconnectCallback(int rc);
+
+    /**
+     * Callback function, which is called on message reception.
+     *
+     * @param[in] msg   Message received.
+     */
+    void onMessageCallback(const mosquitto_message* msg);
 
 private:
+    /** MQTT Service States. */
+    enum State
+    {
+        STATE_UNINITIALIZED = 0, /**< Uninitialized state. */
+        STATE_IDLE,              /**< Idle state. */
+        STATE_DISCONNECTED,      /**< Disconnecting state. */
+        STATE_CONNECTED,         /**< Connected state. */
+    };
+
+    /**
+     * Subscriber information
+     */
+    struct Subscriber
+    {
+        String        topic;    /**< The subscriber topic */
+        TopicCallback callback; /**< The subscriber callback */
+    };
+
+    /**
+     * This type defines a list of subscribers.
+     */
+    typedef std::vector<Subscriber*> SubscriberList;
+
+    /** MQTT Loop Timeout. */
+    static const int MQTT_LOOP_TIMEOUT_MS = 100;
+
+    /** Reconnect Timeout. */
+    static const int RECONNECT_TIMEOUT_MS = 1000;
+
+    /** Connection state */
+    State m_state;
+
+    /** Mosquitto instance */
+    mosquitto* m_mqttClient;
+
+    /** Client ID. */
+    String m_clientId;
+
+    /** Broker address to connect to. */
+    String m_brokerAddress;
+
+    /** Broker port to connect to. */
+    uint16_t m_brokerPort;
+
+    /** Will topic. */
+    String m_willTopic;
+
+    /** Will message. */
+    String m_willMessage;
+
+    /** Reconnect Flag. */
+    bool m_reconnect;
+
+    /** Reconnect Timer. */
+    SimpleTimer m_reconnectTimer;
+
+    /** List of subscribers */
+    SubscriberList m_subscriberList;
+
+private:
+    /**
+     * Process the Idle state.
+     */
+    void idleState();
+
+    /**
+     * Process the Disconnected state.
+     */
+    void disconnectedState();
+
+    /**
+     * Process the Connected state.
+     */
+    void connectedState();
+
+    /**
+     * Resuscribe to all topics.
+     */
+    void resubscribe();
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* INETWORK_H */
+#endif /* NETWORK_H */
 /** @} */
