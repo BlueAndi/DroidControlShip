@@ -119,13 +119,13 @@ public:
         if (false == m_device.process())
         {
             /* Log Device error */
-            LOG_ERROR("Device failed to connect. ");
+            LOG_ERROR("Device process failed. ");
         }
         else 
         if (false == m_network.process())
         {
             /* Log Network error */
-            LOG_ERROR("Network failed to connect. ");
+            LOG_ERROR("Network process failed. ");
         }
         else
         {
