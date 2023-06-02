@@ -1,0 +1,36 @@
+@startuml MQTT State Machine
+
+Title MQTT State Machine
+hide empty description
+
+
+state "Uninitialized" as Uninitialized
+state "Idle" as Idle
+state "Disconnected" as Disconnected
+state "Connected" as Connected
+
+
+Uninitialized: /entry Wait for user to call init()
+Uninitialized: /do Initialize MQTT Library
+
+Idle: /entry Wait for Client ID, Broker Address and Port
+Idle: /do Create MQTT Client with given parameters
+Idle: /do Set callbacks
+Idle: /do Set will (optional)
+
+Disconnected: /entry Re-/start reconnection timer
+Disconnected: /do Connect to Broker
+Disconnected: /exit Subscribe to registered topics
+
+Connected: /do Handle loop
+Connected: /exit Unset reconnection flag if user requested disconnect
+
+
+[*] --> Uninitialized : Instanciation of\nthe MQTT Client
+Uninitialized --> Idle : [Library initialized]
+Uninitialized <-- Idle : [Fatal Error on\nClient Creation]
+Idle --> Disconnected : [Client created]
+Disconnected --> Connected : [Connected\nto Broker]
+Disconnected <-- Connected : [Disconnected\nfrom Broker]
+
+@enduml
