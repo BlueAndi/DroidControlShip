@@ -43,6 +43,7 @@
  * Includes
  *****************************************************************************/
 #include <IBoard.h>
+#include <Logging.h>
 #include "Battery.h"
 #include "Button.h"
 #include "Device.h"
@@ -85,13 +86,10 @@ public:
     {
         bool isReady = false;
 
-        if (MIN_BATT_CHARGE <= m_battery.getChargeLevel())
-        {
-            /* Log Battery error */
-        }
-        else if (false == m_device.init())
+        if (false == m_device.init())
         {
             /* Log Device error */
+            LOG_ERROR("Device not initialized. ");
         }
         else
         {
@@ -111,13 +109,10 @@ public:
     {
         bool isSuccess = false;
 
-        if (MIN_BATT_CHARGE <= m_battery.getChargeLevel())
-        {
-            /* Log Battery error */
-        }
-        else if (false == m_device.process())
+        if (false == m_device.process())
         {
             /* Log Device error */
+            LOG_ERROR("Device failed to connect. ");
         }
         else
         {
@@ -199,10 +194,6 @@ public:
     }
 
 protected:
-private:
-    /** Minimum battery charge level in percentage. */
-    static const uint8_t MIN_BATT_CHARGE = 10U;
-
 private:
     /** Battery driver */
     Battery m_battery;
