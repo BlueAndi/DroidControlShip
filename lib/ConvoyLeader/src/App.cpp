@@ -85,12 +85,20 @@ void App::setup()
 
         LOG_DEBUG("LOGGER READY");
     }
+
     /* Initialize HAL. */
     if (false == Board::getInstance().init())
     {
         /* Log and Handle Board initialization error */
         LOG_FATAL("HAL init failed.");
         fatalErrorHandler();
+    }
+    else
+    {
+        /* Blink Green LED to signal all-good. */
+        Board::getInstance().getGreenLed().enable(true);
+        delay(1000);
+        Board::getInstance().getGreenLed().enable(false);
     }
 }
 
@@ -115,6 +123,9 @@ void App::loop()
 
 void App::fatalErrorHandler()
 {
+    /* Turn on Red LED to signal fatal error. */
+    Board::getInstance().getRedLed().enable(true);
+
     while (true)
     {
         ;
