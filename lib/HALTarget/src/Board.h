@@ -47,6 +47,7 @@
 #include "Battery.h"
 #include "Button.h"
 #include "Device.h"
+#include "IO.h"
 #include "LedBlue.h"
 #include "LedGreen.h"
 #include "LedRed.h"
@@ -86,6 +87,8 @@ public:
     bool init() final
     {
         bool isReady = false;
+
+        IO::getInstance().init();
 
         if (false == m_device.init())
         {
