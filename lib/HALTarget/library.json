@@ -11,6 +11,10 @@
     "license": "MIT",
     "dependencies": [{
         "name": "HALInterfaces"
+    },{
+        "owner": "knolleary",
+        "name": "PubSubClient",
+        "version": "~2.8"
     }],
     "frameworks": "arduino",
     "platforms": "*"
