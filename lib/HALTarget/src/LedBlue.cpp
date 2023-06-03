@@ -61,7 +61,15 @@
 
 void LedBlue::enable(bool enableIt)
 {
-    IO::getInstance().writeGPIO(GPIOPins::INFO_LED_B, (uint8_t)enableIt);
+    uint8_t value = HIGH;
+
+    /* LED is active-low. */
+    if (true == enableIt)
+    {
+        value = LOW;
+    }
+
+    IO::getInstance().writeGPIO(GPIOPins::INFO_LED_B, value);
 }
 
 /******************************************************************************
