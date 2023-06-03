@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "Button.h"
+#include "IO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -60,8 +61,7 @@
 
 bool Button::isShortPressed()
 {
-    /* Not implemented. */
-    return false;
+    return IO::getInstance().readGPIO(GPIOPins::PIN_WIFI_AND_RESET_KEY);
 }
 
 bool Button::isLongPressed()
