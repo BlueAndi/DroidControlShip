@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "LedGreen.h"
+#include "IO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -60,8 +61,7 @@
 
 void LedGreen::enable(bool enableIt)
 {
-    /* Not implemented. */
-    (void)enableIt;
+    IO::getInstance().writeGPIO(GPIOPins::INFO_LED_G, (uint8_t)enableIt);
 }
 
 /******************************************************************************
