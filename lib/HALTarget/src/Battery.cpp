@@ -61,26 +61,31 @@
 
 uint32_t Battery::getVoltage()
 {
-    return IO::getInstance().readAnalogGPIOInMillivolt(GPIOPins::PIN_BATT_MEASUREMENT);
+    uint32_t vMeasured = IO::getInstance().readAnalogGPIOInMillivolt(GPIOPins::PIN_BATT_MEASUREMENT);
+
+    return ((vMeasured * 10000) / REFERENCE_VOLTAGE);
 }
 
 uint8_t Battery::getChargeLevel()
 {
     /* Simple State of Charge calculation. Assume Voltage is linear. */
+    uint8_t  calculatedCharge = 0U;
+    uint32_t measuredVoltage  = getVoltage();
 
-    float   voltageFunctionSlope = 100 / (VOLTAGE_MAX - VOLTAGE_MIN);
-    int32_t calculatedCharge     = (getVoltage() - VOLTAGE_MIN) * voltageFunctionSlope;
-
-    if (100 < calculatedCharge)
+    if (VOLTAGE_MAX < measuredVoltage)
     {
         calculatedCharge = 100;
     }
-    else if (0 > calculatedCharge)
+    else if (VOLTAGE_MIN > measuredVoltage)
     {
         calculatedCharge = 0;
     }
+    else
+    {
+        calculatedCharge = (uint8_t)(((measuredVoltage - VOLTAGE_MIN) * 100) / (VOLTAGE_MAX - VOLTAGE_MIN));
+    }
 
-    return static_cast<uint8_t>(calculatedCharge);
+    return calculatedCharge;
 }
 
 /******************************************************************************
