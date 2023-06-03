@@ -95,6 +95,17 @@ void App::setup()
     }
     else
     {
+        /* Check Battery. */
+        uint8_t batteryLevel = Board::getInstance().getBattery().getChargeLevel();
+        LOG_DEBUG("Battery level: %u%%", batteryLevel);
+        LOG_DEBUG("Battery voltage: %u", Board::getInstance().getBattery().getVoltage());
+
+        if (10U > batteryLevel)
+        {
+            LOG_FATAL("Battery too low.");
+            fatalErrorHandler();
+        }
+
         /* Blink Green LED to signal all-good. */
         Board::getInstance().getGreenLed().enable(true);
         delay(1000);
