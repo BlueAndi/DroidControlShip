@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "Battery.h"
+#include "IO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -60,14 +61,26 @@
 
 uint32_t Battery::getVoltage()
 {
-    /* Simulate fully charged battery. */
-    return 7000U;
+    return IO::getInstance().readAnalogGPIOInMillivolt(GPIOPins::PIN_BATT_MEASUREMENT);
 }
 
 uint8_t Battery::getChargeLevel()
 {
-    /* Simulate fully charged battery. */
-    return 100U;
+    /* Simple State of Charge calculation. Assume Voltage is linear. */
+
+    float   voltageFunctionSlope = 100 / (VOLTAGE_MAX - VOLTAGE_MIN);
+    int32_t calculatedCharge     = (getVoltage() - VOLTAGE_MIN) * voltageFunctionSlope;
+
+    if (100 < calculatedCharge)
+    {
+        calculatedCharge = 100;
+    }
+    else if (0 > calculatedCharge)
+    {
+        calculatedCharge = 0;
+    }
+
+    return static_cast<uint8_t>(calculatedCharge);
 }
 
 /******************************************************************************

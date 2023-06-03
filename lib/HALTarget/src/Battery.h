@@ -86,6 +86,8 @@ public:
     uint8_t getChargeLevel() final;
 
 private:
+    static const uint32_t VOLTAGE_MIN = 6000U; /**< Minimum voltage in millivolts. */
+    static const uint32_t VOLTAGE_MAX = 7200U; /**< Maximum voltage in millivolts. */
 };
 
 /******************************************************************************
