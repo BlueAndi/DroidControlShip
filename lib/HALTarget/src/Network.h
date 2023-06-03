@@ -44,6 +44,10 @@
  * Includes
  *****************************************************************************/
 #include "INetwork.h"
+#include <PubSubClient.h>
+#include <SimpleTimer.hpp>
+#include <vector>
+#include <WiFi.h>
 
 /******************************************************************************
  * Macros
@@ -137,6 +141,105 @@ public:
      * @param[in] topic     Topic to unsubscribe from.
      */
     void unsubscribe(const String& topic) final;
+
+private:
+    /** MQTT Service States. */
+    enum State
+    {
+        STATE_UNINITIALIZED = 0, /**< Uninitialized state. */
+        STATE_IDLE,              /**< Idle state. */
+        STATE_DISCONNECTED,      /**< Disconnecting state. */
+        STATE_CONNECTED,         /**< Connected state. */
+    };
+
+    /**
+     * Subscriber information
+     */
+    struct Subscriber
+    {
+        String        topic;    /**< The subscriber topic */
+        TopicCallback callback; /**< The subscriber callback */
+    };
+
+    /**
+     * This type defines a list of subscribers.
+     */
+    typedef std::vector<Subscriber*> SubscriberList;
+
+    /** MQTT Keep Alive in seconds. */
+    static const uint16_t MQTT_KEEP_ALIVE_S = 2U;
+
+    /** Reconnect Timeout. */
+    static const int RECONNECT_TIMEOUT_MS = 1000;
+
+    /**
+     * Max. MQTT client buffer size in byte.
+     * Received MQTT messages greather than this will be skipped.
+     */
+    static const size_t MAX_BUFFER_SIZE = 1024U;
+
+    /** Connection state */
+    State m_state;
+
+    /** WiFi client */
+    WiFiClient m_wifiClient;
+
+    /** Mosquitto instance */
+    PubSubClient m_mqttClient;
+
+    /** Client ID. */
+    String m_clientId;
+
+    /** Broker address to connect to. */
+    String m_brokerAddress;
+
+    /** Broker port to connect to. */
+    uint16_t m_brokerPort;
+
+    /** Will topic. */
+    String m_willTopic;
+
+    /** Will message. */
+    String m_willMessage;
+
+    /** Reconnect Flag. */
+    bool m_reconnect;
+
+    /** Reconnect Timer. */
+    SimpleTimer m_reconnectTimer;
+
+    /** List of subscribers */
+    SubscriberList m_subscriberList;
+
+private:
+    /**
+     * Process the Idle state.
+     */
+    void idleState();
+
+    /**
+     * Process the Disconnected state.
+     */
+    void disconnectedState();
+
+    /**
+     * Process the Connected state.
+     */
+    void connectedState();
+
+    /**
+     * Resubscribe to all topics.
+     */
+    void resubscribe();
+
+    /**
+     * Callback function, which is called on message reception.
+     *
+     * @param[in] topic     The topic name.
+     * @param[in] payload   The payload of the topic.
+     * @param[in] length    Payload length in byte.
+     */
+    void onMessageCallback(char* topic, uint8_t* payload, uint32_t length);
 };
 
 /******************************************************************************
