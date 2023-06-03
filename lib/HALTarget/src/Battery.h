@@ -53,7 +53,7 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the robot simulation battery. */
+/** This class provides access to the robot's battery. */
 class Battery : public IBattery
 {
 public:

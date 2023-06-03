@@ -62,7 +62,7 @@
  *****************************************************************************/
 
 /**
- * The concrete simulation board.
+ * The concrete target board.
  */
 class Board : public IBoard
 {
@@ -95,8 +95,7 @@ public:
             /* Log Device error */
             LOG_ERROR("Device not initialized. ");
         }
-        else 
-        if (false == m_network.init())
+        else if (false == m_network.init())
         {
             /* Log Network error */
             LOG_ERROR("Network not initialized. ");
@@ -124,8 +123,7 @@ public:
             /* Log Device error */
             LOG_ERROR("Device process failed. ");
         }
-        else 
-        if (false == m_network.process())
+        else if (false == m_network.process())
         {
             /* Log Network error */
             LOG_ERROR("Network process failed. ");

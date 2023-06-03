@@ -53,7 +53,7 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the simulation network. */
+/** This class provides access to the robot's network. */
 class Network : public INetwork
 {
 public:
