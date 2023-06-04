@@ -152,7 +152,7 @@ public:
 
 private:
     /** Size of the RX Queue */
-    static const uint8_t USB_RX_QUEUE_SIZE = 100U;
+    static const uint16_t USB_RX_QUEUE_SIZE = 1024U;
 
     /* USB core driver instance for USB Host Shield */
     USB m_usb;
