@@ -126,7 +126,7 @@ bool USBHost::process()
     m_usb.Task();
 
     /* USB Device is connected and ready. */
-    if (m_acm.isReady())
+    if (true == m_acm.isReady())
     {
         uint16_t receivedBytes = UINT8_MAX; /* Doubles as number of bytes to be read, after RcvData(). */
         uint8_t  buf[receivedBytes];
@@ -141,7 +141,7 @@ bool USBHost::process()
             LOG_ERROR("Failed to receive from USB Device with error code: %d", ret);
             isSuccess = false;
         }
-        else if (receivedBytes)
+        else if ((0U < receivedBytes) && (nullptr != m_rxQueue))
         {
             for (uint16_t idx = 0; idx < receivedBytes; idx++)
             {
