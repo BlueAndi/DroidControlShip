@@ -166,7 +166,23 @@ size_t USBHost::write(uint8_t value)
 
 size_t USBHost::write(const uint8_t* buffer, size_t length)
 {
-    return 0;
+    uint8_t ret       = hrSUCCESS;
+    size_t  sentBytes = 0;
+
+    if ((nullptr != buffer) && (0U < length) && (true == m_acm.isReady()))
+    {
+        ret = m_acm.SndData(length, const_cast<uint8_t*>(buffer));
+        if (hrSUCCESS != ret)
+        {
+            LOG_ERROR("Failed to send data to USB Device with error code: %d", ret);
+        }
+        else
+        {
+            sentBytes = length;
+        }
+    }
+
+    return sentBytes;
 }
 
 int USBHost::available()
