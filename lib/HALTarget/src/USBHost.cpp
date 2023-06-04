@@ -81,6 +81,10 @@ uint8_t ACMAsyncOper::OnInit(ACM* pacm)
         {
             LOG_ERROR("Line coding failed with error code: %d", ret);
         }
+        else
+        {
+            LOG_DEBUG("Device Ready.");
+        }
     }
 
     return ret;
