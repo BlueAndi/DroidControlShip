@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "Device.h"
+#include "IO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -60,7 +61,7 @@
 
 bool Device::init()
 {
-    return true;
+    reset();
 }
 
 bool Device::process()
@@ -77,7 +78,9 @@ Stream& Device::getStream()
 
 void Device::reset()
 {
-    /* Not Implemented. */
+    IO::getInstance().writeGPIO(GPIOPins::PIN_ROBOT_RESET, HIGH);
+    delay(RESET_TIME_MS);
+    IO::getInstance().writeGPIO(GPIOPins::PIN_ROBOT_RESET, LOW);
 }
 
 /******************************************************************************
