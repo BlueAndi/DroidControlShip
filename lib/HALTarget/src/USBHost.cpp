@@ -171,7 +171,14 @@ size_t USBHost::write(const uint8_t* buffer, size_t length)
 
 int USBHost::available()
 {
-    return 0;
+    int availableBytes = 0;
+
+    if (nullptr != m_rxQueue)
+    {
+        availableBytes = uxQueueMessagesWaiting(m_rxQueue);
+    }
+
+    return availableBytes;
 }
 
 int USBHost::read()
@@ -188,7 +195,22 @@ int USBHost::peek()
 
 size_t USBHost::readBytes(uint8_t* buffer, size_t length)
 {
-    return 0;
+    size_t count = 0;
+
+    for (count = 0; count < length; count++)
+    {
+        uint8_t byte;
+        if (false == getByte(byte))
+        {
+            break;
+        }
+        else
+        {
+            buffer[count] = byte;
+        }
+    }
+
+    return count;
 }
 
 /******************************************************************************
@@ -198,6 +220,18 @@ size_t USBHost::readBytes(uint8_t* buffer, size_t length)
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+bool USBHost::getByte(uint8_t& byte)
+{
+    if ((nullptr != m_rxQueue) && (0 < available()))
+    {
+        if (pdTRUE == xQueueReceive(m_rxQueue, &byte, 0))
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 /******************************************************************************
  * External Functions
