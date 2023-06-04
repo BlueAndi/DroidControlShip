@@ -44,6 +44,7 @@
  * Includes
  *****************************************************************************/
 #include "IDevice.h"
+#include "USBHost.h"
 
 /******************************************************************************
  * Macros
@@ -60,7 +61,7 @@ public:
     /**
      * Constructs the device adapter.
      */
-    Device() : IDevice()
+    Device() : IDevice(), m_usbHost()
     {
     }
 
@@ -98,6 +99,14 @@ public:
     void reset() final;
 
 private:
+
+    /** Time to hold the reset line active in milliseconds. */
+    static const uint8_t RESET_TIME_MS = 50;
+
+    /**
+     * USB Host driver.
+     */
+    USBHost m_usbHost;
 };
 
 /******************************************************************************
