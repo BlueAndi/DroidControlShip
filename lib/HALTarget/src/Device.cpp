@@ -67,11 +67,7 @@ bool Device::init()
 
 bool Device::process()
 {
-    bool isSuccess = true;
-
-    isSuccess = m_usbHost.process();
-
-    return isSuccess;
+    return m_usbHost.process();
 }
 
 Stream& Device::getStream()
