@@ -100,7 +100,7 @@ void App::setup()
         LOG_DEBUG("Battery level: %u%%", batteryLevel);
         LOG_DEBUG("Battery voltage: %u", Board::getInstance().getBattery().getVoltage());
 
-        if (10U > batteryLevel)
+        if (MIN_BATTERY_LEVEL > batteryLevel)
         {
             LOG_FATAL("Battery too low.");
             fatalErrorHandler();

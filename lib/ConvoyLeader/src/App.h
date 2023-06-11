@@ -83,6 +83,8 @@ public:
     void loop();
 
 private:
+    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
+
     /**
      * Handler of fatal errors in the Application.
      */
