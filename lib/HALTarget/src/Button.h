@@ -44,6 +44,7 @@
  * Includes
  *****************************************************************************/
 #include "IButton.h"
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -91,6 +92,10 @@ public:
     void waitForRelease() final;
 
 private:
+    /**
+     * Time to debounce button in milliseconds.
+     */
+    static const uint32_t DEBOUNCE_TIME_MS = 5U;
 };
 
 /******************************************************************************

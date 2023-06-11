@@ -62,7 +62,11 @@
 bool Button::isShortPressed()
 {
     /* Button is active-low. */
-    return (IO::getInstance().readGPIO(GPIOPins::PIN_WIFI_AND_RESET_KEY) == HIGH) ? false : true;
+    bool buttonStateBefore = (IO::getInstance().readGPIO(GPIOPins::PIN_WIFI_AND_RESET_KEY) == HIGH) ? false : true;
+    delay(DEBOUNCE_TIME_MS);
+    bool buttonStateAfter = (IO::getInstance().readGPIO(GPIOPins::PIN_WIFI_AND_RESET_KEY) == HIGH) ? false : true;
+
+    return (buttonStateBefore && buttonStateAfter);
 }
 
 bool Button::isLongPressed()
