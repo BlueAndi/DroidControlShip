@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Battery realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Moving average
+ * @author Andreas Merkle <web@blue-andi.de>
  *
- * @addtogroup HALTarget
+ * @addtogroup Service
  *
  * @{
  */
 
-#ifndef BATTERY_H
-#define BATTERY_H
+#ifndef MOVAVG_H
+#define MOVAVG_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,8 +43,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "IBattery.h"
-#include <MovAvg.hpp>
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -54,50 +53,111 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the robot's battery. */
-class Battery : public IBattery
+/**
+ * This class implements a moving average algorithm.
+ * It is designed for fix point integers.
+ *
+ * @tparam T    The data type of the moving average result and input values.
+ * @tparam length The number of values, which are considered in the moving average calculation.
+ */
+template<typename T, uint8_t length>
+class MovAvg
 {
 public:
     /**
-     * Constructs the battery adapter.
+     * Constructs the moving average calculator.
+     * The default result will be 0.
      */
-    Battery() : IBattery(), m_voltMovAvg()
+    MovAvg() : m_values(), m_wrIdx(0), m_written(0), m_sum(0)
     {
-        m_voltMovAvg.clear();
+        clear();
     }
 
     /**
-     * Destroys the battery adapter.
+     * Destroys the moving average calculator.
      */
-    virtual ~Battery()
+    ~MovAvg()
     {
     }
 
     /**
-     * Get battery voltage read.
-     *
-     * @return Battery voltage in millivolts.
+     * Clears the internal list of values.
      */
-    uint32_t getVoltage() final;
+    void clear()
+    {
+        uint8_t idx = 0;
+
+        for (idx = 0; idx < length; ++idx)
+        {
+            m_values[idx] = 0;
+        }
+
+        m_wrIdx   = 0;
+        m_written = 0;
+        m_sum     = 0;
+    }
 
     /**
-     * Get battery charge level.
+     * Write a value to the moving average calculator and returns the new
+     * result.
      *
-     * @return Charge level in percentage.
+     * @param[in] value New value, which shall be considered.
+     *
+     * @return Moving average result
      */
-    uint8_t getChargeLevel() final;
+    T write(T value)
+    {
+        T oldValue = m_values[m_wrIdx];
+
+        m_values[m_wrIdx] = value;
+
+        ++m_wrIdx;
+        if (length <= m_wrIdx)
+        {
+            m_wrIdx = 0;
+        }
+
+        m_sum -= oldValue;
+        m_sum += value;
+
+        if (length > m_written)
+        {
+            ++m_written;
+        }
+
+        return m_sum / m_written;
+    }
+
+    /**
+     * Get current moving average result.
+     *
+     * @return Moving average result
+     */
+    T getResult() const
+    {
+        T result = 0;
+
+        if (0 < m_written)
+        {
+            result = m_sum / m_written;
+        }
+
+        return result;
+    }
 
 private:
-    static const uint32_t VOLTAGE_MIN       = 6000U; /**< Minimum voltage in millivolts. */
-    static const uint32_t VOLTAGE_MAX       = 7000U; /**< Maximum voltage in millivolts. */
-    static const uint32_t REFERENCE_VOLTAGE = 3300U; /**< Reference voltage of the ADCs in millivolts*/
+    T       m_values[length]; /**< List of values, used for moving average calculation. */
+    uint8_t m_wrIdx;          /**< Write index to list of values */
+    uint8_t m_written;        /**< The number of written values to the list of values, till length is reached. */
+    T       m_sum;            /**< Sum of all values */
 
-    MovAvg<uint32_t, 2> m_voltMovAvg; /**< The moving average of the measured voltage over 2 calling cycles. */
+    MovAvg(const MovAvg& avg);
+    MovAvg& operator=(const MovAvg& avg);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* BATTERY_H */
+#endif /* MOVAVG_H */
 /** @} */

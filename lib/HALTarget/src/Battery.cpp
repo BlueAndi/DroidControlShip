@@ -61,9 +61,9 @@
 
 uint32_t Battery::getVoltage()
 {
-    uint32_t vMeasured = IO::getInstance().readAnalogGPIOInMillivolt(GPIOPins::PIN_BATT_MEASUREMENT);
+    m_voltMovAvg.write(IO::getInstance().readAnalogGPIOInMillivolt(GPIOPins::PIN_BATT_MEASUREMENT));
 
-    return ((vMeasured * 10000) / REFERENCE_VOLTAGE);
+    return ((m_voltMovAvg.getResult() * 10000) / REFERENCE_VOLTAGE);
 }
 
 uint8_t Battery::getChargeLevel()
