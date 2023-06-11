@@ -62,7 +62,7 @@ public:
     /**
      * Constructs the device adapter.
      */
-    Device() : IDevice(), m_usbHost()
+    Device() : IDevice(), m_usbHost(), m_resetTimer()
     {
     }
 

@@ -67,7 +67,7 @@ bool Device::init()
 
 bool Device::process()
 {
-    if(true == m_resetTimer.isTimeout())
+    if (true == m_resetTimer.isTimeout())
     {
         IO::getInstance().writeGPIO(GPIOPins::PIN_ROBOT_RESET, LOW);
         m_resetTimer.stop();
@@ -83,8 +83,11 @@ Stream& Device::getStream()
 
 void Device::reset()
 {
-    IO::getInstance().writeGPIO(GPIOPins::PIN_ROBOT_RESET, HIGH);
-    m_resetTimer.start(RESET_TIME_MS);
+    if (false == m_resetTimer.isTimerRunning())
+    {
+        IO::getInstance().writeGPIO(GPIOPins::PIN_ROBOT_RESET, HIGH);
+        m_resetTimer.start(RESET_TIME_MS);
+    }
 }
 
 /******************************************************************************
