@@ -263,7 +263,7 @@ bool Network::subscribe(const String& topic, TopicCallback callback)
                 }
                 else
                 {
-                    m_mqttClient.unsubscribe(subscriber->topic.c_str());
+                    m_mqttClient.subscribe(subscriber->topic.c_str());
                 }
 
                 if (false == isSuccess)
