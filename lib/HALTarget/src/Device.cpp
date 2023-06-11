@@ -67,6 +67,12 @@ bool Device::init()
 
 bool Device::process()
 {
+    if(true == m_resetTimer.isTimeout())
+    {
+        IO::getInstance().writeGPIO(GPIOPins::PIN_ROBOT_RESET, LOW);
+        m_resetTimer.stop();
+    }
+
     return m_usbHost.process();
 }
 
@@ -78,8 +84,7 @@ Stream& Device::getStream()
 void Device::reset()
 {
     IO::getInstance().writeGPIO(GPIOPins::PIN_ROBOT_RESET, HIGH);
-    delay(RESET_TIME_MS);
-    IO::getInstance().writeGPIO(GPIOPins::PIN_ROBOT_RESET, LOW);
+    m_resetTimer.start(RESET_TIME_MS);
 }
 
 /******************************************************************************

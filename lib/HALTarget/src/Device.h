@@ -45,6 +45,7 @@
  *****************************************************************************/
 #include "IDevice.h"
 #include "USBHost.h"
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
@@ -107,6 +108,11 @@ private:
      * USB Host driver.
      */
     USBHost m_usbHost;
+
+    /**
+     * Simple Timer for reset of device.
+     */
+    SimpleTimer m_resetTimer;
 };
 
 /******************************************************************************
