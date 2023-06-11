@@ -155,7 +155,7 @@ public:
     /**
      * Reads the specified GPIO analog input and returns the value in millivolt.
      *
-     * @param[in] gpio The GPIO pin to be written to
+     * @param[in] gpio The GPIO pin to read voltage from.
      * @return Voltage in millivolt
      */
     uint32_t readAnalogGPIOInMillivolt(const uint8_t gpio)

@@ -88,7 +88,7 @@ public:
 private:
     static const uint32_t VOLTAGE_MIN       = 6000U; /**< Minimum voltage in millivolts. */
     static const uint32_t VOLTAGE_MAX       = 7000U; /**< Maximum voltage in millivolts. */
-    static const uint32_t REFERENCE_VOLTAGE = 3300U;  /**< Reference voltage of the ADCs in millivolts*/
+    static const uint32_t REFERENCE_VOLTAGE = 3300U; /**< Reference voltage of the ADCs in millivolts*/
 };
 
 /******************************************************************************
