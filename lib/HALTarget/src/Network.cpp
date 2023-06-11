@@ -156,7 +156,7 @@ bool Network::connect()
 
     if (STATE_CONNECTED == m_state)
     {
-        LOG_ERROR("Already connected to Broker.");
+        LOG_INFO("Already connected to Broker.");
         isSuccess = true;
     }
     else if (STATE_DISCONNECTED != m_state)
@@ -205,7 +205,7 @@ void Network::disconnect()
 {
     if (STATE_CONNECTED != m_state)
     {
-        LOG_ERROR("Already disconnected from Broker.");
+        LOG_INFO("Already disconnected from Broker.");
     }
     else
     {
