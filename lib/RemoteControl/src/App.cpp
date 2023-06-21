@@ -114,6 +114,72 @@ void App::setup()
         m_smpServer.subscribeToChannel(CH_NAME_RSP, App_cmdRspChannelCallback);
         m_serialMuxProtChannelIdMotorSpeeds = m_smpServer.createChannel(CH_NAME_MOTOR_SPEEDS, 4U);
         m_smpServer.subscribeToChannel(CH_NAME_LINE_SENSORS, App_lineSensorChannelCallback);
+
+        /* Setup Network. */
+        Board::getInstance().getNetwork().setConfig("DCS", "localhost", 1883U, "will/dcs", "DCS Disconnected!", true);
+        Board::getInstance().getNetwork().subscribe("dcs/cmd",
+                                                    [this](const String& payload)
+                                                    {
+                                                        uint8_t buffer[1U];
+                                                        buffer[0U] = 0x02;
+                                                        m_smpServer.sendData(CH_NAME_CMD, buffer, 1U);
+                                                    });
+        Board::getInstance().getNetwork().subscribe("dcs/motorSpeeds",
+                                                    [this](const String& payload)
+                                                    {
+                                                        uint8_t buffer[4U];
+
+                                                        if (String("forward") == payload)
+                                                        {
+                                                            LOG_DEBUG("forward");
+                                                            buffer[0U] = 0x80;
+                                                            buffer[1U] = 0x00;
+                                                            buffer[2U] = 0x80;
+                                                            buffer[3U] = 0x00;
+                                                        }
+                                                        else if (String("backward") == payload)
+                                                        {
+                                                            LOG_DEBUG("backward");
+                                                            buffer[0U] = 0x7F;
+                                                            buffer[1U] = 0xFF;
+                                                            buffer[2U] = 0x7F;
+                                                            buffer[3U] = 0xFF;
+                                                        }
+                                                        else if (String("left") == payload)
+                                                        {
+                                                            LOG_DEBUG("left");
+                                                            buffer[0U] = 0x7F;
+                                                            buffer[1U] = 0xFF;
+                                                            buffer[2U] = 0x80;
+                                                            buffer[3U] = 0x00;
+                                                        }
+                                                        else if (String("right") == payload)
+                                                        {
+                                                            LOG_DEBUG("right");
+                                                            buffer[0U] = 0x80;
+                                                            buffer[1U] = 0x00;
+                                                            buffer[2U] = 0x7F;
+                                                            buffer[3U] = 0xFF;
+                                                        }
+                                                        else
+                                                        {
+                                                            LOG_DEBUG("stop");
+                                                            buffer[0U] = 0x00;
+                                                            buffer[1U] = 0x00;
+                                                            buffer[2U] = 0x00;
+                                                            buffer[3U] = 0x00;
+                                                        }
+
+                                                        if (true ==
+                                                            m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, 4U))
+                                                        {
+                                                            LOG_DEBUG("Motor speeds sent");
+                                                        }
+                                                        else
+                                                        {
+                                                            LOG_WARNING("Failed to send motor speeds");
+                                                        }
+                                                    });
     }
 }
 
@@ -165,5 +231,4 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
 
 void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
-    LOG_DEBUG("LINE_SENS Received: %u", payloadSize);
 }
