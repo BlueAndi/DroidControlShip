@@ -35,7 +35,6 @@
 #include "App.h"
 #include <Logging.h>
 #include <LogSinkPrinter.h>
-#include <Windows.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -130,9 +129,6 @@ void App::loop()
 
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
-
-    /* Process Keyboard */
-    keyboardHandler();
 }
 
 /******************************************************************************
@@ -154,68 +150,6 @@ void App::fatalErrorHandler()
     }
 }
 
-void App::keyboardHandler()
-{
-    const int isPressedValue = 0x8000;
-
-    if (GetKeyState(FORWARD) & isPressedValue)
-    {
-        if (m_lastSentKey != FORWARD)
-        {
-            LOG_INFO("Forward");
-            m_lastSentKey = FORWARD;
-        }
-    }
-    else if (GetKeyState(BACKWARD) & isPressedValue)
-    {
-        if (m_lastSentKey != BACKWARD)
-        {
-            LOG_INFO("Backward");
-            m_lastSentKey = BACKWARD;
-        }
-    }
-    else if (GetKeyState(LEFT) & isPressedValue)
-    {
-        if (m_lastSentKey != LEFT)
-        {
-            LOG_INFO("Left");
-            m_lastSentKey = LEFT;
-        }
-    }
-    else if (GetKeyState(RIGHT) & isPressedValue)
-    {
-        if (m_lastSentKey != RIGHT)
-        {
-            LOG_INFO("Right");
-            m_lastSentKey = RIGHT;
-        }
-    }
-    else if (GetKeyState(CALIB_LINESENS) & isPressedValue)
-    {
-        if (m_lastSentKey != CALIB_LINESENS)
-        {
-            LOG_INFO("Calib Line Sensors");
-            m_lastSentKey = CALIB_LINESENS;
-        }
-    }
-    else if (GetKeyState(CALIB_MOTORS) & isPressedValue)
-    {
-        if (m_lastSentKey != CALIB_MOTORS)
-        {
-            LOG_INFO("Calib Motors");
-            m_lastSentKey = CALIB_MOTORS;
-        }
-    }
-    else
-    {
-        if (m_lastSentKey != STOP)
-        {
-            LOG_INFO("Stop");
-            m_lastSentKey = STOP;
-        }
-    }
-}
-
 /******************************************************************************
  * External Functions
  *****************************************************************************/
@@ -231,4 +165,5 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
 
 void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
+    LOG_DEBUG("LINE_SENS Received: %u", payloadSize);
 }
