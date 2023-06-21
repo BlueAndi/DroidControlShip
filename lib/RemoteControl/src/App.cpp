@@ -157,6 +157,7 @@ void App::fatalErrorHandler()
 void App::keyboardHandler()
 {
     const int isPressedValue = 0x8000;
+    uint8_t   buffer[4U];
 
     if (GetKeyState(FORWARD) & isPressedValue)
     {
@@ -164,6 +165,11 @@ void App::keyboardHandler()
         {
             LOG_INFO("Forward");
             m_lastSentKey = FORWARD;
+            buffer[0U]    = 0x80;
+            buffer[1U]    = 0x00;
+            buffer[2U]    = 0x80;
+            buffer[3U]    = 0x00;
+            m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, 4U);
         }
     }
     else if (GetKeyState(BACKWARD) & isPressedValue)
@@ -172,6 +178,11 @@ void App::keyboardHandler()
         {
             LOG_INFO("Backward");
             m_lastSentKey = BACKWARD;
+            buffer[0U]    = 0x7F;
+            buffer[1U]    = 0xFF;
+            buffer[2U]    = 0x7F;
+            buffer[3U]    = 0xFF;
+            m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, 4U);
         }
     }
     else if (GetKeyState(LEFT) & isPressedValue)
@@ -180,6 +191,11 @@ void App::keyboardHandler()
         {
             LOG_INFO("Left");
             m_lastSentKey = LEFT;
+            buffer[0U]    = 0x7F;
+            buffer[1U]    = 0xFF;
+            buffer[2U]    = 0x80;
+            buffer[3U]    = 0x00;
+            m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, 4U);
         }
     }
     else if (GetKeyState(RIGHT) & isPressedValue)
@@ -188,6 +204,11 @@ void App::keyboardHandler()
         {
             LOG_INFO("Right");
             m_lastSentKey = RIGHT;
+            buffer[0U]    = 0x80;
+            buffer[1U]    = 0x00;
+            buffer[2U]    = 0x7F;
+            buffer[3U]    = 0xFF;
+            m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, 4U);
         }
     }
     else if (GetKeyState(CALIB_LINESENS) & isPressedValue)
@@ -196,6 +217,8 @@ void App::keyboardHandler()
         {
             LOG_INFO("Calib Line Sensors");
             m_lastSentKey = CALIB_LINESENS;
+            buffer[0U]    = 0x01;
+            m_smpServer.sendData(CH_NAME_CMD, buffer, 1U);
         }
     }
     else if (GetKeyState(CALIB_MOTORS) & isPressedValue)
@@ -204,14 +227,21 @@ void App::keyboardHandler()
         {
             LOG_INFO("Calib Motors");
             m_lastSentKey = CALIB_MOTORS;
+            buffer[0U]    = 0x02;
+            m_smpServer.sendData(CH_NAME_CMD, buffer, 1U);
         }
     }
     else
     {
-        if (m_lastSentKey != STOP)
+        if ((m_lastSentKey != STOP) && (m_lastSentKey != CALIB_MOTORS) && (m_lastSentKey != CALIB_LINESENS))
         {
             LOG_INFO("Stop");
             m_lastSentKey = STOP;
+            buffer[0U]    = 0x00;
+            buffer[1U]    = 0x00;
+            buffer[2U]    = 0x00;
+            buffer[3U]    = 0x00;
+            m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, 4U);
         }
     }
 }
