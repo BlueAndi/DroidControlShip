@@ -62,7 +62,7 @@ public:
     /**
      * Construct the convoy follower application.
      */
-    App() : m_smpServer(Board::getInstance().getDevice().getStream())
+    App() : m_smpServer(Board::getInstance().getDevice().getStream()), m_lastSentKey(STOP)
     {
     }
 
@@ -84,6 +84,20 @@ public:
     void loop();
 
 private:
+    /**
+     * Enumeration of Possible command keys of the keyboard.
+     */
+    enum Keys : int
+    {
+        STOP           = '?',
+        FORWARD        = 'W',
+        BACKWARD       = 'S',
+        LEFT           = 'A',
+        RIGHT          = 'D',
+        CALIB_LINESENS = 'C',
+        CALIB_MOTORS   = 'M',
+    };
+
     /** SerialMuxProt channel name for sending commands. */
     static const char* CH_NAME_CMD;
 
@@ -110,11 +124,19 @@ private:
      */
     SerialMuxProtServer<10U> m_smpServer;
 
+    /** Last pressed key. */
+    Keys m_lastSentKey;
+
 private:
     /**
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();
+
+    /**
+     * Keyboard Handler for Remote Control input.
+     */
+    void keyboardHandler();
 
 private:
     App(const App& app);
