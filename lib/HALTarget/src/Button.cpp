@@ -34,6 +34,7 @@
  *****************************************************************************/
 #include "Button.h"
 #include "GPIO.h"
+#include "ButtonDrv.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -61,12 +62,7 @@
 
 bool Button::isShortPressed()
 {
-    /* Button is active-low. */
-    bool buttonStateBefore = (GpioPins::resetButtonPin.read() == LOW) ? true : false;
-    delay(DEBOUNCE_TIME_MS);
-    bool buttonStateAfter = (GpioPins::resetButtonPin.read() == LOW) ? true : false;
-
-    return (buttonStateBefore && buttonStateAfter);
+    return (BUTTON_STATE_PRESSED == ButtonDrv::getInstance().getState(BUTTON_ID_OK));
 }
 
 bool Button::isLongPressed()

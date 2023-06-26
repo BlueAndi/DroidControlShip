@@ -52,6 +52,7 @@
 #include "LedGreen.h"
 #include "LedRed.h"
 #include "Network.h"
+#include "ButtonDrv.h"
 
 /******************************************************************************
  * Macros
@@ -89,6 +90,8 @@ public:
         bool isReady = false;
 
         GpioPins::init();
+
+        ButtonDrv::getInstance().init();
 
         if (false == m_device.init())
         {
