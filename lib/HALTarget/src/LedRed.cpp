@@ -33,7 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "LedRed.h"
-#include "IO.h"
+#include "GPIO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -69,7 +69,7 @@ void LedRed::enable(bool enableIt)
         value = LOW;
     }
 
-    IO::getInstance().writeGPIO(GPIOPins::INFO_LED_R, value);
+    GpioPins::infoLedRedPin.write(value);
 }
 
 /******************************************************************************

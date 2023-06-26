@@ -33,7 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "LedBlue.h"
-#include "IO.h"
+#include "GPIO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -69,7 +69,7 @@ void LedBlue::enable(bool enableIt)
         value = LOW;
     }
 
-    IO::getInstance().writeGPIO(GPIOPins::INFO_LED_B, value);
+    GpioPins::infoLedBluePin.write(value);
 }
 
 /******************************************************************************

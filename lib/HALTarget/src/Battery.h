@@ -88,9 +88,10 @@ public:
     uint8_t getChargeLevel() final;
 
 private:
-    static const uint32_t VOLTAGE_MIN       = 6000U; /**< Minimum voltage in millivolts. */
-    static const uint32_t VOLTAGE_MAX       = 7000U; /**< Maximum voltage in millivolts. */
-    static const uint32_t REFERENCE_VOLTAGE = 3300U; /**< Reference voltage of the ADCs in millivolts*/
+    static const uint32_t VOLTAGE_MIN       = 6000U;  /**< Minimum voltage in millivolts. */
+    static const uint32_t VOLTAGE_MAX       = 7000U;  /**< Maximum voltage in millivolts. */
+    static const uint32_t REFERENCE_VOLTAGE = 3300U;  /**< Reference voltage of the ADCs in millivolts*/
+    static const uint32_t CONVERSION_FACTOR = 10000U; /**< Conversion factor from measured to real battery voltage. */
 
     MovAvg<uint32_t, 2> m_voltMovAvg; /**< The moving average of the measured voltage over 2 calling cycles. */
 };

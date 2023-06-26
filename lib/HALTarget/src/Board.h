@@ -47,7 +47,7 @@
 #include "Battery.h"
 #include "Button.h"
 #include "Device.h"
-#include "IO.h"
+#include "GPIO.h"
 #include "LedBlue.h"
 #include "LedGreen.h"
 #include "LedRed.h"
@@ -88,7 +88,7 @@ public:
     {
         bool isReady = false;
 
-        IO::getInstance().init();
+        GpioPins::init();
 
         if (false == m_device.init())
         {

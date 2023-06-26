@@ -33,7 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "Button.h"
-#include "IO.h"
+#include "GPIO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -62,9 +62,9 @@
 bool Button::isShortPressed()
 {
     /* Button is active-low. */
-    bool buttonStateBefore = (IO::getInstance().readGPIO(GPIOPins::PIN_WIFI_AND_RESET_KEY) == HIGH) ? false : true;
+    bool buttonStateBefore = (GpioPins::resetButtonPin.read() == LOW) ? true : false;
     delay(DEBOUNCE_TIME_MS);
-    bool buttonStateAfter = (IO::getInstance().readGPIO(GPIOPins::PIN_WIFI_AND_RESET_KEY) == HIGH) ? false : true;
+    bool buttonStateAfter = (GpioPins::resetButtonPin.read() == LOW) ? true : false;
 
     return (buttonStateBefore && buttonStateAfter);
 }

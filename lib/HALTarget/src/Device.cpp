@@ -33,7 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "Device.h"
-#include "IO.h"
+#include "GPIO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -69,7 +69,7 @@ bool Device::process()
 {
     if (true == m_resetTimer.isTimeout())
     {
-        IO::getInstance().writeGPIO(GPIOPins::PIN_ROBOT_RESET, LOW);
+        GpioPins::resetDevicePin.write(LOW);
         m_resetTimer.stop();
     }
 
@@ -85,7 +85,7 @@ void Device::reset()
 {
     if (false == m_resetTimer.isTimerRunning())
     {
-        IO::getInstance().writeGPIO(GPIOPins::PIN_ROBOT_RESET, HIGH);
+        GpioPins::resetDevicePin.write(HIGH);
         m_resetTimer.start(RESET_TIME_MS);
     }
 }
