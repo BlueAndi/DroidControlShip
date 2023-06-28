@@ -91,9 +91,12 @@ public:
 
         GpioPins::init();
 
-        ButtonDrv::getInstance().init();
-
-        if (false == m_device.init())
+        if (false == ButtonDrv::getInstance().init())
+        {
+            /* Log Button Driver error */
+            LOG_ERROR("Button driver not initialized. ");
+        }
+        else if (false == m_device.init())
         {
             /* Log Device error */
             LOG_ERROR("Device not initialized. ");
