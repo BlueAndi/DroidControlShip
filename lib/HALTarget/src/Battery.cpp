@@ -82,7 +82,7 @@ uint8_t Battery::getChargeLevel()
     }
     else
     {
-        calculatedCharge = (uint8_t)(((measuredVoltage - VOLTAGE_MIN) * 100U) / (VOLTAGE_MAX - VOLTAGE_MIN));
+        calculatedCharge = static_cast<uint8_t>(((measuredVoltage - VOLTAGE_MIN) * 100U) / (VOLTAGE_MAX - VOLTAGE_MIN));
     }
 
     return calculatedCharge;
