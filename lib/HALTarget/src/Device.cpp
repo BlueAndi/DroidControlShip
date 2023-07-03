@@ -25,17 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Device realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "App.h"
-#include <Board.h>
-#include <Logging.h>
-#include <LogSinkPrinter.h>
+#include "Device.h"
+#include "GPIO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -44,10 +42,6 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-
-#ifndef CONFIG_LOG_SEVERITY
-#define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
-#endif /* CONFIG_LOG_SEVERITY */
 
 /******************************************************************************
  * Types and classes
@@ -61,66 +55,38 @@
  * Local Variables
  *****************************************************************************/
 
-/** Serial interface baudrate. */
-static const uint32_t SERIAL_BAUDRATE = 115200U;
-
-/** Serial log sink */
-static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-void App::setup()
+bool Device::init()
 {
-    Serial.begin(SERIAL_BAUDRATE);
-
-    /* Register serial log sink and select it per default. */
-    if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
-    {
-        (void)Logging::getInstance().selectSink("Serial");
-
-        /* Set severity of logging system. */
-        Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
-    }
-
-    /* Initialize HAL. */
-    if (false == Board::getInstance().init())
-    {
-        /* Log and Handle Board initialization error */
-        LOG_FATAL("HAL init failed.");
-        fatalErrorHandler();
-    }
-    else
-    {
-        /* Check Battery. */
-        uint8_t batteryLevel = Board::getInstance().getBattery().getChargeLevel();
-        LOG_DEBUG("Battery level: %u%%", batteryLevel);
-        LOG_DEBUG("Battery voltage: %u", Board::getInstance().getBattery().getVoltage());
-
-        if (MIN_BATTERY_LEVEL > batteryLevel)
-        {
-            LOG_FATAL("Battery too low.");
-            fatalErrorHandler();
-        }
-
-        /* Blink Green LED to signal all-good. */
-        Board::getInstance().getGreenLed().enable(true);
-        delay(1000);
-        Board::getInstance().getGreenLed().enable(false);
-    }
+    reset();
+    return m_usbHost.init();
 }
 
-void App::loop()
+bool Device::process()
 {
-    /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
+    if (true == m_resetTimer.isTimeout())
     {
-        /* Log and Handle Board processing error */
-        LOG_FATAL("HAL process failed.");
-        fatalErrorHandler();
+        GpioPins::resetDevicePin.write(LOW);
+        m_resetTimer.stop();
+    }
+
+    return m_usbHost.process();
+}
+
+Stream& Device::getStream()
+{
+    return m_usbHost;
+}
+
+void Device::reset()
+{
+    if (false == m_resetTimer.isTimerRunning())
+    {
+        GpioPins::resetDevicePin.write(HIGH);
+        m_resetTimer.start(RESET_TIME_MS);
     }
 }
 
@@ -131,17 +97,6 @@ void App::loop()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-void App::fatalErrorHandler()
-{
-    /* Turn on Red LED to signal fatal error. */
-    Board::getInstance().getRedLed().enable(true);
-
-    while (true)
-    {
-        ;
-    }
-}
 
 /******************************************************************************
  * External Functions

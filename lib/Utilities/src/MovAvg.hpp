@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
+ * @brief  Moving average
  * @author Andreas Merkle <web@blue-andi.de>
- * 
- * @addtogroup Application
+ *
+ * @addtogroup Service
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef MOVAVG_H
+#define MOVAVG_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -53,52 +53,111 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The convoy leader application. */
-class App
+/**
+ * This class implements a moving average algorithm.
+ * It is designed for fix point integers.
+ *
+ * @tparam T    The data type of the moving average result and input values.
+ * @tparam length The number of values, which are considered in the moving average calculation.
+ */
+template<typename T, uint8_t length>
+class MovAvg
 {
 public:
+    /**
+     * Constructs the moving average calculator.
+     * The default result will be 0.
+     */
+    MovAvg() : m_values(), m_wrIdx(0), m_written(0), m_sum(0)
+    {
+        clear();
+    }
 
     /**
-     * Construct the convoy leader application.
+     * Destroys the moving average calculator.
      */
-    App()
+    ~MovAvg()
     {
     }
 
     /**
-     * Destroy the convoy leader application.
+     * Clears the internal list of values.
      */
-    ~App()
+    void clear()
     {
+        uint8_t idx = 0;
+
+        for (idx = 0; idx < length; ++idx)
+        {
+            m_values[idx] = 0;
+        }
+
+        m_wrIdx   = 0;
+        m_written = 0;
+        m_sum     = 0;
     }
 
     /**
-     * Setup the application.
+     * Write a value to the moving average calculator and returns the new
+     * result.
+     *
+     * @param[in] value New value, which shall be considered.
+     *
+     * @return Moving average result
      */
-    void setup();
+    T write(T value)
+    {
+        T oldValue = m_values[m_wrIdx];
+
+        m_values[m_wrIdx] = value;
+
+        ++m_wrIdx;
+        if (length <= m_wrIdx)
+        {
+            m_wrIdx = 0;
+        }
+
+        m_sum -= oldValue;
+        m_sum += value;
+
+        if (length > m_written)
+        {
+            ++m_written;
+        }
+
+        return m_sum / m_written;
+    }
 
     /**
-     * Process the application periodically.
+     * Get current moving average result.
+     *
+     * @return Moving average result
      */
-    void loop();
+    T getResult() const
+    {
+        T result = 0;
+
+        if (0 < m_written)
+        {
+            result = m_sum / m_written;
+        }
+
+        return result;
+    }
 
 private:
-    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
+    T       m_values[length]; /**< List of values, used for moving average calculation. */
+    uint8_t m_wrIdx;          /**< Write index to list of values */
+    uint8_t m_written;        /**< The number of written values to the list of values, till length is reached. */
+    T       m_sum;            /**< Sum of all values */
 
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-
-    App(const App& app);
-    App& operator=(const App& app);
+    MovAvg(const MovAvg& avg);
+    MovAvg& operator=(const MovAvg& avg);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* MOVAVG_H */
 /** @} */

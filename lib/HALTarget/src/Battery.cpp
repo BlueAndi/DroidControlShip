@@ -25,17 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Battery realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "App.h"
-#include <Board.h>
-#include <Logging.h>
-#include <LogSinkPrinter.h>
+#include "Battery.h"
+#include "GPIO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -44,10 +42,6 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-
-#ifndef CONFIG_LOG_SEVERITY
-#define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
-#endif /* CONFIG_LOG_SEVERITY */
 
 /******************************************************************************
  * Types and classes
@@ -61,67 +55,37 @@
  * Local Variables
  *****************************************************************************/
 
-/** Serial interface baudrate. */
-static const uint32_t SERIAL_BAUDRATE = 115200U;
-
-/** Serial log sink */
-static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-void App::setup()
+uint32_t Battery::getVoltage()
 {
-    Serial.begin(SERIAL_BAUDRATE);
+    m_voltMovAvg.write(GpioPins::batteryVoltagePin.readMilliVolts());
 
-    /* Register serial log sink and select it per default. */
-    if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
+    return ((m_voltMovAvg.getResult() * CONVERSION_FACTOR) / REFERENCE_VOLTAGE);
+}
+
+uint8_t Battery::getChargeLevel()
+{
+    /* Simple State of Charge calculation. Assume Voltage is linear. */
+    uint8_t  calculatedCharge = 0U;
+    uint32_t measuredVoltage  = getVoltage();
+
+    if (VOLTAGE_MAX < measuredVoltage)
     {
-        (void)Logging::getInstance().selectSink("Serial");
-
-        /* Set severity of logging system. */
-        Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
+        calculatedCharge = 100U;
     }
-
-    /* Initialize HAL. */
-    if (false == Board::getInstance().init())
+    else if (VOLTAGE_MIN > measuredVoltage)
     {
-        /* Log and Handle Board initialization error */
-        LOG_FATAL("HAL init failed.");
-        fatalErrorHandler();
+        calculatedCharge = 0U;
     }
     else
     {
-        /* Check Battery. */
-        uint8_t batteryLevel = Board::getInstance().getBattery().getChargeLevel();
-        LOG_DEBUG("Battery level: %u%%", batteryLevel);
-        LOG_DEBUG("Battery voltage: %u", Board::getInstance().getBattery().getVoltage());
-
-        if (MIN_BATTERY_LEVEL > batteryLevel)
-        {
-            LOG_FATAL("Battery too low.");
-            fatalErrorHandler();
-        }
-
-        /* Blink Green LED to signal all-good. */
-        Board::getInstance().getGreenLed().enable(true);
-        delay(1000);
-        Board::getInstance().getGreenLed().enable(false);
+        calculatedCharge = static_cast<uint8_t>(((measuredVoltage - VOLTAGE_MIN) * 100U) / (VOLTAGE_MAX - VOLTAGE_MIN));
     }
-}
 
-void App::loop()
-{
-    /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
-    {
-        /* Log and Handle Board processing error */
-        LOG_FATAL("HAL process failed.");
-        fatalErrorHandler();
-    }
+    return calculatedCharge;
 }
 
 /******************************************************************************
@@ -131,17 +95,6 @@ void App::loop()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-void App::fatalErrorHandler()
-{
-    /* Turn on Red LED to signal fatal error. */
-    Board::getInstance().getRedLed().enable(true);
-
-    while (true)
-    {
-        ;
-    }
-}
 
 /******************************************************************************
  * External Functions
