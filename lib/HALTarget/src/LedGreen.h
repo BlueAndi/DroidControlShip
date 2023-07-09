@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
- * 
- * @addtogroup Application
+ * @brief  Green LED realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup HALTarget
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef LEDGREEN_H
+#define LEDGREEN_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
+#include "ILed.h"
 
 /******************************************************************************
  * Macros
@@ -53,52 +53,37 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The convoy leader application. */
-class App
+/** This class provides access to the green LED. */
+class LedGreen : public ILed
 {
 public:
-
     /**
-     * Construct the convoy leader application.
+     * Constructs the green LED adapter.
      */
-    App()
+    LedGreen() : ILed()
     {
     }
 
     /**
-     * Destroy the convoy leader application.
+     * Destroys the green LED adapter.
      */
-    ~App()
+    virtual ~LedGreen()
     {
     }
 
     /**
-     * Setup the application.
+     * Enables/Disables the LED.
+     *
+     * @param[in] enableIt  Enable LED with true, disable it with false.
      */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
+    void enable(bool enableIt) final;
 
 private:
-    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
-
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-
-    App(const App& app);
-    App& operator=(const App& app);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* LEDGREEN_H */
 /** @} */

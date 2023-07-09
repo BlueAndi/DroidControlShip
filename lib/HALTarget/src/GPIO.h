@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
- * 
- * @addtogroup Application
+ * @brief  Abstraction of the GPIOs of the device.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup HALTarget
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef GPIO_H
+#define GPIO_H
 
 /******************************************************************************
  * Compile Switches
@@ -44,6 +44,8 @@
  * Includes
  *****************************************************************************/
 #include <Arduino.h>
+#include <Logging.h>
+#include <Io.hpp>
 
 /******************************************************************************
  * Macros
@@ -53,52 +55,74 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The convoy leader application. */
-class App
+/**
+ * Namespace containg access to all device GPIOs.
+ */
+namespace GpioPins
 {
-public:
-
-    /**
-     * Construct the convoy leader application.
-     */
-    App()
+    /** Pin number of all used pins. */
+    namespace Pin
     {
-    }
+        /** Pin for push button for system reset/AP mode start (ACTIVE LOW) */
+        constexpr uint8_t PIN_WIFI_AND_RESET_KEY = 4;
+
+        /** Pin for resetting the attached Zumo robot (ACTIVE LOW) */
+        constexpr uint8_t PIN_DEVICE_RESET = 27;
+
+        /** Pin for info LED RGB channel RED (ACTIVE LOW) */
+        constexpr uint8_t INFO_LED_R = 16;
+
+        /** Pin for info LED RGB channel GREEN (ACTIVE LOW) */
+        constexpr uint8_t INFO_LED_G = 22;
+
+        /** Pin for info LED RGB channel BLUE (ACTIVE LOW) */
+        constexpr uint8_t INFO_LED_B = 21;
+
+        /** Pin for analog measurement of battery voltage */
+        constexpr uint8_t PIN_BATT_MEASUREMENT = 35;
+
+    }; // namespace Pin
 
     /**
-     * Destroy the convoy leader application.
+     * Digital input pin: Reset Button.
      */
-    ~App()
-    {
-    }
+    extern const DInPin<Pin::PIN_WIFI_AND_RESET_KEY, INPUT_PULLUP> resetButtonPin;
 
     /**
-     * Setup the application.
+     * Digital output pin: Reset Device.
      */
-    void setup();
+    extern const DOutPin<Pin::PIN_DEVICE_RESET> resetDevicePin;
 
     /**
-     * Process the application periodically.
+     * Digital output pin: Info LED channel RED.
      */
-    void loop();
-
-private:
-    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
+    extern const DOutPin<Pin::INFO_LED_R> infoLedRedPin;
 
     /**
-     * Handler of fatal errors in the Application.
+     * Digital output pin: Info LED channel GREEN.
      */
-    void fatalErrorHandler();
+    extern const DOutPin<Pin::INFO_LED_G> infoLedGreenPin;
 
-private:
+    /**
+     * Digital output pin: Info LED channel BLUE.
+     */
+    extern const DOutPin<Pin::INFO_LED_B> infoLedBluePin;
 
-    App(const App& app);
-    App& operator=(const App& app);
-};
+    /**
+     * Analog input pin: Battery voltage measurement.
+     */
+    extern const AnalogPin<Pin::PIN_BATT_MEASUREMENT> batteryVoltagePin;
+
+    /**
+     * Initialize all i/o pins.
+     */
+    extern void init();
+
+}; // namespace GPIO
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* GPIO_H */
 /** @} */

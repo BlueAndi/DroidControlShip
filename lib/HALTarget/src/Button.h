@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
- * 
- * @addtogroup Application
+ * @brief  Button realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup HALTarget
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef BUTTON_H
+#define BUTTON_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
+#include "IButton.h"
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -53,52 +54,49 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The convoy leader application. */
-class App
+/** This class provides access to the robot's button. */
+class Button : public IButton
 {
 public:
-
     /**
-     * Construct the convoy leader application.
+     * Constructs the button adapter.
      */
-    App()
+    Button() : IButton()
     {
     }
 
     /**
-     * Destroy the convoy leader application.
+     * Destroys the button adapter.
      */
-    ~App()
+    virtual ~Button()
     {
     }
 
     /**
-     * Setup the application.
+     * Is button short pressed or not
+     *
+     * @return If button is short pressed, returns true otherwise false.
      */
-    void setup();
+    bool isShortPressed() final;
 
     /**
-     * Process the application periodically.
+     * Is button long pressed or not
+     *
+     * @return If button is long pressed, returns true otherwise false.
      */
-    void loop();
-
-private:
-    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
+    bool isLongPressed() final;
 
     /**
-     * Handler of fatal errors in the Application.
+     * Wait until button is released.
      */
-    void fatalErrorHandler();
+    void waitForRelease() final;
 
 private:
-
-    App(const App& app);
-    App& operator=(const App& app);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* BUTTON_H */
 /** @} */

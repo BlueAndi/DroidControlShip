@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
- * 
- * @addtogroup Application
+ * @brief  Battery realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup HALTarget
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef BATTERY_H
+#define BATTERY_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
+#include "IBattery.h"
+#include <MovAvg.hpp>
 
 /******************************************************************************
  * Macros
@@ -53,52 +54,51 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The convoy leader application. */
-class App
+/** This class provides access to the robot's battery. */
+class Battery : public IBattery
 {
 public:
+    /**
+     * Constructs the battery adapter.
+     */
+    Battery() : IBattery(), m_voltMovAvg()
+    {
+        m_voltMovAvg.clear();
+    }
 
     /**
-     * Construct the convoy leader application.
+     * Destroys the battery adapter.
      */
-    App()
+    virtual ~Battery()
     {
     }
 
     /**
-     * Destroy the convoy leader application.
+     * Get battery voltage read.
+     *
+     * @return Battery voltage in millivolts.
      */
-    ~App()
-    {
-    }
+    uint32_t getVoltage() final;
 
     /**
-     * Setup the application.
+     * Get battery charge level.
+     *
+     * @return Charge level in percentage.
      */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
+    uint8_t getChargeLevel() final;
 
 private:
-    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
+    static const uint32_t VOLTAGE_MIN       = 6000U;  /**< Minimum voltage in millivolts. */
+    static const uint32_t VOLTAGE_MAX       = 7000U;  /**< Maximum voltage in millivolts. */
+    static const uint32_t REFERENCE_VOLTAGE = 3300U;  /**< Reference voltage of the ADCs in millivolts*/
+    static const uint32_t CONVERSION_FACTOR = 10000U; /**< Conversion factor from measured to real battery voltage. */
 
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-
-    App(const App& app);
-    App& operator=(const App& app);
+    MovAvg<uint32_t, 2> m_voltMovAvg; /**< The moving average of the measured voltage over 2 calling cycles. */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* BATTERY_H */
 /** @} */

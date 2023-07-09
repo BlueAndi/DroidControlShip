@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
- * 
- * @addtogroup Application
+ * @brief  Device realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup HALTarget
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef DEVICE_H
+#define DEVICE_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
+#include "IDevice.h"
+#include "USBHost.h"
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
@@ -53,52 +55,69 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The convoy leader application. */
-class App
+/** This class provides access to the robot's device. */
+class Device : public IDevice
 {
 public:
-
     /**
-     * Construct the convoy leader application.
+     * Constructs the device adapter.
      */
-    App()
+    Device() : IDevice(), m_usbHost(), m_resetTimer()
     {
     }
 
     /**
-     * Destroy the convoy leader application.
+     * Destroys the device adapter.
      */
-    ~App()
+    virtual ~Device()
     {
     }
 
     /**
-     * Setup the application.
+     * Initialize device driver.
+     *
+     * @return If successfully initialized, returns true. Otherwise, false.
      */
-    void setup();
+    bool init() final;
 
     /**
-     * Process the application periodically.
+     * Process communication with the device.
+     *
+     * @return If communication is successful, returns true. Otherwise, false.
      */
-    void loop();
-
-private:
-    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
+    bool process() final;
 
     /**
-     * Handler of fatal errors in the Application.
+     * Get comunication Stream.
+     *
+     * @return Device data Stream.
      */
-    void fatalErrorHandler();
+    Stream& getStream() final;
+
+    /**
+     * Reset the device.
+     */
+    void reset() final;
 
 private:
 
-    App(const App& app);
-    App& operator=(const App& app);
+    /** Time to hold the reset line active in milliseconds. */
+    static const uint8_t RESET_TIME_MS = 50;
+
+    /**
+     * USB Host driver.
+     */
+    USBHost m_usbHost;
+
+    /**
+     * Simple Timer for reset of device.
+     */
+    SimpleTimer m_resetTimer;
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* DEVICE_H */
 /** @} */

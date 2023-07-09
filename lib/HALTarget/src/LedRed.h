@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
- * @author Andreas Merkle <web@blue-andi.de>
- * 
- * @addtogroup Application
+ * @brief  Red LED realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup HALTarget
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef LEDRED_H
+#define LEDRED_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
+#include "ILed.h"
 
 /******************************************************************************
  * Macros
@@ -53,52 +53,37 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The convoy leader application. */
-class App
+/** This class provides access to the red LED. */
+class LedRed : public ILed
 {
 public:
-
     /**
-     * Construct the convoy leader application.
+     * Constructs the red LED adapter.
      */
-    App()
+    LedRed() : ILed()
     {
     }
 
     /**
-     * Destroy the convoy leader application.
+     * Destroys the red LED adapter.
      */
-    ~App()
+    virtual ~LedRed()
     {
     }
 
     /**
-     * Setup the application.
+     * Enables/Disables the LED.
+     *
+     * @param[in] enableIt  Enable LED with true, disable it with false.
      */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
+    void enable(bool enableIt) final;
 
 private:
-    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
-
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-
-    App(const App& app);
-    App& operator=(const App& app);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* LEDRED_H */
 /** @} */
