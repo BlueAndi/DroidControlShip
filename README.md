@@ -29,12 +29,16 @@ The main target of the firmware is the [ZumoComSystem](https://github.com/NewTec
 
 Together with [Radon Ulzer](https://github.com/BlueAndi/RadonUlzer) it can be run in the [Webots simulation](https://www.cyberbotics.com/) too.
 
+![target-deployment](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/main/doc/architecture/uml/PhysicalView/TargetDeployment.plantuml)
+
 ## The simulation
 
 The simulation is based on the open source robot simulator *Webots*. The application and the services are equal to the target firmware. Only the HAL is different in the simulation.
 
 * Website: <https://cyberbotics.com/#cyberbotics>
 * Github: <https://github.com/cyberbotics/webots>
+
+![simulation-deployment](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/main/doc/architecture/uml/PhysicalView/SimulationDeployment.plantuml)
 
 ### Installation
 

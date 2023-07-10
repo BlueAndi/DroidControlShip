@@ -1,0 +1,45 @@
+@startuml
+
+title Simulation
+
+node "PC" as pc {
+
+    node "Webots" <<executable>> as webots {
+
+        node "Zumo32U4" <<virtual robot>> as robot
+    }
+
+    node "Radon Ulzer" <<executable>> as ru
+    node "Droid Control Ship" <<executable>> as dcs
+
+    interface "Socket" as iRobotSocket
+    interface "Socket" as iRuSocket
+}
+
+node "MQTT Broker" as broker {
+}
+
+robot -- iRobotSocket
+iRobotSocket )-- ru
+
+ru - iRuSocket: <<protocol>>\nYAP
+iRuSocket )- dcs
+
+note bottom of ru
+    * Connects as external controller to the simulation.
+    * Provides sensor data via YAP to the DroidControlShip.
+    * Requires actor data via YAP from the DroidControlShip, but
+        depends on which kind of application is compiled.
+end note
+
+note bottom of dcs
+    * The Droid Control Ship provides the calculation power,
+    * and the connectivity to the outer world of the Radon Ulzer.
+end note
+
+interface "TCP/IP" as iNetwork
+
+broker -- iNetwork: <<protocol>>\nMQTT
+iNetwork )- dcs
+
+@enduml
