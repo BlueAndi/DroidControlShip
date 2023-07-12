@@ -69,7 +69,7 @@ const uint8_t Device::MAX_CONN_RETRY_COUNT = 2U;
 
 bool Device::init()
 {
-    return m_socket.init(DEFAULT_SERVER_ADDRESS, DEFAULT_SERVER_PORT);
+    return m_socket.init(m_address, m_port);
 }
 
 bool Device::process()
@@ -107,6 +107,27 @@ Stream& Device::getStream()
 void Device::reset()
 {
     /* Not Implemented. */
+}
+
+void Device::setServer(const char* address, const char* port)
+{
+    if (nullptr == address)
+    {
+        m_address = DEFAULT_SERVER_ADDRESS;
+    }
+    else
+    {
+        m_address = address;
+    }
+
+    if (nullptr == port)
+    {
+        m_port = DEFAULT_SERVER_PORT;
+    }
+    else
+    {
+        m_port = port;
+    }
 }
 
 /******************************************************************************

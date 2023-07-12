@@ -61,7 +61,12 @@ public:
     /**
      * Constructs the device adapter.
      */
-    Device() : IDevice(), m_retryConnectionCounter(0U), m_socket()
+    Device() :
+        IDevice(),
+        m_retryConnectionCounter(0U),
+        m_socket(),
+        m_address(DEFAULT_SERVER_ADDRESS),
+        m_port(DEFAULT_SERVER_PORT)
     {
     }
 
@@ -98,6 +103,14 @@ public:
      */
     void reset() final;
 
+    /**
+     * Set the server address and port of the device.
+     *
+     * @param[in] address   Server address. Set nullptr to use the default address.
+     * @param[in] port      Server port number. Set nullptr to use the default port.
+     */
+    void setServer(const char* address, const char* port);
+
 private:
     /** Default server address of the device. */
     static const char* DEFAULT_SERVER_ADDRESS;
@@ -115,6 +128,12 @@ private:
      * Socket stream for communication with the device.
      */
     SocketClient m_socket;
+
+    /** Server Address. */
+    const char* m_address;
+
+    /** Server Port Number. */
+    const char* m_port;
 };
 
 /******************************************************************************
