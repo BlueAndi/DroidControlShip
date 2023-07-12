@@ -116,7 +116,6 @@ void App::setup()
         m_smpServer.subscribeToChannel(CH_NAME_LINE_SENSORS, App_lineSensorChannelCallback);
 
         /* Setup Network. */
-        Board::getInstance().getNetwork().setConfig("DCS", "localhost", 1883U, "will/dcs", "DCS Disconnected!", true);
         Board::getInstance().getNetwork().subscribe("dcs/cmd",
                                                     [this](const String& payload)
                                                     {

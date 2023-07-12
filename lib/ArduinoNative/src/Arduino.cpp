@@ -120,6 +120,12 @@ extern int main(int argc, char** argv)
     static_cast<Device&>(Board::getInstance().getDevice())
         .setServer(prgArguments.socketServerAddress, prgArguments.socketServerPort);
 
+
+    /* Setup Network. */
+    String clientId(prgArguments.instanceName);
+    Board::getInstance().getNetwork().setConfig(clientId, "localhost", 1883U, String(String("will/") + clientId),
+                                                String(clientId + String(" Disconnected!")), true);
+
     if (0 == status)
     {
         setup();
