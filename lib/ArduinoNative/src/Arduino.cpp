@@ -35,10 +35,10 @@
 #include <Arduino.h>
 #include <time.h>
 #include "Terminal.h"
-#include <Board.h>
-#include <Device.h>
 
 #ifndef UNIT_TEST
+#include <Board.h>
+#include <Device.h>
 #include <getopt.h>
 #endif
 
