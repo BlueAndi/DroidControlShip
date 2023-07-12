@@ -48,7 +48,11 @@ Follow the [installation description in the Radon Ulzer repository](https://gith
 
 | Library | Description | License |
 | - | - | - |
-| ... | ... | ... |
+| [Arduino](https://github.com/platformio/platform-espressif32) | ESP32 Arduino framework | Apache-2.0 |
+| [Arduino client for MQTT](https://github.com/knolleary/pubsubclient) | This library provides a client for doing simple publish/subscribe messaging with a server that supports MQTT. | MIT |
+| [ArduinoJson](https://arduinojson.org/) | JSON handling | MIT |
+| [SerialMuxProt](https://github.com/gabryelreyes/SerialMuxProt) | Multiplexing Communication Protocol | MIT |
+| [USB_Host_Shield_2.0](https://github.com/NewTec-GmbH/USB_Host_Shield_2.0/tree/3_Endpoints_ACM) | Maxim USB-Host IC driver. Using fork of the [original](https://github.com/felis/USB_Host_Shield_2.0) library that solves issue with endpoints. | MIT |
 
 ## Issues, Ideas And Bugs
 
