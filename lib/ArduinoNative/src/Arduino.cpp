@@ -35,6 +35,8 @@
 #include <Arduino.h>
 #include <time.h>
 #include "Terminal.h"
+#include <Board.h>
+#include <Device.h>
 
 #ifndef UNIT_TEST
 #include <getopt.h>
@@ -55,8 +57,9 @@
 /** This type defines the possible program arguments. */
 typedef struct
 {
-    uint16_t    socketServerPort; /**< Socket server port */
-    const char* name;             /**< Robot name */
+    const char* instanceName;        /**< Instance name */
+    const char* socketServerAddress; /**< Socket server address */
+    const char* socketServerPort;    /**< Socket server port */
 
 } PrgArguments;
 
@@ -77,11 +80,6 @@ static Terminal gTerminalStream;
 
 /** Serial driver, used by Arduino applications. */
 Serial_ Serial(gTerminalStream);
-
-/**
- * Default port used for socket communications.
- */
-static const uint16_t SOCKET_SERVER_DEFAULT_PORT = 65432U;
 
 /******************************************************************************
  * Public Methods
@@ -113,10 +111,14 @@ extern int main(int argc, char** argv)
 
 extern int main(int argc, char** argv)
 {
-    int status = 0;
+    int          status = 0;
     PrgArguments prgArguments;
 
     status = handleCommandLineArguments(prgArguments, argc, argv);
+
+    /* Set Device Server. */
+    static_cast<Device&>(Board::getInstance().getDevice())
+        .setServer(prgArguments.socketServerAddress, prgArguments.socketServerPort);
 
     if (0 == status)
     {
@@ -189,45 +191,37 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
 static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char** argv)
 {
     int         status           = 0;
-    const char* availableOptions = "p:n:h";
+    const char* availableOptions = "n:a:p:h";
     const char* programName      = argv[0];
     int         option           = getopt(argc, argv, availableOptions);
 
     /* Set default values */
-    prgArguments.socketServerPort = SOCKET_SERVER_DEFAULT_PORT;
-    prgArguments.name             = nullptr;
+    prgArguments.instanceName        = nullptr;
+    prgArguments.socketServerAddress = nullptr;
+    prgArguments.socketServerPort    = nullptr;
 
     while ((-1 != option) && (0 == status))
     {
         switch (option)
         {
-        case 'p': /* Port */
+        case 'n': /* Name */
+            printf("Instance has been named \"%s\".\n", optarg);
+            prgArguments.instanceName = optarg;
+            break;
+
+        case 'a': /* Address */
         {
-            /* Parse Port Number */
-            char* p;                                   /* End Pointer*/
-            errno            = 0;                      /* Reset Error Register */
-            long parsedValue = strtol(optarg, &p, 10); /* Long value parsed from string. */
-
-            if (('\0' == *p) &&                        /* Make sure the string is completely read. */
-                (0 == errno) &&                        /* No Errors were produced. */
-                (UINT16_MAX >= parsedValue) &&         /* No overflow of uint16_t to allow direct casting. */
-                (0U <= parsedValue))                   /* No negative values. */
-            {
-                prgArguments.socketServerPort = parsedValue;
-            }
-            else
-            {
-                printf("Error parsing port argument.\n");
-                status = -1;
-            }
-
+            printf("Using Socket Client to connect to \"%s\".\n", optarg);
+            prgArguments.socketServerAddress = optarg;
             break;
         }
 
-        case 'n': /* Name */
-            printf("Instance has been named \"%s\".\n", optarg);
-            prgArguments.name = optarg;
+        case 'p': /* Port */
+        {
+            printf("Using Socket Client in Port \"%s\".\n", optarg);
+            prgArguments.socketServerPort = optarg;
             break;
+        }
 
         case '?': /* Unknown */
             /* fallthrough */
