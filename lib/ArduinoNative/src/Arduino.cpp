@@ -116,10 +116,13 @@ extern int main(int argc, char** argv)
 
     status = handleCommandLineArguments(prgArguments, argc, argv);
 
-    /* Set Device Server. */
-    static_cast<Device&>(Board::getInstance().getDevice())
-        .setServer(prgArguments.socketServerAddress, prgArguments.socketServerPort);
-
+    /*
+     * Set Device Server from command line arguments.
+     * Uses the specific device implementation for simulation instead of interface.
+     */
+    IDevice& deviceInterface  = Board::getInstance().getDevice();
+    Device&  simulationDevice = static_cast<Device&>(deviceInterface);
+    simulationDevice.setServer(prgArguments.socketServerAddress, prgArguments.socketServerPort);
 
     /* Setup Network. */
     String clientId(prgArguments.instanceName);
