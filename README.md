@@ -11,7 +11,11 @@ The Droid Control Ship contains different kind of applications, used for educati
 * Convoy Follower Robot - It follows the leader by mainly reacting on the received information.
 * etc.
 
-It is designed to run on the [ZumoComSystem](https://github.com/NewTec-GmbH/ZumoComSystem) hardware, which is a shield for the [Pololu 32U4 Zumo Robot](https://www.pololu.com/product/2510). It supports running in the [Webots simulation](https://www.cyberbotics.com/) too.
+It is designed to run on the [ZumoComSystem](https://github.com/NewTec-GmbH/ZumoComSystem) hardware, which is a shield for the [Pololu 32U4 Zumo Robot](https://www.pololu.com/product/2510).
+
+![RobotWithZumoComSystem](doc/images/RobotWithZumoComSystem.jpg)
+
+It supports running in the [Webots simulation](https://www.cyberbotics.com/) too.
 
 The Droid Control Ship communicates with the [Radon Ulzer](https://github.com/BlueAndi/RadonUlzer).
 
