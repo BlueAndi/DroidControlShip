@@ -10,8 +10,8 @@ node "Environment" as env {
 
         note left of ru
             * Connects as external controller to the simulation.
-            * Provides sensor data via YAP to the DroidControlShip.
-            * Requires actor data via YAP from the DroidControlShip, but
+            * Provides sensor data via SerialMuxProt to the DroidControlShip.
+            * Requires actor data via SerialMuxProt from the DroidControlShip, but
                 depends on which kind of application is compiled.
         end note
     }
@@ -37,7 +37,7 @@ node "MQTT Broker" as broker {
 }
 
 dcs --( iRobotSerial
-iRobotSerial -- ru: <<protocol>>\nYAP
+iRobotSerial -- ru: <<protocol>>\nSerialMuxProt
 
 interface "TCP/IP" as iNetwork
 

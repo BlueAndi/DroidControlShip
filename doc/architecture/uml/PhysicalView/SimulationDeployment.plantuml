@@ -22,13 +22,13 @@ node "MQTT Broker" as broker {
 robot -- iRobotSocket
 iRobotSocket )-- ru
 
-ru - iRuSocket: <<protocol>>\nYAP
+ru - iRuSocket: <<protocol>>\nSerialMuxProt
 iRuSocket )- dcs
 
 note bottom of ru
     * Connects as external controller to the simulation.
-    * Provides sensor data via YAP to the DroidControlShip.
-    * Requires actor data via YAP from the DroidControlShip, but
+    * Provides sensor data via SerialMuxProt to the DroidControlShip.
+    * Requires actor data via SerialMuxProt from the DroidControlShip, but
         depends on which kind of application is compiled.
 end note
 
