@@ -1,0 +1,41 @@
+@startuml
+
+title Configuration
+
+component "env:ConvoyLeaderTarget" <<pio>> as envConvoyLeader
+component "env:ConvoyLeaderSim" <<pio>> as envConvoyLeaderSim
+
+component "env:ConvoyFollowerTarget" <<pio>> as envConvoyFollower
+component "env:ConvoyFollowerSim" <<pio>> as envConvoyFollowerSim
+
+component "app:ConvoyLeader" <<pio>> as appConvoyLeader
+component "app:ConvoyFollower" <<pio>> as appConvoyFollower
+
+component "ConvoyLeader" <<lib>> as convoyLeader
+component "ConvoyFollower" <<lib>> as convoyFollower
+
+component "target:esp32" <<pio>> as targetEsp32
+component "target:Sim" <<pio>> as targetSim
+
+component "HALTarget" <<lib>> as halTarget
+component "HALSim" <<lib>> as halSim
+
+envConvoyLeader ..> appConvoyLeader
+envConvoyLeader ..> targetEsp32
+
+envConvoyLeaderSim ..> appConvoyLeader
+envConvoyLeaderSim ..> targetSim
+
+envConvoyFollower ..> appConvoyFollower
+envConvoyFollower ..> targetEsp32
+
+envConvoyFollowerSim ..> appConvoyFollower
+envConvoyFollowerSim ..> targetSim
+
+appConvoyLeader ..> convoyLeader
+appConvoyFollower ..> convoyFollower
+
+targetEsp32 ..> halTarget
+targetSim ..> halSim
+
+@enduml
