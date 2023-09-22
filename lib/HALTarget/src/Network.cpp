@@ -34,6 +34,8 @@
  *****************************************************************************/
 #include "Network.h"
 #include <Logging.h>
+#include <WiFi.h>
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Compiler Switches
@@ -67,11 +69,16 @@ Network::Network() :
     m_clientId(""),
     m_brokerAddress(""),
     m_brokerPort(0U),
+    m_birthTopic(""),
+    m_birthMessage(""),
     m_willTopic(""),
     m_willMessage(""),
     m_reconnect(true),
     m_reconnectTimer(),
-    m_subscriberList()
+    m_subscriberList(),
+    m_wiFiSSID(""),
+    m_wiFiPassword(""),
+    m_isWiFiConfigured(false)
 {
 }
 
@@ -82,13 +89,14 @@ Network::~Network()
 bool Network::init()
 {
     m_state = STATE_IDLE;
-
     return true;
 }
 
 bool Network::process()
 {
     bool isSuccess = true;
+
+    isSuccess = manageWiFi();
 
     switch (m_state)
     {
@@ -115,7 +123,8 @@ bool Network::process()
     return isSuccess;
 }
 
-bool Network::setConfig(const String& clientId, const String& brokerAddress, uint16_t brokerPort,
+bool Network::setConfig(const String& clientId, const String& ssid, const String& password, const String& brokerAddress,
+                        uint16_t brokerPort, const String& birthTopic, const String& birthMessage,
                         const String& willTopic, const String& willMessage, bool reconnect)
 {
     bool isSuccess = false;
@@ -123,6 +132,11 @@ bool Network::setConfig(const String& clientId, const String& brokerAddress, uin
     if (true == clientId.isEmpty())
     {
         LOG_ERROR("Client ID is empty.");
+    }
+    else if (true == ssid.isEmpty())
+    {
+        /* Check only performed on target. */
+        LOG_ERROR("WiFi SSID is empty.");
     }
     else if (true == brokerAddress.isEmpty())
     {
@@ -134,6 +148,12 @@ bool Network::setConfig(const String& clientId, const String& brokerAddress, uin
     }
     else
     {
+        if (false == birthTopic.isEmpty())
+        {
+            m_birthTopic   = birthTopic;
+            m_birthMessage = birthMessage;
+        }
+
         if (false == willTopic.isEmpty())
         {
             m_willTopic   = willTopic;
@@ -141,6 +161,8 @@ bool Network::setConfig(const String& clientId, const String& brokerAddress, uin
         }
 
         m_clientId      = clientId;
+        m_wiFiSSID      = ssid;
+        m_wiFiPassword  = password;
         m_brokerAddress = brokerAddress;
         m_brokerPort    = brokerPort;
         m_reconnect     = reconnect;
@@ -168,7 +190,7 @@ bool Network::connect()
         LOG_ERROR("Broker address or port not set.");
         m_state = STATE_IDLE;
     }
-    else if (WiFi.status() != WL_CONNECTED)
+    else if (WL_CONNECTED != WiFi.status())
     {
         LOG_ERROR("WiFi not connected.");
     }
@@ -196,6 +218,16 @@ bool Network::connect()
         LOG_DEBUG("MQTT client connected to broker");
         resubscribe();
         m_state = STATE_CONNECTED;
+
+        if (false == m_birthTopic.isEmpty())
+        {
+            /* Publish birth message. Should succesfully publish if connected to broker. */
+            isSuccess = publish(m_birthTopic, false, m_birthMessage);
+        }
+        else
+        {
+            isSuccess = true;
+        }
     }
 
     return isSuccess;
@@ -221,26 +253,45 @@ bool Network::isConnected() const
     return (STATE_CONNECTED == m_state);
 }
 
-bool Network::publish(const String& topic, const String& message)
+bool Network::publish(const String& topic, const bool useClientBaseTopic, const String& message)
 {
+    bool isSuccess = false;
     LOG_DEBUG("Publishing message to topic %s", topic.c_str());
-    return m_mqttClient.publish(topic.c_str(), message.c_str());
+
+    if ((true == isConnected()) && (false == topic.isEmpty()))
+    {
+        String fullTopic = "";
+
+        if ((true == useClientBaseTopic) && (false == m_clientId.isEmpty()))
+        {
+            fullTopic = m_clientId + "/" + topic;
+        }
+        else
+        {
+            fullTopic = topic;
+        }
+
+        isSuccess = m_mqttClient.publish(fullTopic.c_str(), message.c_str());
+    }
+
+    return isSuccess;
 }
 
 bool Network::subscribe(const String& topic, TopicCallback callback)
 {
     bool isSuccess = false;
 
-    if (false == topic.isEmpty())
+    if ((false == topic.isEmpty()) && (false == m_clientId.isEmpty()))
     {
         SubscriberList::const_iterator it;
+        String                         fullTopic = m_clientId + "/" + topic;
 
         /* Register a topic only once! */
         for (it = m_subscriberList.begin(); it != m_subscriberList.end(); ++it)
         {
             if (nullptr != (*it))
             {
-                if ((*it)->topic == topic)
+                if ((*it)->topic == fullTopic)
                 {
                     break;
                 }
@@ -253,7 +304,7 @@ bool Network::subscribe(const String& topic, TopicCallback callback)
 
             if (nullptr != subscriber)
             {
-                subscriber->topic    = topic;
+                subscriber->topic    = fullTopic;
                 subscriber->callback = callback;
 
                 if (false == isConnected())
@@ -280,15 +331,16 @@ bool Network::subscribe(const String& topic, TopicCallback callback)
 
 void Network::unsubscribe(const String& topic)
 {
-    if (false == topic.isEmpty())
+    if ((false == topic.isEmpty()) && (false == m_clientId.isEmpty()))
     {
-        SubscriberList::iterator it = m_subscriberList.begin();
+        String                   fullTopic = m_clientId + "/" + topic;
+        SubscriberList::iterator it        = m_subscriberList.begin();
 
         while (m_subscriberList.end() != it)
         {
             if (nullptr != (*it))
             {
-                if ((*it)->topic == topic)
+                if ((*it)->topic == fullTopic)
                 {
                     Subscriber* subscriber = *it;
 
@@ -316,13 +368,16 @@ void Network::unsubscribe(const String& topic)
 
 void Network::idleState()
 {
-    if ((false == m_clientId.isEmpty()) && (false == m_brokerAddress.isEmpty()) && (0U != m_brokerPort))
+    if ((false == m_clientId.isEmpty()) && (false == m_brokerAddress.isEmpty()) && (0U != m_brokerPort) &&
+        (false == m_wiFiSSID.isEmpty()))
     {
         (void)m_mqttClient.setServer(m_brokerAddress.c_str(), m_brokerPort);
         (void)m_mqttClient.setBufferSize(MAX_BUFFER_SIZE);
         (void)m_mqttClient.setKeepAlive(MQTT_KEEP_ALIVE_S);
         (void)m_mqttClient.setCallback([this](char* topic, uint8_t* payload, uint32_t length)
                                        { this->onMessageCallback(topic, payload, length); });
+        (void)WiFi.begin(m_wiFiSSID.c_str(), m_wiFiPassword.c_str());
+        m_isWiFiConfigured = true;
 
         m_state = STATE_DISCONNECTED;
     }
@@ -396,6 +451,10 @@ void Network::resubscribe()
             {
                 LOG_WARNING("MQTT topic subscription not possible: %s", subscriber->topic.c_str());
             }
+            else
+            {
+                LOG_DEBUG("MQTT topic subscription successful: %s", subscriber->topic.c_str());
+            }
         }
     }
 }
@@ -421,6 +480,43 @@ void Network::onMessageCallback(char* topic, uint8_t* payload, uint32_t length)
             }
         }
     }
+}
+
+bool Network::manageWiFi()
+{
+    bool isSuccess = true;
+
+    if (true == m_isWiFiConfigured)
+    {
+        if (WL_CONNECTED != WiFi.status())
+        {
+            if (false == m_wifiTimeoutTimer.isTimerRunning())
+            {
+                /* Start timeout timer. */
+                LOG_DEBUG("Connection to WiFi lost. Reconnecting...");
+                m_wifiTimeoutTimer.start(WIFI_TIMEOUT);
+            }
+            else if (true == m_wifiTimeoutTimer.isTimeout())
+            {
+                LOG_ERROR("WiFi Connection Timed-out!");
+                isSuccess = false;
+            }
+            else
+            {
+                /* WiFi is connecting. Do nothing. */
+            }
+        }
+        else
+        {
+            if (true == m_wifiTimeoutTimer.isTimerRunning())
+            {
+                /* Stop timer. */
+                m_wifiTimeoutTimer.stop();
+            }
+        }
+    }
+
+    return isSuccess;
 }
 
 /******************************************************************************

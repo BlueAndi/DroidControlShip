@@ -20,6 +20,10 @@
         "version": "https://github.com/NewTec-GmbH/USB_Host_Shield_2.0.git#3_Endpoints_ACM"
     },{
         "name": "SPI"
+    },{
+        "name": "FS"
+    },{
+        "name": "LittleFS"
     }],
     "frameworks": "arduino",
     "platforms": "*"

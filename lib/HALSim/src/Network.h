@@ -88,14 +88,19 @@ public:
      * Set client configuration.
      *
      * @param[in] clientId      Client ID.
+     * @param[in] ssid          SSID of the WiFi network.
+     * @param[in] password      Password of the WiFi network.
      * @param[in] brokerAddress Broker address to connect to.
      * @param[in] brokerPort    Broker port to connect to.
+     * @param[in] birthTopic    Birth topic. If empty, no birth message is used.
+     * @param[in] birthMessage  Birth message.
      * @param[in] willTopic     Last will topic. If empty, no last will is used.
      * @param[in] willMessage   Last will message.
      * @param[in] reconnect     If true, the client will try to reconnect to the broker, if the connection is lost.
      * @return If successfully set, returns true. Otherwise, false.
      */
-    bool setConfig(const String& clientId, const String& brokerAddress, uint16_t brokerPort, const String& willTopic,
+    bool setConfig(const String& clientId, const String& ssid, const String& password, const String& brokerAddress,
+                   uint16_t brokerPort, const String& birthTopic, const String& birthMessage, const String& willTopic,
                    const String& willMessage, bool reconnect) final;
 
     /**
@@ -121,14 +126,15 @@ public:
      * Publishes a message to the network.
      *
      * @param[in] topic     Topic to publish to.
+     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
      * @param[in] message   Message to publish.
      */
-    bool publish(const String& topic, const String& message) final;
+    bool publish(const String& topic, const bool useClientBaseTopic, const String& message) final;
 
     /**
      * Subscribes to a topic.
      *
-     * @param[in] topic     Topic to subscribe to.
+     * @param[in] topic     Topic to subscribe to. The Client ID is used as base topic: <Client ID>/<topic>
      * @param[in] callback  Callback function, which is called on a new message.
      * @return If successfully subscribed, returns true. Otherwise, false.
      */
@@ -137,7 +143,7 @@ public:
     /**
      * Unsubscribes from a topic.
      *
-     * @param[in] topic     Topic to unsubscribe from.
+     * @param[in] topic     Topic to unsubscribe from. The Client ID is used as base topic: <Client ID>/<topic>
      */
     void unsubscribe(const String& topic) final;
 
@@ -181,7 +187,7 @@ private:
     typedef std::vector<Subscriber*> SubscriberList;
 
     /** MQTT Loop Timeout. */
-    static const int MQTT_LOOP_TIMEOUT_MS = 100;
+    static const int MQTT_LOOP_TIMEOUT_MS = 10;
 
     /** Reconnect Timeout. */
     static const int RECONNECT_TIMEOUT_MS = 1000;
@@ -200,6 +206,12 @@ private:
 
     /** Broker port to connect to. */
     uint16_t m_brokerPort;
+
+    /** Birth topic. */
+    String m_birthTopic;
+
+    /** Birth Message. */
+    String m_birthMessage;
 
     /** Will topic. */
     String m_willTopic;

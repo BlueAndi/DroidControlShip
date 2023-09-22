@@ -69,6 +69,8 @@ Network::Network() :
     m_clientId(""),
     m_brokerAddress(""),
     m_brokerPort(0U),
+    m_birthTopic(""),
+    m_birthMessage(""),
     m_willTopic(""),
     m_willMessage(""),
     m_reconnect(true),
@@ -136,7 +138,8 @@ bool Network::process()
     return isSuccess;
 }
 
-bool Network::setConfig(const String& clientId, const String& brokerAddress, uint16_t brokerPort,
+bool Network::setConfig(const String& clientId, const String& ssid, const String& password, const String& brokerAddress,
+                        uint16_t brokerPort, const String& birthTopic, const String& birthMessage,
                         const String& willTopic, const String& willMessage, bool reconnect)
 {
     bool isSuccess = false;
@@ -155,6 +158,12 @@ bool Network::setConfig(const String& clientId, const String& brokerAddress, uin
     }
     else
     {
+        if (false == birthTopic.isEmpty())
+        {
+            m_birthTopic   = birthTopic;
+            m_birthMessage = birthMessage;
+        }
+
         if (false == willTopic.isEmpty())
         {
             m_willTopic   = willTopic;
@@ -203,8 +212,17 @@ bool Network::connect()
     {
         LOG_DEBUG("MQTT client connected to broker");
         resubscribe();
-        m_state   = STATE_CONNECTED;
-        isSuccess = true;
+        m_state = STATE_CONNECTED;
+
+        if (false == m_birthTopic.isEmpty())
+        {
+            /* Publish birth message. Should succesfully publish if connected to broker. */
+            isSuccess = publish(m_birthTopic, false, m_birthMessage);
+        }
+        else
+        {
+            isSuccess = true;
+        }
     }
 
     return isSuccess;
@@ -228,17 +246,29 @@ bool Network::isConnected() const
     return (STATE_CONNECTED == m_state);
 }
 
-bool Network::publish(const String& topic, const String& message)
+bool Network::publish(const String& topic, const bool useClientBaseTopic, const String& message)
 {
     bool isSuccess = false;
 
-    if (true == isConnected())
+    if ((true == isConnected()) && (false == topic.isEmpty()))
     {
-        int ret = mosquitto_publish(m_mqttClient, nullptr, topic.c_str(), message.length(), message.c_str(), 0, false);
+        String fullTopic = "";
+
+        if ((true == useClientBaseTopic) && (false == m_clientId.isEmpty()))
+        {
+            fullTopic = m_clientId + "/" + topic;
+        }
+        else
+        {
+            fullTopic = topic;
+        }
+
+        int ret =
+            mosquitto_publish(m_mqttClient, nullptr, fullTopic.c_str(), message.length(), message.c_str(), 0, false);
 
         if (MOSQ_ERR_SUCCESS != ret)
         {
-            LOG_ERROR("Failed to publish message to topic %s with Error %d", topic.c_str(), ret);
+            LOG_ERROR("Failed to publish message to topic %s with Error %d", fullTopic.c_str(), ret);
         }
         else
         {
@@ -253,16 +283,17 @@ bool Network::subscribe(const String& topic, TopicCallback callback)
 {
     bool isSuccess = false;
 
-    if (false == topic.isEmpty())
+    if ((false == topic.isEmpty()) && (false == m_clientId.isEmpty()))
     {
         SubscriberList::const_iterator it;
+        String                         fullTopic = m_clientId + "/" + topic;
 
         /* Register a topic only once! */
         for (it = m_subscriberList.begin(); it != m_subscriberList.end(); ++it)
         {
             if (nullptr != (*it))
             {
-                if ((*it)->topic == topic)
+                if ((*it)->topic == fullTopic)
                 {
                     break;
                 }
@@ -275,7 +306,7 @@ bool Network::subscribe(const String& topic, TopicCallback callback)
 
             if (nullptr != subscriber)
             {
-                subscriber->topic    = topic;
+                subscriber->topic    = fullTopic;
                 subscriber->callback = callback;
 
                 if (false == isConnected())
@@ -310,15 +341,16 @@ bool Network::subscribe(const String& topic, TopicCallback callback)
 
 void Network::unsubscribe(const String& topic)
 {
-    if (false == topic.isEmpty())
+    if ((false == topic.isEmpty()) && (false == m_clientId.isEmpty()))
     {
-        SubscriberList::iterator it = m_subscriberList.begin();
+        String                   fullTopic = m_clientId + "/" + topic;
+        SubscriberList::iterator it        = m_subscriberList.begin();
 
         while (m_subscriberList.end() != it)
         {
             if (nullptr != (*it))
             {
-                if ((*it)->topic == topic)
+                if ((*it)->topic == fullTopic)
                 {
                     Subscriber* subscriber = *it;
 

@@ -466,6 +466,44 @@ public:
         return isEmptyFlag;
     }
 
+    /**
+     * Remove all characters from the String tarting at the index until the end of the String.
+     * @param[in] index Index at which to remove characters.
+     */
+    void remote(unsigned int index)
+    {
+        remove(index, (unsigned int)-1);
+    }
+
+    /**
+     * Remove a number of characters from the String starting at the index.
+     * @param[in] index Index at which to remove characters.
+     * @param[in] count Number of characters to remove.
+     */
+    void remove(unsigned int index, unsigned int count)
+    {
+        if (index >= length())
+        {
+            return;
+        }
+        if (count <= 0)
+        {
+            return;
+        }
+        if (count > length() - index)
+        {
+            count = length() - index;
+        }
+        unsigned int newlen = length() - count;
+        char*        tmp    = new char[newlen + 1];
+        memcpy(tmp, m_buffer, index);
+        memcpy(tmp + index, m_buffer + index + count, newlen - index);
+        tmp[newlen] = '\0';
+        delete[] m_buffer;
+        m_buffer = tmp;
+        m_size   = newlen + 1;
+    }
+
 private:
 
     size_t  m_size;     /**< String buffer size */

@@ -92,8 +92,7 @@ public:
             /* Log Device error */
             LOG_ERROR("Device not initialized. ");
         }
-        else 
-        if (false == m_network.init())
+        else if (false == m_network.init())
         {
             /* Log Network error */
             LOG_ERROR("Network not initialized. ");
@@ -121,8 +120,7 @@ public:
             /* Log Device error */
             LOG_ERROR("Device process failed. ");
         }
-        else 
-        if (false == m_network.process())
+        else if (false == m_network.process())
         {
             /* Log Network error */
             LOG_ERROR("Network process failed. ");
@@ -162,6 +160,16 @@ public:
      * @return Device driver.
      */
     IDevice& getDevice() final
+    {
+        return m_device;
+    }
+
+    /**
+     * Get Native Device driver.
+     *
+     * @return Native Device driver.
+     */
+    IDeviceNative& getDeviceNative()
     {
         return m_device;
     }

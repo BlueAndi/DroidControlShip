@@ -240,8 +240,6 @@ void ButtonDrv::setState(ButtonId buttonId, ButtonState state)
             (void)xSemaphoreGive(m_xSemaphore);
         }
     }
-
-    return;
 }
 
 void ButtonDrv::buttonTask(void* parameters)
