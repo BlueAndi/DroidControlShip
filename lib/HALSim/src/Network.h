@@ -187,7 +187,7 @@ private:
     typedef std::vector<Subscriber*> SubscriberList;
 
     /** MQTT Loop Timeout. */
-    static const int MQTT_LOOP_TIMEOUT_MS = 10;
+    static const int MQTT_LOOP_TIMEOUT_MS = 0;
 
     /** Reconnect Timeout. */
     static const int RECONNECT_TIMEOUT_MS = 1000;
