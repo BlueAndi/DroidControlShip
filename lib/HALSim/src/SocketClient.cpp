@@ -344,6 +344,13 @@ bool SocketClient::process()
                         {
                             m_members->m_rcvQueue.push(static_cast<uint8_t>(recvbuf[idx]));
                         }
+
+                        if (CANARY_WARNING_LIMIT < m_members->m_rcvQueue.size())
+                        {
+                            printf("Warning: SocketClient receive queue is getting full. %d bytes "
+                                   "available.\nReceiving too many bytes, or not processing them fast enough\n",
+                                   m_members->m_rcvQueue.size());
+                        }
                     }
                     else
                     {
