@@ -61,7 +61,7 @@ bool FileReader::readFile(const String& fileName, char* outBuffer, const uint32_
 
     if (nullptr == file)
     {
-        LOG_ERROR("Error ocurred while opening configuration file \"%s\".", fileName.c_str());
+        LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
     }
     else
     {
@@ -69,7 +69,7 @@ bool FileReader::readFile(const String& fileName, char* outBuffer, const uint32_
 
         if (ferror(file) != 0)
         {
-            LOG_ERROR("Error ocurred while reading configuration file.");
+            LOG_ERROR("Error ocurred while reading file \"%s\".", fileName.c_str());
         }
         else
         {
