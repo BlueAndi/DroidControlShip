@@ -173,10 +173,11 @@ extern void delay(unsigned long ms)
 #ifdef UNIT_TEST
 
 /**
- * Handle the Arguments passed to the programm.
+ * Handle the arguments passed to the programm.
  *
- * @param[in] argc Program argument count
- * @param[in] argv Program argument vector
+ * @param[out]  prgArguments Parsed program arguments
+ * @param[in]   argc         Program argument count
+ * @param[in]   argv         Program argument vector
  *
  * @returns 0 if handling was succesful. Otherwise, -1
  */
