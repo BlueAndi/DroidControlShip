@@ -94,9 +94,7 @@ bool Network::init()
 
 bool Network::process()
 {
-    bool isSuccess = true;
-
-    isSuccess = manageWiFi();
+    bool isSuccess = manageWiFi();
 
     switch (m_state)
     {
