@@ -69,11 +69,7 @@ bool FileReader::readFile(const String& fileName, char* outBuffer, const uint32_
         uint32_t bytesRead = 0U;
         bytesRead          = file.readBytes(outBuffer, maxBufferSize);
 
-        if (0U == bytesRead)
-        {
-            LOG_ERROR("Error ocurred while reading file \"%s\".", fileName.c_str());
-        }
-        else if (true == file.available())
+        if (true == file.available())
         {
             LOG_ERROR("File \"%s\" is too big for the buffer.", fileName.c_str());
         }
