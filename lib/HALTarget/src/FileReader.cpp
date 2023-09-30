@@ -78,7 +78,7 @@ bool FileReader::readFile(const String& fileName, char* outBuffer, const uint32_
 
             if (0U == bytesRead)
             {
-                LOG_ERROR("Error ocurred while reading configuration file.");
+                LOG_ERROR("Error ocurred while reading file: " + fileName);
             }
             else
             {
