@@ -369,15 +369,25 @@ void Network::idleState()
     if ((false == m_clientId.isEmpty()) && (false == m_brokerAddress.isEmpty()) && (0U != m_brokerPort) &&
         (false == m_wiFiSSID.isEmpty()))
     {
-        (void)m_mqttClient.setServer(m_brokerAddress.c_str(), m_brokerPort);
-        (void)m_mqttClient.setBufferSize(MAX_BUFFER_SIZE);
-        (void)m_mqttClient.setKeepAlive(MQTT_KEEP_ALIVE_S);
-        (void)m_mqttClient.setCallback([this](char* topic, uint8_t* payload, uint32_t length)
-                                       { this->onMessageCallback(topic, payload, length); });
-        (void)WiFi.begin(m_wiFiSSID.c_str(), m_wiFiPassword.c_str());
-        m_isWiFiConfigured = true;
+        if (false == m_mqttClient.setBufferSize(MAX_BUFFER_SIZE))
+        {
+            LOG_ERROR("Failed to set MQTT buffer size.");
+        }
+        else if (WL_CONNECT_FAILED == WiFi.begin(m_wiFiSSID.c_str(), m_wiFiPassword.c_str()))
+        {
+            LOG_ERROR("Failed to connect to WiFi.");
+        }
+        else
+        {
+            /* Functions return instance to allow chaining. */
+            (void)m_mqttClient.setServer(m_brokerAddress.c_str(), m_brokerPort);
+            (void)m_mqttClient.setKeepAlive(MQTT_KEEP_ALIVE_S);
+            (void)m_mqttClient.setCallback([this](char* topic, uint8_t* payload, uint32_t length)
+                                           { this->onMessageCallback(topic, payload, length); });
 
-        m_state = STATE_DISCONNECTED;
+            m_isWiFiConfigured = true;
+            m_state            = STATE_DISCONNECTED;
+        }
     }
 }
 
