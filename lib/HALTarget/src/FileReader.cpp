@@ -58,36 +58,27 @@ SOFTWARE.
 bool FileReader::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
 {
     bool isSuccess = false;
+    File file      = LittleFS.open(fileName, "r");
 
-    if (false == LittleFS.begin(true))
+    if ((false == file) || (file.isDirectory()))
     {
-        LOG_ERROR("Failed to mount file system.");
+        LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
     }
     else
     {
-        File file = LittleFS.open(fileName, "r");
+        uint32_t bytesRead = 0U;
+        bytesRead          = file.readBytes(outBuffer, maxBufferSize);
 
-        if ((false == file) || (file.isDirectory()))
+        if (0U == bytesRead)
         {
-            LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
+            LOG_ERROR("Error ocurred while reading file: " + fileName);
         }
         else
         {
-            uint32_t bytesRead = 0U;
-            bytesRead          = file.readBytes(outBuffer, maxBufferSize);
-
-            if (0U == bytesRead)
-            {
-                LOG_ERROR("Error ocurred while reading file: " + fileName);
-            }
-            else
-            {
-                outBuffer[bytesRead++] = '\0'; /* Just to be safe. */
-                isSuccess              = true;
-            }
-            file.close();
-            LittleFS.end();
+            outBuffer[bytesRead++] = '\0'; /* Just to be safe. */
+            isSuccess              = true;
         }
+        file.close();
     }
 
     return isSuccess;
@@ -96,6 +87,19 @@ bool FileReader::readFile(const String& fileName, char* outBuffer, const uint32_
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+FileReader::FileReader()
+{
+    if (false == LittleFS.begin(true))
+    {
+        LOG_ERROR("Failed to mount file system.");
+    }
+}
+
+FileReader::~FileReader()
+{
+    LittleFS.end();
+}
 
 /******************************************************************************
  * Local Functions

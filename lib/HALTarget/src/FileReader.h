@@ -76,16 +76,12 @@ private:
     /**
      * Constructs the concrete FileReader.
      */
-    FileReader()
-    {
-    }
+    FileReader();
 
     /**
      * Destroys the concrete FileReader.
      */
-    virtual ~FileReader()
-    {
-    }
+    virtual ~FileReader();
 
 private:
     FileReader(const FileReader& src);
