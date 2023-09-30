@@ -467,10 +467,10 @@ public:
     }
 
     /**
-     * Remove all characters from the String tarting at the index until the end of the String.
+     * Remove all characters from the String starting at the index until the end of the String.
      * @param[in] index Index at which to remove characters.
      */
-    void remote(unsigned int index)
+    void remove(unsigned int index)
     {
         remove(index, (unsigned int)-1);
     }
