@@ -486,22 +486,32 @@ public:
         {
             return;
         }
-        if (count <= 0)
+        else if (count <= 0)
         {
             return;
         }
-        if (count > length() - index)
+        else if (nullptr == m_buffer)
         {
-            count = length() - index;
+            return;
         }
-        unsigned int newlen = length() - count;
-        char*        tmp    = new char[newlen + 1];
-        memcpy(tmp, m_buffer, index);
-        memcpy(tmp + index, m_buffer + index + count, newlen - index);
-        tmp[newlen] = '\0';
-        delete[] m_buffer;
-        m_buffer = tmp;
-        m_size   = newlen + 1;
+        else
+        {
+            if (count > length() - index)
+            {
+                count = length() - index;
+            }
+
+            unsigned int newlen = length() - count;
+            char*        tmp    = new char[newlen + 1];
+
+            memcpy(tmp, m_buffer, index);
+            memcpy(tmp + index, m_buffer + index + count, newlen - index);
+            tmp[newlen] = '\0';
+            delete[] m_buffer;
+
+            m_buffer = tmp;
+            m_size   = newlen + 1;
+        }
     }
 
 private:
