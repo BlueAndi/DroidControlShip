@@ -1,4 +1,4 @@
-# Droid Control Ship - ZumoComSystem <!-- omit in toc -->
+# Droid Control Ship - Firmware for ZumoComSystem <!-- omit in toc -->
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](http://choosealicense.com/licenses/mit/)
 [![Repo Status](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
