@@ -36,6 +36,7 @@
 #include "SocketClient.h"
 #include <stdio.h>
 #include <queue>
+#include <Logging.h>
 
 #ifdef _WIN32
 #undef UNICODE
@@ -146,7 +147,7 @@ bool SocketClient::init(const char* serverAddress, const char* portNumber)
         result = WSAStartup(MAKEWORD(2, 2), &wsaData);
         if (0 != result)
         {
-            printf("WSAStartup failed with error: %d\n", result);
+            LOG_ERROR("WSAStartup failed with error: %d\n", result);
         }
 
 #endif
@@ -157,7 +158,7 @@ bool SocketClient::init(const char* serverAddress, const char* portNumber)
             result = getaddrinfo(serverAddress, portNumber, &hints, &m_members->m_addrInfo);
             if (0 != result)
             {
-                printf("getaddrinfo failed with error: %d\n", result);
+                LOG_ERROR("getaddrinfo failed with error: %d\n", result);
                 closeListeningSocket();
             }
             else
@@ -266,7 +267,7 @@ size_t SocketClient::write(const uint8_t* buffer, size_t length)
             int result = send(m_members->m_serverSocket, reinterpret_cast<const char*>(buffer), length, 0);
             if (SOCKET_ERROR == result)
             {
-                printf("send failed\n");
+                LOG_ERROR("Send failed\n");
                 /* Error on the socket. Client is now invalid. */
                 m_members->m_serverSocket = INVALID_SOCKET;
             }
@@ -347,9 +348,9 @@ bool SocketClient::process()
 
                         if (CANARY_WARNING_LIMIT < m_members->m_rcvQueue.size())
                         {
-                            printf("Warning: SocketClient receive queue is getting full. %d bytes "
-                                   "available.\nReceiving too many bytes, or not processing them fast enough\n",
-                                   m_members->m_rcvQueue.size());
+                            LOG_WARNING("Warning: SocketClient receive queue is getting full. %d bytes "
+                                        "available.\nReceiving too many bytes, or not processing them fast enough\n",
+                                        m_members->m_rcvQueue.size());
                         }
                     }
                     else
@@ -394,7 +395,7 @@ bool SocketClient::connectSocket()
             m_members->m_serverSocket = socket(itr->ai_family, itr->ai_socktype, itr->ai_protocol);
             if (INVALID_SOCKET == m_members->m_serverSocket)
             {
-                printf("Socket creation failed\n");
+                LOG_ERROR("Socket creation failed\n");
                 break;
             }
 
