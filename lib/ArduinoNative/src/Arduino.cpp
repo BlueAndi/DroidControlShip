@@ -40,7 +40,6 @@
 #include <Board.h>
 #include <Device.h>
 #include <getopt.h>
-#include <Settings.h>
 #endif
 
 /******************************************************************************
@@ -123,16 +122,6 @@ extern int main(int argc, char** argv)
      */
     IDeviceNative& deviceNativeInterface = Board::getInstance().getDeviceNative();
     deviceNativeInterface.setServer(prgArguments.socketServerAddress, prgArguments.socketServerPort);
-
-    /* Set Settings. */
-    if (nullptr != prgArguments.instanceName)
-    {
-        String clientId(prgArguments.instanceName);
-        if (false == Settings::getInstance().setConfiguration(clientId, "", "", "localhost", 1883U))
-        {
-            status = -1;
-        }
-    }
 
     if (0 == status)
     {
