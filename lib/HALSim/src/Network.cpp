@@ -139,8 +139,7 @@ bool Network::process()
 }
 
 bool Network::setConfig(const String& clientId, const String& ssid, const String& password, const String& brokerAddress,
-                        uint16_t brokerPort, const String& birthTopic, const String& birthMessage,
-                        const String& willTopic, const String& willMessage, bool reconnect)
+                        uint16_t brokerPort, bool reconnect)
 {
     bool isSuccess = false;
 
@@ -158,17 +157,11 @@ bool Network::setConfig(const String& clientId, const String& ssid, const String
     }
     else
     {
-        if (false == birthTopic.isEmpty())
-        {
-            m_birthTopic   = birthTopic;
-            m_birthMessage = birthMessage;
-        }
+        m_birthTopic   = "birth";
+        m_birthMessage = clientId;
 
-        if (false == willTopic.isEmpty())
-        {
-            m_willTopic   = willTopic;
-            m_willMessage = willMessage;
-        }
+        m_willTopic   = "will";
+        m_willMessage = clientId;
 
         m_clientId      = clientId;
         m_brokerAddress = brokerAddress;
