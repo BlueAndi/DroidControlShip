@@ -91,6 +91,11 @@ public:
 
         GpioPins::init();
 
+        /* Turn LEDs off. */
+        m_ledRed.enable(false);
+        m_ledGreen.enable(false);
+        m_ledBlue.enable(false);
+
         if (false == ButtonDrv::getInstance().init())
         {
             /* Log Button Driver error */
