@@ -51,6 +51,7 @@
  * Prototypes
  *****************************************************************************/
 
+static void onConnect(mosquitto* mosq, void* obj, int rc);
 static void onDisconnect(mosquitto* mosq, void* obj, int rc);
 static void onMessage(mosquitto* mosq, void* obj, const mosquitto_message* msg);
 
@@ -210,19 +211,7 @@ bool Network::connect()
     }
     else
     {
-        LOG_DEBUG("MQTT client connected to broker");
-        resubscribe();
-        m_state = STATE_CONNECTED;
-
-        if (false == m_birthTopic.isEmpty())
-        {
-            /* Publish birth message. Should succesfully publish if connected to broker. */
-            isSuccess = publish(m_birthTopic, false, m_birthMessage);
-        }
-        else
-        {
-            isSuccess = true;
-        }
+        isSuccess = true;
     }
 
     return isSuccess;
@@ -373,6 +362,16 @@ void Network::unsubscribe(const String& topic)
             ++it;
         }
     }
+}
+
+void Network::onConnectCallback(int rc)
+{
+    LOG_DEBUG("MQTT client connected to broker. rc=%d", rc);
+    resubscribe();
+    m_state = STATE_CONNECTED;
+
+    /* Publish birth message. */
+    (void)publish(m_birthTopic, false, m_birthMessage);
 }
 
 void Network::onDisconnectCallback(int rc)
@@ -538,6 +537,23 @@ void Network::resubscribe()
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
+
+/**
+ * Callback function, which is called on connect.
+ *
+ * @param[in] mosq  Mosquitto instance.
+ * @param[in] obj   Object passed on mosquitto_new.
+ * @param[in] rc    Result code.
+ */
+void onConnect(mosquitto* mosq, void* obj, int rc)
+{
+    Network* network = static_cast<Network*>(obj);
+
+    if (nullptr != network)
+    {
+        network->onConnectCallback(rc);
+    }
+}
 
 /**
  * Callback function, which is called on disconnect.
