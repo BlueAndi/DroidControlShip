@@ -211,7 +211,7 @@ bool Network::connect()
         LOG_ERROR("Failed to connect to MQTT broker at %s:%d", m_brokerAddress.c_str(), m_brokerPort);
         m_state = STATE_DISCONNECTED;
     }
-    else
+    else if (MQTT_CONNECTED != m_mqttClient.state())
     {
         LOG_DEBUG("MQTT client connected to broker");
         resubscribe();
@@ -226,6 +226,10 @@ bool Network::connect()
         {
             isSuccess = true;
         }
+    }
+    else
+    {
+        ; /* Do nothing. */
     }
 
     return isSuccess;
