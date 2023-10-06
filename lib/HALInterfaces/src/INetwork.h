@@ -106,9 +106,11 @@ public:
                            bool reconnect) = 0;
 
     /**
-     * Connect to the network.
+     * Start connection to the network.
      *
-     * @return If successfully connected, returns true. Otherwise, false.
+     * @return If connection has been succesfully started, returns true. Otherwise, false.
+     * This method does not necessarily wait for the connection to be established, it just starts the connection
+     * process. Check `isConnected()` for the current connection status.
      */
     virtual bool connect() = 0;
 

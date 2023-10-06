@@ -104,9 +104,11 @@ public:
                    const String& willMessage, bool reconnect) final;
 
     /**
-     * Connect to the network.
+     * Start connection to the network.
      *
-     * @return If successfully connected, returns true. Otherwise, false.
+     * @return If connection has been succesfully started, returns true. Otherwise, false.
+     * This method does not necessarily wait for the connection to be established, it just starts the connection
+     * process. Check `isConnected()` for the current connection status.
      */
     bool connect() final;
 
@@ -148,6 +150,13 @@ public:
     void unsubscribe(const String& topic) final;
 
 public:
+    /**
+     * Callback function, which is called on connect.
+     *
+     * @param[in] rc    Result code.
+     */
+    void onConnectCallback(int rc);
+
     /**
      * Callback function, which is called on disconnect.
      *
