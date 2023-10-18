@@ -162,3 +162,7 @@ jobs:
       with:
         working-directory: './doc/doxygen'
         doxyfile-path: './${{ matrix.environment }}Doxyfile'
+
+    - name: Print doxygen warnings
+      if: ${{ failure() }}
+      run: cat ./doc/doxygen/doxygen_warnings.txt
