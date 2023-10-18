@@ -76,7 +76,11 @@ Network::Network() :
     m_willMessage(""),
     m_reconnect(true),
     m_reconnectTimer(),
-    m_subscriberList()
+    m_connectionTimer(),
+    m_subscriberList(),
+    m_configSet(false),
+    m_connectRequest(false),
+    m_disconnectRequest(false)
 {
 }
 
@@ -84,6 +88,7 @@ Network::~Network()
 {
     if (nullptr != m_mqttClient)
     {
+        mosquitto_loop_stop(m_mqttClient, true);
         mosquitto_destroy(m_mqttClient);
         m_mqttClient = nullptr;
         m_state      = STATE_UNINITIALIZED;
@@ -104,7 +109,7 @@ bool Network::init()
     else
     {
         isSuccess = true;
-        m_state   = STATE_IDLE;
+        m_state   = STATE_SETUP;
     }
 
     return isSuccess;
@@ -120,16 +125,24 @@ bool Network::process()
         /* Nothing to do. */
         break;
 
-    case STATE_IDLE:
-        idleState();
+    case STATE_SETUP:
+        setupState();
         break;
 
     case STATE_DISCONNECTED:
         disconnectedState();
         break;
 
+    case STATE_DISCONNECTING:
+        disconnectingState();
+        break;
+
     case STATE_CONNECTED:
         connectedState();
+        break;
+
+    case STATE_CONNECTING:
+        connectingState();
         break;
 
     default:
@@ -143,8 +156,6 @@ bool Network::setConfig(const String& clientId, const String& ssid, const String
                         uint16_t brokerPort, const String& birthTopic, const String& birthMessage,
                         const String& willTopic, const String& willMessage, bool reconnect)
 {
-    bool isSuccess = false;
-
     if (true == clientId.isEmpty())
     {
         LOG_ERROR("Client ID is empty.");
@@ -175,59 +186,22 @@ bool Network::setConfig(const String& clientId, const String& ssid, const String
         m_brokerAddress = brokerAddress;
         m_brokerPort    = brokerPort;
         m_reconnect     = reconnect;
-        isSuccess       = true;
+        m_configSet     = true;
     }
 
-    return isSuccess;
+    return m_configSet;
 }
 
 bool Network::connect()
 {
-    bool isSuccess = false;
-
-    if (STATE_CONNECTED == m_state)
-    {
-        LOG_ERROR("Already connected to Broker.");
-        isSuccess = true;
-    }
-    else if (STATE_DISCONNECTED != m_state)
-    {
-        LOG_ERROR("Invalid state. Current state: %d", m_state);
-    }
-    else if (nullptr == m_mqttClient)
-    {
-        LOG_ERROR("MQTT client not initialized.");
-        m_state = STATE_IDLE;
-    }
-    else if ((true == m_brokerAddress.isEmpty()) || (0U == m_brokerPort))
-    {
-        LOG_ERROR("Broker address or port not set.");
-        m_state = STATE_IDLE;
-    }
-    else if (MOSQ_ERR_SUCCESS != mosquitto_connect(m_mqttClient, m_brokerAddress.c_str(), m_brokerPort, 60))
-    {
-        LOG_ERROR("Failed to connect to MQTT broker at %s:%d", m_brokerAddress.c_str(), m_brokerPort);
-        m_state = STATE_DISCONNECTED;
-    }
-    else
-    {
-        isSuccess = true;
-    }
-
-    return isSuccess;
+    m_connectRequest = true;
+    return m_connectRequest;
 }
 
 void Network::disconnect()
 {
-    if (STATE_CONNECTED != m_state)
-    {
-        LOG_ERROR("Already disconnected from Broker.");
-    }
-    else if (nullptr != m_mqttClient)
-    {
-        (void)mosquitto_disconnect(m_mqttClient);
-        m_state = STATE_DISCONNECTED;
-    }
+    m_disconnectRequest = true;
+    m_state             = STATE_DISCONNECTING;
 }
 
 bool Network::isConnected() const
@@ -416,10 +390,9 @@ void Network::onMessageCallback(const mosquitto_message* msg)
  * Private Methods
  *****************************************************************************/
 
-void Network::idleState()
+void Network::setupState()
 {
-    if ((nullptr == m_mqttClient) && (false == m_clientId.isEmpty()) && (false == m_brokerAddress.isEmpty()) &&
-        (0U != m_brokerPort))
+    if ((nullptr == m_mqttClient) && (true == m_configSet))
     {
         /* Create MQTT client */
         m_mqttClient = mosquitto_new(m_clientId.c_str(), true, this);
@@ -432,9 +405,8 @@ void Network::idleState()
         }
         else
         {
-            m_state = STATE_DISCONNECTED;
-
             /* Set Callbacks. */
+            mosquitto_connect_callback_set(m_mqttClient, onConnect);
             mosquitto_disconnect_callback_set(m_mqttClient, onDisconnect);
             mosquitto_message_callback_set(m_mqttClient, onMessage);
 
@@ -447,6 +419,18 @@ void Network::idleState()
                     LOG_ERROR("Failed to set MQTT will.");
                 }
             }
+
+            /* Start Mosquitto Thread. */
+            if (MOSQ_ERR_SUCCESS != mosquitto_loop_start(m_mqttClient))
+            {
+                LOG_ERROR("Failed to start MQTT client thread.");
+            }
+            else
+            {
+                /* Set new state. */
+                m_state = STATE_DISCONNECTED;
+                LOG_DEBUG("MQTT client initialized.");
+            }
         }
     }
 }
@@ -455,15 +439,27 @@ void Network::disconnectedState()
 {
     bool connectNow = false;
 
-    if (false == m_reconnectTimer.isTimerRunning())
+    if (true == m_connectRequest)
     {
+        /* User request. Connect now. */
+        connectNow       = true;
+        m_connectRequest = false;
+    }
+    else if (false == m_reconnect)
+    {
+        /* User set reconnect to false. Do nothing. */
+    }
+    else if (false == m_reconnectTimer.isTimerRunning())
+    {
+        /* Timer is not running. Connect now. */
         connectNow = true;
 
         /* Start reconnect timer. */
         m_reconnectTimer.start(RECONNECT_TIMEOUT_MS);
     }
-    else if ((true == m_reconnect) && (true == m_reconnectTimer.isTimeout()))
+    else if (true == m_reconnectTimer.isTimeout())
     {
+        /* Timer timeout. Connect now. */
         connectNow = true;
     }
     else
@@ -473,38 +469,65 @@ void Network::disconnectedState()
 
     if (true == connectNow)
     {
-        if (false == connect())
+        attemptConnection();
+        m_reconnectTimer.restart();
+    }
+}
+
+void Network::disconnectingState()
+{
+    if ((nullptr != m_mqttClient) && (true == m_disconnectRequest))
+    {
+        m_disconnectRequest = false;
+        int ret             = mosquitto_disconnect(m_mqttClient);
+
+        switch (ret)
         {
-            /* Reconnect at a later time. */
-            m_reconnectTimer.restart();
-        }
-        else
-        {
-            /* Stop reconnect timer. */
-            m_reconnectTimer.stop();
+        case MOSQ_ERR_SUCCESS:
+            LOG_DEBUG("MQTT client disconnecting from broker.");
+            /* STATE_DISCONNECTED is set in onDisconnectCallback() */
+            break;
+
+        case MOSQ_ERR_INVAL:
+            LOG_ERROR("Invalid parameter for MQTT client disconnection.");
+            break;
+
+        case MOSQ_ERR_NO_CONN:
+            LOG_WARNING("MQTT client not connected to a broker.");
+            m_state = STATE_DISCONNECTED;
+            break;
+
+        default:
+            break;
         }
     }
 }
 
 void Network::connectedState()
 {
-    int ret = mosquitto_loop(m_mqttClient, MQTT_LOOP_TIMEOUT_MS, 1);
+    /* Nothing to do. */
+}
 
-    switch (ret)
+void Network::connectingState()
+{
+    if (false == m_connectionTimer.isTimerRunning())
     {
-    case MOSQ_ERR_SUCCESS:
-        /* Nothing to do. */
-        break;
+        /* Start connecting timer. */
+        m_connectionTimer.start(CONNECTING_TIMEOUT_MS);
+    }
+    else if (true == m_connectionTimer.isTimeout())
+    {
+        LOG_DEBUG("MQTT connection attempt timeout.");
 
-    case MOSQ_ERR_CONN_LOST:
-        LOG_DEBUG("MQTT connection lost.");
+        /* Connection failed. Return to disconnected state. */
         m_state = STATE_DISCONNECTED;
-        break;
 
-    default:
-        LOG_ERROR("MQTT loop failed: %d", ret);
-        disconnect();
-        break;
+        /* Stop Timer. */
+        m_connectionTimer.stop();
+    }
+    else
+    {
+        ; /* Do nothing. */
     }
 }
 
@@ -526,6 +549,42 @@ void Network::resubscribe()
             {
                 LOG_DEBUG("MQTT topic subscription successful: %s", subscriber->topic.c_str());
             }
+        }
+    }
+}
+
+void Network::attemptConnection()
+{
+    if (nullptr == m_mqttClient)
+    {
+        LOG_ERROR("MQTT client not initialized.");
+        m_state = STATE_UNINITIALIZED;
+    }
+    else if ((true == m_brokerAddress.isEmpty()) || (0U == m_brokerPort))
+    {
+        LOG_ERROR("Broker address or port not set.");
+        m_state = STATE_UNINITIALIZED;
+    }
+    else
+    {
+        int ret = mosquitto_connect_async(m_mqttClient, m_brokerAddress.c_str(), m_brokerPort, 60);
+
+        switch (ret)
+        {
+        case MOSQ_ERR_SUCCESS:
+            LOG_DEBUG("MQTT client connecting to broker at %s:%d", m_brokerAddress.c_str(), m_brokerPort);
+            m_state = STATE_CONNECTING;
+            break;
+
+        case MOSQ_ERR_INVAL:
+            LOG_ERROR("Invalid parameter for MQTT client connection.");
+            break;
+
+        case MOSQ_ERR_ERRNO:
+            LOG_ERROR("MQTT client connection failed: %s", strerror(errno));
+
+        default:
+            break;
         }
     }
 }

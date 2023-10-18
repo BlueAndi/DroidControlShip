@@ -176,9 +176,11 @@ private:
     enum State
     {
         STATE_UNINITIALIZED = 0, /**< Uninitialized state. */
-        STATE_IDLE,              /**< Idle state. */
+        STATE_SETUP,             /**< Setup state. */
         STATE_DISCONNECTED,      /**< Disconnecting state. */
+        STATE_DISCONNECTING,     /**< Disconnecting state. */
         STATE_CONNECTED,         /**< Connected state. */
+        STATE_CONNECTING,        /**< Connecting state. */
     };
 
     /**
@@ -198,8 +200,11 @@ private:
     /** MQTT Loop Timeout. */
     static const int MQTT_LOOP_TIMEOUT_MS = 0;
 
+    /** Connecting Timeout. */
+    static const uint32_t CONNECTING_TIMEOUT_MS = 1000;
+
     /** Reconnect Timeout. */
-    static const int RECONNECT_TIMEOUT_MS = 1000;
+    static const uint32_t RECONNECT_TIMEOUT_MS = (2 * CONNECTING_TIMEOUT_MS);
 
     /** Connection state */
     State m_state;
@@ -234,14 +239,26 @@ private:
     /** Reconnect Timer. */
     SimpleTimer m_reconnectTimer;
 
+    /** Connection Timer. */
+    SimpleTimer m_connectionTimer;
+
     /** List of subscribers */
     SubscriberList m_subscriberList;
+
+    /** Configuration Set Flag. */
+    bool m_configSet;
+
+    /** User connection request. */
+    bool m_connectRequest;
+
+    /** User disconnection request. */
+    bool m_disconnectRequest;
 
 private:
     /**
      * Process the Idle state.
      */
-    void idleState();
+    void setupState();
 
     /**
      * Process the Disconnected state.
@@ -249,14 +266,29 @@ private:
     void disconnectedState();
 
     /**
+     * Process the Disconnecting state.
+     */
+    void disconnectingState();
+
+    /**
      * Process the Connected state.
      */
     void connectedState();
 
     /**
+     * Process the Connected state.
+     */
+    void connectingState();
+
+    /**
      * Resuscribe to all topics.
      */
     void resubscribe();
+
+    /**
+     * Attempt to establish connection to the broker.
+     */
+    void attemptConnection();
 };
 
 /******************************************************************************
