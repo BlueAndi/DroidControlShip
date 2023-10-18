@@ -908,7 +908,8 @@ WARN_LOGFILE           = doxygen_warnings.txt
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../../src \
+INPUT                  = mainpage.dox \
+                         ../../src \
                          ../../lib/HALTarget \
                          ../../lib/HALInterfaces \
                          ../../lib/ConvoyLeader
