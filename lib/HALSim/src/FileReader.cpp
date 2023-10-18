@@ -54,6 +54,14 @@ SOFTWARE.
  * Public Methods
  *****************************************************************************/
 
+FileReader::FileReader()
+{
+}
+
+FileReader::~FileReader()
+{
+}
+
 size_t FileReader::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
 {
     size_t readBytes = 0;

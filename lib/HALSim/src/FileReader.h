@@ -54,14 +54,14 @@ class FileReader : public IFileReader
 {
 public:
     /**
-     * Get FileReader instance.
-     * @returns FileReader instance.
+     * Constructs the concrete FileReader.
      */
-    static FileReader& getInstance()
-    {
-        static FileReader instance; /* Idiom. */
-        return instance;
-    }
+    FileReader();
+
+    /**
+     * Destroys the concrete FileReader.
+     */
+    virtual ~FileReader();
 
     /**
      * Read a file from the filesystem.
@@ -71,21 +71,6 @@ public:
      * @returns number of bytes read.
      */
     size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) final;
-
-private:
-    /**
-     * Constructs the concrete FileReader.
-     */
-    FileReader()
-    {
-    }
-
-    /**
-     * Destroys the concrete FileReader.
-     */
-    virtual ~FileReader()
-    {
-    }
 
 private:
     FileReader(const FileReader& src);

@@ -55,6 +55,19 @@ SOFTWARE.
  * Public Methods
  *****************************************************************************/
 
+FileReader::FileReader()
+{
+    if (false == LittleFS.begin(true))
+    {
+        LOG_ERROR("Failed to mount file system.");
+    }
+}
+
+FileReader::~FileReader()
+{
+    LittleFS.end();
+}
+
 size_t FileReader::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
 {
     size_t bytesRead = 0;
@@ -86,19 +99,6 @@ size_t FileReader::readFile(const String& fileName, char* outBuffer, const uint3
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-FileReader::FileReader()
-{
-    if (false == LittleFS.begin(true))
-    {
-        LOG_ERROR("Failed to mount file system.");
-    }
-}
-
-FileReader::~FileReader()
-{
-    LittleFS.end();
-}
 
 /******************************************************************************
  * Local Functions
