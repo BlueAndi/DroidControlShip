@@ -26,21 +26,17 @@ SOFTWARE.
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Abtraction of the GPIOs of the device.
+ *  @brief  File Reader
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "GPIO.h"
-#include <Util.h>
 
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
-
-using namespace GpioPins;
+#include "FileReader.h"
+#include <stdio.h>
+#include <Logging.h>
 
 /******************************************************************************
  * Macros
@@ -51,81 +47,58 @@ using namespace GpioPins;
  *****************************************************************************/
 
 /******************************************************************************
- * Global Variables
- *****************************************************************************/
-
-/**
- * Digital input pin: Reset Button.
- */
-const DInPin<Pin::PIN_WIFI_AND_RESET_KEY, INPUT_PULLUP> GpioPins::resetButtonPin;
-
-/**
- * Digital output pin: Reset Device.
- */
-const DOutPin<Pin::PIN_DEVICE_RESET> GpioPins::resetDevicePin;
-
-/**
- * Digital output pin: Info LED channel RED.
- */
-const DOutPin<Pin::INFO_LED_R> GpioPins::infoLedRedPin;
-
-/**
- * Digital output pin: Info LED channel GREEN.
- */
-const DOutPin<Pin::INFO_LED_G> GpioPins::infoLedGreenPin;
-
-/**
- * Digital output pin: Info LED channel BLUE.
- */
-const DOutPin<Pin::INFO_LED_B> GpioPins::infoLedBluePin;
-
-/**
- * Analog input pin: Battery voltage measurement.
- */
-const AnalogPin<Pin::PIN_BATT_MEASUREMENT> GpioPins::batteryVoltagePin;
-
-/******************************************************************************
  * Local Variables
  *****************************************************************************/
-
-/** A list of all used i/o pins, used for initialization. */
-static const IoPin* ioPinList[] =
-{
-    &resetButtonPin,
-    &resetDevicePin,
-    &infoLedRedPin,
-    &infoLedGreenPin,
-    &infoLedBluePin,
-    &batteryVoltagePin,
-};
 
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
+
+FileReader::FileReader()
+{
+}
+
+FileReader::~FileReader()
+{
+}
+
+size_t FileReader::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
+{
+    size_t readBytes = 0;
+    FILE*  file      = fopen(fileName.c_str(), "r");
+
+    if (nullptr == file)
+    {
+        LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
+    }
+    else
+    {
+        readBytes = fread(outBuffer, sizeof(char), maxBufferSize, file);
+
+        if (ferror(file) != 0)
+        {
+            LOG_ERROR("Error ocurred while reading file \"%s\".", fileName.c_str());
+            readBytes = 0;
+        }
+        else if (feof(file) == 0)
+        {
+            LOG_ERROR("File \"%s\" is too big for the buffer.", fileName.c_str());
+            readBytes = 0;
+        }
+        else
+        {
+            /* File read successfully. */
+        }
+        fclose(file);
+    }
+
+    return readBytes;
+}
 
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
 
 /******************************************************************************
- * External Methods
- *****************************************************************************/
-
-extern void GpioPins::init()
-{
-    uint8_t index = 0U;
-
-    /* Initialize all i/o pins */
-    for (index = 0U; index < UTIL_ARRAY_NUM(ioPinList); ++index)
-    {
-        if (nullptr != ioPinList[index])
-        {
-            ioPinList[index]->init();
-        }
-    }
-}
-
-/******************************************************************************
  * Local Functions
  *****************************************************************************/
-

@@ -195,6 +195,9 @@ public:
     bool process();
 
 private:
+    /** Maximum amount of available bytes allowed before issuing a warning. */
+    static const uint16_t CANARY_WARNING_LIMIT = 500U;
+
     /** Struct for Implementation of PIMPL Idiom. */
     struct SocketClientImpl;
 

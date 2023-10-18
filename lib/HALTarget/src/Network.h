@@ -89,20 +89,27 @@ public:
      * Set client configuration.
      *
      * @param[in] clientId      Client ID.
+     * @param[in] ssid          SSID of the WiFi network.
+     * @param[in] password      Password of the WiFi network.
      * @param[in] brokerAddress Broker address to connect to.
      * @param[in] brokerPort    Broker port to connect to.
+     * @param[in] birthTopic    Birth topic. If empty, no birth message is used.
+     * @param[in] birthMessage  Birth message.
      * @param[in] willTopic     Last will topic. If empty, no last will is used.
      * @param[in] willMessage   Last will message.
      * @param[in] reconnect     If true, the client will try to reconnect to the broker, if the connection is lost.
      * @return If successfully set, returns true. Otherwise, false.
      */
-    bool setConfig(const String& clientId, const String& brokerAddress, uint16_t brokerPort, const String& willTopic,
+    bool setConfig(const String& clientId, const String& ssid, const String& password, const String& brokerAddress,
+                   uint16_t brokerPort, const String& birthTopic, const String& birthMessage, const String& willTopic,
                    const String& willMessage, bool reconnect) final;
 
     /**
-     * Connect to the network.
+     * Start connection to the network.
+     * This method does not necessarily wait for the connection to be established, it just starts the connection
+     * process. Check `isConnected()` for the current connection status.
      *
-     * @return If successfully connected, returns true. Otherwise, false.
+     * @return If connection has been succesfully started, returns true. Otherwise, false.
      */
     bool connect() final;
 
@@ -122,14 +129,15 @@ public:
      * Publishes a message to the network.
      *
      * @param[in] topic     Topic to publish to.
+     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
      * @param[in] message   Message to publish.
      */
-    bool publish(const String& topic, const String& message) final;
+    bool publish(const String& topic, const bool useClientBaseTopic, const String& message) final;
 
     /**
      * Subscribes to a topic.
      *
-     * @param[in] topic     Topic to subscribe to.
+     * @param[in] topic     Topic to subscribe to. The Client ID is used as base topic: <Client ID>/<topic>
      * @param[in] callback  Callback function, which is called on a new message.
      * @return If successfully subscribed, returns true. Otherwise, false.
      */
@@ -138,7 +146,7 @@ public:
     /**
      * Unsubscribes from a topic.
      *
-     * @param[in] topic     Topic to unsubscribe from.
+     * @param[in] topic     Topic to unsubscribe from. The Client ID is used as base topic: <Client ID>/<topic>
      */
     void unsubscribe(const String& topic) final;
 
@@ -147,9 +155,11 @@ private:
     enum State
     {
         STATE_UNINITIALIZED = 0, /**< Uninitialized state. */
-        STATE_IDLE,              /**< Idle state. */
+        STATE_SETUP,             /**< Setup state. */
         STATE_DISCONNECTED,      /**< Disconnecting state. */
+        STATE_DISCONNECTING,     /**< Disconnecting state. */
         STATE_CONNECTED,         /**< Connected state. */
+        STATE_CONNECTING,        /**< Connecting state. */
     };
 
     /**
@@ -169,14 +179,20 @@ private:
     /** MQTT Keep Alive in seconds. */
     static const uint16_t MQTT_KEEP_ALIVE_S = 2U;
 
+    /** Connecting Timeout. */
+    static const uint32_t CONNECTING_TIMEOUT_MS = 1000;
+
     /** Reconnect Timeout. */
-    static const int RECONNECT_TIMEOUT_MS = 1000;
+    static const uint32_t RECONNECT_TIMEOUT_MS = (2 * CONNECTING_TIMEOUT_MS);
 
     /**
      * Max. MQTT client buffer size in byte.
      * Received MQTT messages greather than this will be skipped.
      */
     static const size_t MAX_BUFFER_SIZE = 1024U;
+
+    /** Timeout time for WiFi connection. */
+    static const uint32_t WIFI_TIMEOUT = 10000U;
 
     /** Connection state */
     State m_state;
@@ -196,6 +212,12 @@ private:
     /** Broker port to connect to. */
     uint16_t m_brokerPort;
 
+    /** Birth topic. */
+    String m_birthTopic;
+
+    /** Birth Message. */
+    String m_birthMessage;
+
     /** Will topic. */
     String m_willTopic;
 
@@ -208,14 +230,38 @@ private:
     /** Reconnect Timer. */
     SimpleTimer m_reconnectTimer;
 
+    /** Connection Timer. */
+    SimpleTimer m_connectionTimer;
+
     /** List of subscribers */
     SubscriberList m_subscriberList;
+
+    /** Configuration Set Flag. */
+    bool m_configSet;
+
+    /** User connection request. */
+    bool m_connectRequest;
+
+    /** User disconnection request. */
+    bool m_disconnectRequest;
+
+    /** WiFi SSID */
+    String m_wiFiSSID;
+
+    /** WiFi Password */
+    String m_wiFiPassword;
+
+    /** WiFi Configuration Flag. */
+    bool m_isWiFiConfigured;
+
+    /** WiFi Timeout Timer. */
+    SimpleTimer m_wifiTimeoutTimer;
 
 private:
     /**
      * Process the Idle state.
      */
-    void idleState();
+    void setupState();
 
     /**
      * Process the Disconnected state.
@@ -223,14 +269,29 @@ private:
     void disconnectedState();
 
     /**
+     * Process the Disconnecting state.
+     */
+    void disconnectingState();
+
+    /**
      * Process the Connected state.
      */
     void connectedState();
 
     /**
+     * Process the Connected state.
+     */
+    void connectingState();
+
+    /**
      * Resubscribe to all topics.
      */
     void resubscribe();
+
+    /**
+     * Attempt to establish connection to the broker.
+     */
+    void attemptConnection();
 
     /**
      * Callback function, which is called on message reception.
@@ -240,6 +301,12 @@ private:
      * @param[in] length    Payload length in byte.
      */
     void onMessageCallback(char* topic, uint8_t* payload, uint32_t length);
+
+    /**
+     * Manages the connection to the WiFi network.
+     * @returns false if connection is lost and is unable to reconnect. If connected, or reconnecting, returns true.
+     */
+    bool manageWiFi();
 };
 
 /******************************************************************************

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Device realization
+ * @brief  Abstract native device interface
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup HALSim
@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef DEVICE_H
-#define DEVICE_H
+#ifndef IDEVICENATIVE_H
+#define IDEVICENATIVE_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,9 +43,6 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "IDevice.h"
-#include "IDeviceNative.h"
-#include "SocketClient.h"
 
 /******************************************************************************
  * Macros
@@ -55,55 +52,16 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the simulation device. */
-class Device : public IDevice, public IDeviceNative
+/** The abstract native device interface. */
+class IDeviceNative
 {
 public:
     /**
-     * Constructs the device adapter.
+     * Destroys the interface.
      */
-    Device() :
-        IDevice(),
-        IDeviceNative(),
-        m_retryConnectionCounter(0U),
-        m_socket(),
-        m_address(DEFAULT_SERVER_ADDRESS),
-        m_port(DEFAULT_SERVER_PORT)
+    virtual ~IDeviceNative()
     {
     }
-
-    /**
-     * Destroys the device adapter.
-     */
-    virtual ~Device()
-    {
-    }
-
-    /**
-     * Initialize device driver.
-     *
-     * @return If successfully initialized, returns true. Otherwise, false.
-     */
-    bool init() final;
-
-    /**
-     * Process communication with the device.
-     *
-     * @return If communication is successful, returns true. Otherwise, false.
-     */
-    bool process() final;
-
-    /**
-     * Get comunication Stream.
-     *
-     * @return Device data Stream.
-     */
-    Stream& getStream() final;
-
-    /**
-     * Reset the device.
-     */
-    void reset() final;
 
     /**
      * Set the server address and port of the device.
@@ -111,36 +69,22 @@ public:
      * @param[in] address   Server address. Set nullptr to use the default address.
      * @param[in] port      Server port number. Set nullptr to use the default port.
      */
-    void setServer(const char* address, const char* port) final;
+    virtual void setServer(const char* address, const char* port) = 0;
+
+protected:
+    /**
+     * Constructs the interface.
+     */
+    IDeviceNative()
+    {
+    }
 
 private:
-    /** Default server address of the device. */
-    static const char* DEFAULT_SERVER_ADDRESS;
-
-    /** Default server port of the device. */
-    static const char* DEFAULT_SERVER_PORT;
-
-    /** Maximum number of connection retries. */
-    static const uint8_t MAX_CONN_RETRY_COUNT;
-
-    /** Retry connection counter. */
-    uint8_t m_retryConnectionCounter;
-
-    /**
-     * Socket stream for communication with the device.
-     */
-    SocketClient m_socket;
-
-    /** Server Address. */
-    const char* m_address;
-
-    /** Server Port Number. */
-    const char* m_port;
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* DEVICE_H */
+#endif /* IDEVICENATIVE_H */
 /** @} */
