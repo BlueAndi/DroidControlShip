@@ -55,10 +55,10 @@ SOFTWARE.
  * Public Methods
  *****************************************************************************/
 
-bool FileReader::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
+size_t FileReader::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
 {
-    bool isSuccess = false;
-    File file      = LittleFS.open(fileName, "r");
+    size_t bytesRead = 0;
+    File   file      = LittleFS.open(fileName, "r");
 
     if ((false == file) || (file.isDirectory()))
     {
@@ -66,22 +66,21 @@ bool FileReader::readFile(const String& fileName, char* outBuffer, const uint32_
     }
     else
     {
-        uint32_t bytesRead = 0U;
-        bytesRead          = file.readBytes(outBuffer, maxBufferSize);
+        bytesRead = file.readBytes(outBuffer, maxBufferSize);
 
         if (true == file.available())
         {
             LOG_ERROR("File \"%s\" is too big for the buffer.", fileName.c_str());
+            bytesRead = 0;
         }
         else
         {
-            outBuffer[bytesRead++] = '\0'; /* Just to be safe. */
-            isSuccess              = true;
+            /* File read successfully. */
         }
         file.close();
     }
 
-    return isSuccess;
+    return bytesRead;
 }
 
 /******************************************************************************

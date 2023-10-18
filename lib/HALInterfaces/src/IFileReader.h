@@ -66,9 +66,9 @@ public:
      * @param[in] fileName Name of the file to read. Name must be an absolute path.
      * @param[out] outBuffer Buffer to write file to.
      * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     * @returns true if file has been read to the buffer succesfully. Otherwise, false.
+     * @returns number of bytes read.
      */
-    virtual bool readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) = 0;
+    virtual size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) = 0;
 
 protected:
     /**

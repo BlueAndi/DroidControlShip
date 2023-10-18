@@ -54,10 +54,10 @@ SOFTWARE.
  * Public Methods
  *****************************************************************************/
 
-bool FileReader::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
+size_t FileReader::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
 {
-    bool  isSuccess = false;
-    FILE* file      = fopen(fileName.c_str(), "r");
+    size_t readBytes = 0;
+    FILE*  file      = fopen(fileName.c_str(), "r");
 
     if (nullptr == file)
     {
@@ -65,25 +65,26 @@ bool FileReader::readFile(const String& fileName, char* outBuffer, const uint32_
     }
     else
     {
-        size_t readBytes = fread(outBuffer, sizeof(char), maxBufferSize, file);
+        readBytes = fread(outBuffer, sizeof(char), maxBufferSize, file);
 
         if (ferror(file) != 0)
         {
             LOG_ERROR("Error ocurred while reading file \"%s\".", fileName.c_str());
+            readBytes = 0;
         }
         else if (feof(file) == 0)
         {
             LOG_ERROR("File \"%s\" is too big for the buffer.", fileName.c_str());
+            readBytes = 0;
         }
         else
         {
-            outBuffer[readBytes++] = '\0'; /* Just to be safe. */
-            isSuccess              = true;
+            /* File read successfully. */
         }
         fclose(file);
     }
 
-    return isSuccess;
+    return readBytes;
 }
 
 /******************************************************************************
