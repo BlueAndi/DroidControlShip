@@ -28,7 +28,7 @@
  * @brief  Implementation of Arduino Serial
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HAL
+ * @addtogroup HALSim
  *
  * @{
  */

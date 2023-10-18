@@ -27,8 +27,8 @@
 /**
  * @brief  Implementation of the Terminal/Console Stream
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
- * 
- * @addtogroup HAL
+ *
+ * @addtogroup HALSim
  *
  * @{
  */
@@ -186,4 +186,5 @@ public:
  * Functions
  *****************************************************************************/
 
-#endif  /* TERMINAL_H */
+#endif /* TERMINAL_H */
+/** @} */
