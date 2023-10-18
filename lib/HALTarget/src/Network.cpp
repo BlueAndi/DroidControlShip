@@ -396,7 +396,22 @@ void Network::connectedState()
 
 void Network::connectingState()
 {
-    if (false == m_connectionTimer.isTimerRunning())
+    if (MQTT_CONNECTED == m_mqttClient.state())
+    {
+        LOG_DEBUG("MQTT client connected to broker");
+        resubscribe();
+        m_state = STATE_CONNECTED;
+
+        /* Stop Timer. */
+        m_connectionTimer.stop();
+
+        if (false == m_birthTopic.isEmpty())
+        {
+            /* Publish birth message. Should succesfully publish if connected to broker. */
+            (void)publish(m_birthTopic, false, m_birthMessage);
+        }
+    }
+    else if (false == m_connectionTimer.isTimerRunning())
     {
         /* Start connecting timer. */
         m_connectionTimer.start(CONNECTING_TIMEOUT_MS);
@@ -410,33 +425,6 @@ void Network::connectingState()
 
         /* Stop Timer. */
         m_connectionTimer.stop();
-    }
-    else
-    {
-        if (MQTT_CONNECTED != m_mqttClient.state())
-        {
-            bool isSuccess = false;
-            LOG_DEBUG("MQTT client connected to broker");
-
-            if (false == m_birthTopic.isEmpty())
-            {
-                /* Publish birth message. Should succesfully publish if connected to broker. */
-                isSuccess = publish(m_birthTopic, false, m_birthMessage);
-            }
-            else
-            {
-                isSuccess = true;
-            }
-
-            if (true == isSuccess)
-            {
-                resubscribe();
-                m_state = STATE_CONNECTED;
-
-                /* Stop Timer. */
-                m_connectionTimer.stop();
-            }
-        }
     }
 }
 
@@ -493,6 +481,7 @@ void Network::attemptConnection()
         }
         else
         {
+            LOG_DEBUG("MQTT client connecting to broker at %s:%d", m_brokerAddress.c_str(), m_brokerPort);
             m_state = STATE_CONNECTING;
         }
     }
