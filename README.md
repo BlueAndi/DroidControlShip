@@ -49,7 +49,20 @@ The simulation is based on the open source robot simulator *Webots*. The applica
 
 ## Installation
 
-Follow the [installation description in the Radon Ulzer repository](https://github.com/BlueAndi/RadonUlzer).
+1. Install [Webots](https://cyberbotics.com).
+2. Setup for [external controllers](https://www.cyberbotics.com/doc/guide/running-extern-robot-controllers):
+    1. Set environment variable ```WEBOTS_HOME``` to installation directory of Webots.
+    2. Add to path:
+        * Linux: ```${WEBOTS_HOME}/lib/controller```
+        * Windows: ```%WEBOTS_HOME%\lib\controller```
+3. Install the native compiler toolchain:
+    * Linux
+        * Install the gcc toolchain, depended on your distribution.
+    * Windows
+        * Install the [MSYS2](https://www.msys2.org) toolchain and follow the instructions there.
+        * Open MSYS2 shell.
+            * Update package database: ```pacman -Sy pacman```
+            * Install mosquitto: ```pacman -Sy mingw-w64-x86_64-mosquitto```
 
 # Documentation
 
