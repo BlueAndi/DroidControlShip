@@ -337,7 +337,8 @@ bool SocketClient::process()
                 {
                     const size_t bufferLength = UINT8_MAX;
                     char         recvbuf[bufferLength];
-                    int          result = recv(m_members->m_serverSocket, recvbuf, bufferLength, 0);
+                    
+					result = recv(m_members->m_serverSocket, recvbuf, bufferLength, 0);
 
                     if (0 < result)
                     {
