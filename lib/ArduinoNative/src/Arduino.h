@@ -28,7 +28,7 @@
  * @brief  Arduino native
  * @author Andreas Merkle <web@blue-andi.de>
  * 
- * @addtogroup HAL
+ * @addtogroup HALSim
  *
  * @{
  */

@@ -27,6 +27,9 @@
 /**
  *  @brief  Data Stream class definition
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup HALSim
+ *
  */
 
 #ifndef STREAM_H
