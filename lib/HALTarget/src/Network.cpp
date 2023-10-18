@@ -75,7 +75,11 @@ Network::Network() :
     m_willMessage(""),
     m_reconnect(true),
     m_reconnectTimer(),
+    m_connectionTimer(),
     m_subscriberList(),
+    m_configSet(false),
+    m_connectRequest(false),
+    m_disconnectRequest(false),
     m_wiFiSSID(""),
     m_wiFiPassword(""),
     m_isWiFiConfigured(false)
@@ -88,7 +92,7 @@ Network::~Network()
 
 bool Network::init()
 {
-    m_state = STATE_IDLE;
+    m_state = STATE_SETUP;
     return true;
 }
 
@@ -102,16 +106,24 @@ bool Network::process()
         /* Nothing to do. */
         break;
 
-    case STATE_IDLE:
-        idleState();
+    case STATE_SETUP:
+        setupState();
         break;
 
     case STATE_DISCONNECTED:
         disconnectedState();
         break;
 
+    case STATE_DISCONNECTING:
+        disconnectingState();
+        break;
+
     case STATE_CONNECTED:
         connectedState();
+        break;
+
+    case STATE_CONNECTING:
+        connectingState();
         break;
 
     default:
@@ -125,8 +137,6 @@ bool Network::setConfig(const String& clientId, const String& ssid, const String
                         uint16_t brokerPort, const String& birthTopic, const String& birthMessage,
                         const String& willTopic, const String& willMessage, bool reconnect)
 {
-    bool isSuccess = false;
-
     if (true == clientId.isEmpty())
     {
         LOG_ERROR("Client ID is empty.");
@@ -164,90 +174,25 @@ bool Network::setConfig(const String& clientId, const String& ssid, const String
         m_brokerAddress = brokerAddress;
         m_brokerPort    = brokerPort;
         m_reconnect     = reconnect;
-        isSuccess       = true;
+        m_configSet     = true;
     }
 
-    return isSuccess;
+    return m_configSet;
 }
 
 bool Network::connect()
 {
-    bool isSuccess = false;
-
-    if (STATE_CONNECTED == m_state)
-    {
-        LOG_INFO("Already connected to Broker.");
-        isSuccess = true;
-    }
-    else if (STATE_DISCONNECTED != m_state)
-    {
-        LOG_ERROR("Invalid state. Current state: %d", m_state);
-    }
-    else if ((true == m_brokerAddress.isEmpty()) || (0U == m_brokerPort))
-    {
-        LOG_ERROR("Broker address or port not set.");
-        m_state = STATE_IDLE;
-    }
-    else if (WL_CONNECTED != WiFi.status())
-    {
-        LOG_ERROR("WiFi not connected.");
-    }
-    else
-    {
-        LOG_DEBUG("Connecting to MQTT broker at %s:%d", m_brokerAddress.c_str(), m_brokerPort);
-        if (true == m_willTopic.isEmpty())
-        {
-            isSuccess = m_mqttClient.connect(m_clientId.c_str());
-        }
-        else
-        {
-            isSuccess = m_mqttClient.connect(m_clientId.c_str(), nullptr, nullptr, m_willTopic.c_str(), 0, true,
-                                             m_willMessage.c_str());
-        }
-    }
-
-    if (false == isSuccess)
-    {
-        LOG_ERROR("Failed to connect to MQTT broker at %s:%d", m_brokerAddress.c_str(), m_brokerPort);
-        m_state = STATE_DISCONNECTED;
-    }
-    else if (MQTT_CONNECTED != m_mqttClient.state())
-    {
-        LOG_DEBUG("MQTT client connected to broker");
-        resubscribe();
-        m_state = STATE_CONNECTED;
-
-        if (false == m_birthTopic.isEmpty())
-        {
-            /* Publish birth message. Should succesfully publish if connected to broker. */
-            isSuccess = publish(m_birthTopic, false, m_birthMessage);
-        }
-        else
-        {
-            isSuccess = true;
-        }
-    }
-    else
-    {
-        ; /* Do nothing. */
-    }
-
-    return isSuccess;
+    m_connectRequest = true;
+    return m_connectRequest;
 }
 
 void Network::disconnect()
 {
-    if (STATE_CONNECTED != m_state)
-    {
-        LOG_INFO("Already disconnected from Broker.");
-    }
-    else
-    {
-        m_mqttClient.disconnect();
-        m_state = STATE_DISCONNECTED;
-        /* No reconnection if user called for disconnect. */
-        m_reconnect = false;
-    }
+    m_disconnectRequest = true;
+    m_state             = STATE_DISCONNECTING;
+
+    /* No reconnection if user called for disconnect. */
+    m_reconnect = false;
 }
 
 bool Network::isConnected() const
@@ -368,10 +313,9 @@ void Network::unsubscribe(const String& topic)
  * Private Methods
  *****************************************************************************/
 
-void Network::idleState()
+void Network::setupState()
 {
-    if ((false == m_clientId.isEmpty()) && (false == m_brokerAddress.isEmpty()) && (0U != m_brokerPort) &&
-        (false == m_wiFiSSID.isEmpty()))
+    if (true == m_configSet)
     {
         if (false == m_mqttClient.setBufferSize(MAX_BUFFER_SIZE))
         {
@@ -399,12 +343,19 @@ void Network::disconnectedState()
 {
     bool connectNow = false;
 
-    if (false == m_reconnect)
+    if (true == m_connectRequest)
     {
-        ; /* Do nothing. */
+        /* User request. Connect now. */
+        connectNow       = true;
+        m_connectRequest = false;
+    }
+    else if (false == m_reconnect)
+    {
+        ; /* User set reconnect to false. Do nothing. */
     }
     else if (false == m_reconnectTimer.isTimerRunning())
     {
+        /* Timer is not running. Connect now. */
         connectNow = true;
 
         /* Start reconnect timer. */
@@ -412,6 +363,7 @@ void Network::disconnectedState()
     }
     else if (true == m_reconnectTimer.isTimeout())
     {
+        /* Timer timeout. Connect now. */
         connectNow = true;
     }
     else
@@ -421,31 +373,70 @@ void Network::disconnectedState()
 
     if (true == connectNow)
     {
-        if (false == connect())
-        {
-            /* Reconnect at a later time. */
-            m_reconnectTimer.restart();
-        }
-        else
-        {
-            /* Stop reconnect timer. */
-            m_reconnectTimer.stop();
-        }
+        attemptConnection();
+        m_reconnectTimer.restart();
     }
+}
+
+void Network::disconnectingState()
+{
+    m_mqttClient.disconnect();
+    m_state = STATE_DISCONNECTED;
 }
 
 void Network::connectedState()
 {
-    /* Connection with broker lost? */
-    if (false == m_mqttClient.connected())
+    /* Connection state is checked on loop. */
+    if (false == m_mqttClient.loop())
     {
         LOG_DEBUG("MQTT connection lost.");
-        m_state = STATE_DISCONNECTED;
+        m_state = STATE_DISCONNECTING;
     }
-    /* Connection to broker still established. */
+}
+
+void Network::connectingState()
+{
+    if (false == m_connectionTimer.isTimerRunning())
+    {
+        /* Start connecting timer. */
+        m_connectionTimer.start(CONNECTING_TIMEOUT_MS);
+    }
+    else if (true == m_connectionTimer.isTimeout())
+    {
+        LOG_DEBUG("MQTT connection attempt timeout.");
+
+        /* Connection failed. Return to disconnected state. */
+        m_state = STATE_DISCONNECTED;
+
+        /* Stop Timer. */
+        m_connectionTimer.stop();
+    }
     else
     {
-        (void)m_mqttClient.loop();
+        if (MQTT_CONNECTED != m_mqttClient.state())
+        {
+            bool isSuccess = false;
+            LOG_DEBUG("MQTT client connected to broker");
+
+            if (false == m_birthTopic.isEmpty())
+            {
+                /* Publish birth message. Should succesfully publish if connected to broker. */
+                isSuccess = publish(m_birthTopic, false, m_birthMessage);
+            }
+            else
+            {
+                isSuccess = true;
+            }
+
+            if (true == isSuccess)
+            {
+                resubscribe();
+                m_state = STATE_CONNECTED;
+
+                /* Stop Timer. */
+                m_connectionTimer.stop();
+            }
+        }
     }
 }
 
@@ -467,6 +458,42 @@ void Network::resubscribe()
             {
                 LOG_DEBUG("MQTT topic subscription successful: %s", subscriber->topic.c_str());
             }
+        }
+    }
+}
+
+void Network::attemptConnection()
+{
+    bool isSuccess = false;
+
+    if ((true == m_brokerAddress.isEmpty()) || (0U == m_brokerPort))
+    {
+        LOG_ERROR("Broker address or port not set.");
+        m_state = STATE_UNINITIALIZED;
+    }
+    else if (WL_CONNECTED != WiFi.status())
+    {
+        LOG_ERROR("WiFi not connected.");
+    }
+    else
+    {
+        if (true == m_willTopic.isEmpty())
+        {
+            isSuccess = m_mqttClient.connect(m_clientId.c_str());
+        }
+        else
+        {
+            isSuccess = m_mqttClient.connect(m_clientId.c_str(), nullptr, nullptr, m_willTopic.c_str(), 0, true,
+                                             m_willMessage.c_str());
+        }
+
+        if (false == isSuccess)
+        {
+            LOG_ERROR("Failed to connect to MQTT broker at %s:%d", m_brokerAddress.c_str(), m_brokerPort);
+        }
+        else
+        {
+            m_state = STATE_CONNECTING;
         }
     }
 }

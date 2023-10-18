@@ -447,7 +447,7 @@ void Network::disconnectedState()
     }
     else if (false == m_reconnect)
     {
-        /* User set reconnect to false. Do nothing. */
+        ; /* User set reconnect to false. Do nothing. */
     }
     else if (false == m_reconnectTimer.isTimerRunning())
     {
