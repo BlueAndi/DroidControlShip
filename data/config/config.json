@@ -1,0 +1,10 @@
+{
+    "WIFI": {
+        "SSID": "TheForce",
+        "PSWD": "hanshotfirst"
+    },
+    "MQTT": {
+        "HOST": "192.168.137.1",
+        "PORT": 1883
+    }
+}
