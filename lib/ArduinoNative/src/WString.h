@@ -60,13 +60,10 @@
 class String
 {
 public:
-
     /**
      * Constructs a string.
      */
-    String() :
-        m_size(1U),
-        m_buffer(new char[m_size])
+    String() : m_size(1U), m_buffer(new char[m_size])
     {
         if (nullptr == m_buffer)
         {
@@ -87,7 +84,7 @@ public:
         {
             delete[] m_buffer;
             m_buffer = nullptr;
-            m_size = 0U;
+            m_size   = 0U;
         }
     }
 
@@ -96,12 +93,9 @@ public:
      *
      * @param[in] str String to copy
      */
-    String(const String& str) :
-        m_size(str.m_size),
-        m_buffer(nullptr)
+    String(const String& str) : m_size(str.m_size), m_buffer(nullptr)
     {
-        if ((0 == str.m_size) ||
-            (nullptr == str.m_buffer))
+        if ((0 == str.m_size) || (nullptr == str.m_buffer))
         {
             m_buffer = new char[1u];
 
@@ -111,7 +105,7 @@ public:
             }
             else
             {
-                m_size = 1U;
+                m_size       = 1U;
                 m_buffer[0u] = '\0';
             }
         }
@@ -136,9 +130,7 @@ public:
      *
      * @param[in] str String to copy
      */
-    String(const char* str) :
-        m_size((nullptr == str) ? 1u : (strlen(str) + 1U)),
-        m_buffer(new char[m_size])
+    String(const char* str) : m_size((nullptr == str) ? 1u : (strlen(str) + 1U)), m_buffer(new char[m_size])
     {
         if (nullptr == m_buffer)
         {
@@ -159,9 +151,7 @@ public:
      *
      * @param[in] c Single character
      */
-    String(char c) :
-        m_size(2U),
-        m_buffer(new char[m_size])
+    String(char c) : m_size(2U), m_buffer(new char[m_size])
     {
         if (nullptr == m_buffer)
         {
@@ -171,6 +161,31 @@ public:
         {
             m_buffer[0] = c;
             m_buffer[1] = '\0';
+        }
+    }
+
+    /**
+     * Constructs a string by copying another.
+     *
+     * @param[in] str String to copy
+     * @param[in] length String length
+     */
+    String(const char* str, unsigned int length) :
+        m_size((nullptr == str) ? 1U : (length + 1U)),
+        m_buffer(new char[m_size])
+    {
+        if (nullptr == m_buffer)
+        {
+            m_size = 0U;
+        }
+        else if (nullptr == str)
+        {
+            m_buffer[0u] = '\0';
+        }
+        else
+        {
+            strncpy(m_buffer, str, length);
+            m_buffer[m_size] = '\0';
         }
     }
 
@@ -250,7 +265,7 @@ public:
      *
      * @return Character
      */
-    char operator [](unsigned int index) const
+    char operator[](unsigned int index) const
     {
         char singleChar = '\0';
 
@@ -262,7 +277,7 @@ public:
         return singleChar;
     }
 
-    String& operator +=(const String& str)
+    String& operator+=(const String& str)
     {
         if (nullptr != str.m_buffer)
         {
@@ -282,13 +297,13 @@ public:
         return *this;
     }
 
-    String& operator +=(char c)
+    String& operator+=(char c)
     {
         char* tmp = new char[m_size + 1];
 
         if (nullptr != tmp)
         {
-            const char cBuff[2] = { c, '\0' };
+            const char cBuff[2] = {c, '\0'};
 
             strcpy(tmp, m_buffer);
             strcat(tmp, cBuff);
@@ -301,7 +316,7 @@ public:
         return *this;
     }
 
-    String operator +(const String& str) const
+    String operator+(const String& str) const
     {
         String tmp = *this;
         tmp += str;
@@ -316,8 +331,8 @@ public:
      */
     const char* c_str() const
     {
-        static const char*  emptyStr    = "";
-        const char*         buffer      = m_buffer;
+        static const char* emptyStr = "";
+        const char*        buffer   = m_buffer;
 
         if (nullptr == buffer)
         {
@@ -334,12 +349,12 @@ public:
      */
     unsigned int length() const
     {
-        unsigned int    length  = 0;
-        const char*     ptr     = m_buffer;
+        unsigned int length = 0;
+        const char*  ptr    = m_buffer;
 
         if (nullptr != m_buffer)
         {
-            while('\0' != *ptr)
+            while ('\0' != *ptr)
             {
                 ++length;
                 ++ptr;
@@ -371,14 +386,14 @@ public:
      */
     String substring(unsigned int left, unsigned int right) const
     {
-        String              out;
-        const unsigned int  len = length();
+        String             out;
+        const unsigned int len = length();
 
         if (left > right)
         {
             unsigned int temp = right;
-            right = left;
-            left = temp;
+            right             = left;
+            left              = temp;
         }
 
         if (len > left)
@@ -388,7 +403,7 @@ public:
                 right = len;
             }
 
-            char temp = m_buffer[right];
+            char temp       = m_buffer[right];
             m_buffer[right] = '\0';
 
             out = &m_buffer[left];
@@ -406,9 +421,9 @@ public:
      *
      * @return If string starts with pattern, it will return true otherwise false.
      */
-    unsigned char startsWith(const String &s2) const
+    unsigned char startsWith(const String& s2) const
     {
-        if(length() < s2.length())
+        if (length() < s2.length())
         {
             return 0U;
         }
@@ -424,11 +439,10 @@ public:
      *
      * @return If string starts with pattern, it will return true otherwise false.
      */
-    unsigned char startsWith(const String &s2, unsigned int offset) const
+    unsigned char startsWith(const String& s2, unsigned int offset) const
     {
-        if((offset > static_cast<unsigned int>(length() - s2.length())) ||
-           (nullptr == m_buffer) ||
-           (nullptr == s2.m_buffer))
+        if ((offset > static_cast<unsigned int>(length() - s2.length())) || (nullptr == m_buffer) ||
+            (nullptr == s2.m_buffer))
         {
             return 0;
         }
@@ -449,16 +463,14 @@ public:
 
     /**
      * Is string empty?
-     * 
+     *
      * @return If empty, it will return true otherwise false.
      */
     bool isEmpty() const
     {
         bool isEmptyFlag = true;
 
-        if ((nullptr != m_buffer) &&
-            (0U < m_size) &&
-            ('\0' != m_buffer[0]))
+        if ((nullptr != m_buffer) && (0U < m_size) && ('\0' != m_buffer[0]))
         {
             isEmptyFlag = false;
         }
@@ -497,37 +509,35 @@ public:
             return;
         }
 
-		if (count > length() - index)
-		{
-			count = length() - index;
-		}
+        if (count > length() - index)
+        {
+            count = length() - index;
+        }
 
-		unsigned int newlen = length() - count;
-		char*        tmp    = new char[newlen + 1];
+        unsigned int newlen = length() - count;
+        char*        tmp    = new char[newlen + 1];
 
-		if (nullptr != tmp)
-		{
-			memcpy(tmp, m_buffer, index);
-			memcpy(tmp + index, m_buffer + index + count, newlen - index);
-			tmp[newlen] = '\0';
-			delete[] m_buffer;
+        if (nullptr != tmp)
+        {
+            memcpy(tmp, m_buffer, index);
+            memcpy(tmp + index, m_buffer + index + count, newlen - index);
+            tmp[newlen] = '\0';
+            delete[] m_buffer;
 
-			m_buffer = tmp;
-			m_size   = newlen + 1;
-		}
+            m_buffer = tmp;
+            m_size   = newlen + 1;
+        }
     }
 
 private:
-
-    size_t  m_size;     /**< String buffer size */
-    char*   m_buffer;   /**< String buffer */
-
+    size_t m_size;   /**< String buffer size */
+    char*  m_buffer; /**< String buffer */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif  /* WSTRING_H */
+#endif /* WSTRING_H */
 
 /** @} */

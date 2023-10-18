@@ -490,8 +490,10 @@ void Network::attemptConnection()
 void Network::onMessageCallback(char* topic, uint8_t* payload, uint32_t length)
 {
     SubscriberList::const_iterator it;
+    const char*                    payloadCStr = reinterpret_cast<char*>(payload);
+    const String                   payloadStr  = String(payloadCStr, length);
 
-    LOG_DEBUG("MQTT Rx in topic %s", topic);
+    LOG_DEBUG("MQTT Rx in topic %s: %s", topic, payloadStr.c_str());
 
     for (it = m_subscriberList.begin(); it != m_subscriberList.end(); ++it)
     {
@@ -501,9 +503,7 @@ void Network::onMessageCallback(char* topic, uint8_t* payload, uint32_t length)
             {
                 Subscriber* subscriber = *it;
 
-                String payloadString = String((char*)payload, length);
-
-                subscriber->callback(payloadString);
+                subscriber->callback(payloadStr);
                 break;
             }
         }

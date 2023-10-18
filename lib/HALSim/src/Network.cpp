@@ -363,8 +363,10 @@ void Network::onDisconnectCallback(int rc)
 void Network::onMessageCallback(const mosquitto_message* msg)
 {
     SubscriberList::const_iterator it;
+    char*                          payloadCStr = static_cast<char*>(msg->payload);
+    String                         payloadStr  = String(payloadCStr, msg->payloadlen);
 
-    LOG_DEBUG("MQTT client received message on topic %s with payload %s", msg->topic, (char*)msg->payload);
+    LOG_DEBUG("MQTT Rx in topic %s: %s", msg->topic, payloadStr.c_str());
 
     for (it = m_subscriberList.begin(); it != m_subscriberList.end(); ++it)
     {
@@ -374,8 +376,7 @@ void Network::onMessageCallback(const mosquitto_message* msg)
             {
                 Subscriber* subscriber = *it;
 
-                String payload = (char*)msg->payload;
-                subscriber->callback(payload);
+                subscriber->callback(payloadStr);
                 break;
             }
         }
