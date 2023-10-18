@@ -288,7 +288,7 @@ public:
 
         if (nullptr != tmp)
         {
-            char cBuff[2] = { c, '\0'};
+            const char cBuff[2] = { c, '\0' };
 
             strcpy(tmp, m_buffer);
             strcat(tmp, cBuff);
@@ -486,32 +486,35 @@ public:
         {
             return;
         }
-        else if (count <= 0)
+
+        if (0U == count)
         {
             return;
         }
-        else if (nullptr == m_buffer)
+
+        if (nullptr == m_buffer)
         {
             return;
         }
-        else
-        {
-            if (count > length() - index)
-            {
-                count = length() - index;
-            }
 
-            unsigned int newlen = length() - count;
-            char*        tmp    = new char[newlen + 1];
+		if (count > length() - index)
+		{
+			count = length() - index;
+		}
 
-            memcpy(tmp, m_buffer, index);
-            memcpy(tmp + index, m_buffer + index + count, newlen - index);
-            tmp[newlen] = '\0';
-            delete[] m_buffer;
+		unsigned int newlen = length() - count;
+		char*        tmp    = new char[newlen + 1];
 
-            m_buffer = tmp;
-            m_size   = newlen + 1;
-        }
+		if (nullptr != tmp)
+		{
+			memcpy(tmp, m_buffer, index);
+			memcpy(tmp + index, m_buffer + index + count, newlen - index);
+			tmp[newlen] = '\0';
+			delete[] m_buffer;
+
+			m_buffer = tmp;
+			m_size   = newlen + 1;
+		}
     }
 
 private:
