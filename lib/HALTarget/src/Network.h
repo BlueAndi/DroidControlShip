@@ -137,7 +137,7 @@ public:
     /**
      * Subscribes to a topic.
      *
-     * @param[in] topic     Topic to subscribe to. The Client ID is used as base topic: <Client ID>/<topic>
+     * @param[in] topic     Topic to subscribe to. The Client ID is used as base topic: `Client ID`/`topic`
      * @param[in] callback  Callback function, which is called on a new message.
      * @return If successfully subscribed, returns true. Otherwise, false.
      */
@@ -146,7 +146,7 @@ public:
     /**
      * Unsubscribes from a topic.
      *
-     * @param[in] topic     Topic to unsubscribe from. The Client ID is used as base topic: <Client ID>/<topic>
+     * @param[in] topic     Topic to unsubscribe from. The Client ID is used as base topic: `Client ID`/`topic`
      */
     void unsubscribe(const String& topic) final;
 
