@@ -1,0 +1,22 @@
+{
+    "name": "RemoteControl",
+    "version": "0.1.0",
+    "description": "RemoteControl application",
+    "authors": [{
+        "name": "Gabryel Reyes",
+        "email": "gabryelrdiaz@gmail.com",
+        "url": "https://github.com/gabryelreyes",
+        "maintainer": true
+    }],
+    "license": "MIT",
+    "dependencies": [{
+        "name": "SerialMuxProt",
+        "version" : "https://github.com/gabryelreyes/SerialMuxProt.git"
+    },{
+        "owner": "bblanchon",
+        "name": "ArduinoJson",
+        "version": "^6.21.3"
+    }],
+    "frameworks": "*",
+    "platforms": "*"
+}
