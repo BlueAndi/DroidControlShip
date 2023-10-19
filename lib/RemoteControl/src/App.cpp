@@ -298,7 +298,15 @@ void App::motorSpeedsTopicCallback(const String& payload)
  */
 void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
-    LOG_DEBUG("CMD_RSP: 0x%02X", payload[0]);
+    uint8_t expectedPayloadSize = 1U;
+    if (expectedPayloadSize == payloadSize)
+    {
+        LOG_DEBUG("CMD_RSP: 0x%02X", payload[0U]);
+    }
+    else
+    {
+        LOG_WARNING("CMD_RSP: Invalid payload size. Expected: %u Received: %u", expectedPayloadSize, payloadSize);
+    }
 }
 
 /**
