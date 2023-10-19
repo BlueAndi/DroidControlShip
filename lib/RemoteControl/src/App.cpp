@@ -237,6 +237,8 @@ void App::cmdTopicCallback(const String& payload)
         uint8_t payloadSize = sizeof(uint8_t);
         uint8_t buffer[payloadSize];
 
+        jsonPayload.containsKey("CMD_ID");
+
         buffer[0U] = jsonPayload["CMD_ID"].as<uint8_t>();
 
         if (true == m_smpServer.sendData(CH_NAME_CMD, buffer, 1U))
@@ -306,5 +308,6 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
  */
 void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
-    ; /* Do nothing */
+    UTIL_NOT_USED(payload);
+    UTIL_NOT_USED(payloadSize);
 }
