@@ -11,7 +11,7 @@ It provides different kind of exclusive applications, used for educational purpo
 
 * Convoy Leader Robot - Based on odometry information, it leads the followers to follow like a lemming trail.
 * Convoy Follower Robot - It follows the leader by mainly reacting on the received information.
-* etc.
+* Remote Control - Receives commands and motor speeds from an external source through MQTT.
 
 ![RobotWithZumoComSystem](doc/images/RobotWithZumoComSystem.jpg)
 
