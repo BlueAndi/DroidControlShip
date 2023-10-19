@@ -55,12 +55,12 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The convoy follower application. */
+/** The Remote Control application. */
 class App
 {
 public:
     /**
-     * Construct the convoy follower application.
+     * Construct the Remote Control application.
      */
     App() :
         m_smpServer(Board::getInstance().getDevice().getStream()),
@@ -70,7 +70,7 @@ public:
     }
 
     /**
-     * Destroy the convoy follower application.
+     * Destroy the Remote Control application.
      */
     ~App()
     {

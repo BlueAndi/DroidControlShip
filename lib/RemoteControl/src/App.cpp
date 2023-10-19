@@ -306,7 +306,7 @@ void App::motorSpeedsTopicCallback(const String& payload)
  *****************************************************************************/
 
 /**
- * Receives remote control commands over SerialMuxProt channel.
+ * Receives remote control command responses over SerialMuxProt channel.
  *
  * @param[in] payload       Command id
  * @param[in] payloadSize   Size of command id
