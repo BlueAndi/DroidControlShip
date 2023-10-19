@@ -185,7 +185,7 @@ public:
         else
         {
             strncpy(m_buffer, str, length);
-            m_buffer[m_size] = '\0';
+            m_buffer[m_size - 1U] = '\0';
         }
     }
 
