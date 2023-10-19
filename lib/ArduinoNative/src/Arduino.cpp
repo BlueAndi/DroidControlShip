@@ -127,7 +127,7 @@ extern int main(int argc, char** argv)
     /* Set Settings. */
     if (nullptr != prgArguments.instanceName)
     {
-        String clientId(prgArguments.instanceName);
+        String clientId = prgArguments.instanceName;
         if (false == Settings::getInstance().setConfiguration(clientId, "", "", "localhost", 1883U))
         {
             status = -1;
