@@ -288,11 +288,23 @@ void App::motorSpeedsTopicCallback(const String& payload)
  * Local Functions
  *****************************************************************************/
 
+/**
+ * Receives remote control commands over SerialMuxProt channel.
+ *
+ * @param[in] payload       Command id
+ * @param[in] payloadSize   Size of command id
+ */
 void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
     LOG_DEBUG("CMD_RSP: 0x%02X", payload[0]);
 }
 
+/**
+ * Receives line sensor data over SerialMuxProt channel.
+ * @param[in]   payload         Line sensor data
+ * @param[in]   payloadSize     Size of 5 line sensor data
+ */
 void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
+    ; /* Do nothing */
 }
