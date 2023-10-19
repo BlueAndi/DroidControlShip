@@ -81,8 +81,7 @@ bool Settings::loadConfigurationFile(const String& filename)
     }
     else
     {
-        DeserializationError error = DeserializationError::Ok;
-        error                      = deserializeJson(doc, buffer);
+        DeserializationError error = deserializeJson(doc, buffer);
 
         if (error != DeserializationError::Ok)
         {

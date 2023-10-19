@@ -224,9 +224,7 @@ void App::fatalErrorHandler()
 void App::cmdTopicCallback(const String& payload)
 {
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = DeserializationError::Ok;
-
-    error = deserializeJson(jsonPayload, payload.c_str());
+    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
 
     if (error != DeserializationError::Ok)
     {
@@ -234,12 +232,14 @@ void App::cmdTopicCallback(const String& payload)
     }
     else
     {
-        uint8_t     payloadSize = sizeof(uint8_t);
-        uint8_t     buffer[payloadSize];
+        uint8_t payloadSize = sizeof(uint8_t);
+
         JsonVariant command = jsonPayload["CMD_ID"];
 
         if (false == command.isNull())
         {
+            uint8_t buffer[payloadSize];
+
             buffer[0U] = command.as<uint8_t>();
 
             if (true == m_smpServer.sendData(CH_NAME_CMD, buffer, 1U))
@@ -261,9 +261,7 @@ void App::cmdTopicCallback(const String& payload)
 void App::motorSpeedsTopicCallback(const String& payload)
 {
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = DeserializationError::Ok;
-
-    error = deserializeJson(jsonPayload, payload.c_str());
+    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
 
     if (error != DeserializationError::Ok)
     {
