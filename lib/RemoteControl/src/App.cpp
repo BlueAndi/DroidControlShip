@@ -234,20 +234,26 @@ void App::cmdTopicCallback(const String& payload)
     }
     else
     {
-        uint8_t payloadSize = sizeof(uint8_t);
-        uint8_t buffer[payloadSize];
+        uint8_t     payloadSize = sizeof(uint8_t);
+        uint8_t     buffer[payloadSize];
+        JsonVariant command = jsonPayload["CMD_ID"];
 
-        jsonPayload.containsKey("CMD_ID");
-
-        buffer[0U] = jsonPayload["CMD_ID"].as<uint8_t>();
-
-        if (true == m_smpServer.sendData(CH_NAME_CMD, buffer, 1U))
+        if (false == command.isNull())
         {
-            LOG_DEBUG("Command %d sent.", buffer[0U]);
+            buffer[0U] = command.as<uint8_t>();
+
+            if (true == m_smpServer.sendData(CH_NAME_CMD, buffer, 1U))
+            {
+                LOG_DEBUG("Command %d sent.", buffer[0U]);
+            }
+            else
+            {
+                LOG_WARNING("Failed to send command %d.", buffer[0U]);
+            }
         }
         else
         {
-            LOG_WARNING("Failed to send command %d.", buffer[0U]);
+            LOG_WARNING("Received invalid command.");
         }
     }
 }
@@ -265,19 +271,28 @@ void App::motorSpeedsTopicCallback(const String& payload)
     }
     else
     {
-        uint8_t payloadSize = (2U * sizeof(int16_t));
-        uint8_t buffer[payloadSize];
+        uint8_t     payloadSize = (2U * sizeof(int16_t));
+        uint8_t     buffer[payloadSize];
+        JsonVariant leftSpeed  = jsonPayload["LEFT"];
+        JsonVariant rightSpeed = jsonPayload["RIGHT"];
 
-        Util::int16ToByteArray(&buffer[0U * sizeof(int16_t)], sizeof(int16_t), jsonPayload["LEFT"].as<int16_t>());
-        Util::int16ToByteArray(&buffer[1U * sizeof(int16_t)], sizeof(int16_t), jsonPayload["RIGHT"].as<int16_t>());
-
-        if (true == m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, payloadSize))
+        if ((false == leftSpeed.isNull()) && (false == rightSpeed.isNull()))
         {
-            LOG_DEBUG("Motor speeds sent");
+            Util::int16ToByteArray(&buffer[0U * sizeof(int16_t)], sizeof(int16_t), leftSpeed.as<int16_t>());
+            Util::int16ToByteArray(&buffer[1U * sizeof(int16_t)], sizeof(int16_t), rightSpeed.as<int16_t>());
+
+            if (true == m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, payloadSize))
+            {
+                LOG_DEBUG("Motor speeds sent");
+            }
+            else
+            {
+                LOG_WARNING("Failed to send motor speeds");
+            }
         }
         else
         {
-            LOG_WARNING("Failed to send motor speeds");
+            LOG_WARNING("Received invalid motor speeds.");
         }
     }
 }
