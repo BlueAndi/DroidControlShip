@@ -1,11 +1,11 @@
 {
-    "name": "RemoteControl",
+    "name": "SensorFusion",
     "version": "0.1.0",
-    "description": "RemoteControl application",
+    "description": "SensorFusion application",
     "authors": [{
-        "name": "Gabryel Reyes",
-        "email": "gabryelrdiaz@gmail.com",
-        "url": "https://github.com/gabryelreyes",
+        "name": "Juliane Kerpe",
+        "email": "juliane.kerpe@web.de",
+        "url": "https://github.com/jkerpe",
         "maintainer": true
     }],
     "license": "MIT",

@@ -25,8 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  RemoteControl application
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  SensorFusion application
+ * @author Juliane Kerpe <juliane.kerpe@web.de>
  */
 
 /******************************************************************************
