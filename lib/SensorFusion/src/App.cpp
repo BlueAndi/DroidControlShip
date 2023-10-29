@@ -38,7 +38,6 @@
 #include <Util.h>
 #include <Settings.h>
 #include <ArduinoJson.h>
-
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -81,9 +80,8 @@ const char* App::CH_NAME_SENSORDATA = "SENSOR_DATA";
 void App::setup()
 {
     Serial.begin(SERIAL_BAUDRATE);
-
     SensorFusion::getInstance().init();
-
+    
     /* Register serial log sink and select it per default. */
     if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
     {
@@ -94,7 +92,7 @@ void App::setup()
 
         LOG_DEBUG("LOGGER READY");
     }
-
+    
     /* Initialize HAL. */
     if (false == Board::getInstance().init())
     {
@@ -124,9 +122,8 @@ void App::setup()
             LOG_DEBUG("Settings set externally.");
         }
 
-         /* Setup SerialMuxProt Channel. */
+        /* Setup SerialMuxProt Channels */
         m_smpServer.subscribeToChannel(CH_NAME_SENSORDATA, App_sensorChannelCallback);
-
     }
 }
 
@@ -139,8 +136,6 @@ void App::loop()
         LOG_FATAL("HAL process failed.");
         fatalErrorHandler();
     }
-
-    /* Process SerialMuxProt. */
     m_smpServer.process(millis());
 }
 
@@ -200,6 +195,6 @@ void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize
     newSensorData.accelerationX = newSensorData.accelerationX   *   SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
     newSensorData.accelerationY = newSensorData.accelerationY   *   SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
     newSensorData.turnRateZ     = newSensorData.turnRateZ       *   SensorConstants::GYRO_SENSITIVITY_FACTOR;
-    
+
     SensorFusion::getInstance().estimateNewState(newSensorData);
 }
