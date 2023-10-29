@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
+ * @brief  Implementation of the Linear Kalman Filter
  * @author Juliane Kerpe <juliane.kerpe@web.de>
- *
- * @addtogroup Application
+ * 
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef LINEARKALMANFILTER_H
+#define LINEARKALMANFILTER_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,11 +42,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
-
+#include <ArduinoEigen.h> 
+#include <stdint.h>
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -56,61 +52,61 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/** This class provides a Linear Kalman filter. */
+class LinearKalmanFilter
 {
 public:
     /**
-     * Construct the Sensor Fusion application.
+     * Constructs the Linear Kalman Filter
      */
-    App() :
-        m_smpServer(Board::getInstance().getDevice().getStream())
+    LinearKalmanFilter()
+    {
+    }
+    
+    /**
+     * Destroys the Linear Kalman Filter
+     */
+    ~LinearKalmanFilter()
     {
     }
 
     /**
-     * Destroy the Sensor Fusion application.
-     */
-    ~App()
+     * Initializes the variables of the Linear Kalman Filter.
+    */
+    void init(void)
     {
+        // TODO: Implement Kalman Filter in cpp (TD072)
     }
 
     /**
-     * Setup the application.
-     */
-    void setup();
+     * Prediction of the covariance and the state of the Linear Kalman Filter.
+    */
+    void predictionStep(void)
+    {
+        // TODO: Implement Kalman Filter in cpp (TD072)
+    }
 
     /**
-     * Process the application periodically.
-     */
-    void loop();
-
-private:
-    /** SerialMuxProt channel name for receiving sensor data used for sensor fusion. */
-    static const char* CH_NAME_SENSORDATA;
-
-    /**
-     * SerialMuxProt Server Instance
+     * Update of the covariance and the state of the Linear Kalman Filter.
+     * @param[in] accelerationInX             Acceleration in x-direction, in the global coordinate system. 
+     * @param[in] accelerationInY             Acceleration in y-direction, in the global coordinate system. 
+     * @param[in] positionEncoderX            Position in x-direction calculated through the encoders via odometry. 
+     * @param[in] positionEncoderY            Position in y-direction calculated through the encoders via odometry. 
      *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
      */
-    SerialMuxProtServer<10U> m_smpServer;
+    void updateStep(const int16_t &accelerationInX, const int16_t &accelerationInY, const int16_t &positionEncoderX, const int16_t &positionEncoderY)
+    {
+        // TODO: Implement Kalman Filter in cpp (TD072)
+    }
 
-private:
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-    App(const App& app);
-    App& operator=(const App& app);
+private: 
+    Eigen::VectorXf m_state;        /**< Estimated state vector [p_x, p_y, v_x, v_y, a_x, a_y]*/
+    Eigen::MatrixXf m_covariance;   /**< Covariance Matrix of the state */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* LINEARKALMANFILTER_H */
 /** @} */

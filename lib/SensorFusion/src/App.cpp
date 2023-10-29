@@ -59,8 +59,7 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
-static void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
 
 /******************************************************************************
  * Local Variables
@@ -72,32 +71,8 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 /** Serial log sink */
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 
-/* MQTT topic name for birth messages. */
-const char* App::TOPIC_NAME_BIRTH = "birth";
-
-/* MQTT topic name for will messages. */
-const char* App::TOPIC_NAME_WILL = "will";
-
-/* MQTT topic name for receiving commands. */
-const char* App::TOPIC_NAME_CMD = "cmd";
-
-/* MQTT topic name for receiving motor speeds. */
-const char* App::TOPIC_NAME_MOTOR_SPEEDS = "motorSpeeds";
-
-/* Initialize channel name for sending commands. */
-const char* App::CH_NAME_CMD = "REMOTE_CMD";
-
-/* Initialize channel name for receiving command responses. */
-const char* App::CH_NAME_RSP = "REMOTE_RSP";
-
-/* YAP channel name for sending motor speeds. */
-const char* App::CH_NAME_MOTOR_SPEEDS = "MOT_SPEEDS";
-
-/* Initialize channel name for receiving line sensors data. */
-const char* App::CH_NAME_LINE_SENSORS = "LINE_SENS";
-
-/** Default size of the JSON Document for parsing. */
-static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
+/* Initialize channel name for receiving sensor data. */
+const char* App::CH_NAME_SENSORDATA = "SENSOR_DATA";
 
 /******************************************************************************
  * Public Methods
@@ -106,6 +81,8 @@ static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 void App::setup()
 {
     Serial.begin(SERIAL_BAUDRATE);
+
+    SensorFusion::getInstance().init();
 
     /* Register serial log sink and select it per default. */
     if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
@@ -147,44 +124,9 @@ void App::setup()
             LOG_DEBUG("Settings set externally.");
         }
 
-        /* Setup SerialMuxProt Channels */
-        m_serialMuxProtChannelIdRemoteCtrl  = m_smpServer.createChannel(CH_NAME_CMD, 1U);
-        m_serialMuxProtChannelIdMotorSpeeds = m_smpServer.createChannel(CH_NAME_MOTOR_SPEEDS, 4U);
-        m_smpServer.subscribeToChannel(CH_NAME_RSP, App_cmdRspChannelCallback);
-        m_smpServer.subscribeToChannel(CH_NAME_LINE_SENSORS, App_lineSensorChannelCallback);
+         /* Setup SerialMuxProt Channel. */
+        m_smpServer.subscribeToChannel(CH_NAME_SENSORDATA, App_sensorChannelCallback);
 
-        /* Setup Network. Get saved configuration.*/
-        String   clientId = Settings::getInstance().getRobotName();
-        String   ssid     = Settings::getInstance().getWiFiSSID();
-        String   password = Settings::getInstance().getWiFiPassword();
-        String   mqttAddr = Settings::getInstance().getMqttBrokerAddress();
-        uint16_t mqttPort = Settings::getInstance().getMqttPort();
-
-        /* Setup MQTT Server, Birth and Will messages. */
-        if (false ==
-            Board::getInstance().getNetwork().setConfig(clientId, ssid, password, mqttAddr, mqttPort, TOPIC_NAME_BIRTH,
-                                                        String(clientId + String(" Connected!")), TOPIC_NAME_WILL,
-                                                        String(clientId + String(" Disconnected!")), true))
-        {
-            LOG_ERROR("Network Configuration could not be set.");
-            fatalErrorHandler();
-        }
-
-        /* Subscribe to Command Topic. */
-        if (false == Board::getInstance().getNetwork().subscribe(TOPIC_NAME_CMD, [this](const String& payload)
-                                                                 { cmdTopicCallback(payload); }))
-        {
-            LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_CMD);
-            fatalErrorHandler();
-        }
-
-        /* Subscribe to Motor Speeds Topic. */
-        if (false == Board::getInstance().getNetwork().subscribe(TOPIC_NAME_MOTOR_SPEEDS, [this](const String& payload)
-                                                                 { motorSpeedsTopicCallback(payload); }))
-        {
-            LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
-            fatalErrorHandler();
-        }
     }
 }
 
@@ -221,80 +163,6 @@ void App::fatalErrorHandler()
     }
 }
 
-void App::cmdTopicCallback(const String& payload)
-{
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
-
-    if (error != DeserializationError::Ok)
-    {
-        LOG_ERROR("JSON Deserialization Error %d.", error);
-    }
-    else
-    {
-        uint8_t payloadSize = sizeof(uint8_t);
-
-        JsonVariant command = jsonPayload["CMD_ID"];
-
-        if (false == command.isNull())
-        {
-            uint8_t buffer[payloadSize];
-
-            buffer[0U] = command.as<uint8_t>();
-
-            if (true == m_smpServer.sendData(CH_NAME_CMD, buffer, 1U))
-            {
-                LOG_DEBUG("Command %d sent.", buffer[0U]);
-            }
-            else
-            {
-                LOG_WARNING("Failed to send command %d.", buffer[0U]);
-            }
-        }
-        else
-        {
-            LOG_WARNING("Received invalid command.");
-        }
-    }
-}
-
-void App::motorSpeedsTopicCallback(const String& payload)
-{
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
-
-    if (error != DeserializationError::Ok)
-    {
-        LOG_ERROR("JSON Deserialization Error %d.", error);
-    }
-    else
-    {
-        uint8_t     payloadSize = (2U * sizeof(int16_t));
-        uint8_t     buffer[payloadSize];
-        JsonVariant leftSpeed  = jsonPayload["LEFT"];
-        JsonVariant rightSpeed = jsonPayload["RIGHT"];
-
-        if ((false == leftSpeed.isNull()) && (false == rightSpeed.isNull()))
-        {
-            Util::int16ToByteArray(&buffer[0U * sizeof(int16_t)], sizeof(int16_t), leftSpeed.as<int16_t>());
-            Util::int16ToByteArray(&buffer[1U * sizeof(int16_t)], sizeof(int16_t), rightSpeed.as<int16_t>());
-
-            if (true == m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, payloadSize))
-            {
-                LOG_DEBUG("Motor speeds sent");
-            }
-            else
-            {
-                LOG_WARNING("Failed to send motor speeds");
-            }
-        }
-        else
-        {
-            LOG_WARNING("Received invalid motor speeds.");
-        }
-    }
-}
-
 /******************************************************************************
  * External Functions
  *****************************************************************************/
@@ -304,31 +172,34 @@ void App::motorSpeedsTopicCallback(const String& payload)
  *****************************************************************************/
 
 /**
- * Receives remote control command responses over SerialMuxProt channel.
- *
- * @param[in] payload       Command id
- * @param[in] payloadSize   Size of command id
+ * Receives sensor data for sensor fusion over SerialMuxProt channel in this order:
+ * Acceleration in X
+ * Acceleration in Y
+ * TurnRate around Z
+ * Magnetometer value in X 
+ * Magnetometer value in Y 
+ * Angle calculated by Odometry
+ * Position in X calculated by Odometry
+ * Position in Y calculated by Odometry
+ * @param[in]   payload         Sensor data
+ * @param[in]   payloadSize     Size of 8 sensor data
  */
-void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
-    uint8_t expectedPayloadSize = 1U;
-    if (expectedPayloadSize == payloadSize)
-    {
-        LOG_DEBUG("CMD_RSP: 0x%02X", payload[0U]);
-    }
-    else
-    {
-        LOG_WARNING("CMD_RSP: Invalid payload size. Expected: %u Received: %u", expectedPayloadSize, payloadSize);
-    }
-}
+    SensorData newSensorData;
 
-/**
- * Receives line sensor data over SerialMuxProt channel.
- * @param[in]   payload         Line sensor data
- * @param[in]   payloadSize     Size of 5 line sensor data
- */
-void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
-{
-    UTIL_NOT_USED(payload);
-    UTIL_NOT_USED(payloadSize);
+    Util::byteArrayToInt16(&payload[0 * sizeof(int16_t)], sizeof(int16_t), newSensorData.accelerationX);
+    Util::byteArrayToInt16(&payload[1 * sizeof(int16_t)], sizeof(int16_t), newSensorData.accelerationY);
+    Util::byteArrayToInt16(&payload[2 * sizeof(int16_t)], sizeof(int16_t), newSensorData.turnRateZ);
+    Util::byteArrayToInt16(&payload[3 * sizeof(int16_t)], sizeof(int16_t), newSensorData.magnetometerValueX);
+    Util::byteArrayToInt16(&payload[4 * sizeof(int16_t)], sizeof(int16_t), newSensorData.magnetometerValueY);
+    Util::byteArrayToInt16(&payload[5 * sizeof(int16_t)], sizeof(int16_t), newSensorData.angleOdometry);
+    Util::byteArrayToInt16(&payload[6 * sizeof(int16_t)], sizeof(int16_t), newSensorData.positionOdometryX);
+    Util::byteArrayToInt16(&payload[7 * sizeof(int16_t)], sizeof(int16_t), newSensorData.positionOdometryY);
+
+    newSensorData.accelerationX = newSensorData.accelerationX   *   SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
+    newSensorData.accelerationY = newSensorData.accelerationY   *   SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
+    newSensorData.turnRateZ     = newSensorData.turnRateZ       *   SensorConstants::GYRO_SENSITIVITY_FACTOR;
+    
+    SensorFusion::getInstance().estimateNewState(newSensorData);
 }

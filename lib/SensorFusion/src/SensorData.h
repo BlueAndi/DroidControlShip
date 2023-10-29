@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
+ * @brief  Sensor Data Struct
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *
- * @addtogroup Application
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef SENSORDATA_H
+#define SENSORDATA_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,11 +42,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
-
+#include <stdint.h>
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -56,61 +51,20 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
-{
-public:
-    /**
-     * Construct the Sensor Fusion application.
-     */
-    App() :
-        m_smpServer(Board::getInstance().getDevice().getStream())
-    {
-    }
-
-    /**
-     * Destroy the Sensor Fusion application.
-     */
-    ~App()
-    {
-    }
-
-    /**
-     * Setup the application.
-     */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-private:
-    /** SerialMuxProt channel name for receiving sensor data used for sensor fusion. */
-    static const char* CH_NAME_SENSORDATA;
-
-    /**
-     * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
-     */
-    SerialMuxProtServer<10U> m_smpServer;
-
-private:
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-    App(const App& app);
-    App& operator=(const App& app);
+/** This struct includes all the sensor values which can be used for Sensor Fusion */
+struct SensorData {
+    int16_t accelerationX;
+    int16_t accelerationY;
+    int16_t turnRateZ;
+    int16_t magnetometerValueX;
+    int16_t magnetometerValueY;
+    int16_t angleOdometry;
+    int16_t positionOdometryX;
+    int16_t positionOdometryY;
 };
-
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* SENSORDATA_H */
 /** @} */

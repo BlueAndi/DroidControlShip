@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
+ * @brief  Implementation of the Sensor Fusion
  * @author Juliane Kerpe <juliane.kerpe@web.de>
- *
- * @addtogroup Application
+ * 
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef SENSORFUSION_H
+#define SENSORFUSION_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,11 +42,11 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
 
+#include "SensorData.h"
+#include "LinearKalmanFilter.h"
+#include <stdint.h>
+#include <SensorConstants.h>
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -56,61 +55,57 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/** This class provides a SensorFusion Algorithm. */
+class SensorFusion
 {
 public:
     /**
-     * Construct the Sensor Fusion application.
+     * Constructs the SensorFusion
      */
-    App() :
-        m_smpServer(Board::getInstance().getDevice().getStream())
+    static SensorFusion& getInstance()
     {
+        static SensorFusion instance; /* idiom */
+
+        return instance;
     }
 
     /**
-     * Destroy the Sensor Fusion application.
+     * Destroys the SensorFusion
      */
-    ~App()
+    ~SensorFusion()
     {
     }
+    
+    /**
+     * Initialize the Sensor Fusion.
+     */
+    void init();
 
     /**
-     * Setup the application.
+     * Perform an update of the Estimated State.
+     * 
+     * @param[in] newSensorData New Sensor Data.
      */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
+    void estimateNewState(SensorData newSensorData);
 
 private:
-    /** SerialMuxProt channel name for receiving sensor data used for sensor fusion. */
-    static const char* CH_NAME_SENSORDATA;
+    LinearKalmanFilter m_lkf;
 
     /**
-     * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
+     * Transform the local acceleration vector [acc_x, acc_y] into a global vector using the provided angle.
+     * 
+     * @param[in] globalResult                  The array to store the transformed vector [result_x, result_y].
+     * @param[in] localVectorToTransform        The local acceleration vector [acc_x, acc_y] to be transformed.
+     * @param[in] rotationAngle                 The angle used for the transformation, given in mrad.
      */
-    SerialMuxProtServer<10U> m_smpServer;
+    void transfromLocalToGlobal(int16_t * globalResult, const int16_t * localVectorToTransform, const int16_t & rotationAngle);
 
-private:
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-    App(const App& app);
-    App& operator=(const App& app);
+    void estimateAngle(int16_t & estimatedAngle, const int16_t & encoderAngle, const int16_t & magnetometerValueX, const int16_t & magnetometerValueY);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* SENSORFUSION_H */
 /** @} */

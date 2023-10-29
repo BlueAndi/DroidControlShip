@@ -25,17 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
+ * @brief  Sensor specific constants
  * @author Juliane Kerpe <juliane.kerpe@web.de>
- *
- * @addtogroup Application
+ * 
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
-
+#ifndef SENSORCONSTANTS_H
+#define SENSORCONSTANTS_H
 /******************************************************************************
  * Compile Switches
  *****************************************************************************/
@@ -43,10 +41,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -56,61 +51,21 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/**
+ * Abstracts the physical sensor constants.
+ */
+namespace SensorConstants
 {
-public:
     /**
-     * Construct the Sensor Fusion application.
-     */
-    App() :
-        m_smpServer(Board::getInstance().getDevice().getStream())
-    {
-    }
-
-    /**
-     * Destroy the Sensor Fusion application.
-     */
-    ~App()
-    {
-    }
-
-    /**
-     * Setup the application.
-     */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-private:
-    /** SerialMuxProt channel name for receiving sensor data used for sensor fusion. */
-    static const char* CH_NAME_SENSORDATA;
-
-    /**
-     * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
-     */
-    SerialMuxProtServer<10U> m_smpServer;
-
-private:
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-    App(const App& app);
-    App& operator=(const App& app);
+     * The Linear Sensitivity Factors are specified in the data sheets of the sensors LSM303D (accelerometer+gyro), L3GD20H (gyro), LSM6DS33 (gyro + accelerometer), LIS3MDL (magnetometer)
+    */
+    static const float ACCELEROMETER_SENSITIVITY_FACTOR    = 0.061f * 9.81f;                /**< Sensitivity Factor of the LSM303D and LSM6DS33 accelerometer   in mm/s/s/LSB       at Range of +/- 2 g   */
+    static const float GYRO_SENSITIVITY_FACTOR             = 8.75f * 2 * 3.14159 / 360;     /**< Sensitivity Factor of the L3GD20H and LSM6DS33 gyro            in mrad/s/digit     at Range of +/- 245 dps */ 
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* SENSORCONSTANTS_H */
 /** @} */
