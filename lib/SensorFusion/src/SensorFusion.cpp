@@ -99,6 +99,7 @@ void SensorFusion::transfromLocalToGlobal(int16_t* globalResult, const int16_t* 
 
 void SensorFusion::estimateAngle(int16_t & estimatedAngle, const int16_t & encoderAngle, const int16_t & magnetometerValueX, const int16_t & magnetometerValueY)
 {
+    // TODO: TD077	Implement Angle Estimation
     estimatedAngle = encoderAngle;
 }
 
