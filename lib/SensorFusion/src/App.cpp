@@ -181,20 +181,30 @@ void App::fatalErrorHandler()
  */
 void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
-    SensorData newSensorData;
+    uint8_t expectedPayloadSize = 16U;
+    if (expectedPayloadSize == payloadSize)
+    {
+        
+        LOG_DEBUG("SENSOR_DATA: New Sensor Data!");
+        SensorData newSensorData;
+        Util::byteArrayToInt16(&payload[0 * sizeof(int16_t)], sizeof(int16_t), newSensorData.accelerationX);
+        Util::byteArrayToInt16(&payload[1 * sizeof(int16_t)], sizeof(int16_t), newSensorData.accelerationY);
+        Util::byteArrayToInt16(&payload[2 * sizeof(int16_t)], sizeof(int16_t), newSensorData.turnRateZ);
+        Util::byteArrayToInt16(&payload[3 * sizeof(int16_t)], sizeof(int16_t), newSensorData.magnetometerValueX);
+        Util::byteArrayToInt16(&payload[4 * sizeof(int16_t)], sizeof(int16_t), newSensorData.magnetometerValueY);
+        Util::byteArrayToInt16(&payload[5 * sizeof(int16_t)], sizeof(int16_t), newSensorData.angleOdometry);
+        Util::byteArrayToInt16(&payload[6 * sizeof(int16_t)], sizeof(int16_t), newSensorData.positionOdometryX);
+        Util::byteArrayToInt16(&payload[7 * sizeof(int16_t)], sizeof(int16_t), newSensorData.positionOdometryY);
 
-    Util::byteArrayToInt16(&payload[0 * sizeof(int16_t)], sizeof(int16_t), newSensorData.accelerationX);
-    Util::byteArrayToInt16(&payload[1 * sizeof(int16_t)], sizeof(int16_t), newSensorData.accelerationY);
-    Util::byteArrayToInt16(&payload[2 * sizeof(int16_t)], sizeof(int16_t), newSensorData.turnRateZ);
-    Util::byteArrayToInt16(&payload[3 * sizeof(int16_t)], sizeof(int16_t), newSensorData.magnetometerValueX);
-    Util::byteArrayToInt16(&payload[4 * sizeof(int16_t)], sizeof(int16_t), newSensorData.magnetometerValueY);
-    Util::byteArrayToInt16(&payload[5 * sizeof(int16_t)], sizeof(int16_t), newSensorData.angleOdometry);
-    Util::byteArrayToInt16(&payload[6 * sizeof(int16_t)], sizeof(int16_t), newSensorData.positionOdometryX);
-    Util::byteArrayToInt16(&payload[7 * sizeof(int16_t)], sizeof(int16_t), newSensorData.positionOdometryY);
+        newSensorData.accelerationX = newSensorData.accelerationX   *   SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
+        newSensorData.accelerationY = newSensorData.accelerationY   *   SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
+        newSensorData.turnRateZ     = newSensorData.turnRateZ       *   SensorConstants::GYRO_SENSITIVITY_FACTOR;
 
-    newSensorData.accelerationX = newSensorData.accelerationX   *   SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
-    newSensorData.accelerationY = newSensorData.accelerationY   *   SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
-    newSensorData.turnRateZ     = newSensorData.turnRateZ       *   SensorConstants::GYRO_SENSITIVITY_FACTOR;
+        SensorFusion::getInstance().estimateNewState(newSensorData);
+    }
+    else
+    {
+        LOG_WARNING("SENSOR_DATA:: Invalid payload size. Expected: %u Received: %u", expectedPayloadSize, payloadSize);
+    }
 
-    SensorFusion::getInstance().estimateNewState(newSensorData);
 }
