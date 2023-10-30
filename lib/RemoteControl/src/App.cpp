@@ -161,7 +161,8 @@ void App::setup()
         uint16_t mqttPort = Settings::getInstance().getMqttPort();
 
         /* Setup Network. */
-        if (false == Board::getInstance().getNetwork().setConfig(ssid, password))
+        NetworkSettings settings = {ssid, password};
+        if (false == Board::getInstance().getNetwork().setConfig(settings))
         {
             LOG_ERROR("Network Configuration could not be set.");
             fatalErrorHandler();

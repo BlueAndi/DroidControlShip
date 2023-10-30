@@ -74,7 +74,7 @@ bool Network::init()
     return isSuccess;
 }
 
-bool Network::setConfig(const String& ssid, const String& password)
+bool Network::setConfig(const NetworkSettings& settings)
 {
     /* Settings have no effect in the Sim but have to be set nonetheless. */
     m_configSet = true;

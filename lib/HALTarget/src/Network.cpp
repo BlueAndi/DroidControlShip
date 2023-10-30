@@ -74,17 +74,17 @@ bool Network::init()
     return true;
 }
 
-bool Network::setConfig(const String& ssid, const String& password)
+bool Network::setConfig(const NetworkSettings& settings)
 {
-    if (true == ssid.isEmpty())
+    if (true == settings.ssid.isEmpty())
     {
         /* Check only performed on target. */
         LOG_ERROR("WiFi SSID is empty.");
     }
     else
     {
-        m_wiFiSSID     = ssid;
-        m_wiFiPassword = password;
+        m_wiFiSSID     = settings.ssid;
+        m_wiFiPassword = settings.password;
         m_configSet    = true;
     }
 

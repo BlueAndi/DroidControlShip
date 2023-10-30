@@ -77,11 +77,10 @@ public:
     /**
      * Set network configuration.
      *
-     * @param[in] ssid          SSID of the WiFi network.
-     * @param[in] password      Password of the WiFi network.
+     * @param[in] settings NetworkSettings struct containing ssid and password.
      * @return If successfully set, returns true. Otherwise, false.
      */
-    virtual bool setConfig(const String& ssid, const String& password) final;
+    virtual bool setConfig(const NetworkSettings& settings) final;
 
     /**
      * Handle connection specific tasks.

@@ -54,6 +54,13 @@
  * Types and Classes
  *****************************************************************************/
 
+/** Struct encompassing all network settings */
+struct NetworkSettings
+{
+    String ssid;
+    String password;
+};
+
 /** The abstract network interface. */
 class INetwork
 {
@@ -68,11 +75,10 @@ public:
     /**
      * Set network configuration.
      *
-     * @param[in] ssid          SSID of the WiFi network.
-     * @param[in] password      Password of the WiFi network.
+     * @param[in] settings NetworkSettings struct containing ssid and password.
      * @return If successfully set, returns true. Otherwise, false.
      */
-    virtual bool setConfig(const String& ssid, const String& password) = 0;
+    virtual bool setConfig(const NetworkSettings& settings) = 0;
 
     /**
      * Initialize the network connection.
