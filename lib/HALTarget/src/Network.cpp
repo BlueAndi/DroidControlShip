@@ -69,11 +69,6 @@ Network::~Network()
 {
 }
 
-bool Network::init()
-{
-    return true;
-}
-
 bool Network::setConfig(const NetworkSettings& settings)
 {
     if (true == settings.ssid.isEmpty())
