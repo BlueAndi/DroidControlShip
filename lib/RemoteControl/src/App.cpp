@@ -160,27 +160,34 @@ void App::setup()
         String   mqttAddr = Settings::getInstance().getMqttBrokerAddress();
         uint16_t mqttPort = Settings::getInstance().getMqttPort();
 
-        /* Setup MQTT Server, Birth and Will messages. */
-        if (false ==
-            Board::getInstance().getNetwork().setConfig(clientId, ssid, password, mqttAddr, mqttPort, TOPIC_NAME_BIRTH,
-                                                        String(clientId + String(" Connected!")), TOPIC_NAME_WILL,
-                                                        String(clientId + String(" Disconnected!")), true))
+        /* Setup Network. */
+        if (false == Board::getInstance().getNetwork().setConfig(ssid, password))
         {
             LOG_ERROR("Network Configuration could not be set.");
             fatalErrorHandler();
         }
 
+        /* Setup MQTT Server, Birth and Will messages. */
+        m_mqttClient.init();
+        if (false == m_mqttClient.setConfig(clientId, mqttAddr, mqttPort, TOPIC_NAME_BIRTH,
+                                            String(clientId + String(" Connected!")), TOPIC_NAME_WILL,
+                                            String(clientId + String(" Disconnected!")), true))
+        {
+            LOG_ERROR("MQTT Configuration could not be set.");
+            fatalErrorHandler();
+        }
+
         /* Subscribe to Command Topic. */
-        if (false == Board::getInstance().getNetwork().subscribe(TOPIC_NAME_CMD, [this](const String& payload)
-                                                                 { cmdTopicCallback(payload); }))
+        if (false ==
+            m_mqttClient.subscribe(TOPIC_NAME_CMD, [this](const String& payload) { cmdTopicCallback(payload); }))
         {
             LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_CMD);
             fatalErrorHandler();
         }
 
         /* Subscribe to Motor Speeds Topic. */
-        if (false == Board::getInstance().getNetwork().subscribe(TOPIC_NAME_MOTOR_SPEEDS, [this](const String& payload)
-                                                                 { motorSpeedsTopicCallback(payload); }))
+        if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS,
+                                            [this](const String& payload) { motorSpeedsTopicCallback(payload); }))
         {
             LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
             fatalErrorHandler();
@@ -197,6 +204,9 @@ void App::loop()
         LOG_FATAL("HAL process failed.");
         fatalErrorHandler();
     }
+
+    /* Process MQTT Communication */
+    m_mqttClient.process();
 
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
