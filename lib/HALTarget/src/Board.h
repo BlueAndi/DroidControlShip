@@ -134,7 +134,7 @@ public:
             /* Log Device error */
             LOG_ERROR("Device process failed. ");
         }
-        else if (false == m_network.process())
+        else if (false == m_network.manageConnection())
         {
             /* Log Network error */
             LOG_ERROR("Network process failed. ");

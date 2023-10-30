@@ -44,9 +44,6 @@
  * Includes
  *****************************************************************************/
 #include "INetwork.h"
-#include <mosquitto.h>
-#include <SimpleTimer.hpp>
-#include <vector>
 
 /******************************************************************************
  * Macros
@@ -78,217 +75,24 @@ public:
     bool init() final;
 
     /**
-     * Process communication with the network.
+     * Set network configuration.
      *
-     * @return If communication is successful, returns true. Otherwise, false.
-     */
-    bool process() final;
-
-    /**
-     * Set client configuration.
-     *
-     * @param[in] clientId      Client ID.
      * @param[in] ssid          SSID of the WiFi network.
      * @param[in] password      Password of the WiFi network.
-     * @param[in] brokerAddress Broker address to connect to.
-     * @param[in] brokerPort    Broker port to connect to.
-     * @param[in] birthTopic    Birth topic. If empty, no birth message is used.
-     * @param[in] birthMessage  Birth message.
-     * @param[in] willTopic     Last will topic. If empty, no last will is used.
-     * @param[in] willMessage   Last will message.
-     * @param[in] reconnect     If true, the client will try to reconnect to the broker, if the connection is lost.
      * @return If successfully set, returns true. Otherwise, false.
      */
-    bool setConfig(const String& clientId, const String& ssid, const String& password, const String& brokerAddress,
-                   uint16_t brokerPort, const String& birthTopic, const String& birthMessage, const String& willTopic,
-                   const String& willMessage, bool reconnect) final;
+    virtual bool setConfig(const String& ssid, const String& password) final;
 
     /**
-     * Start connection to the network.
-     * This method does not necessarily wait for the connection to be established, it just starts the connection
-     * process. Check `isConnected()` for the current connection status.
+     * Handle connection specific tasks.
      *
-     * @return If connection has been succesfully started, returns true. Otherwise, false.
+     * @return If connection management successfull, returns true. Otherwise, false.
      */
-    bool connect() final;
-
-    /**
-     * Disconnect from the network.
-     */
-    void disconnect() final;
-
-    /**
-     * Is connected to the network?
-     *
-     * @return If connected, it will return true otherwise false.
-     */
-    bool isConnected() const final;
-
-    /**
-     * Publishes a message to the network.
-     *
-     * @param[in] topic     Topic to publish to.
-     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
-     * @param[in] message   Message to publish.
-     */
-    bool publish(const String& topic, const bool useClientBaseTopic, const String& message) final;
-
-    /**
-     * Subscribes to a topic.
-     *
-     * @param[in] topic     Topic to subscribe to. The Client ID is used as base topic: `Client ID`/`topic`
-     * @param[in] callback  Callback function, which is called on a new message.
-     * @return If successfully subscribed, returns true. Otherwise, false.
-     */
-    bool subscribe(const String& topic, TopicCallback callback) final;
-
-    /**
-     * Unsubscribes from a topic.
-     *
-     * @param[in] topic     Topic to unsubscribe from. The Client ID is used as base topic: `Client ID`/`topic`
-     */
-    void unsubscribe(const String& topic) final;
-
-public:
-    /**
-     * Callback function, which is called on connect.
-     *
-     * @param[in] rc    Result code.
-     */
-    void onConnectCallback(int rc);
-
-    /**
-     * Callback function, which is called on disconnect.
-     *
-     * @param[in] rc    Result code.
-     */
-    void onDisconnectCallback(int rc);
-
-    /**
-     * Callback function, which is called on message reception.
-     *
-     * @param[in] msg   Message received.
-     */
-    void onMessageCallback(const mosquitto_message* msg);
+    virtual bool manageConnection() final;
 
 private:
-    /** MQTT Service States. */
-    enum State
-    {
-        STATE_UNINITIALIZED = 0, /**< Uninitialized state. */
-        STATE_SETUP,             /**< Setup state. */
-        STATE_DISCONNECTED,      /**< Disconnecting state. */
-        STATE_DISCONNECTING,     /**< Disconnecting state. */
-        STATE_CONNECTED,         /**< Connected state. */
-        STATE_CONNECTING,        /**< Connecting state. */
-    };
-
-    /**
-     * Subscriber information
-     */
-    struct Subscriber
-    {
-        String        topic;    /**< The subscriber topic */
-        TopicCallback callback; /**< The subscriber callback */
-    };
-
-    /**
-     * This type defines a list of subscribers.
-     */
-    typedef std::vector<Subscriber*> SubscriberList;
-
-    /** MQTT Loop Timeout. */
-    static const int MQTT_LOOP_TIMEOUT_MS = 0;
-
-    /** Connecting Timeout. */
-    static const uint32_t CONNECTING_TIMEOUT_MS = 1000;
-
-    /** Reconnect Timeout. */
-    static const uint32_t RECONNECT_TIMEOUT_MS = (2 * CONNECTING_TIMEOUT_MS);
-
-    /** Connection state */
-    State m_state;
-
-    /** Mosquitto instance */
-    mosquitto* m_mqttClient;
-
-    /** Client ID. */
-    String m_clientId;
-
-    /** Broker address to connect to. */
-    String m_brokerAddress;
-
-    /** Broker port to connect to. */
-    uint16_t m_brokerPort;
-
-    /** Birth topic. */
-    String m_birthTopic;
-
-    /** Birth Message. */
-    String m_birthMessage;
-
-    /** Will topic. */
-    String m_willTopic;
-
-    /** Will message. */
-    String m_willMessage;
-
-    /** Reconnect Flag. */
-    bool m_reconnect;
-
-    /** Reconnect Timer. */
-    SimpleTimer m_reconnectTimer;
-
-    /** Connection Timer. */
-    SimpleTimer m_connectionTimer;
-
-    /** List of subscribers */
-    SubscriberList m_subscriberList;
-
     /** Configuration Set Flag. */
     bool m_configSet;
-
-    /** User connection request. */
-    bool m_connectRequest;
-
-    /** User disconnection request. */
-    bool m_disconnectRequest;
-
-private:
-    /**
-     * Process the Idle state.
-     */
-    void setupState();
-
-    /**
-     * Process the Disconnected state.
-     */
-    void disconnectedState();
-
-    /**
-     * Process the Disconnecting state.
-     */
-    void disconnectingState();
-
-    /**
-     * Process the Connected state.
-     */
-    void connectedState();
-
-    /**
-     * Process the Connected state.
-     */
-    void connectingState();
-
-    /**
-     * Resuscribe to all topics.
-     */
-    void resubscribe();
-
-    /**
-     * Attempt to establish connection to the broker.
-     */
-    void attemptConnection();
 };
 
 /******************************************************************************
