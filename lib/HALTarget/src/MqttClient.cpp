@@ -79,7 +79,7 @@ MqttClient::MqttClient() :
     m_subscriberList(),
     m_configSet(false),
     m_connectRequest(false),
-    m_disconnectRequest(false),
+    m_disconnectRequest(false)
 {
 }
 
@@ -312,7 +312,7 @@ void MqttClient::setupState()
         {
             LOG_ERROR("Failed to set MQTT buffer size.");
         }
-        
+
         else
         {
             /* Functions return instance to allow chaining. */
@@ -320,7 +320,7 @@ void MqttClient::setupState()
             (void)m_mqttClient.setKeepAlive(MQTT_KEEP_ALIVE_S);
             (void)m_mqttClient.setCallback([this](char* topic, uint8_t* payload, uint32_t length)
                                            { this->onMessageCallback(topic, payload, length); });
-            m_state            = STATE_DISCONNECTED;
+            m_state = STATE_DISCONNECTED;
         }
     }
 }

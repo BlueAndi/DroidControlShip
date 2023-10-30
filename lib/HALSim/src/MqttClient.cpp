@@ -152,9 +152,9 @@ bool MqttClient::process()
     return isSuccess;
 }
 
-bool MqttClient::setConfig(const String& clientId, const String& brokerAddress,
-                        uint16_t brokerPort, const String& birthTopic, const String& birthMessage,
-                        const String& willTopic, const String& willMessage, bool reconnect)
+bool MqttClient::setConfig(const String& clientId, const String& brokerAddress, uint16_t brokerPort,
+                           const String& birthTopic, const String& birthMessage, const String& willTopic,
+                           const String& willMessage, bool reconnect)
 {
     if (true == clientId.isEmpty())
     {

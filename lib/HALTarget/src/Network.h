@@ -93,7 +93,6 @@ public:
     bool manageConnection() final;
 
 private:
-
     /** Timeout time for WiFi connection. */
     static const uint32_t WIFI_TIMEOUT = 10000U;
 
@@ -111,7 +110,6 @@ private:
 
     /** WiFi Timeout Timer. */
     SimpleTimer m_wifiTimeoutTimer;
-
 };
 
 /******************************************************************************
