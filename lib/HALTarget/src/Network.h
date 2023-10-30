@@ -77,6 +77,13 @@ public:
     bool init() final;
 
     /**
+     * Process network tasks according to current state.
+     *
+     * @returns true if tasks successful, otherwise false.
+     */
+    bool process() final;
+
+    /**
      * Set client configuration.
      *
      * @param[in] settings NetworkSettings struct containing ssid and password.
@@ -84,14 +91,18 @@ public:
      */
     bool setConfig(const NetworkSettings& settings) final;
 
-    /**
-     * Handle connection specific tasks.
-     *
-     * @return If connection management successfull, returns true. Otherwise, false.
-     */
-    bool manageConnection() final;
-
 private:
+    /** Network Service States. */
+    enum State
+    {
+        STATE_UNINITIALIZED = 0, /**< Uninitialized state. */
+        STATE_SETUP,             /**< Setup state. */
+        STATE_CONNECTED,         /**< Connected state. */
+    };
+
+    /** Current network state */
+    State m_state;
+
     /** Timeout time for WiFi connection. */
     static const uint32_t WIFI_TIMEOUT = 10000U;
 
@@ -109,6 +120,21 @@ private:
 
     /** WiFi Timeout Timer. */
     SimpleTimer m_wifiTimeoutTimer;
+
+private:
+    /**
+     * Setup network connection
+     *
+     * @return True if connection establishment successful, otherwise false.
+     */
+    bool setupState();
+
+    /**
+     * Handle connection specific tasks.
+     *
+     * @return If connection management successful, returns true. Otherwise, false.
+     */
+    bool manageConnection() final;
 };
 
 /******************************************************************************

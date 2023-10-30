@@ -75,6 +75,13 @@ public:
     bool init() final;
 
     /**
+     * Process network tasks according to current state.
+     *
+     * @returns true if tasks successful, otherwise false.
+     */
+    bool process() final;
+
+    /**
      * Set network configuration.
      *
      * @param[in] settings NetworkSettings struct containing ssid and password.
@@ -82,16 +89,38 @@ public:
      */
     virtual bool setConfig(const NetworkSettings& settings) final;
 
+private:
+    /** Network Service States. */
+    enum State
+    {
+        STATE_UNINITIALIZED = 0, /**< Uninitialized state. */
+        STATE_SETUP,             /**< Setup state. */
+        STATE_CONNECTED,         /**< Connected state. */
+    };
+
+    /** Current network state */
+    State m_state;
+
+    /** Configuration Set Flag. */
+    bool m_configSet;
+
+    /** WiFi Configuration Flag. */
+    bool m_isWiFiConfigured;
+
+private:
+    /**
+     * Setup network connection
+     *
+     * @return True if connection establishment successful, otherwise false.
+     */
+    bool setupState();
+
     /**
      * Handle connection specific tasks.
      *
-     * @return If connection management successfull, returns true. Otherwise, false.
+     * @return If connection management successful, returns true. Otherwise, false.
      */
     virtual bool manageConnection() final;
-
-private:
-    /** Configuration Set Flag. */
-    bool m_configSet;
 };
 
 /******************************************************************************

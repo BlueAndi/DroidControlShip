@@ -61,12 +61,58 @@
  * Public Methods
  *****************************************************************************/
 
-Network::Network() : INetwork(), m_configSet(false), m_wiFiSSID(""), m_wiFiPassword(""), m_isWiFiConfigured(false)
+Network::Network() :
+    INetwork(),
+    m_state(STATE_UNINITIALIZED),
+    m_configSet(false),
+    m_wiFiSSID(""),
+    m_wiFiPassword(""),
+    m_isWiFiConfigured(false)
 {
 }
 
 Network::~Network()
 {
+}
+
+bool Network::init()
+{
+    bool isSuccess = true;
+    if (STATE_UNINITIALIZED != m_state)
+    {
+        isSuccess == false;
+    }
+    else
+    {
+        m_state = STATE_SETUP;
+    }
+    return true;
+}
+
+bool Network::process()
+{
+    bool isSuccess = false;
+
+    switch (m_state)
+    {
+    case STATE_UNINITIALIZED:
+        /* Nothing to do. */
+        isSuccess = true;
+        break;
+    case STATE_SETUP:
+        isSuccess = setupState();
+        break;
+
+    case STATE_CONNECTED:
+        isSuccess = manageConnection();
+        break;
+
+    default:
+        /* Should never be called - defensive code. */
+        break;
+    }
+
+    return isSuccess;
 }
 
 bool Network::setConfig(const NetworkSettings& settings)
@@ -94,7 +140,7 @@ bool Network::setConfig(const NetworkSettings& settings)
  * Private Methods
  *****************************************************************************/
 
-bool Network::init()
+bool Network::setupState()
 {
     if (true == m_configSet)
     {
@@ -104,6 +150,8 @@ bool Network::init()
         }
         else
         {
+            LOG_DEBUG("WiFi connected!");
+            m_state = STATE_CONNECTED;
             m_isWiFiConfigured = true;
         }
     }

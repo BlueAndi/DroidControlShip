@@ -88,11 +88,11 @@ public:
     virtual bool init() = 0;
 
     /**
-     * Handle connection specific tasks.
+     * Process network tasks according to current state.
      *
-     * @return If connection management successfull, returns true. Otherwise, false.
+     * @returns true if tasks successful, otherwise false.
      */
-    virtual bool manageConnection() = 0;
+    virtual bool process() = 0;
 
 protected:
     /**
@@ -103,6 +103,12 @@ protected:
     }
 
 private:
+    /**
+     * Handle connection specific tasks.
+     *
+     * @return If connection management successfull, returns true. Otherwise, false.
+     */
+    virtual bool manageConnection() = 0;
 };
 
 /******************************************************************************

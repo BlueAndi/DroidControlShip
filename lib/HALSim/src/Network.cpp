@@ -59,7 +59,7 @@
  * Public Methods
  *****************************************************************************/
 
-Network::Network() : INetwork(), m_configSet(false)
+Network::Network() : INetwork(), m_state(STATE_UNINITIALIZED), m_configSet(false), m_isWiFiConfigured(false)
 {
 }
 
@@ -69,8 +69,41 @@ Network::~Network()
 
 bool Network::init()
 {
-    /* Return true for Sim */
     bool isSuccess = true;
+    if (STATE_UNINITIALIZED != m_state)
+    {
+        isSuccess == false;
+    }
+    else
+    {
+        m_state = STATE_SETUP;
+    }
+    return true;
+}
+
+bool Network::process()
+{
+    bool isSuccess = false;
+
+    switch (m_state)
+    {
+    case STATE_UNINITIALIZED:
+        /* Nothing to do. */
+        isSuccess = true;
+        break;
+    case STATE_SETUP:
+        isSuccess = setupState();
+        break;
+
+    case STATE_CONNECTED:
+        isSuccess = manageConnection();
+        break;
+
+    default:
+        /* Should never be called - defensive code. */
+        break;
+    }
+
     return isSuccess;
 }
 
@@ -81,10 +114,28 @@ bool Network::setConfig(const NetworkSettings& settings)
     return m_configSet;
 }
 
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
+
+bool Network::setupState()
+{
+    if (true == m_configSet)
+    {
+        m_state = STATE_CONNECTED;
+        m_isWiFiConfigured = true;
+    }
+    return m_isWiFiConfigured;
+}
+
 bool Network::manageConnection()
 {
     /* Do nothing in Sim. */
-    return true;
+    return m_isWiFiConfigured;
 }
 
 /******************************************************************************
