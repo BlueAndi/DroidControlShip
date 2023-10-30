@@ -88,19 +88,10 @@ public:
     /**
      * Set client configuration.
      *
-     * @param[in] clientId      Client ID.
-     * @param[in] brokerAddress Broker address to connect to.
-     * @param[in] brokerPort    Broker port to connect to.
-     * @param[in] birthTopic    Birth topic. If empty, no birth message is used.
-     * @param[in] birthMessage  Birth message.
-     * @param[in] willTopic     Last will topic. If empty, no last will is used.
-     * @param[in] willMessage   Last will message.
-     * @param[in] reconnect     If true, the client will try to reconnect to the broker, if the connection is lost.
+     * @param[in] settings Mqtt settings struct.
      * @return If successfully set, returns true. Otherwise, false.
      */
-    bool setConfig(const String& clientId, const String& brokerAddress, uint16_t brokerPort, const String& birthTopic,
-                   const String& birthMessage, const String& willTopic, const String& willMessage,
-                   bool reconnect) final;
+    bool setConfig(const MqttSettings& settings) final;
 
     /**
      * Start connection to the MQTTClient.

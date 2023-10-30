@@ -57,8 +57,8 @@
 /** Struct encompassing all network settings */
 struct NetworkSettings
 {
-    String ssid;
-    String password;
+    String ssid;     /* SSID of the WiFi network. */
+    String password; /* Password of the WiFi network. */
 };
 
 /** The abstract network interface. */

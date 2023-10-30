@@ -152,40 +152,38 @@ bool MqttClient::process()
     return isSuccess;
 }
 
-bool MqttClient::setConfig(const String& clientId, const String& brokerAddress, uint16_t brokerPort,
-                           const String& birthTopic, const String& birthMessage, const String& willTopic,
-                           const String& willMessage, bool reconnect)
+bool MqttClient::setConfig(const MqttSettings& settings)
 {
-    if (true == clientId.isEmpty())
+    if (true == settings.clientId.isEmpty())
     {
         LOG_ERROR("Client ID is empty.");
     }
-    else if (true == brokerAddress.isEmpty())
+    else if (true == settings.brokerAddress.isEmpty())
     {
         LOG_ERROR("Broker address is empty.");
     }
-    else if (0U == brokerPort)
+    else if (0U == settings.brokerPort)
     {
         LOG_ERROR("Broker port is zero.");
     }
     else
     {
-        if (false == birthTopic.isEmpty())
+        if (false == settings.birthTopic.isEmpty())
         {
-            m_birthTopic   = birthTopic;
-            m_birthMessage = birthMessage;
+            m_birthTopic   = settings.birthTopic;
+            m_birthMessage = settings.birthMessage;
         }
 
-        if (false == willTopic.isEmpty())
+        if (false == settings.willTopic.isEmpty())
         {
-            m_willTopic   = willTopic;
-            m_willMessage = willMessage;
+            m_willTopic   = settings.willTopic;
+            m_willMessage = settings.willMessage;
         }
 
-        m_clientId      = clientId;
-        m_brokerAddress = brokerAddress;
-        m_brokerPort    = brokerPort;
-        m_reconnect     = reconnect;
+        m_clientId      = settings.clientId;
+        m_brokerAddress = settings.brokerAddress;
+        m_brokerPort    = settings.brokerPort;
+        m_reconnect     = settings.reconnect;
         m_configSet     = true;
     }
 

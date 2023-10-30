@@ -170,9 +170,15 @@ void App::setup()
 
         /* Setup MQTT Server, Birth and Will messages. */
         m_mqttClient.init();
-        if (false == m_mqttClient.setConfig(clientId, mqttAddr, mqttPort, TOPIC_NAME_BIRTH,
-                                            String(clientId + String(" Connected!")), TOPIC_NAME_WILL,
-                                            String(clientId + String(" Disconnected!")), true))
+        MqttSettings mqttSettings = {clientId,
+                                     mqttAddr,
+                                     mqttPort,
+                                     TOPIC_NAME_BIRTH,
+                                     String(clientId + String(" Connected!")),
+                                     TOPIC_NAME_WILL,
+                                     String(clientId + String(" Disconnected!")),
+                                     true};
+        if (false == m_mqttClient.setConfig(mqttSettings))
         {
             LOG_ERROR("MQTT Configuration could not be set.");
             fatalErrorHandler();
