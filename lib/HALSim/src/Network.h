@@ -117,7 +117,7 @@ private:
      *
      * @return If connection management successful, returns true. Otherwise, false.
      */
-    virtual bool manageConnection() final;
+    virtual bool manageConnection();
 };
 
 /******************************************************************************

@@ -103,12 +103,7 @@ protected:
     }
 
 private:
-    /**
-     * Handle connection specific tasks.
-     *
-     * @return If connection management successfull, returns true. Otherwise, false.
-     */
-    virtual bool manageConnection() = 0;
+    
 };
 
 /******************************************************************************

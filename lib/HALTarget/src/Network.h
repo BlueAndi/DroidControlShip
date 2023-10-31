@@ -131,7 +131,7 @@ private:
      *
      * @return If connection management successful, returns true. Otherwise, false.
      */
-    bool manageConnection() final;
+    bool manageConnection();
 };
 
 /******************************************************************************
