@@ -38,6 +38,7 @@
 #include <Util.h>
 #include <Settings.h>
 #include <ArduinoJson.h>
+#include "SerialMuxChannels.h"
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -167,44 +168,23 @@ void App::fatalErrorHandler()
  *****************************************************************************/
 
 /**
- * Receives sensor data for sensor fusion over SerialMuxProt channel in this order:
- * Acceleration in X
- * Acceleration in Y
- * TurnRate around Z
- * Magnetometer value in X 
- * Magnetometer value in Y 
- * Angle calculated by Odometry
- * Position in X calculated by Odometry
- * Position in Y calculated by Odometry
+ * Receives sensor data for sensor fusion over SerialMuxProt channel in the order defined in SerialMuxChannels.
  * @param[in]   payload         Sensor data
  * @param[in]   payloadSize     Size of 8 sensor data
  */
 void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
-    uint8_t expectedPayloadSize = 16U;
-    if (expectedPayloadSize == payloadSize)
+    if ((nullptr != payload) && (SENSORDATA_CHANNEL_DLC == payloadSize))
     {
         
         LOG_DEBUG("SENSOR_DATA: New Sensor Data!");
-        SensorData newSensorData;
-        Util::byteArrayToInt16(&payload[0 * sizeof(int16_t)], sizeof(int16_t), newSensorData.accelerationX);
-        Util::byteArrayToInt16(&payload[1 * sizeof(int16_t)], sizeof(int16_t), newSensorData.accelerationY);
-        Util::byteArrayToInt16(&payload[2 * sizeof(int16_t)], sizeof(int16_t), newSensorData.turnRateZ);
-        Util::byteArrayToInt16(&payload[3 * sizeof(int16_t)], sizeof(int16_t), newSensorData.magnetometerValueX);
-        Util::byteArrayToInt16(&payload[4 * sizeof(int16_t)], sizeof(int16_t), newSensorData.magnetometerValueY);
-        Util::byteArrayToInt16(&payload[5 * sizeof(int16_t)], sizeof(int16_t), newSensorData.angleOdometry);
-        Util::byteArrayToInt16(&payload[6 * sizeof(int16_t)], sizeof(int16_t), newSensorData.positionOdometryX);
-        Util::byteArrayToInt16(&payload[7 * sizeof(int16_t)], sizeof(int16_t), newSensorData.positionOdometryY);
+        const SensorData* newSensorData = reinterpret_cast<const SensorData*>(payload);
 
-        newSensorData.accelerationX = newSensorData.accelerationX   *   SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
-        newSensorData.accelerationY = newSensorData.accelerationY   *   SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
-        newSensorData.turnRateZ     = newSensorData.turnRateZ       *   SensorConstants::GYRO_SENSITIVITY_FACTOR;
-
-        SensorFusion::getInstance().estimateNewState(newSensorData);
+        SensorFusion::getInstance().estimateNewState(*newSensorData);
     }
     else
     {
-        LOG_WARNING("SENSOR_DATA:: Invalid payload size. Expected: %u Received: %u", expectedPayloadSize, payloadSize);
+        LOG_WARNING("SENSOR_DATA:: Invalid payload size. Expected: %u Received: %u", SENSORDATA_CHANNEL_DLC, payloadSize);
     }
 
 }

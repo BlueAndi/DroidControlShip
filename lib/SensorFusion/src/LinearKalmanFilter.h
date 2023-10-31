@@ -94,7 +94,7 @@ public:
      * @param[in] positionEncoderY            Position in y-direction calculated through the encoders via odometry. 
      *
      */
-    void updateStep(const int16_t &accelerationInX, const int16_t &accelerationInY, const int16_t &positionEncoderX, const int16_t &positionEncoderY)
+    void updateStep(const int16_t &accelerationInX, const int16_t &accelerationInY, const int32_t &positionEncoderX, const int32_t &positionEncoderY)
     {
         // TODO: Implement Kalman Filter in cpp (TD072)
     }

@@ -33,7 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "SensorFusion.h"
-
+#include "SensorConstants.h"
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -73,18 +73,24 @@ void SensorFusion::init(void)
 
 void SensorFusion::estimateNewState(SensorData newSensorData)
 {
+
     /* Estimate the current angle. */
     int16_t estimatedAngle;
-    estimateAngle(estimatedAngle, newSensorData.angleOdometry, newSensorData.magnetometerValueX, newSensorData.magnetometerValueY);
+    estimateAngle(estimatedAngle, newSensorData.orientationOdometry, newSensorData.magnetometerValueX, newSensorData.magnetometerValueY);
 
+    /* Calculate the physical Values via the Sensitivity Factors. */
+    int16_t physicalAccelerationX = newSensorData.accelerationX * SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
+    int16_t physicalAccelerationY = newSensorData.accelerationY * SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
+    int16_t physicalTurnRate      = newSensorData.turnRate      * SensorConstants::GYRO_SENSITIVITY_FACTOR;
+    
     /* Transform the acceleration values from the robot coordinate system into the world coordinate system */
-    int16_t accelerationInRobotCoordinateSystem[2] = {newSensorData.accelerationX, newSensorData.accelerationY};
+    int16_t accelerationInRobotCoordinateSystem[2] = {physicalAccelerationX, physicalAccelerationY};
     int16_t accelerationInGlobalCoordinateSystem[2];
     transfromLocalToGlobal(accelerationInGlobalCoordinateSystem, accelerationInRobotCoordinateSystem, estimatedAngle);
 
     /* perform the Kalman Filter Prediction and Update Steps */
     m_lkf.predictionStep();
-    m_lkf.updateStep(newSensorData.accelerationX, newSensorData.accelerationY, newSensorData.positionOdometryX, newSensorData.positionOdometryY);
+    m_lkf.updateStep(newSensorData.accelerationX, newSensorData.accelerationY, newSensorData.positionXOdometry, newSensorData.positionYOdometry);
 }
 
 void SensorFusion::transfromLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform, const int16_t& rotationAngle)
@@ -97,7 +103,7 @@ void SensorFusion::transfromLocalToGlobal(int16_t* globalResult, const int16_t* 
     globalResult[1] = sinValue * localVectorToTransform[0] + cosValue * localVectorToTransform[1];
 }
 
-void SensorFusion::estimateAngle(int16_t & estimatedAngle, const int16_t & encoderAngle, const int16_t & magnetometerValueX, const int16_t & magnetometerValueY)
+void SensorFusion::estimateAngle(int16_t & estimatedAngle, const int32_t & encoderAngle, const int16_t & magnetometerValueX, const int16_t & magnetometerValueY)
 {
     // TODO: TD077	Implement Angle Estimation
     estimatedAngle = encoderAngle;
