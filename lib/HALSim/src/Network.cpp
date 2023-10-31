@@ -59,7 +59,7 @@
  * Public Methods
  *****************************************************************************/
 
-Network::Network() : INetwork(), m_state(STATE_UNINITIALIZED), m_configSet(false), m_isWiFiConfigured(false)
+Network::Network() : INetwork(), m_state(STATE_UNINITIALIZED), m_configSet(false)
 {
 }
 
@@ -127,15 +127,14 @@ bool Network::setupState()
     if (true == m_configSet)
     {
         m_state = STATE_CONNECTED;
-        m_isWiFiConfigured = true;
     }
-    return m_isWiFiConfigured;
+    return (STATE_CONNECTED == m_state);
 }
 
 bool Network::manageConnection()
 {
     /* Do nothing in Sim. */
-    return m_isWiFiConfigured;
+    return (STATE_CONNECTED == m_state);
 }
 
 /******************************************************************************

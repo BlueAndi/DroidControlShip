@@ -115,9 +115,6 @@ private:
     /** WiFi Password */
     String m_wiFiPassword;
 
-    /** WiFi Configuration Flag. */
-    bool m_isWiFiConfigured;
-
     /** WiFi Timeout Timer. */
     SimpleTimer m_wifiTimeoutTimer;
 

@@ -61,13 +61,7 @@
  * Public Methods
  *****************************************************************************/
 
-Network::Network() :
-    INetwork(),
-    m_state(STATE_UNINITIALIZED),
-    m_configSet(false),
-    m_wiFiSSID(""),
-    m_wiFiPassword(""),
-    m_isWiFiConfigured(false)
+Network::Network() : INetwork(), m_state(STATE_UNINITIALIZED), m_configSet(false), m_wiFiSSID(""), m_wiFiPassword("")
 {
 }
 
@@ -152,17 +146,16 @@ bool Network::setupState()
         {
             LOG_DEBUG("WiFi connected!");
             m_state = STATE_CONNECTED;
-            m_isWiFiConfigured = true;
         }
     }
-    return m_isWiFiConfigured;
+    return (STATE_CONNECTED == m_state);
 }
 
 bool Network::manageConnection()
 {
     bool isSuccess = true;
 
-    if (true == m_isWiFiConfigured)
+    if (m_state == STATE_CONNECTED)
     {
         if (WL_CONNECTED != WiFi.status())
         {

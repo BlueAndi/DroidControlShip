@@ -104,9 +104,6 @@ private:
     /** Configuration Set Flag. */
     bool m_configSet;
 
-    /** WiFi Configuration Flag. */
-    bool m_isWiFiConfigured;
-
 private:
     /**
      * Setup network connection
