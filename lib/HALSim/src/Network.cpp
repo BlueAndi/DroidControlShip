@@ -95,8 +95,24 @@ bool Network::process()
         isSuccess = handleStationSetup();
         break;
 
+    case STATE_CONNECTING:
+        isSuccess = handleConnectingState();
+        break;
+
     case STATE_CONNECTED:
         isSuccess = manageConnection();
+        break;
+
+    case STATE_DISCONNECTED:
+        isSuccess = switchToAPMode();
+        break;
+
+    case STATE_AP_SETUP:
+        isSuccess = handleAPSetup();
+        break;
+
+    case STATE_AP_UP:
+        isSuccess = handleAPState();
         break;
 
     default:
@@ -126,15 +142,42 @@ bool Network::handleStationSetup()
 {
     if (true == m_configSet)
     {
-        m_state = STATE_CONNECTED;
+        m_state = STATE_CONNECTING;
     }
-    return (STATE_CONNECTED == m_state);
+    return (STATE_CONNECTING == m_state);
+}
+
+bool Network::handleConnectingState()
+{
+    /* Act like a connection was successfully established in Sim. */
+    m_state = STATE_CONNECTED;
+    return true;
 }
 
 bool Network::manageConnection()
 {
     /* Do nothing in Sim. */
     return (STATE_CONNECTED == m_state);
+}
+
+bool Network::switchToAPMode()
+{
+    /* Don't need to handle AP mod ein Sim. */
+    m_state = STATE_AP_SETUP;
+    return true;
+}
+
+bool Network::handleAPSetup()
+{
+    /* Don't need to handle AP mod ein Sim. */
+    m_state = STATE_AP_UP;
+    return true;
+}
+
+bool Network::handleAPState()
+{
+    /* Don't need to handle AP mod ein Sim. */
+    return true;
 }
 
 /******************************************************************************

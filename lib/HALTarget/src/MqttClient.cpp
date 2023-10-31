@@ -445,6 +445,7 @@ void MqttClient::attemptConnection()
     else if (WL_CONNECTED != WiFi.status())
     {
         LOG_ERROR("WiFi not connected.");
+        LOG_ERROR("%d", WiFi.status());
     }
     else
     {

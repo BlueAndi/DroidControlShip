@@ -97,7 +97,11 @@ private:
     {
         STATE_UNINITIALIZED = 0, /**< Uninitialized state. */
         STATE_SETUP,             /**< Setup state. */
+        STATE_CONNECTING,        /**< Connecting state. */
         STATE_CONNECTED,         /**< Connected state. */
+        STATE_DISCONNECTED,      /**< Disconnected state. */
+        STATE_AP_SETUP,          /**< Access point setup state. */
+        STATE_AP_UP,             /**< Access point up and running state.*/
     };
 
     /** Current network state */
@@ -115,6 +119,12 @@ private:
     /** WiFi Password */
     String m_wiFiPassword;
 
+    /** WiFi Access Point Mode SSID */
+    String m_apSSID;
+
+    /** WiFi Access Poit Mode Password */
+    String m_apPassword;
+
     /** WiFi Timeout Timer. */
     SimpleTimer m_wifiTimeoutTimer;
 
@@ -122,9 +132,16 @@ private:
     /**
      * Setup network connection
      *
-     * @return True if connection establishment successful, otherwise false.
+     * @return True if connection setup successful, otherwise false.
      */
     bool handleStationSetup();
+
+    /**
+     * Check if the connection was established and change state if so.
+     *
+     * @return True.
+     */
+    bool handleConnectingState();
 
     /**
      * Handle connection specific tasks.
@@ -132,6 +149,27 @@ private:
      * @return If connection management successful, returns true. Otherwise, false.
      */
     bool manageConnection();
+
+    /**
+     * Switch WiFi to Access Point Mode.
+     *
+     * @return True.
+     */
+    bool switchToAPMode();
+
+    /**
+     * Setup WiFi Access Point.
+     *
+     * @return If AP setup successful, returns true. Otherwise, false.
+     */
+    bool handleAPSetup();
+
+    /**
+     * Handle Access Point Management.
+     *
+     * @returns True.
+     */
+    bool handleAPState();
 };
 
 /******************************************************************************

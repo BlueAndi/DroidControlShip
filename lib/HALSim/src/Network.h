@@ -95,7 +95,11 @@ private:
     {
         STATE_UNINITIALIZED = 0, /**< Uninitialized state. */
         STATE_SETUP,             /**< Setup state. */
+        STATE_CONNECTING,        /**< Connecting state. */
         STATE_CONNECTED,         /**< Connected state. */
+        STATE_DISCONNECTED,      /**< Disconnected state. */
+        STATE_AP_SETUP,          /**< Access point setup state. */
+        STATE_AP_UP,             /**< Access point up and running state.*/
     };
 
     /** Current network state */
@@ -113,11 +117,39 @@ private:
     bool handleStationSetup();
 
     /**
+     * Check if the connection was established and change state if so.
+     *
+     * @return True.
+     */
+    bool handleConnectingState();
+
+    /**
      * Handle connection specific tasks.
      *
      * @return If connection management successful, returns true. Otherwise, false.
      */
     virtual bool manageConnection();
+
+    /**
+     * Switch WiFi to Access Point Mode.
+     *
+     * @return True.
+     */
+    bool switchToAPMode();
+
+    /**
+     * Setup WiFi Access Point.
+     *
+     * @return If AP setup successful, returns true. Otherwise, false.
+     */
+    bool handleAPSetup();
+
+    /**
+     * Handle Access Point Management.
+     *
+     * @returns True.
+     */
+    bool handleAPState();
 };
 
 /******************************************************************************

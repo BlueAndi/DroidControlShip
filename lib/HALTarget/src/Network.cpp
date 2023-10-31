@@ -97,8 +97,24 @@ bool Network::process()
         isSuccess = handleStationSetup();
         break;
 
+    case STATE_CONNECTING:
+        isSuccess = handleConnectingState();
+        break;
+
     case STATE_CONNECTED:
         isSuccess = manageConnection();
+        break;
+
+    case STATE_DISCONNECTED:
+        isSuccess = switchToAPMode();
+        break;
+
+    case STATE_AP_SETUP:
+        isSuccess = handleAPSetup();
+        break;
+
+    case STATE_AP_UP:
+        isSuccess = handleAPState();
         break;
 
     default:
@@ -120,6 +136,8 @@ bool Network::setConfig(const NetworkSettings& settings)
     {
         m_wiFiSSID     = settings.ssid;
         m_wiFiPassword = settings.password;
+        m_apSSID       = settings.apSsid;
+        m_apPassword   = settings.apPassword;
         m_configSet    = true;
     }
 
@@ -136,56 +154,134 @@ bool Network::setConfig(const NetworkSettings& settings)
 
 bool Network::handleStationSetup()
 {
+    bool isSuccess = false;
+
     if (true == m_configSet)
     {
         if (WL_CONNECT_FAILED == WiFi.begin(m_wiFiSSID.c_str(), m_wiFiPassword.c_str()))
         {
             LOG_ERROR("Failed to connect to WiFi.");
+            m_state   = STATE_AP_SETUP;
+            isSuccess = true;
         }
         else
         {
-            LOG_DEBUG("WiFi connected!");
-            m_state = STATE_CONNECTED;
+            m_state   = STATE_CONNECTING;
+            isSuccess = true;
         }
     }
-    return (STATE_CONNECTED == m_state);
+    return isSuccess;
+}
+
+bool Network::handleConnectingState()
+{
+    wl_status_t currentStatus = WiFi.status();
+    if (WL_CONNECTED == currentStatus)
+    {
+        if (true == m_wifiTimeoutTimer.isTimerRunning())
+        {
+            /* Stop timer. */
+            m_wifiTimeoutTimer.stop();
+        }
+        LOG_DEBUG("WiFi connection established successfully with %s.", m_wiFiSSID);
+        m_state = STATE_CONNECTED;
+    }
+    else if (WL_NO_SSID_AVAIL == currentStatus)
+    {
+        if (true == m_wifiTimeoutTimer.isTimerRunning())
+        {
+            /* Stop timer. */
+            m_wifiTimeoutTimer.stop();
+        }
+        LOG_DEBUG("Cannot find network with provided SSID (%s).", m_wiFiSSID);
+        m_state = STATE_DISCONNECTED;
+    }
+    else
+    {
+        if (false == m_wifiTimeoutTimer.isTimerRunning())
+        {
+            /* Start timeout timer. */
+            m_wifiTimeoutTimer.start(WIFI_TIMEOUT);
+        }
+        else if (true == m_wifiTimeoutTimer.isTimeout())
+        {
+            LOG_ERROR("WiFi Connection Timed-out!");
+            m_state = STATE_DISCONNECTED;
+        }
+        else
+        {
+            /* WiFi is connecting. Do nothing. */
+        }
+    }
+    return true;
 }
 
 bool Network::manageConnection()
 {
-    bool isSuccess = true;
-
-    if (m_state == STATE_CONNECTED)
+    if (m_state != STATE_CONNECTED)
     {
-        if (WL_CONNECTED != WiFi.status())
-        {
-            if (false == m_wifiTimeoutTimer.isTimerRunning())
-            {
-                /* Start timeout timer. */
-                LOG_DEBUG("Connection to WiFi lost. Reconnecting...");
-                m_wifiTimeoutTimer.start(WIFI_TIMEOUT);
-            }
-            else if (true == m_wifiTimeoutTimer.isTimeout())
-            {
-                LOG_ERROR("WiFi Connection Timed-out!");
-                isSuccess = false;
-            }
-            else
-            {
-                /* WiFi is connecting. Do nothing. */
-            }
-        }
-        else
-        {
-            if (true == m_wifiTimeoutTimer.isTimerRunning())
-            {
-                /* Stop timer. */
-                m_wifiTimeoutTimer.stop();
-            }
-        }
+        LOG_DEBUG("Connection to WiFi lost. Reconnecting...");
+        m_state = STATE_CONNECTING;
     }
 
-    return isSuccess;
+    return true;
+}
+
+bool Network::switchToAPMode()
+{
+    WiFi.mode(WIFI_AP);
+    m_state = STATE_AP_SETUP;
+    return true;
+}
+
+bool Network::handleAPSetup()
+{
+    bool setupSuccess = false;
+
+    if (WIFI_AP != WiFi.getMode())
+    {
+        WiFi.mode(WIFI_AP);
+    }
+
+    /* get AP ssid and pw */
+    String ssid;
+    String password;
+    if (false == m_apSSID.isEmpty())
+    {
+        ssid = m_apSSID;
+    }
+    else
+    {
+        /* Use default AP name, if none is provided. */
+        ssid = String("Zumo_AP");
+    }
+    if (false == m_apPassword.isEmpty())
+    {
+        password = m_apPassword;
+    }
+    else
+    {
+        /* Use default AP password, if none is provided. */
+        password = String("zumopass");
+    }
+
+    LOG_DEBUG("Setting up Access Point.");
+
+    /* setup AP and return success */
+    setupSuccess = WiFi.softAP(ssid.c_str(), password.c_str());
+
+    if (setupSuccess)
+    {
+        m_state = STATE_AP_UP;
+        LOG_DEBUG("Access Point up.");
+    }
+    return setupSuccess;
+}
+
+bool Network::handleAPState()
+{
+    /* Don't need to do anything for now. */
+    return true;
 }
 
 /******************************************************************************
