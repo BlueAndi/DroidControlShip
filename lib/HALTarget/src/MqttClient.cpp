@@ -104,23 +104,23 @@ bool MqttClient::process()
         break;
 
     case STATE_SETUP:
-        setupState();
+        handleSetupState();
         break;
 
     case STATE_DISCONNECTED:
-        disconnectedState();
+        handleDisconnectedState();
         break;
 
     case STATE_DISCONNECTING:
-        disconnectingState();
+        handleDisconnectingState();
         break;
 
     case STATE_CONNECTED:
-        connectedState();
+        handleConnectedState();
         break;
 
     case STATE_CONNECTING:
-        connectingState();
+        handleConnectingState();
         break;
 
     default:
@@ -301,11 +301,10 @@ void MqttClient::unsubscribe(const String& topic)
  * Private Methods
  *****************************************************************************/
 
-void MqttClient::setupState()
+void MqttClient::handleSetupState()
 {
     if (true == m_configSet)
     {
-        /* TODO check WIFI */
         if (false == m_mqttClient.setBufferSize(MAX_BUFFER_SIZE))
         {
             LOG_ERROR("Failed to set MQTT buffer size.");
@@ -323,7 +322,7 @@ void MqttClient::setupState()
     }
 }
 
-void MqttClient::disconnectedState()
+void MqttClient::handleDisconnectedState()
 {
     bool connectNow = false;
 
@@ -362,13 +361,13 @@ void MqttClient::disconnectedState()
     }
 }
 
-void MqttClient::disconnectingState()
+void MqttClient::handleDisconnectingState()
 {
     m_mqttClient.disconnect();
     m_state = STATE_DISCONNECTED;
 }
 
-void MqttClient::connectedState()
+void MqttClient::handleConnectedState()
 {
     /* Connection state is checked on loop. */
     if (false == m_mqttClient.loop())
@@ -378,7 +377,7 @@ void MqttClient::connectedState()
     }
 }
 
-void MqttClient::connectingState()
+void MqttClient::handleConnectingState()
 {
     if (MQTT_CONNECTED == m_mqttClient.state())
     {

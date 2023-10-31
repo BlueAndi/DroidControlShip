@@ -247,27 +247,27 @@ private:
     /**
      * Process the Idle state.
      */
-    void setupState();
+    void handleSetupState();
 
     /**
      * Process the Disconnected state.
      */
-    void disconnectedState();
+    void handleDisconnectedState();
 
     /**
      * Process the Disconnecting state.
      */
-    void disconnectingState();
+    void handleDisconnectingState();
 
     /**
      * Process the Connected state.
      */
-    void connectedState();
+    void handleConnectedState();
 
     /**
      * Process the Connected state.
      */
-    void connectingState();
+    void handleConnectingState();
 
     /**
      * Resuscribe to all topics.

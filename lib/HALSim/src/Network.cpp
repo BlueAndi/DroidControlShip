@@ -92,7 +92,7 @@ bool Network::process()
         isSuccess = true;
         break;
     case STATE_SETUP:
-        isSuccess = setupState();
+        isSuccess = handleStationSetup();
         break;
 
     case STATE_CONNECTED:
@@ -122,7 +122,7 @@ bool Network::setConfig(const NetworkSettings& settings)
  * Private Methods
  *****************************************************************************/
 
-bool Network::setupState()
+bool Network::handleStationSetup()
 {
     if (true == m_configSet)
     {

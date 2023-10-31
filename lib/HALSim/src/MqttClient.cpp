@@ -126,23 +126,23 @@ bool MqttClient::process()
         break;
 
     case STATE_SETUP:
-        setupState();
+        handleSetupState();
         break;
 
     case STATE_DISCONNECTED:
-        disconnectedState();
+        handleDisconnectedState();
         break;
 
     case STATE_DISCONNECTING:
-        disconnectingState();
+        handleDisconnectingState();
         break;
 
     case STATE_CONNECTED:
-        connectedState();
+        handleConnectedState();
         break;
 
     case STATE_CONNECTING:
-        connectingState();
+        handleConnectingState();
         break;
 
     default:
@@ -389,7 +389,7 @@ void MqttClient::onMessageCallback(const mosquitto_message* msg)
  * Private Methods
  *****************************************************************************/
 
-void MqttClient::setupState()
+void MqttClient::handleSetupState()
 {
     if ((nullptr == m_mqttClient) && (true == m_configSet))
     {
@@ -434,7 +434,7 @@ void MqttClient::setupState()
     }
 }
 
-void MqttClient::disconnectedState()
+void MqttClient::handleDisconnectedState()
 {
     bool connectNow = false;
 
@@ -473,7 +473,7 @@ void MqttClient::disconnectedState()
     }
 }
 
-void MqttClient::disconnectingState()
+void MqttClient::handleDisconnectingState()
 {
     if ((nullptr != m_mqttClient) && (true == m_disconnectRequest))
     {
@@ -502,12 +502,12 @@ void MqttClient::disconnectingState()
     }
 }
 
-void MqttClient::connectedState()
+void MqttClient::handleConnectedState()
 {
     /* Nothing to do. */
 }
 
-void MqttClient::connectingState()
+void MqttClient::handleConnectingState()
 {
     if (false == m_connectionTimer.isTimerRunning())
     {

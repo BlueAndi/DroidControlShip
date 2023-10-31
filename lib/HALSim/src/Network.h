@@ -110,7 +110,7 @@ private:
      *
      * @return True if connection establishment successful, otherwise false.
      */
-    bool setupState();
+    bool handleStationSetup();
 
     /**
      * Handle connection specific tasks.
