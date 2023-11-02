@@ -54,12 +54,12 @@ class IKalmanFilter
 public:
     /**
      * Initializes the variables of the Kalman Filter.
-    */
+     */
     virtual void init() = 0;
 
     /**
      * Prediction of the covariance and the state of the Kalman Filter.
-    */
+     */
     virtual void predictionStep() = 0;
 
     /**

@@ -58,14 +58,6 @@
  * Public Methods
  *****************************************************************************/
 
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
-
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
 void SensorFusion::init(void)
 {
     m_linearKalmanFilter.init();
@@ -97,8 +89,15 @@ void SensorFusion::estimateNewState(SensorData newSensorData)
 
     m_linearKalmanFilter.predictionStep();
     m_linearKalmanFilter.updateStep(kalmanParameters);
-    
 }
+
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
 
 void SensorFusion::transfromLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
                                           const int16_t& rotationAngle)
