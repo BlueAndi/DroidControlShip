@@ -92,7 +92,7 @@ public:
     /**
      * Process network tasks according to current state.
      *
-     * @returns true if tasks successful, otherwise false.
+     * @returns True if tasks successful, otherwise false.
      */
     virtual bool process() = 0;
 
