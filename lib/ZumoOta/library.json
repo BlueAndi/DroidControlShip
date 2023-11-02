@@ -1,0 +1,14 @@
+{
+    "name": "ZumoOta",
+    "version": "0.1.0",
+    "description": "ZumoOta application",
+    "authors": [{
+        "name": "Decareme Ngangnou",
+        "email": "<ngandeca@yahoo.fr>",
+        "maintainer": true
+    }],
+    "license": "MIT",
+    "dependencies": [],
+    "frameworks": "*",
+    "platforms": "*"
+}
