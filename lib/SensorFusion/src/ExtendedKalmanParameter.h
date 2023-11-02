@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Struct for Parameter used for a Linear Kalman Filter
+ *  @brief  Struct for Parameter used for a Extended Kalman Filter
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
  */
 
@@ -47,7 +47,7 @@
 /** Struct of the Sensor Data channel payload. */
 typedef struct _ExtendedKalmanParameter : public LinearKalmanParameter
 {
-    int16_t angleEncoder;
+    int32_t angleEncoder;
     int16_t turnRate;
 } __attribute__((packed)) ExtendedKalmanParameter;
 

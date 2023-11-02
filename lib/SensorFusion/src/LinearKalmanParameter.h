@@ -50,8 +50,8 @@ typedef struct _LinearKalmanParameter : public IKalmanParameter
 {
     int16_t accelerationX;
     int16_t accelerationY;
-    int16_t positionEncoderX;
-    int16_t positionEncoderY;
+    int32_t positionEncoderX;
+    int32_t positionEncoderY;
 } __attribute__((packed)) LinearKalmanParameter;
 
 /******************************************************************************
