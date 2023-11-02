@@ -27,7 +27,7 @@
 /**
  * @brief  Implementation of the Linear Kalman Filter
  * @author Juliane Kerpe <juliane.kerpe@web.de>
- * 
+ *
  *
  * @{
  */
@@ -42,8 +42,10 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <ArduinoEigen.h> 
+#include <ArduinoEigen.h>
 #include <stdint.h>
+#include "IKalmanFilter.h"
+#include "LinearKalmanParameter.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -53,7 +55,7 @@
  *****************************************************************************/
 
 /** This class provides a Linear Kalman filter. */
-class LinearKalmanFilter
+class LinearKalmanFilter : public IKalmanFilter
 {
 public:
     /**
@@ -62,7 +64,7 @@ public:
     LinearKalmanFilter()
     {
     }
-    
+
     /**
      * Destroys the Linear Kalman Filter
      */
@@ -72,36 +74,33 @@ public:
 
     /**
      * Initializes the variables of the Linear Kalman Filter.
-    */
-    void init(void)
+     */
+    void init()
     {
         // TODO: Implement Kalman Filter in cpp (TD072)
     }
 
     /**
      * Prediction of the covariance and the state of the Linear Kalman Filter.
-    */
-    void predictionStep(void)
+     */
+    void predictionStep()
     {
         // TODO: Implement Kalman Filter in cpp (TD072)
     }
 
     /**
-     * Update of the covariance and the state of the Linear Kalman Filter.
-     * @param[in] accelerationInX             Acceleration in x-direction, in the global coordinate system. 
-     * @param[in] accelerationInY             Acceleration in y-direction, in the global coordinate system. 
-     * @param[in] positionEncoderX            Position in x-direction calculated through the encoders via odometry. 
-     * @param[in] positionEncoderY            Position in y-direction calculated through the encoders via odometry. 
+     * Update of the covariance and the state of the Kalman Filter.
+     * @param[in] kalmanParameters   Input Parameters for the Kalman Filter as a LinearKalmanParameter struct.
      *
      */
-    void updateStep(const int16_t &accelerationInX, const int16_t &accelerationInY, const int32_t &positionEncoderX, const int32_t &positionEncoderY)
+    void updateStep(IKalmanParameter& kalmanParameters)
     {
         // TODO: Implement Kalman Filter in cpp (TD072)
     }
 
-private: 
-    Eigen::VectorXf m_state;        /**< Estimated state vector [p_x, p_y, v_x, v_y, a_x, a_y]*/
-    Eigen::MatrixXf m_covariance;   /**< Covariance Matrix of the state */
+private:
+    Eigen::VectorXf m_state;      /**< Estimated state vector [p_x, p_y, v_x, v_y, a_x, a_y]*/
+    Eigen::MatrixXf m_covariance; /**< Covariance Matrix of the state */
 };
 
 /******************************************************************************

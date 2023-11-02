@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Implementation of the Sensor Fusion
+ * @brief  Implementation of the Extended Kalman Filter
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *
  *
  * @{
  */
 
-#ifndef SENSORFUSION_H
-#define SENSORFUSION_H
+#ifndef EXTENDEDKALMANFILTER_H
+#define EXTENDEDKALMANFILTER_H
 
 /******************************************************************************
  * Compile Switches
@@ -42,11 +42,10 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include "SerialMuxChannels.h"
-#include "LinearKalmanFilter.h"
+#include <ArduinoEigen.h>
 #include <stdint.h>
-#include <SensorConstants.h>
+#include "LinearKalmanFilter.h"
+#include "ExtendedKalmanParameter.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -55,59 +54,56 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides a SensorFusion Algorithm. */
-class SensorFusion
+/** This class provides a Extended Kalman filter. */
+class ExtendedKalmanFilter : public LinearKalmanFilter
 {
 public:
     /**
-     * Constructs the SensorFusion
+     * Constructs the Extended Kalman Filter
      */
-    static SensorFusion& getInstance()
-    {
-        static SensorFusion instance; /* idiom */
-
-        return instance;
-    }
-
-    /**
-     * Destroys the SensorFusion
-     */
-    ~SensorFusion()
+    ExtendedKalmanFilter()
     {
     }
 
     /**
-     * Initialize the Sensor Fusion.
+     * Destroys the Extended Kalman Filter
      */
-    void init();
+    ~ExtendedKalmanFilter()
+    {
+    }
 
     /**
-     * Perform an update of the Estimated State.
+     * Initializes the variables of the Extended Kalman Filter.
+     */
+    void init()
+    {
+        // TODO: Implement Kalman Filter in cpp (TD072)
+    }
+
+    /**
+     * Prediction of the covariance and the state of the Extended Kalman Filter.
+     */
+    void predictionStep()
+    {
+        // TODO: Implement Kalman Filter in cpp (TD072)
+    }
+
+    /**
+     * Update of the covariance and the state of the Kalman Filter.
+     * @param[in] kalmanParameters   Input Parameters for the Kalman Filter as a ExtendedKalmanParameter struct.
      *
-     * @param[in] newSensorData New Sensor Data.
      */
-    void estimateNewState(SensorData newSensorData);
+    void updateStep(IKalmanParameter& kalmanParameters)
+    {
+        // TODO: Implement Kalman Filter in cpp (TD072)
+    }
 
 private:
-    LinearKalmanFilter m_linearKalmanFilter;
-
-    /**
-     * Transform the local acceleration vector [acc_x, acc_y] into a global vector using the provided angle.
-     *
-     * @param[in] globalResult                  The array to store the transformed vector [result_x, result_y].
-     * @param[in] localVectorToTransform        The local acceleration vector [acc_x, acc_y] to be transformed.
-     * @param[in] rotationAngle                 The angle used for the transformation, given in mrad.
-     */
-    void transfromLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
-                                const int16_t& rotationAngle);
-
-    void estimateAngle(int16_t& estimatedAngle, const int32_t& encoderAngle, const int16_t& magnetometerValueX,
-                       const int16_t& magnetometerValueY);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* SENSORFUSION_H */
+#endif /* EXTENDEDKALMANFILTER_H */
 /** @} */

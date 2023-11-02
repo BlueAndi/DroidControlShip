@@ -19,21 +19,17 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
-
 /*******************************************************************************
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Implementation of the Sensor Fusion
- * @author Juliane Kerpe <juliane.kerpe@web.de>
- *
- *
- * @{
+ *  @brief  Interface Class of a Kalman Filter Implementation
+ *  @author Juliane Kerpe <juliane.kerpe@web.de>
  */
-
-#ifndef SENSORFUSION_H
-#define SENSORFUSION_H
+#ifndef IKALMANFILTER_H
+#define IKALMANFILTER_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,10 +39,7 @@
  * Includes
  *****************************************************************************/
 
-#include "SerialMuxChannels.h"
-#include "LinearKalmanFilter.h"
-#include <stdint.h>
-#include <SensorConstants.h>
+#include "IKalmanParameter.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -54,60 +47,27 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
-
-/** This class provides a SensorFusion Algorithm. */
-class SensorFusion
+/** The Kalman Filter Interface. */
+class IKalmanFilter
 {
+
 public:
     /**
-     * Constructs the SensorFusion
-     */
-    static SensorFusion& getInstance()
-    {
-        static SensorFusion instance; /* idiom */
-
-        return instance;
-    }
+     * Initializes the variables of the Kalman Filter.
+    */
+    virtual void init() = 0;
 
     /**
-     * Destroys the SensorFusion
-     */
-    ~SensorFusion()
-    {
-    }
+     * Prediction of the covariance and the state of the Kalman Filter.
+    */
+    virtual void predictionStep() = 0;
 
     /**
-     * Initialize the Sensor Fusion.
-     */
-    void init();
-
-    /**
-     * Perform an update of the Estimated State.
+     * Update of the covariance and the state of the Kalman Filter.
+     * @param[in] kalmanParameters   Input Parameters for the Kalman Filter
      *
-     * @param[in] newSensorData New Sensor Data.
      */
-    void estimateNewState(SensorData newSensorData);
-
-private:
-    LinearKalmanFilter m_linearKalmanFilter;
-
-    /**
-     * Transform the local acceleration vector [acc_x, acc_y] into a global vector using the provided angle.
-     *
-     * @param[in] globalResult                  The array to store the transformed vector [result_x, result_y].
-     * @param[in] localVectorToTransform        The local acceleration vector [acc_x, acc_y] to be transformed.
-     * @param[in] rotationAngle                 The angle used for the transformation, given in mrad.
-     */
-    void transfromLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
-                                const int16_t& rotationAngle);
-
-    void estimateAngle(int16_t& estimatedAngle, const int32_t& encoderAngle, const int16_t& magnetometerValueX,
-                       const int16_t& magnetometerValueY);
+    virtual void updateStep(IKalmanParameter& kalmanParameters) = 0;
 };
 
-/******************************************************************************
- * Functions
- *****************************************************************************/
-
-#endif /* SENSORFUSION_H */
-/** @} */
+#endif /* IKALMANFILTER_H */

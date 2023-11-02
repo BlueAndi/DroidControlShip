@@ -63,8 +63,7 @@ public:
     /**
      * Construct the Sensor Fusion application.
      */
-    App() :
-        m_smpServer(Board::getInstance().getDevice().getStream())
+    App() : m_smpServer(Board::getInstance().getDevice().getStream())
     {
     }
 

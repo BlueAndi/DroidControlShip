@@ -82,7 +82,7 @@ void App::setup()
 {
     Serial.begin(SERIAL_BAUDRATE);
     SensorFusion::getInstance().init();
-    
+
     /* Register serial log sink and select it per default. */
     if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
     {
@@ -93,7 +93,7 @@ void App::setup()
 
         LOG_DEBUG("LOGGER READY");
     }
-    
+
     /* Initialize HAL. */
     if (false == Board::getInstance().init())
     {
@@ -176,7 +176,7 @@ void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize
 {
     if ((nullptr != payload) && (SENSORDATA_CHANNEL_DLC == payloadSize))
     {
-        
+
         LOG_DEBUG("SENSOR_DATA: New Sensor Data!");
         const SensorData* newSensorData = reinterpret_cast<const SensorData*>(payload);
 
@@ -184,7 +184,7 @@ void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize
     }
     else
     {
-        LOG_WARNING("SENSOR_DATA:: Invalid payload size. Expected: %u Received: %u", SENSORDATA_CHANNEL_DLC, payloadSize);
+        LOG_WARNING("SENSOR_DATA:: Invalid payload size. Expected: %u Received: %u", SENSORDATA_CHANNEL_DLC,
+                    payloadSize);
     }
-
 }

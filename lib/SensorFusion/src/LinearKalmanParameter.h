@@ -19,34 +19,24 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
-
 /*******************************************************************************
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Implementation of the Sensor Fusion
- * @author Juliane Kerpe <juliane.kerpe@web.de>
- *
- *
- * @{
+ *  @brief  Struct for Parameter used for a Linear Kalman Filter
+ *  @author Juliane Kerpe <juliane.kerpe@web.de>
  */
 
-#ifndef SENSORFUSION_H
-#define SENSORFUSION_H
-
-/******************************************************************************
- * Compile Switches
- *****************************************************************************/
+#ifndef LINEARKALMANPARAMETER_H
+#define LINEARKALMANPARAMETER_H
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include "SerialMuxChannels.h"
-#include "LinearKalmanFilter.h"
 #include <stdint.h>
-#include <SensorConstants.h>
+#include "IKalmanParameter.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -55,59 +45,17 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides a SensorFusion Algorithm. */
-class SensorFusion
+/** Struct of the Sensor Data channel payload. */
+typedef struct _LinearKalmanParameter : public IKalmanParameter
 {
-public:
-    /**
-     * Constructs the SensorFusion
-     */
-    static SensorFusion& getInstance()
-    {
-        static SensorFusion instance; /* idiom */
-
-        return instance;
-    }
-
-    /**
-     * Destroys the SensorFusion
-     */
-    ~SensorFusion()
-    {
-    }
-
-    /**
-     * Initialize the Sensor Fusion.
-     */
-    void init();
-
-    /**
-     * Perform an update of the Estimated State.
-     *
-     * @param[in] newSensorData New Sensor Data.
-     */
-    void estimateNewState(SensorData newSensorData);
-
-private:
-    LinearKalmanFilter m_linearKalmanFilter;
-
-    /**
-     * Transform the local acceleration vector [acc_x, acc_y] into a global vector using the provided angle.
-     *
-     * @param[in] globalResult                  The array to store the transformed vector [result_x, result_y].
-     * @param[in] localVectorToTransform        The local acceleration vector [acc_x, acc_y] to be transformed.
-     * @param[in] rotationAngle                 The angle used for the transformation, given in mrad.
-     */
-    void transfromLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
-                                const int16_t& rotationAngle);
-
-    void estimateAngle(int16_t& estimatedAngle, const int32_t& encoderAngle, const int16_t& magnetometerValueX,
-                       const int16_t& magnetometerValueY);
-};
+    int16_t accelerationX;
+    int16_t accelerationY;
+    int16_t positionEncoderX;
+    int16_t positionEncoderY;
+} __attribute__((packed)) LinearKalmanParameter;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* SENSORFUSION_H */
-/** @} */
+#endif /* LINEARKALMANPARAMETER_H */
