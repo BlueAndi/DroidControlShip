@@ -161,7 +161,7 @@ bool Network::handleStationSetup()
         if (WL_CONNECT_FAILED == WiFi.begin(m_wiFiSSID.c_str(), m_wiFiPassword.c_str()))
         {
             LOG_ERROR("Failed to connect to WiFi.");
-            m_state   = STATE_AP_SETUP;
+            m_state   = STATE_DISCONNECTED;
             isSuccess = true;
         }
         else
@@ -229,8 +229,10 @@ bool Network::manageConnection()
 
 bool Network::switchToAPMode()
 {
-    WiFi.mode(WIFI_AP);
-    m_state = STATE_AP_SETUP;
+    if (WiFi.disconnect() && WiFi.mode(WIFI_AP) && WIFI_MODE_AP == WiFi.getMode())
+    {
+        m_state = STATE_AP_SETUP;
+    }
     return true;
 }
 
@@ -242,39 +244,42 @@ bool Network::handleAPSetup()
     {
         WiFi.mode(WIFI_AP);
     }
-
-    /* get AP ssid and pw */
-    String ssid;
-    String password;
-    if (false == m_apSSID.isEmpty())
-    {
-        ssid = m_apSSID;
-    }
     else
     {
-        /* Use default AP name, if none is provided. */
-        ssid = String("Zumo_AP");
-    }
-    if (false == m_apPassword.isEmpty())
-    {
-        password = m_apPassword;
-    }
-    else
-    {
-        /* Use default AP password, if none is provided. */
-        password = String("zumopass");
+        /* get AP ssid and pw */
+        String ssid;
+        String password;
+        if (false == m_apSSID.isEmpty())
+        {
+            ssid = m_apSSID;
+        }
+        else
+        {
+            /* Use default AP name, if none is provided. */
+            ssid = String("Zumo_AP");
+        }
+        if (false == m_apPassword.isEmpty())
+        {
+            password = m_apPassword;
+        }
+        else
+        {
+            /* Use default AP password, if none is provided. */
+            password = String("zumopass");
+        }
+
+        LOG_DEBUG("Setting up Access Point (%s, %s).", ssid, password);
+
+        /* setup AP and return success */
+        setupSuccess = WiFi.softAP(ssid.c_str(), password.c_str());
+
+        if (setupSuccess)
+        {
+            m_state = STATE_AP_UP;
+            LOG_DEBUG("Access Point up.");
+        }
     }
 
-    LOG_DEBUG("Setting up Access Point.");
-
-    /* setup AP and return success */
-    setupSuccess = WiFi.softAP(ssid.c_str(), password.c_str());
-
-    if (setupSuccess)
-    {
-        m_state = STATE_AP_UP;
-        LOG_DEBUG("Access Point up.");
-    }
     return setupSuccess;
 }
 
