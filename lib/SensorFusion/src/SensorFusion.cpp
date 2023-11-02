@@ -84,8 +84,8 @@ void SensorFusion::estimateNewState(SensorData newSensorData)
     LinearKalmanParameter kalmanParameters;
     kalmanParameters.accelerationX    = physicalAccelerationX;
     kalmanParameters.accelerationY    = physicalAccelerationY;
-    kalmanParameters.positionEncoderX = newSensorData.positionXOdometry;
-    kalmanParameters.positionEncoderX = newSensorData.positionXOdometry;
+    kalmanParameters.positionOdometryX = newSensorData.positionOdometryX;
+    kalmanParameters.positionOdometryX = newSensorData.positionOdometryX;
 
     m_linearKalmanFilter.predictionStep();
     m_linearKalmanFilter.updateStep(kalmanParameters);
