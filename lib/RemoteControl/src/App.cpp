@@ -51,6 +51,8 @@
 #define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
 #endif /* CONFIG_LOG_SEVERITY */
 
+#define JSON_BIRTHMESSAGE_MAX_SIZE 64 /* Buffer size for JSON serialization of birth / will message */
+
 /******************************************************************************
  * Types and classes
  *****************************************************************************/
@@ -161,7 +163,7 @@ void App::setup()
         uint16_t mqttPort = Settings::getInstance().getMqttPort();
 
         /* Setup Network. */
-        NetworkSettings settings = {ssid, password, String("Zumo_AP"), String("")};
+        NetworkSettings settings = {ssid, password, clientId, String("")};
         if (false == Board::getInstance().getNetwork().setConfig(settings))
         {
             LOG_ERROR("Network Configuration could not be set.");
@@ -169,15 +171,14 @@ void App::setup()
         }
 
         /* Setup MQTT Server, Birth and Will messages. */
+        StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
+        birthDoc["name"] = clientId.c_str();
+        char birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+        (void)serializeJson(birthDoc, birthMsgArray);
+        String birthMessage(birthMsgArray);
         m_mqttClient.init();
-        MqttSettings mqttSettings = {clientId,
-                                     mqttAddr,
-                                     mqttPort,
-                                     TOPIC_NAME_BIRTH,
-                                     String(clientId + String(" Connected!")),
-                                     TOPIC_NAME_WILL,
-                                     String(clientId + String(" Disconnected!")),
-                                     true};
+        MqttSettings mqttSettings = {clientId,     mqttAddr,        mqttPort,     TOPIC_NAME_BIRTH,
+                                     birthMessage, TOPIC_NAME_WILL, birthMessage, true};
         if (false == m_mqttClient.setConfig(mqttSettings))
         {
             LOG_ERROR("MQTT Configuration could not be set.");
