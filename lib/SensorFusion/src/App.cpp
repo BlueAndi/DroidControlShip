@@ -71,9 +71,6 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 /** Serial log sink */
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 
-/* Initialize channel name for receiving sensor data. */
-const char* App::CH_NAME_SENSORDATA = "SENSOR_DATA";
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -124,7 +121,7 @@ void App::setup()
         }
 
         /* Setup SerialMuxProt Channels */
-        m_smpServer.subscribeToChannel(CH_NAME_SENSORDATA, App_sensorChannelCallback);
+        m_smpServer.subscribeToChannel(SENSORDATA_CHANNEL_NAME, App_sensorChannelCallback);
     }
 }
 
