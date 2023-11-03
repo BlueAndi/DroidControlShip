@@ -51,6 +51,8 @@
 #define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
 #endif /* CONFIG_LOG_SEVERITY */
 
+#define JSON_BIRTHMESSAGE_MAX_SIZE 64 /* Buffer size for JSON serialization of birth / will message */
+
 /******************************************************************************
  * Types and classes
  *****************************************************************************/
@@ -160,27 +162,40 @@ void App::setup()
         String   mqttAddr = Settings::getInstance().getMqttBrokerAddress();
         uint16_t mqttPort = Settings::getInstance().getMqttPort();
 
-        /* Setup MQTT Server, Birth and Will messages. */
-        if (false ==
-            Board::getInstance().getNetwork().setConfig(clientId, ssid, password, mqttAddr, mqttPort, TOPIC_NAME_BIRTH,
-                                                        String(clientId + String(" Connected!")), TOPIC_NAME_WILL,
-                                                        String(clientId + String(" Disconnected!")), true))
+        /* Setup Network. */
+        NetworkSettings settings = {ssid, password, clientId, String("")};
+        if (false == Board::getInstance().getNetwork().setConfig(settings))
         {
             LOG_ERROR("Network Configuration could not be set.");
             fatalErrorHandler();
         }
 
+        /* Setup MQTT Server, Birth and Will messages. */
+        StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
+        birthDoc["name"] = clientId.c_str();
+        char birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+        (void)serializeJson(birthDoc, birthMsgArray);
+        String birthMessage(birthMsgArray);
+        m_mqttClient.init();
+        MqttSettings mqttSettings = {clientId,     mqttAddr,        mqttPort,     TOPIC_NAME_BIRTH,
+                                     birthMessage, TOPIC_NAME_WILL, birthMessage, true};
+        if (false == m_mqttClient.setConfig(mqttSettings))
+        {
+            LOG_ERROR("MQTT Configuration could not be set.");
+            fatalErrorHandler();
+        }
+
         /* Subscribe to Command Topic. */
-        if (false == Board::getInstance().getNetwork().subscribe(TOPIC_NAME_CMD, [this](const String& payload)
-                                                                 { cmdTopicCallback(payload); }))
+        if (false ==
+            m_mqttClient.subscribe(TOPIC_NAME_CMD, [this](const String& payload) { cmdTopicCallback(payload); }))
         {
             LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_CMD);
             fatalErrorHandler();
         }
 
         /* Subscribe to Motor Speeds Topic. */
-        if (false == Board::getInstance().getNetwork().subscribe(TOPIC_NAME_MOTOR_SPEEDS, [this](const String& payload)
-                                                                 { motorSpeedsTopicCallback(payload); }))
+        if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS,
+                                            [this](const String& payload) { motorSpeedsTopicCallback(payload); }))
         {
             LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
             fatalErrorHandler();
@@ -197,6 +212,9 @@ void App::loop()
         LOG_FATAL("HAL process failed.");
         fatalErrorHandler();
     }
+
+    /* Process MQTT Communication */
+    m_mqttClient.process();
 
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());

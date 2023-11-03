@@ -45,6 +45,7 @@
  *****************************************************************************/
 #include <Arduino.h>
 #include <Board.h>
+#include <MqttClient.h>
 #include <SerialMuxProtServer.hpp>
 
 /******************************************************************************
@@ -65,7 +66,8 @@ public:
     App() :
         m_smpServer(Board::getInstance().getDevice().getStream()),
         m_serialMuxProtChannelIdRemoteCtrl(0U),
-        m_serialMuxProtChannelIdMotorSpeeds(0U)
+        m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_mqttClient()
     {
     }
 
@@ -124,6 +126,11 @@ private:
      * more channels for external communication.
      */
     SerialMuxProtServer<10U> m_smpServer;
+
+    /**
+     * MQTTClient Instance
+     */
+    MqttClient m_mqttClient;
 
 private:
     /**

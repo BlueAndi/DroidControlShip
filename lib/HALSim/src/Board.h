@@ -51,6 +51,7 @@
 #include "LedGreen.h"
 #include "LedRed.h"
 #include "Network.h"
+#include "MqttClient.h"
 
 /******************************************************************************
  * Macros
