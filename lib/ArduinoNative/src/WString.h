@@ -281,7 +281,7 @@ public:
     {
         if (nullptr != str.m_buffer)
         {
-            char* tmp = new char[m_size + str.m_size];
+            char* tmp = new char[m_size + str.m_size - 1];
 
             if (nullptr != tmp)
             {
@@ -290,7 +290,27 @@ public:
 
                 delete[] m_buffer;
                 m_buffer = tmp;
-                m_size += str.m_size;
+                m_size += str.m_size - 1;
+            }
+        }
+
+        return *this;
+    }
+
+    String& operator+=(const char* cstr)
+    {
+        if (nullptr != cstr)
+        {
+            char* tmp = new char[m_size + strlen(cstr)];
+
+            if (nullptr != tmp)
+            {
+                strcpy(tmp, m_buffer);
+                strcat(tmp, cstr);
+
+                delete[] m_buffer;
+                m_buffer = tmp;
+                m_size = m_size + strlen(cstr);
             }
         }
 
