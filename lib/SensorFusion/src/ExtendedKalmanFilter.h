@@ -90,7 +90,7 @@ public:
 
     /**
      * Update of the covariance and the state of the Kalman Filter.
-     * @param[in] kalmanParameters   Input Parameters for the Kalman Filter as a ExtendedKalmanParameter struct.
+     * @param[in] kalmanParameters   Input Parameters for the Kalman Filter as an ExtendedKalmanParameter struct.
      *
      */
     void updateStep(IKalmanParameter& kalmanParameters)

@@ -45,7 +45,7 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Struct of the Sensor Data channel payload. */
+/** Struct of the Parameter used for a linear Kalman Filter. */
 typedef struct _LinearKalmanParameter : public IKalmanParameter
 {
     int16_t accelerationX;

@@ -44,7 +44,7 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Struct of the Sensor Data channel payload. */
+/** Struct of the Parameter used for an Extended Kalman Filter. */
 typedef struct _ExtendedKalmanParameter : public LinearKalmanParameter
 {
     int32_t angleEncoder;
