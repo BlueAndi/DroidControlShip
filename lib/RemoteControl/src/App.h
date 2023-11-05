@@ -101,18 +101,6 @@ private:
     /** MQTT topic name for receiving motor speeds. */
     static const char* TOPIC_NAME_MOTOR_SPEEDS;
 
-    /** SerialMuxProt channel name for sending commands. */
-    static const char* CH_NAME_CMD;
-
-    /** SerialMuxProt channel name for receiving command responses. */
-    static const char* CH_NAME_RSP;
-
-    /** SerialMuxProt channel name for sending motor speeds. */
-    static const char* CH_NAME_MOTOR_SPEEDS;
-
-    /** SerialMuxProt channel name for receiving line sensors data. */
-    static const char* CH_NAME_LINE_SENSORS;
-
     /** SerialMuxProt Channel id sending remote control commands. */
     uint8_t m_serialMuxProtChannelIdRemoteCtrl;
 

@@ -49,20 +49,23 @@ The simulation is based on the open source robot simulator *Webots*. The applica
 
 ## Installation
 
-1. Install [Webots](https://cyberbotics.com).
-2. Setup for [external controllers](https://www.cyberbotics.com/doc/guide/running-extern-robot-controllers):
-    1. Set environment variable ```WEBOTS_HOME``` to installation directory of Webots.
-    2. Add to path:
-        * Linux: ```${WEBOTS_HOME}/lib/controller```
-        * Windows: ```%WEBOTS_HOME%\lib\controller```
-3. Install the native compiler toolchain:
+### Simulation
+
+1. Install the native compiler toolchain:
     * Linux
         * Install the gcc toolchain, depended on your distribution.
     * Windows
-        * Install the [MSYS2](https://www.msys2.org) toolchain and follow the instructions there.
+        * Install the [MSYS2](https://www.msys2.org) toolchain.
         * Open MSYS2 shell.
             * Update package database: ```pacman -Sy pacman```
-            * Install mosquitto: ```pacman -Sy mingw-w64-x86_64-mosquitto```
+            * Install GCC: ```pacman -Sy mingw-w64-ucrt-x86_64-gcc```
+            * Install Mosquitto: ```pacman -Sy mingw-w64-ucrt-x86_64-mosquitto```
+
+### Target
+
+1. Make sure that the hardware version of your [ZumoComSystem](https://github.com/NewTec-GmbH/ZumoComSystem) is supported. Currently, only v1.1 and v1.2 are supported.
+2. Install the [drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) for the CP2102 USB-UART converter if required.
+
 
 # Documentation
 

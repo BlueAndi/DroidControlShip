@@ -25,57 +25,78 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Red LED realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *  @brief  Channel structure definition for the SerialMuxProt.
+ *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
+
+#ifndef SERIAL_MUX_CHANNELS_H_
+#define SERIAL_MUX_CHANNELS_H_
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "LedRed.h"
-#include <Logging.h>
 
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <Arduino.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
-/******************************************************************************
- * Types and classes
- *****************************************************************************/
+/** Name of Channel to send Commands to. */
+#define COMMAND_CHANNEL_NAME "CMD"
+
+/** DLC of Command Channel. */
+#define COMMAND_CHANNEL_DLC (sizeof(Command))
+
+/** Name of Channel to receive Command Responses from. */
+#define COMMAND_RESPONSE_CHANNEL_NAME "CMD_RSP"
+
+/** DLC of Command Response Channel. */
+#define COMMAND_RESPONSE_CHANNEL_DLC (sizeof(CommandResponse))
+
+/** Name of Channel to send Motor Speed Setpoints to. */
+#define SPEED_SETPOINT_CHANNEL_NAME "SPEED_SET"
+
+/** DLC of Speedometer Channel */
+#define SPEED_SETPOINT_CHANNEL_DLC (sizeof(SpeedData))
+
+/** Name of the Channel to receive Line Sensor Data from. */
+#define LINE_SENSOR_CHANNEL_NAME "LINE_SENS"
+
+/** DLC of Line Sensor Channel */
+#define LINE_SENSOR_CHANNEL_DLC (sizeof(LineSensorData))
 
 /******************************************************************************
- * Prototypes
+ * Types and Classes
  *****************************************************************************/
 
-/******************************************************************************
- * Local Variables
- *****************************************************************************/
-
-/******************************************************************************
- * Public Methods
- *****************************************************************************/
-
-void LedRed::enable(bool enableIt)
+/** Struct of the "Command" channel payload. */
+typedef struct _Command
 {
-    LOG_DEBUG("Red LED State: %s", enableIt ? "ON" : "OFF");
-}
+    uint8_t commandId;
+} __attribute__((packed)) Command;
+
+/** Struct of the "Command Response" channel payload. */
+typedef struct _CommandResponse
+{
+    uint8_t response;
+} __attribute__((packed)) CommandResponse;
+
+/** Struct of the "Speed" channel payload. */
+typedef struct _SpeedData
+{
+    int16_t left;
+    int16_t right;
+} __attribute__((packed)) SpeedData;
+
+/** Struct of the "Line Sensor" channel payload. */
+typedef struct _LineSensorData
+{
+    uint16_t lineSensorData[5U];
+} __attribute__((packed)) LineSensorData;
 
 /******************************************************************************
- * Protected Methods
+ * Functions
  *****************************************************************************/
 
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
+#endif /* SERIAL_MUX_CHANNELS_H_ */

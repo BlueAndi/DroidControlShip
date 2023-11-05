@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "LedBlue.h"
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -60,8 +61,7 @@
 
 void LedBlue::enable(bool enableIt)
 {
-    /* Not implemented. */
-    (void)enableIt;
+    LOG_DEBUG("Blue LED State: %s", enableIt ? "ON" : "OFF");
 }
 
 /******************************************************************************

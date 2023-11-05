@@ -38,6 +38,7 @@
 #include <Util.h>
 #include <Settings.h>
 #include <ArduinoJson.h>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -50,8 +51,6 @@
 #ifndef CONFIG_LOG_SEVERITY
 #define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
 #endif /* CONFIG_LOG_SEVERITY */
-
-#define JSON_BIRTHMESSAGE_MAX_SIZE 64 /* Buffer size for JSON serialization of birth / will message */
 
 /******************************************************************************
  * Types and classes
@@ -86,20 +85,11 @@ const char* App::TOPIC_NAME_CMD = "cmd";
 /* MQTT topic name for receiving motor speeds. */
 const char* App::TOPIC_NAME_MOTOR_SPEEDS = "motorSpeeds";
 
-/* Initialize channel name for sending commands. */
-const char* App::CH_NAME_CMD = "REMOTE_CMD";
-
-/* Initialize channel name for receiving command responses. */
-const char* App::CH_NAME_RSP = "REMOTE_RSP";
-
-/* YAP channel name for sending motor speeds. */
-const char* App::CH_NAME_MOTOR_SPEEDS = "MOT_SPEEDS";
-
-/* Initialize channel name for receiving line sensors data. */
-const char* App::CH_NAME_LINE_SENSORS = "LINE_SENS";
-
 /** Default size of the JSON Document for parsing. */
 static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
+
+/** Buffer size for JSON serialization of birth / will message */
+static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64;
 
 /******************************************************************************
  * Public Methods
@@ -150,10 +140,11 @@ void App::setup()
         }
 
         /* Setup SerialMuxProt Channels */
-        m_serialMuxProtChannelIdRemoteCtrl  = m_smpServer.createChannel(CH_NAME_CMD, 1U);
-        m_serialMuxProtChannelIdMotorSpeeds = m_smpServer.createChannel(CH_NAME_MOTOR_SPEEDS, 4U);
-        m_smpServer.subscribeToChannel(CH_NAME_RSP, App_cmdRspChannelCallback);
-        m_smpServer.subscribeToChannel(CH_NAME_LINE_SENSORS, App_lineSensorChannelCallback);
+        m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
+        m_serialMuxProtChannelIdMotorSpeeds =
+            m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+        m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
+        m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
 
         /* Setup Network. Get saved configuration.*/
         String   clientId = Settings::getInstance().getRobotName();
@@ -250,23 +241,21 @@ void App::cmdTopicCallback(const String& payload)
     }
     else
     {
-        uint8_t payloadSize = sizeof(uint8_t);
-
         JsonVariant command = jsonPayload["CMD_ID"];
 
         if (false == command.isNull())
         {
-            uint8_t buffer[payloadSize];
+            Command cmd;
+            cmd.commandId = command.as<uint8_t>();
 
-            buffer[0U] = command.as<uint8_t>();
-
-            if (true == m_smpServer.sendData(CH_NAME_CMD, buffer, 1U))
+            if (true ==
+                m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, reinterpret_cast<uint8_t*>(&cmd), sizeof(cmd)))
             {
-                LOG_DEBUG("Command %d sent.", buffer[0U]);
+                LOG_DEBUG("Command %d sent.", cmd.commandId);
             }
             else
             {
-                LOG_WARNING("Failed to send command %d.", buffer[0U]);
+                LOG_WARNING("Failed to send command %d.", cmd.commandId);
             }
         }
         else
@@ -287,17 +276,17 @@ void App::motorSpeedsTopicCallback(const String& payload)
     }
     else
     {
-        uint8_t     payloadSize = (2U * sizeof(int16_t));
-        uint8_t     buffer[payloadSize];
         JsonVariant leftSpeed  = jsonPayload["LEFT"];
         JsonVariant rightSpeed = jsonPayload["RIGHT"];
 
         if ((false == leftSpeed.isNull()) && (false == rightSpeed.isNull()))
         {
-            Util::int16ToByteArray(&buffer[0U * sizeof(int16_t)], sizeof(int16_t), leftSpeed.as<int16_t>());
-            Util::int16ToByteArray(&buffer[1U * sizeof(int16_t)], sizeof(int16_t), rightSpeed.as<int16_t>());
+            SpeedData motorSetpoints;
+            motorSetpoints.left  = leftSpeed.as<int16_t>();
+            motorSetpoints.right = rightSpeed.as<int16_t>();
 
-            if (true == m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, payloadSize))
+            if (true == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds,
+                                             reinterpret_cast<uint8_t*>(&motorSetpoints), sizeof(motorSetpoints)))
             {
                 LOG_DEBUG("Motor speeds sent");
             }
@@ -329,14 +318,15 @@ void App::motorSpeedsTopicCallback(const String& payload)
  */
 void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
-    uint8_t expectedPayloadSize = 1U;
-    if (expectedPayloadSize == payloadSize)
+    if (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize)
     {
-        LOG_DEBUG("CMD_RSP: 0x%02X", payload[0U]);
+        const CommandResponse* cmdRsp = reinterpret_cast<const CommandResponse*>(payload);
+        LOG_DEBUG("CMD_RSP: 0x%02X", cmdRsp->response);
     }
     else
     {
-        LOG_WARNING("CMD_RSP: Invalid payload size. Expected: %u Received: %u", expectedPayloadSize, payloadSize);
+        LOG_WARNING("CMD_RSP: Invalid payload size. Expected: %u Received: %u", COMMAND_RESPONSE_CHANNEL_DLC,
+                    payloadSize);
     }
 }
 
