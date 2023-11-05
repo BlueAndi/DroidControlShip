@@ -80,7 +80,7 @@ bool Network::init()
         m_state = STATE_SETUP;
     }
 
-    return true;
+    return isSuccess;
 }
 
 bool Network::process()
