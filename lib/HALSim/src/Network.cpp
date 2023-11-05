@@ -70,14 +70,16 @@ Network::~Network()
 bool Network::init()
 {
     bool isSuccess = true;
+
     if (STATE_UNINITIALIZED != m_state)
     {
-        isSuccess == false;
+        isSuccess = false;
     }
     else
     {
         m_state = STATE_SETUP;
     }
+
     return true;
 }
 
@@ -91,6 +93,7 @@ bool Network::process()
         /* Nothing to do. */
         isSuccess = true;
         break;
+
     case STATE_SETUP:
         isSuccess = handleStationSetup();
         break;
@@ -144,6 +147,7 @@ bool Network::handleStationSetup()
     {
         m_state = STATE_CONNECTING;
     }
+
     return (STATE_CONNECTING == m_state);
 }
 
