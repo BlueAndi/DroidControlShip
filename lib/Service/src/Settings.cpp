@@ -89,11 +89,7 @@ bool Settings::loadConfigurationFile(const String& filename)
         else
         {
             /* Remove separators. */
-            macAddress.remove(14, 1);
-            macAddress.remove(11, 1);
-            macAddress.remove(8, 1);
-            macAddress.remove(5, 1);
-            macAddress.remove(2, 1);
+            macAddress.replace(":", "");
 
             /* Set name. */
             m_robotName         = macAddress;
@@ -134,10 +130,10 @@ bool Settings::setConfiguration(const String& instanceName, const String& networ
 
 Settings::Settings() :
     m_configLoaded(false),
-    m_robotName(""),
-    m_wifiSSID(""),
-    m_wifiPassword(""),
-    m_mqttBrokerAddress(""),
+    m_robotName(),
+    m_wifiSSID(),
+    m_wifiPassword(),
+    m_mqttBrokerAddress(),
     m_mqttPort(0U),
     m_fileReader()
 {
