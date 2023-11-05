@@ -96,7 +96,7 @@ public:
      * Get robot name.
      * @returns Robot name.
      */
-    String& getRobotName()
+    const String& getRobotName()
     {
         return m_robotName;
     }
@@ -105,7 +105,7 @@ public:
      * Get network SSID.
      * @returns Network SSID.
      */
-    String& getWiFiSSID()
+    const String& getWiFiSSID()
     {
         return m_wifiSSID;
     }
@@ -114,7 +114,7 @@ public:
      * Get network password.
      * @returns Network password.
      */
-    String& getWiFiPassword()
+    const String& getWiFiPassword()
     {
         return m_wifiPassword;
     }
@@ -123,7 +123,7 @@ public:
      * Get MQTT Broker IP/HOST.
      * @returns MQTT Broker IP/HOST.
      */
-    String& getMqttBrokerAddress()
+    const String& getMqttBrokerAddress()
     {
         return m_mqttBrokerAddress;
     }
