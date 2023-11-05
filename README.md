@@ -24,6 +24,8 @@ The Droid Control Ship communicates with the [Radon Ulzer](https://github.com/Bl
 * [The target](#the-target)
 * [The simulation](#the-simulation)
   * [Installation](#installation)
+    * [Simulation](#simulation)
+    * [Target](#target)
 * [Documentation](#documentation)
 * [Used Libraries](#used-libraries)
   * [Issues, Ideas And Bugs](#issues-ideas-and-bugs)
@@ -60,6 +62,7 @@ The simulation is based on the open source robot simulator *Webots*. The applica
             * Update package database: ```pacman -Sy pacman```
             * Install GCC: ```pacman -Sy mingw-w64-ucrt-x86_64-gcc```
             * Install Mosquitto: ```pacman -Sy mingw-w64-ucrt-x86_64-mosquitto```
+            * Install OpenSSL: ```pacman -S mingw-w64-ucrt-x86_64-openssl```
 
 ### Target
 
