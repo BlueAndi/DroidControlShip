@@ -88,32 +88,53 @@ bool Settings::loadConfigurationFile(const String& filename)
         }
         else
         {
+            JsonVariantConst    jsonWifiSsid    = doc["WIFI"]["SSID"];
+            JsonVariantConst    jsonWifiPswd    = doc["WIFI"]["PSWD"];
+            JsonVariantConst    jsonMqttHost    = doc["MQTT"]["HOST"];
+            JsonVariantConst    jsonMqttPort    = doc["MQTT"]["PORT"];
+
             /* Remove separators. */
             macAddress.replace(":", "");
 
-            /* Set name. */
-            m_robotName         = macAddress;
-            m_wifiSSID          = doc["WIFI"]["SSID"].as<const char*>();
-            m_wifiPassword      = doc["WIFI"]["PSWD"].as<const char*>();
-            m_mqttBrokerAddress = doc["MQTT"]["HOST"].as<const char*>();
-            m_mqttPort          = doc["MQTT"]["PORT"].as<uint16_t>();
-            m_configLoaded      = true;
+            m_robotName = macAddress;
+
+            if (false == jsonWifiSsid.isNull())
+            {
+                m_wifiSSID = jsonWifiSsid.as<const char*>();
+            }
+
+            if (false == jsonWifiPswd.isNull())
+            {
+                m_wifiPassword = jsonWifiPswd.as<const char*>();
+            }
+
+            if (false == jsonMqttHost.isNull())
+            {
+                m_mqttBrokerAddress = jsonMqttHost.as<const char*>();
+            }
+
+            if (false == jsonMqttPort.isNull())
+            {
+                m_mqttPort = jsonMqttPort.as<uint16_t>();
+            }
+
+            m_configLoaded = true;
         }
     }
 
     return m_configLoaded;
 }
 
-bool Settings::setConfiguration(const String& instanceName, const String& networkSSID, const String& networkPassword,
+bool Settings::setConfiguration(const String& robotName, const String& networkSSID, const String& networkPassword,
                                 const String& mqttBrokerAddress, uint16_t mqttPort)
 {
-    if (true == instanceName.isEmpty())
+    if (true == robotName.isEmpty())
     {
-        LOG_ERROR("Instance name is not allowed to be empty.");
+        LOG_ERROR("Robot name is not allowed to be empty.");
     }
     else
     {
-        m_robotName         = instanceName;
+        m_robotName         = robotName;
         m_wifiSSID          = networkSSID;
         m_wifiPassword      = networkPassword;
         m_mqttBrokerAddress = mqttBrokerAddress;
