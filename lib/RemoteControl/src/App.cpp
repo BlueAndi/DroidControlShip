@@ -38,6 +38,7 @@
 #include <Util.h>
 #include <Settings.h>
 #include <ArduinoJson.h>
+#include <WiFi.h>
 #include "SerialMuxChannels.h"
 
 /******************************************************************************
@@ -121,8 +122,13 @@ void App::setup()
     {
         if (false == Settings::getInstance().isConfigLoaded())
         {
+            String robotName = WiFi.macAddress();
+
+            /* Remove MAC separators from robot name. */
+            robotName.replace(":", "");
+
             /* Settings shall be loaded from configuration file. */
-            if (false == Settings::getInstance().loadConfigurationFile(CONFIG_FILE_PATH))
+            if (false == Settings::getInstance().loadConfigurationFile(CONFIG_FILE_PATH, robotName))
             {
                 /* Log Settings error */
                 LOG_FATAL("Settings could not be loaded from file. ");

@@ -35,7 +35,6 @@
 #include "Settings.h"
 #include <ArduinoJson.h>
 #include <Logging.h>
-#include <WiFi.h>
 
 /******************************************************************************
  * Macros
@@ -58,7 +57,7 @@ bool Settings::isConfigLoaded() const
     return m_configLoaded;
 }
 
-bool Settings::loadConfigurationFile(const String& filename)
+bool Settings::loadConfigurationFile(const String& filename, const String& robotName)
 {
     const uint32_t                    maxBufferSize = 1024;
     StaticJsonDocument<maxBufferSize> doc;
@@ -67,12 +66,9 @@ bool Settings::loadConfigurationFile(const String& filename)
     /* Ignore previously saved configuration. */
     m_configLoaded = false;
 
-    /* Generate name based on MAC Address. */
-    String macAddress = WiFi.macAddress();
-
-    if (true == macAddress.isEmpty())
+    if (true == robotName.isEmpty())
     {
-        LOG_ERROR("Unable to get device MAC Address");
+        LOG_ERROR("Robot name is required.");
     }
     else if (0U == m_fileReader.readFile(filename, buffer, maxBufferSize))
     {
@@ -93,10 +89,7 @@ bool Settings::loadConfigurationFile(const String& filename)
             JsonVariantConst    jsonMqttHost    = doc["MQTT"]["HOST"];
             JsonVariantConst    jsonMqttPort    = doc["MQTT"]["PORT"];
 
-            /* Remove separators. */
-            macAddress.replace(":", "");
-
-            m_robotName = macAddress;
+            m_robotName = robotName;
 
             if (false == jsonWifiSsid.isNull())
             {
