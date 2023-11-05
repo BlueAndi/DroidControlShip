@@ -47,7 +47,6 @@
 #include "Battery.h"
 #include "Button.h"
 #include "Device.h"
-#include "GPIO.h"
 #include "LedBlue.h"
 #include "LedGreen.h"
 #include "LedRed.h"
@@ -85,68 +84,14 @@ public:
      *
      * @returns If all components are correctly initialized, returns true. Otherwise, false.
      */
-    bool init() final
-    {
-        bool isReady = false;
-
-        GpioPins::init();
-
-        /* Turn LEDs off. */
-        m_ledRed.enable(false);
-        m_ledGreen.enable(false);
-        m_ledBlue.enable(false);
-
-        if (false == ButtonDrv::getInstance().init())
-        {
-            /* Log Button Driver error */
-            LOG_ERROR("Button driver not initialized. ");
-        }
-        else if (false == m_device.init())
-        {
-            /* Log Device error */
-            LOG_ERROR("Device not initialized. ");
-        }
-        else if (false == m_network.init())
-        {
-            /* Log Network error */
-            LOG_ERROR("Network not initialized. ");
-        }
-        else
-        {
-            /* Ready */
-            isReady = true;
-        }
-
-        return isReady;
-    }
+    bool init() final;
 
     /**
      * Process board components.
      *
      * @returns If all components are processed correctly, returns true. Otherwise, false
      */
-    bool process() final
-    {
-        bool isSuccess = false;
-
-        if (false == m_device.process())
-        {
-            /* Log Device error */
-            LOG_ERROR("Device process failed. ");
-        }
-        else if (false == m_network.process())
-        {
-            /* Log Network error */
-            LOG_ERROR("Network process failed. ");
-        }
-        else
-        {
-            /* No Errors */
-            isSuccess = true;
-        }
-
-        return isSuccess;
-    }
+    bool process() final;
 
     /**
      * Get battery driver.
