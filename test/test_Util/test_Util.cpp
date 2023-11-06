@@ -79,7 +79,7 @@ static void testUtil(void);
  * @param[in] argc  Number of command line arguments
  * @param[in] argv  Command line arguments
  */
-extern int main(int argc, char **argv)
+extern int main(int argc, char** argv)
 {
     UTIL_NOT_USED(argc);
     UTIL_NOT_USED(argv);
@@ -116,11 +116,11 @@ extern void tearDown(void)
  */
 static void testUtil(void)
 {
-    String      hexStr;
-    uint8_t     valueUInt8  = 0U;
-    uint16_t    valueUInt16 = 0U;
-    uint32_t    valueUInt32 = 0U;
-    int32_t     valueInt32  = 0;
+    String   hexStr;
+    uint8_t  valueUInt8  = 0U;
+    uint16_t valueUInt16 = 0U;
+    uint32_t valueUInt32 = 0U;
+    int32_t  valueInt32  = 0;
 
     /* Test string to 8 bit unsigned integer conversion. */
     TEST_ASSERT_TRUE(Util::strToUInt8("0", valueUInt8));

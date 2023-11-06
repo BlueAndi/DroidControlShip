@@ -135,7 +135,7 @@ static void testWStringReplacement(void)
 
     /* replacement with empty string */
     tester = String(original);
-    tester.replace(" ","");
+    tester.replace(" ", "");
     TEST_ASSERT_EQUAL_STRING("Iamalongstringthatwillfeaturesomereplacements!", tester.c_str());
 
     return;
