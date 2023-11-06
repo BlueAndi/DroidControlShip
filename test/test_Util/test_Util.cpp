@@ -78,6 +78,8 @@ static void testUtil(void);
  *
  * @param[in] argc  Number of command line arguments
  * @param[in] argv  Command line arguments
+ *
+ * @returns Test failure count
  */
 extern int main(int argc, char** argv)
 {
