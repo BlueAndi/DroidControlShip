@@ -291,7 +291,7 @@ public:
 
                 delete[] m_buffer;
                 m_buffer = tmp;
-                m_size += str.m_size - 1;
+                m_size += (str.m_size - 1);
             }
         }
 
@@ -510,7 +510,7 @@ public:
         unsigned int replaceLen = replace.length();
         unsigned int findLen    = find.length();
 
-        if (0 == length() || 0 == findLen)
+        if ((0 == length()) || (0 == findLen))
         {
             /* return early if this or find pattern have length 0 */
             return;
@@ -523,7 +523,7 @@ public:
 
         if (0 == diff)
         {
-            while ((foundAt = strstr(readFrom, find.m_buffer)) != NULL)
+            while (nullptr != (foundAt = strstr(readFrom, find.m_buffer)))
             {
                 memcpy(foundAt, replace.m_buffer, replaceLen);
                 readFrom = foundAt + replaceLen;
@@ -534,7 +534,7 @@ public:
             char* writeTo = m_buffer;
 
             /* copy original and replacement inplace */
-            while ((foundAt = strstr(readFrom, find.m_buffer)) != NULL)
+            while (nullptr != (foundAt = strstr(readFrom, find.m_buffer)))
             {
                 unsigned int numberCharsToCopy = foundAt - readFrom;
                 memcpy(writeTo, readFrom, numberCharsToCopy);
@@ -562,7 +562,7 @@ public:
         else
         {
             /* calculate new buffer size */
-            while ((foundAt = strstr(readFrom, find.m_buffer)) != NULL)
+            while (nullptr != (foundAt = strstr(readFrom, find.m_buffer)))
             {
                 readFrom = foundAt + findLen;
                 accumulatedLengthDiff += diff;
@@ -578,7 +578,7 @@ public:
                     char* writeTo = tmp;
 
                     /* write new buffer from original and replacement */
-                    while ((foundAt = strstr(readFrom, find.m_buffer)) != NULL)
+                    while (nullptr != (foundAt = strstr(readFrom, find.m_buffer)))
                     {
                         unsigned int numberCharsToCopy = foundAt - readFrom;
                         memcpy(writeTo, readFrom, numberCharsToCopy);
