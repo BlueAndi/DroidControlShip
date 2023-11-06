@@ -52,6 +52,7 @@
  *****************************************************************************/
 
 static void testWStringReplacement(void);
+static void testWStringAppend(void);
 
 /******************************************************************************
  * Local Variables
@@ -84,6 +85,7 @@ extern int main(int argc, char** argv)
     UNITY_BEGIN();
 
     RUN_TEST(testWStringReplacement);
+    RUN_TEST(testWStringAppend);
 
     return UNITY_END();
 }
@@ -109,7 +111,7 @@ extern void tearDown(void)
  *****************************************************************************/
 
 /**
- * Test WString functions.
+ * Test WString replace.
  */
 static void testWStringReplacement(void)
 {
@@ -137,6 +139,27 @@ static void testWStringReplacement(void)
     tester = String(original);
     tester.replace(" ", "");
     TEST_ASSERT_EQUAL_STRING("Iamalongstringthatwillfeaturesomereplacements!", tester.c_str());
+
+    return;
+}
+
+/**
+ * Test WString += implementation.
+ */
+static void testWStringAppend(void)
+{
+    String original = String("Im short");
+    char* classic = new char[4];
+    classic[0] = 'H';
+    classic[1] = 'I';
+    classic[2] = '!';
+    classic[3] = '\0';
+
+    original += String("- first amendment -");
+    original += classic;
+    original += '-';
+
+    TEST_ASSERT_EQUAL_STRING("Im short- first amendment -HI!-", original.c_str());
 
     return;
 }
