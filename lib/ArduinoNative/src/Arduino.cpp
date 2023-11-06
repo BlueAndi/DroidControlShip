@@ -325,11 +325,13 @@ static int createConfigFile(const PrgArguments& prgArgs)
             }
             else
             {
+                const char* robotName      = (nullptr != prgArgs.robotName) ? prgArgs.robotName : "";
                 const char* wifiSSID       = "";
                 const char* wifiPassphrase = "";
                 const char* mqttHost  = (nullptr != prgArgs.socketServerAddress) ? prgArgs.socketServerAddress : "";
                 const char* mqttPort  = (nullptr != prgArgs.socketServerPort) ? prgArgs.socketServerPort : "1883";
                 const char* formatStr = "{\n"
+                                        "    \"robotName\": \"%s\",\n"
                                         "    \"WIFI\": {\n"
                                         "        \"SSID\": \"%s\",\n"
                                         "        \"PSWD\": \"%s\"\n"
@@ -340,7 +342,7 @@ static int createConfigFile(const PrgArguments& prgArgs)
                                         "    }\n"
                                         "}\n";
 
-                fprintf(fd, formatStr, wifiSSID, wifiPassphrase, mqttHost, mqttPort);
+                fprintf(fd, formatStr, robotName, wifiSSID, wifiPassphrase, mqttHost, mqttPort);
                 fclose(fd);
             }
         }

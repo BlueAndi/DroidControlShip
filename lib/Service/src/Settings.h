@@ -68,19 +68,13 @@ public:
     }
 
     /**
-     * Get status of configuration loaded.
-     */
-    bool isConfigLoaded() const;
-
-    /**
      * Loads the configuration from a file.
      *
      * @param[in] filename Name of file to read.
-     * @param[in] robotName Name of the robot, which configuration to choose.
      *
      * @returns true if configuration succesfully loaded. Otherwise, false.
      */
-    bool loadConfigurationFile(const String& filename, const String& robotName);
+    bool loadConfigurationFile(const String& filename);
 
     /**
      * Get robot name.
@@ -90,6 +84,16 @@ public:
     const String& getRobotName()
     {
         return m_robotName;
+    }
+
+    /**
+     * Set the robot name.
+     * 
+     * @param[in] robotName The robot name.
+     */
+    void setRobotName(const String& robotName)
+    {
+        m_robotName = robotName;
     }
 
     /**
@@ -133,10 +137,6 @@ public:
     }
 
 private:
-    /**
-     * Configuration loaded flag.
-     */
-    bool m_configLoaded;
 
     /**
      * Instance Name.
