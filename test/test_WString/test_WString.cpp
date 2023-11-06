@@ -140,6 +140,11 @@ static void testWStringReplacement(void)
     tester.replace(" ", "");
     TEST_ASSERT_EQUAL_STRING("Iamalongstringthatwillfeaturesomereplacements!", tester.c_str());
 
+    /* test original empty string */
+    tester = String("");
+    tester.replace("never", "happens");
+    TEST_ASSERT_EQUAL_STRING("", tester.c_str());
+
     return;
 }
 
@@ -149,11 +154,11 @@ static void testWStringReplacement(void)
 static void testWStringAppend(void)
 {
     String original = String("Im short");
-    char* classic = new char[4];
-    classic[0] = 'H';
-    classic[1] = 'I';
-    classic[2] = '!';
-    classic[3] = '\0';
+    char*  classic  = new char[4];
+    classic[0]      = 'H';
+    classic[1]      = 'I';
+    classic[2]      = '!';
+    classic[3]      = '\0';
 
     original += String("- first amendment -");
     original += classic;
@@ -161,5 +166,7 @@ static void testWStringAppend(void)
 
     TEST_ASSERT_EQUAL_STRING("Im short- first amendment -HI!-", original.c_str());
 
-    return;
+    String tester = String("");
+    tester += "Im new";
+    TEST_ASSERT_EQUAL_STRING("Im new", tester.c_str());
 }
