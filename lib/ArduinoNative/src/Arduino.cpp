@@ -59,6 +59,8 @@
 typedef struct
 {
     const char* robotName;           /**< Unique robot name */
+    const char* mqttHost;            /**< MQTT host */
+    const char* mqttPort;            /**< MQTT port */
     const char* socketServerAddress; /**< Socket server address */
     const char* socketServerPort;    /**< Socket server port */
 
@@ -219,6 +221,8 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
 
     /* Set default values */
     prgArguments.robotName           = nullptr;
+    prgArguments.mqttHost            = nullptr;
+    prgArguments.mqttPort            = nullptr;
     prgArguments.socketServerAddress = nullptr;
     prgArguments.socketServerPort    = nullptr;
 
@@ -328,19 +332,19 @@ static int createConfigFile(const PrgArguments& prgArgs)
                 const char* robotName      = (nullptr != prgArgs.robotName) ? prgArgs.robotName : "";
                 const char* wifiSSID       = "";
                 const char* wifiPassphrase = "";
-                const char* mqttHost  = (nullptr != prgArgs.socketServerAddress) ? prgArgs.socketServerAddress : "";
-                const char* mqttPort  = (nullptr != prgArgs.socketServerPort) ? prgArgs.socketServerPort : "1883";
-                const char* formatStr = "{\n"
-                                        "    \"robotName\": \"%s\",\n"
-                                        "    \"WIFI\": {\n"
-                                        "        \"SSID\": \"%s\",\n"
-                                        "        \"PSWD\": \"%s\"\n"
-                                        "    },\n"
-                                        "    \"MQTT\": {\n"
-                                        "        \"HOST\": \"%s\",\n"
-                                        "        \"PORT\": %s\n"
-                                        "    }\n"
-                                        "}\n";
+                const char* mqttHost       = (nullptr != prgArgs.mqttHost) ? prgArgs.mqttHost : "localhost";
+                const char* mqttPort       = (nullptr != prgArgs.mqttPort) ? prgArgs.mqttPort : "1883";
+                const char* formatStr      = "{\n"
+                                             "    \"robotName\": \"%s\",\n"
+                                             "    \"WIFI\": {\n"
+                                             "        \"SSID\": \"%s\",\n"
+                                             "        \"PSWD\": \"%s\"\n"
+                                             "    },\n"
+                                             "    \"MQTT\": {\n"
+                                             "        \"HOST\": \"%s\",\n"
+                                             "        \"PORT\": %s\n"
+                                             "    }\n"
+                                             "}\n";
 
                 fprintf(fd, formatStr, robotName, wifiSSID, wifiPassphrase, mqttHost, mqttPort);
                 fclose(fd);
