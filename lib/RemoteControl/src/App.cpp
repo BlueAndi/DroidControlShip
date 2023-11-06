@@ -38,6 +38,7 @@
 #include <Util.h>
 #include <Settings.h>
 #include <ArduinoJson.h>
+#include <WiFi.h>
 #include "SerialMuxChannels.h"
 
 /******************************************************************************
@@ -121,11 +122,16 @@ void App::setup()
     {
         if (false == Settings::getInstance().isConfigLoaded())
         {
+            String robotName = WiFi.macAddress();
+
+            /* Remove MAC separators from robot name. */
+            robotName.replace(":", "");
+
             /* Settings shall be loaded from configuration file. */
-            if (false == Settings::getInstance().loadConfigurationFile(CONFIG_FILE_PATH))
+            if (false == Settings::getInstance().loadConfigurationFile(CONFIG_FILE_PATH, robotName))
             {
                 /* Log Settings error */
-                LOG_ERROR("Settings could not be loaded from file. ");
+                LOG_FATAL("Settings could not be loaded from file. ");
                 fatalErrorHandler();
             }
             else
@@ -157,7 +163,7 @@ void App::setup()
         NetworkSettings settings = {ssid, password, clientId, String("")};
         if (false == Board::getInstance().getNetwork().setConfig(settings))
         {
-            LOG_ERROR("Network Configuration could not be set.");
+            LOG_FATAL("Network Configuration could not be set.");
             fatalErrorHandler();
         }
 
@@ -172,7 +178,7 @@ void App::setup()
                                      birthMessage, TOPIC_NAME_WILL, birthMessage, true};
         if (false == m_mqttClient.setConfig(mqttSettings))
         {
-            LOG_ERROR("MQTT Configuration could not be set.");
+            LOG_FATAL("MQTT Configuration could not be set.");
             fatalErrorHandler();
         }
 
@@ -180,7 +186,7 @@ void App::setup()
         if (false ==
             m_mqttClient.subscribe(TOPIC_NAME_CMD, [this](const String& payload) { cmdTopicCallback(payload); }))
         {
-            LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_CMD);
+            LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_CMD);
             fatalErrorHandler();
         }
 
@@ -188,7 +194,7 @@ void App::setup()
         if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS,
                                             [this](const String& payload) { motorSpeedsTopicCallback(payload); }))
         {
-            LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
+            LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
             fatalErrorHandler();
         }
     }

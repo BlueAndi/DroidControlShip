@@ -72,15 +72,17 @@ Network::~Network()
 bool Network::init()
 {
     bool isSuccess = true;
+
     if (STATE_UNINITIALIZED != m_state)
     {
-        isSuccess == false;
+        isSuccess = false;
     }
     else
     {
         m_state = STATE_SETUP;
     }
-    return true;
+
+    return isSuccess;
 }
 
 bool Network::process()
@@ -93,6 +95,7 @@ bool Network::process()
         /* Nothing to do. */
         isSuccess = true;
         break;
+    
     case STATE_SETUP:
         isSuccess = handleStationSetup();
         break;
@@ -176,6 +179,7 @@ bool Network::handleStationSetup()
 bool Network::handleConnectingState()
 {
     wl_status_t currentStatus = WiFi.status();
+
     if (WL_CONNECTED == currentStatus)
     {
         if (true == m_wifiTimeoutTimer.isTimerRunning())
@@ -183,6 +187,7 @@ bool Network::handleConnectingState()
             /* Stop timer. */
             m_wifiTimeoutTimer.stop();
         }
+
         LOG_DEBUG("WiFi connection established successfully with %s.", m_wiFiSSID);
         m_state = STATE_CONNECTED;
     }
@@ -193,6 +198,7 @@ bool Network::handleConnectingState()
             /* Stop timer. */
             m_wifiTimeoutTimer.stop();
         }
+
         LOG_DEBUG("Cannot find network with provided SSID (%s).", m_wiFiSSID);
         m_state = STATE_DISCONNECTED;
     }
@@ -213,6 +219,7 @@ bool Network::handleConnectingState()
             /* WiFi is connecting. Do nothing. */
         }
     }
+
     return true;
 }
 
@@ -233,6 +240,7 @@ bool Network::switchToAPMode()
     {
         m_state = STATE_AP_SETUP;
     }
+    
     return true;
 }
 

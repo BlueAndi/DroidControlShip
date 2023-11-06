@@ -35,7 +35,6 @@
 #include "Settings.h"
 #include <ArduinoJson.h>
 #include <Logging.h>
-#include <WiFi.h>
 
 /******************************************************************************
  * Macros
@@ -58,7 +57,7 @@ bool Settings::isConfigLoaded() const
     return m_configLoaded;
 }
 
-bool Settings::loadConfigurationFile(const String& filename)
+bool Settings::loadConfigurationFile(const String& filename, const String& robotName)
 {
     const uint32_t                    maxBufferSize = 1024;
     StaticJsonDocument<maxBufferSize> doc;
@@ -67,12 +66,9 @@ bool Settings::loadConfigurationFile(const String& filename)
     /* Ignore previously saved configuration. */
     m_configLoaded = false;
 
-    /* Generate name based on MAC Address. */
-    String macAddress = WiFi.macAddress();
-
-    if (true == macAddress.isEmpty())
+    if (true == robotName.isEmpty())
     {
-        LOG_ERROR("Unable to get device MAC Address");
+        LOG_ERROR("Robot name is required.");
     }
     else if (0U == m_fileReader.readFile(filename, buffer, maxBufferSize))
     {
@@ -88,36 +84,50 @@ bool Settings::loadConfigurationFile(const String& filename)
         }
         else
         {
-            /* Remove separators. */
-            macAddress.remove(14, 1);
-            macAddress.remove(11, 1);
-            macAddress.remove(8, 1);
-            macAddress.remove(5, 1);
-            macAddress.remove(2, 1);
+            JsonVariantConst    jsonWifiSsid    = doc["WIFI"]["SSID"];
+            JsonVariantConst    jsonWifiPswd    = doc["WIFI"]["PSWD"];
+            JsonVariantConst    jsonMqttHost    = doc["MQTT"]["HOST"];
+            JsonVariantConst    jsonMqttPort    = doc["MQTT"]["PORT"];
 
-            /* Set name. */
-            m_robotName         = macAddress;
-            m_wifiSSID          = doc["WIFI"]["SSID"].as<const char*>();
-            m_wifiPassword      = doc["WIFI"]["PSWD"].as<const char*>();
-            m_mqttBrokerAddress = doc["MQTT"]["HOST"].as<const char*>();
-            m_mqttPort          = doc["MQTT"]["PORT"].as<uint16_t>();
-            m_configLoaded      = true;
+            m_robotName = robotName;
+
+            if (false == jsonWifiSsid.isNull())
+            {
+                m_wifiSSID = jsonWifiSsid.as<const char*>();
+            }
+
+            if (false == jsonWifiPswd.isNull())
+            {
+                m_wifiPassword = jsonWifiPswd.as<const char*>();
+            }
+
+            if (false == jsonMqttHost.isNull())
+            {
+                m_mqttBrokerAddress = jsonMqttHost.as<const char*>();
+            }
+
+            if (false == jsonMqttPort.isNull())
+            {
+                m_mqttPort = jsonMqttPort.as<uint16_t>();
+            }
+
+            m_configLoaded = true;
         }
     }
 
     return m_configLoaded;
 }
 
-bool Settings::setConfiguration(const String& instanceName, const String& networkSSID, const String& networkPassword,
+bool Settings::setConfiguration(const String& robotName, const String& networkSSID, const String& networkPassword,
                                 const String& mqttBrokerAddress, uint16_t mqttPort)
 {
-    if (true == instanceName.isEmpty())
+    if (true == robotName.isEmpty())
     {
-        LOG_ERROR("Instance name is not allowed to be empty.");
+        LOG_ERROR("Robot name is not allowed to be empty.");
     }
     else
     {
-        m_robotName         = instanceName;
+        m_robotName         = robotName;
         m_wifiSSID          = networkSSID;
         m_wifiPassword      = networkPassword;
         m_mqttBrokerAddress = mqttBrokerAddress;
@@ -134,10 +144,10 @@ bool Settings::setConfiguration(const String& instanceName, const String& networ
 
 Settings::Settings() :
     m_configLoaded(false),
-    m_robotName(""),
-    m_wifiSSID(""),
-    m_wifiPassword(""),
-    m_mqttBrokerAddress(""),
+    m_robotName(),
+    m_wifiSSID(),
+    m_wifiPassword(),
+    m_mqttBrokerAddress(),
     m_mqttPort(0U),
     m_fileReader()
 {

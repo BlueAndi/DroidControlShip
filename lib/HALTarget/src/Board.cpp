@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Network realization
+ * @brief  The target board realization.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Network.h"
-#include <Logging.h>
+#include "Board.h"
+#include "GPIO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -52,6 +52,10 @@
  *****************************************************************************/
 
 /******************************************************************************
+ * Global Variables
+ *****************************************************************************/
+
+/******************************************************************************
  * Local Variables
  *****************************************************************************/
 
@@ -59,78 +63,62 @@
  * Public Methods
  *****************************************************************************/
 
-Network::Network() : INetwork(), m_state(STATE_UNINITIALIZED), m_configSet(false)
+bool Board::init()
 {
-}
+    bool isReady = false;
 
-Network::~Network()
-{
-}
+    GpioPins::init();
 
-bool Network::init()
-{
-    bool isSuccess = true;
+    /* Turn LEDs off. */
+    m_ledRed.enable(false);
+    m_ledGreen.enable(false);
+    m_ledBlue.enable(false);
 
-    if (STATE_UNINITIALIZED != m_state)
+    if (false == ButtonDrv::getInstance().init())
     {
-        isSuccess = false;
+        /* Log Button Driver error */
+        LOG_ERROR("Button driver initialization failed.");
+    }
+    else if (false == m_device.init())
+    {
+        /* Log Device error */
+        LOG_ERROR("Device initialization failed.");
+    }
+    else if (false == m_network.init())
+    {
+        /* Log Network error */
+        LOG_ERROR("Network initialization failed.");
     }
     else
     {
-        m_state = STATE_SETUP;
+        /* Ready */
+        isReady = true;
     }
 
-    return isSuccess;
+    return isReady;
 }
 
-bool Network::process()
+bool Board::process()
 {
     bool isSuccess = false;
 
-    switch (m_state)
+    if (false == m_device.process())
     {
-    case STATE_UNINITIALIZED:
-        /* Nothing to do. */
+        /* Log Device error */
+        LOG_ERROR("Device process failed.");
+    }
+    else if (false == m_network.process())
+    {
+        /* Log Network error */
+        LOG_ERROR("Network process failed.");
+    }
+    else
+    {
+        /* No Errors */
         isSuccess = true;
-        break;
-
-    case STATE_SETUP:
-        isSuccess = handleStationSetup();
-        break;
-
-    case STATE_CONNECTING:
-        isSuccess = handleConnectingState();
-        break;
-
-    case STATE_CONNECTED:
-        isSuccess = manageConnection();
-        break;
-
-    case STATE_DISCONNECTED:
-        isSuccess = switchToAPMode();
-        break;
-
-    case STATE_AP_SETUP:
-        isSuccess = handleAPSetup();
-        break;
-
-    case STATE_AP_UP:
-        isSuccess = handleAPState();
-        break;
-
-    default:
-        /* Should never be called - defensive code. */
-        break;
     }
 
     return isSuccess;
-}
-
-bool Network::setConfig(const NetworkSettings& settings)
-{
-    /* Settings have no effect in the Sim but have to be set nonetheless. */
-    m_configSet = true;
-    return m_configSet;
 }
 
 /******************************************************************************
@@ -140,49 +128,6 @@ bool Network::setConfig(const NetworkSettings& settings)
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-bool Network::handleStationSetup()
-{
-    if (true == m_configSet)
-    {
-        m_state = STATE_CONNECTING;
-    }
-
-    return (STATE_CONNECTING == m_state);
-}
-
-bool Network::handleConnectingState()
-{
-    /* Act like a connection was successfully established in Sim. */
-    m_state = STATE_CONNECTED;
-    return true;
-}
-
-bool Network::manageConnection()
-{
-    /* Do nothing in Sim. */
-    return (STATE_CONNECTED == m_state);
-}
-
-bool Network::switchToAPMode()
-{
-    /* Don't need to handle AP mod ein Sim. */
-    m_state = STATE_AP_SETUP;
-    return true;
-}
-
-bool Network::handleAPSetup()
-{
-    /* Don't need to handle AP mod ein Sim. */
-    m_state = STATE_AP_UP;
-    return true;
-}
-
-bool Network::handleAPState()
-{
-    /* Don't need to handle AP mod ein Sim. */
-    return true;
-}
 
 /******************************************************************************
  * External Functions

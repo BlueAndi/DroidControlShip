@@ -115,6 +115,10 @@ extern int main(int argc, char** argv)
     int          status = 0;
     PrgArguments prgArguments;
 
+    /* Remove any buffering from stout and stderr to get the printed information immediately. */
+    (void)setvbuf(stdout, NULL, _IONBF, 0);
+    (void)setvbuf(stderr, NULL, _IONBF, 0);
+
     status = handleCommandLineArguments(prgArguments, argc, argv);
 
     /*
