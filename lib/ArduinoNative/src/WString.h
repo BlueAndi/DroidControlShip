@@ -300,9 +300,10 @@ public:
 
     String& operator+=(const char* cstr)
     {
+        size_t cstrLen = (nullptr != cstr) ? strlen(cstr) : 0U;
         if (nullptr != cstr)
         {
-            char* tmp = new char[m_size + strlen(cstr)];
+            char* tmp = new char[m_size + cstrLen];
 
             if (nullptr != tmp)
             {
@@ -311,7 +312,7 @@ public:
 
                 delete[] m_buffer;
                 m_buffer = tmp;
-                m_size   = m_size + strlen(cstr);
+                m_size   = m_size + cstrLen;
             }
         }
 
