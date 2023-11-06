@@ -83,20 +83,6 @@ public:
     bool loadConfigurationFile(const String& filename, const String& robotName);
 
     /**
-     * Set configuration manually.
-     *
-     * @param[in] robotName Robot name.
-     * @param[in] wifiSSID WiFi SSID.
-     * @param[in] wifiPassword WiFi password.
-     * @param[in] mqttBrokerAddress MQTT Broker IP/HOST.
-     * @param[in] mqttPort MQTT Broker Port.
-     *
-     * @returns true if configuration succesfully loaded. Otherwise, false.
-     */
-    bool setConfiguration(const String& robotName, const String& wifiSSID, const String& wifiPassword,
-                          const String& mqttBrokerAddress, uint16_t mqttPort);
-
-    /**
      * Get robot name.
      *
      * @returns Robot name.

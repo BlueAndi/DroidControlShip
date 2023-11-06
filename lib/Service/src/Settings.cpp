@@ -118,26 +118,6 @@ bool Settings::loadConfigurationFile(const String& filename, const String& robot
     return m_configLoaded;
 }
 
-bool Settings::setConfiguration(const String& robotName, const String& networkSSID, const String& networkPassword,
-                                const String& mqttBrokerAddress, uint16_t mqttPort)
-{
-    if (true == robotName.isEmpty())
-    {
-        LOG_ERROR("Robot name is not allowed to be empty.");
-    }
-    else
-    {
-        m_robotName         = robotName;
-        m_wifiSSID          = networkSSID;
-        m_wifiPassword      = networkPassword;
-        m_mqttBrokerAddress = mqttBrokerAddress;
-        m_mqttPort          = mqttPort;
-        m_configLoaded      = true;
-    }
-
-    return m_configLoaded;
-}
-
 /******************************************************************************
  * Private Methods
  *****************************************************************************/

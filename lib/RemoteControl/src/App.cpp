@@ -131,13 +131,13 @@ void App::setup()
             if (false == Settings::getInstance().loadConfigurationFile(CONFIG_FILE_PATH, robotName))
             {
                 /* Log Settings error */
-                LOG_FATAL("Settings could not be loaded from file. ");
+                LOG_FATAL("Settings could not be loaded from %s.", CONFIG_FILE_PATH);
                 fatalErrorHandler();
             }
             else
             {
                 /* Log Settings loaded */
-                LOG_DEBUG("Settings loaded from file.");
+                LOG_DEBUG("Settings loaded from %s.", CONFIG_FILE_PATH);
             }
         }
         else
@@ -163,7 +163,7 @@ void App::setup()
         NetworkSettings settings = {ssid, password, clientId, String("")};
         if (false == Board::getInstance().getNetwork().setConfig(settings))
         {
-            LOG_FATAL("Network Configuration could not be set.");
+            LOG_FATAL("Network configuration could not be set.");
             fatalErrorHandler();
         }
 
@@ -178,7 +178,7 @@ void App::setup()
                                      birthMessage, TOPIC_NAME_WILL, birthMessage, true};
         if (false == m_mqttClient.setConfig(mqttSettings))
         {
-            LOG_FATAL("MQTT Configuration could not be set.");
+            LOG_FATAL("MQTT configuration could not be set.");
             fatalErrorHandler();
         }
 
@@ -186,7 +186,7 @@ void App::setup()
         if (false ==
             m_mqttClient.subscribe(TOPIC_NAME_CMD, [this](const String& payload) { cmdTopicCallback(payload); }))
         {
-            LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_CMD);
+            LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_CMD);
             fatalErrorHandler();
         }
 
@@ -194,7 +194,7 @@ void App::setup()
         if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS,
                                             [this](const String& payload) { motorSpeedsTopicCallback(payload); }))
         {
-            LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
+            LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
             fatalErrorHandler();
         }
     }
@@ -278,7 +278,7 @@ void App::motorSpeedsTopicCallback(const String& payload)
 
     if (error != DeserializationError::Ok)
     {
-        LOG_ERROR("JSON Deserialization Error %d.", error);
+        LOG_ERROR("JSON deserialization error %d.", error);
     }
     else
     {
