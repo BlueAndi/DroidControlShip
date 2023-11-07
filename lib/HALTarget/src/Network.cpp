@@ -95,7 +95,7 @@ bool Network::process()
         /* Nothing to do. */
         isSuccess = true;
         break;
-
+    
     case STATE_SETUP:
         isSuccess = handleStationSetup();
         break;
@@ -240,7 +240,7 @@ bool Network::switchToAPMode()
     {
         m_state = STATE_AP_SETUP;
     }
-
+    
     return true;
 }
 
