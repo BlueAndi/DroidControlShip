@@ -41,6 +41,7 @@
 #include <Device.h>
 #include <getopt.h>
 #include <direct.h>
+#include <ArduinoJson.h>
 #endif
 
 /******************************************************************************
@@ -413,20 +414,24 @@ static int createConfigFile(const PrgArguments& prgArgs)
             }
             else
             {
-                const char* formatStr = "{\n"
-                                        "    \"robotName\": \"%s\",\n"
-                                        "    \"WIFI\": {\n"
-                                        "        \"SSID\": \"%s\",\n"
-                                        "        \"PSWD\": \"%s\"\n"
-                                        "    },\n"
-                                        "    \"MQTT\": {\n"
-                                        "        \"HOST\": \"%s\",\n"
-                                        "        \"PORT\": %s\n"
-                                        "    }\n"
-                                        "}\n";
+                const size_t        JSON_DOC_SIZE = 2048U;
+                DynamicJsonDocument jsonDoc(JSON_DOC_SIZE);
 
-                fprintf(fd, formatStr, prgArgs.robotName, WIFI_SSID_DEFAULT, WIFI_PASSPHRASE_DEFAULT, prgArgs.mqttHost,
-                        prgArgs.mqttPort);
+                jsonDoc["robotName"]    = prgArgs.robotName;
+                jsonDoc["WIFI"]["SSID"] = WIFI_SSID_DEFAULT;
+                jsonDoc["WIFI"]["PSWD"] = WIFI_PASSPHRASE_DEFAULT;
+                jsonDoc["MQTT"]["HOST"] = prgArgs.mqttHost;
+                jsonDoc["MQTT"]["PORT"] = prgArgs.mqttPort;
+
+                {
+                    size_t jsonBufferSize = measureJsonPretty(jsonDoc) + 1U;
+                    char   jsonBuffer[jsonBufferSize];
+
+                    (void)serializeJsonPretty(jsonDoc, jsonBuffer, jsonBufferSize);
+
+                    fprintf(fd, "%s", jsonBuffer);
+                }
+
                 fclose(fd);
             }
         }
