@@ -125,7 +125,7 @@ static const char* PRG_ARG_MQTT_PORT_DEFAULT = "1883";
 static const char* PRG_ARG_RADON_ULZER_ADDR_DEFAULT = "localhost";
 
 /** Program argument default value of the Radon Ulzer port. */
-static const char* PRG_ARG_RADON_ULZER_PORT_DEFAULT = "1883";
+static const char* PRG_ARG_RADON_ULZER_PORT_DEFAULT = "65432";
 
 /** Program argument default value of the configuration file. */
 static const char* PRG_ARG_CFG_FILE_DEFAULT = "config/config.json";
