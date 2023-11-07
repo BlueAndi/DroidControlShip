@@ -58,11 +58,12 @@
 /** This type defines the possible program arguments. */
 typedef struct
 {
-    const char* robotName;           /**< Unique robot name */
-    const char* mqttHost;            /**< MQTT host */
-    const char* mqttPort;            /**< MQTT port */
-    const char* socketServerAddress; /**< Socket server address */
-    const char* socketServerPort;    /**< Socket server port */
+    const char* robotName;         /**< Unique robot name */
+    const char* mqttHost;          /**< MQTT broker host */
+    const char* mqttPort;          /**< MQTT broker port */
+    const char* radonUlzerAddress; /**< Radon Ulzer (socket) address */
+    const char* radonUlzerPort;    /**< Radon Ulzer (socket) port */
+    bool        verbose;           /**< Show verbose information */
 
 } PrgArguments;
 
@@ -73,6 +74,7 @@ typedef struct
 extern void setup();
 extern void loop();
 static int  handleCommandLineArguments(PrgArguments& prgArguments, int argc, char** argv);
+static void showPrgArguments(const PrgArguments& prgArgs);
 static bool fileExists(const char* filePath);
 static int  createConfigFile(const PrgArguments& prgArgs);
 static int  makeDirRecursively(const char* path);
@@ -87,6 +89,38 @@ static Terminal gTerminalStream;
 
 /** Serial driver, used by Arduino applications. */
 Serial_ Serial(gTerminalStream);
+
+/** Supported long program arguments. */
+static const struct option LONG_OPTIONS[] = {{"help", no_argument, nullptr, 0},
+                                             {"mqttAddr", required_argument, nullptr, 0},
+                                             {"mqttPort", required_argument, nullptr, 0},
+                                             {"radonUlzerAddr", required_argument, nullptr, 0},
+                                             {"radonUlzerPort", required_argument, nullptr, 0},
+                                             {nullptr, no_argument, nullptr, 0}}; /* Marks the end. */
+
+/** Program argument default value of the robot name. */
+static const char* PRG_ARG_ROBOT_NAME_DEFAULT = "";
+
+/** Program argument default value of the MQTT broker address. */
+static const char* PRG_ARG_MQTT_ADDR_DEFAULT = "localhost";
+
+/** Program argument default value of the MQTT broker port. */
+static const char* PRG_ARG_MQTT_PORT_DEFAULT = "1883";
+
+/** Program argument default value of the Radon Ulzer address. */
+static const char* PRG_ARG_RADON_ULZER_ADDR_DEFAULT = "localhost";
+
+/** Program argument default value of the Radon Ulzer port. */
+static const char* PRG_ARG_RADON_ULZER_PORT_DEFAULT = "1883";
+
+/** Program argument default value of the verbose flag. */
+static bool PRG_ARG_VERBOSE_DEFAULT = false;
+
+/** Default value of the wifi SSID. */
+static const char* WIFI_SSID_DEFAULT = "";
+
+/** Default value of the wifi passphrase. */
+static const char* WIFI_PASSPHRASE_DEFAULT = "";
 
 /******************************************************************************
  * Public Methods
@@ -121,6 +155,8 @@ extern int main(int argc, char** argv)
     int          status = 0;
     PrgArguments prgArguments;
 
+    printf("*** Droid Control Ship ***\n");
+
     /* Remove any buffering from stout and stderr to get the printed information immediately. */
     (void)setvbuf(stdout, NULL, _IONBF, 0);
     (void)setvbuf(stderr, NULL, _IONBF, 0);
@@ -129,6 +165,12 @@ extern int main(int argc, char** argv)
 
     if (0 == status)
     {
+        /* Show used arguments only in verbose mode. */
+        if (true == prgArguments.verbose)
+        {
+            showPrgArguments(prgArguments);
+        }
+
         /* If no configuration file exists, create one. */
         if (false == fileExists(CONFIG_FILE_PATH))
         {
@@ -142,7 +184,7 @@ extern int main(int argc, char** argv)
              * Uses the Device Native Interface IDeviceNative instead of IDevice from HALInterfaces.
              */
             IDeviceNative& deviceNativeInterface = Board::getInstance().getDeviceNative();
-            deviceNativeInterface.setServer(prgArguments.socketServerAddress, prgArguments.socketServerPort);
+            deviceNativeInterface.setServer(prgArguments.radonUlzerAddress, prgArguments.radonUlzerPort);
 
             setup();
 
@@ -215,39 +257,57 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
 static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char** argv)
 {
     int         status           = 0;
-    const char* availableOptions = "n:a:p:h";
+    const char* availableOptions = "n:v";
     const char* programName      = argv[0];
-    int         option           = getopt(argc, argv, availableOptions);
+    int         optionIndex      = 0;
+    int         option           = getopt_long(argc, argv, availableOptions, LONG_OPTIONS, &optionIndex);
 
     /* Set default values */
-    prgArguments.robotName           = nullptr;
-    prgArguments.mqttHost            = nullptr;
-    prgArguments.mqttPort            = nullptr;
-    prgArguments.socketServerAddress = nullptr;
-    prgArguments.socketServerPort    = nullptr;
+    prgArguments.robotName         = PRG_ARG_ROBOT_NAME_DEFAULT;
+    prgArguments.mqttHost          = PRG_ARG_MQTT_ADDR_DEFAULT;
+    prgArguments.mqttPort          = PRG_ARG_MQTT_PORT_DEFAULT;
+    prgArguments.radonUlzerAddress = PRG_ARG_RADON_ULZER_ADDR_DEFAULT;
+    prgArguments.radonUlzerPort    = PRG_ARG_RADON_ULZER_PORT_DEFAULT;
+    prgArguments.verbose           = PRG_ARG_VERBOSE_DEFAULT;
 
     while ((-1 != option) && (0 == status))
     {
         switch (option)
         {
+        case 0: /* Long option */
+            if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "help"))
+            {
+                status = -1;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "mqttAddr"))
+            {
+                prgArguments.mqttHost = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "mqttPort"))
+            {
+                prgArguments.mqttPort;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "radonUlzerAddr"))
+            {
+                prgArguments.radonUlzerAddress = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "radonUlzerPort"))
+            {
+                prgArguments.radonUlzerPort;
+            }
+            else
+            {
+                status = -1;
+            }
+            break;
+
         case 'n': /* Name */
-            printf("Robot has been named \"%s\".\n", optarg);
             prgArguments.robotName = optarg;
             break;
 
-        case 'a': /* Address */
-        {
-            printf("Using Socket Client to connect to \"%s\".\n", optarg);
-            prgArguments.socketServerAddress = optarg;
+        case 'v': /* Verbose */
+            prgArguments.verbose = true;
             break;
-        }
-
-        case 'p': /* Port */
-        {
-            printf("Using Socket Client in Port \"%s\".\n", optarg);
-            prgArguments.socketServerPort = optarg;
-            break;
-        }
 
         case '?': /* Unknown */
             /* fallthrough */
@@ -256,18 +316,42 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             /* fallthrough */
 
         default: /* Default */
-            printf("Usage: %s <option(s)>\nOptions:\n", programName);
-            printf("\t-h\t\t\tShow this help message.\n");          /* Help */
-            printf("\t-p <PORT NUMBER>\tSet SocketServer port.\n"); /* Port */
-            printf("\t-n <NAME>\t\tSet instace name.");             /* Name */
             status = -1;
             break;
         }
 
-        option = getopt(argc, argv, availableOptions);
+        option = getopt_long(argc, argv, availableOptions, LONG_OPTIONS, &optionIndex);
+    }
+
+    /* Does the user need help? */
+    if (0 > status)
+    {
+        printf("Usage: %s <option(s)>\nOptions:\n", programName);
+        printf("\t-h, --help\t\t\tShow this help message.\n");                     /* Help */
+        printf("\t-n <NAME>\t\t\tSet robot name, which shall be unique.\n");       /* Robot name */
+        printf("\t-v\t\t\t\tSet verbose mode.\n");                                 /* Verbose mode */
+        printf("\t--mqttAddr <MQTT-ADDR>\t\tSet MQTT broker address.\n");          /* MQTT broker address */
+        printf("\t--mqttPort <MQTT-PORT>\t\tSet MQTT broker port.\n");             /* MQTT broker port */
+        printf("\t--radonUlzerAddr <RU-ADDR>\tSet Radon Ulzer server address.\n"); /* Radon Ulzer server address */
+        printf("\t--radonUlzerPort <RU-PORT>\tSet Radon Ulzer server port.\n");    /* Radon Ulzer server port */
     }
 
     return status;
+}
+
+/**
+ * Show program arguments on the console.
+ *
+ * @param[in] prgArgs   Program arguments
+ */
+static void showPrgArguments(const PrgArguments& prgArgs)
+{
+    printf("Robot name         : %s\n", prgArgs.robotName);
+    printf("MQTT broker address: %s\n", prgArgs.mqttHost);
+    printf("MQTT broker port   : %s\n", prgArgs.mqttPort);
+    printf("Radon Ulzer address: %s\n", prgArgs.radonUlzerAddress);
+    printf("Radon Ulzer port   : %s\n", prgArgs.radonUlzerPort);
+    /* Skip verbose flag. */
 }
 
 /**
@@ -329,24 +413,20 @@ static int createConfigFile(const PrgArguments& prgArgs)
             }
             else
             {
-                const char* robotName      = (nullptr != prgArgs.robotName) ? prgArgs.robotName : "";
-                const char* wifiSSID       = "";
-                const char* wifiPassphrase = "";
-                const char* mqttHost       = (nullptr != prgArgs.mqttHost) ? prgArgs.mqttHost : "localhost";
-                const char* mqttPort       = (nullptr != prgArgs.mqttPort) ? prgArgs.mqttPort : "1883";
-                const char* formatStr      = "{\n"
-                                             "    \"robotName\": \"%s\",\n"
-                                             "    \"WIFI\": {\n"
-                                             "        \"SSID\": \"%s\",\n"
-                                             "        \"PSWD\": \"%s\"\n"
-                                             "    },\n"
-                                             "    \"MQTT\": {\n"
-                                             "        \"HOST\": \"%s\",\n"
-                                             "        \"PORT\": %s\n"
-                                             "    }\n"
-                                             "}\n";
+                const char* formatStr = "{\n"
+                                        "    \"robotName\": \"%s\",\n"
+                                        "    \"WIFI\": {\n"
+                                        "        \"SSID\": \"%s\",\n"
+                                        "        \"PSWD\": \"%s\"\n"
+                                        "    },\n"
+                                        "    \"MQTT\": {\n"
+                                        "        \"HOST\": \"%s\",\n"
+                                        "        \"PORT\": %s\n"
+                                        "    }\n"
+                                        "}\n";
 
-                fprintf(fd, formatStr, robotName, wifiSSID, wifiPassphrase, mqttHost, mqttPort);
+                fprintf(fd, formatStr, prgArgs.robotName, WIFI_SSID_DEFAULT, WIFI_PASSPHRASE_DEFAULT, prgArgs.mqttHost,
+                        prgArgs.mqttPort);
                 fclose(fd);
             }
         }
