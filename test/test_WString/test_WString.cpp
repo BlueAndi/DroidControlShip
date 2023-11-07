@@ -146,8 +146,6 @@ static void testWStringReplacement(void)
     tester = String("");
     tester.replace("never", "happens");
     TEST_ASSERT_EQUAL_STRING("", tester.c_str());
-
-    return;
 }
 
 /**
@@ -156,7 +154,7 @@ static void testWStringReplacement(void)
 static void testWStringAppend(void)
 {
     String original = String("Im short");
-    char*  classic  = new char[4];
+    char classic[4];
     classic[0]      = 'H';
     classic[1]      = 'I';
     classic[2]      = '!';
