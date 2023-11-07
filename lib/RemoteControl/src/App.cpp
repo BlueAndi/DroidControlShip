@@ -126,9 +126,6 @@ void App::setup()
     }
     else
     {
-        NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
-                                           ""};
-
         /* If the robot name is empty, use the wifi MAC address as robot name. */
         if (true == settings.getRobotName().isEmpty())
         {
@@ -139,6 +136,9 @@ void App::setup()
 
             settings.setRobotName(robotName);
         }
+
+        NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
+                                           ""};
 
         if (false == Board::getInstance().getNetwork().setConfig(networkSettings))
         {
