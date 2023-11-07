@@ -25,38 +25,38 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Arduino native
+ * @brief  Fixpoint math
  * @author Andreas Merkle <web@blue-andi.de>
  *
- * @addtogroup HALSim
+ * @addtogroup utilities
  *
  * @{
  */
 
-#ifndef ARDUINO_H
-#define ARDUINO_H
+#ifndef FPMATH_H
+#define FPMATH_H
 
 /******************************************************************************
  * Compile Switches
  *****************************************************************************/
 
-#define _USE_MATH_DEFINES
-
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdio.h>
-#include "Stream.h"
-#include "WString.h"
-#include "Serial.h"
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
-#define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+/** Fixpoint PI [mrad] */
+#define FP_PI() (static_cast<int32_t>(1000.0f * PI))
 
-#define PI M_PI
+/** Fixpoint 2 * PI [mrad] */
+#define FP_2PI() (static_cast<int32_t>(2000.0f * PI))
+
+/** Convert value from mrad to deg. */
+#define MRAD2DEG(__mrad) ((static_cast<int32_t>(__mrad) * static_cast<int32_t>(360)) / FP_2PI())
 
 /******************************************************************************
  * Types and Classes
@@ -66,20 +66,10 @@
  * Functions
  *****************************************************************************/
 
-/**
- * Returns the number of milliseconds passed since the system start.
- *
- * @return The number of milliseconds.
- */
-extern unsigned long millis();
+namespace FPMath
+{
 
-/**
- * Delays the program for the specified amount of milliseconds. In the mean time the
- * simulation still steps to prevent an endless loop.
- *
- * @param[in] ms The amount of milliseconds that the program should be delayed by.
- */
-extern void delay(unsigned long ms);
+}
 
-#endif /* ARDUINO_H */
+#endif /* FPMATH_H */
 /** @} */
