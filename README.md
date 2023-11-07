@@ -26,6 +26,9 @@ The Droid Control Ship communicates with the [Radon Ulzer](https://github.com/Bl
   * [Installation](#installation)
     * [Simulation](#simulation)
     * [Target](#target)
+  * [How to start?](#how-to-start)
+    * [Simulation](#simulation-1)
+    * [Target](#target-1)
 * [Documentation](#documentation)
 * [Used Libraries](#used-libraries)
   * [Issues, Ideas And Bugs](#issues-ideas-and-bugs)
@@ -69,6 +72,22 @@ The simulation is based on the open source robot simulator *Webots*. The applica
 1. Make sure that the hardware version of your [ZumoComSystem](https://github.com/NewTec-GmbH/ZumoComSystem) is supported. Currently, only v1.1 and v1.2 are supported.
 2. Install the [drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) for the CP2102 USB-UART converter if required.
 
+## How to start?
+
+### Simulation
+After you built the application, you will find in in ```.pio/build/<APPLICATION-NAME>/program.exe```. It provides several command line arguments to configure certain features. Use -h or --help to get a short user friendly overview about them.
+
+The applications are using a configuration file in JSON format to retrieve certain settings. In the very first run, such a configuration file will be automatically be created. If there exists already one, it will be loaded without modifications (regardless of any other program arguments).
+
+The DroidControlShip will always try to connect to the RadonUlzer, therefore its important to have the RadonUlzer executable started first! And because the RadonUlzer executable will always connect to the Webots simulation, it shall run as well having a corresponding world loaded.
+
+Some applications require to have an MQTT server running, but it may depend on the kind of application you choose.
+
+TODO
+
+### Target
+
+TODO
 
 # Documentation
 
