@@ -511,7 +511,7 @@ public:
         unsigned int replaceLen = replace.length();
         unsigned int findLen    = find.length();
 
-        if ((0 == length()) || (0 == findLen))
+        if ((0 == length()) || (0 == findLen) || (nullptr == m_buffer))
         {
             /* return early if this or find pattern have length 0 */
             return;
