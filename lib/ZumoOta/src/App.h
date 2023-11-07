@@ -45,6 +45,8 @@
  *****************************************************************************/
 #include <Arduino.h>
 #include <Board.h>
+#include "FileManager.h"
+#include "WebServerCustom.h"
 
 /******************************************************************************
  * Macros
@@ -59,14 +61,14 @@ class App
 {
 public:
     /**
-     * Construct the convoy leader application.
+     * Construct the app  application.
      */
     App()
     {
     }
 
     /**
-     * Destroy the convoy leader application.
+     * Destroy the app  application.
      */
     ~App()
     {
@@ -81,6 +83,10 @@ public:
      * Process the application periodically.
      */
     void loop();
+
+private:
+
+    
 
 /******************************************************************************
  * Functions

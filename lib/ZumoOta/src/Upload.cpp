@@ -25,19 +25,14 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ZumoOta application
- * @author Decareme Pauline Ngangnou <ngandeca@yahoo.fr>
+ * @brief  Upload realization
+ * 
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "App.h"
-#include <Arduino.h>
-#include <WiFi.h>
-#include <ESPAsyncWebServer.h>  
-#include "FileManager.h"
-#include "WebServerCustom.h"
+#include "Upload.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -58,71 +53,22 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-WebServerCustom webserver;
-FileManager fileManager;
-Upload upload;
 
-/** Serial interface baudrate. */
-static const uint32_t SERIAL_BAUDRATE = 115200U;
-
-/*defines the WiFi Credentials*/
-const char* ssid = "Djokoh";
-const char* password = "djokep26nov2015";
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-void App::setup()
-{
-  Serial.begin(SERIAL_BAUDRATE);
-
-    // Access Point Modus start
-  /*WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, password);
-
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("Access Point IP-Adresse: ");
-  Serial.println(IP);*/
-
-  //Station Mode start
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.printf("WiFi Failed!\n");
-        return;
-    }
-
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
-
-    webserver.begin();
-    fileManager.createUploadPage();
-    
-    String pageContent = fileManager.readUploadPage();
-    
-    if (!pageContent.isEmpty()) { 
-      
-        webserver.on("/", HTTP_GET, [pageContent](AsyncWebServerRequest *request) {
-          request->send(200, "text/html", pageContent); 
-        });
-    }
-
-  webserver.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) {
-   upload.handleUploadButtonPress();
-    request->send(200, "text/plain", "Upload Button gedrueckt");
-});
+Upload::Upload() {
+   
 }
 
-void App::loop()
-{
+Upload::~Upload() {
     
 }
 
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
+void Upload::handleUploadButtonPress() {
+    Serial.println("Upload Button gedrueckt");
+}
 
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
+
 
