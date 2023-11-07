@@ -305,7 +305,7 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             }
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "mqttPort"))
             {
-                prgArguments.mqttPort;
+                prgArguments.mqttPort = optarg;
             }
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "radonUlzerAddr"))
             {
@@ -313,7 +313,7 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             }
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "radonUlzerPort"))
             {
-                prgArguments.radonUlzerPort;
+                prgArguments.radonUlzerPort = optarg;
             }
             else
             {
