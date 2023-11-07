@@ -43,7 +43,7 @@
  * Includes
  *****************************************************************************/
 #include <IBoard.h>
-#include <Logging.h>
+#include <WString.h>
 #include "Battery.h"
 #include "Button.h"
 #include "Device.h"
@@ -51,7 +51,6 @@
 #include "LedGreen.h"
 #include "LedRed.h"
 #include "Network.h"
-#include "MqttClient.h"
 
 /******************************************************************************
  * Macros
@@ -173,6 +172,16 @@ public:
         return m_network;
     }
 
+    /**
+     * Get the file path of the configuration (settings).
+     *
+     * @return Configuration file path
+     */
+    const String& getConfigFilePath() const
+    {
+        return m_configFilePath;
+    }
+
 protected:
 private:
     /** Battery driver */
@@ -196,10 +205,22 @@ private:
     /** Network driver */
     Network m_network;
 
+    /** Configuration file path */
+    String m_configFilePath;
+
     /**
      * Constructs the concrete board.
      */
-    Board() : IBoard(), m_battery(), m_button(), m_device(), m_ledBlue(), m_ledGreen(), m_ledRed(), m_network()
+    Board() :
+        IBoard(),
+        m_battery(),
+        m_button(),
+        m_device(),
+        m_ledBlue(),
+        m_ledGreen(),
+        m_ledRed(),
+        m_network(),
+        m_configFilePath(CONFIG_FILE_PATH)
     {
     }
 
@@ -209,6 +230,22 @@ private:
     virtual ~Board()
     {
     }
+
+    /**
+     * Set the file path of the configuration (settings).
+     *
+     * @param[in] configFilePath Configuration file path
+     */
+    void setConfigFilePath(const char* configFilePath)
+    {
+        m_configFilePath = configFilePath;
+    }
+
+    /* The main entry needs access to be able to set the configuration file path.
+     * But all other application parts shall have no access, which is
+     * solved by this friend.
+     */
+    friend int main(int argc, char** argv);
 };
 
 /******************************************************************************

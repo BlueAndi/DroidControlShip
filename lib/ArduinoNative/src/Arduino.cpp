@@ -56,6 +56,8 @@
  * Types and classes
  *****************************************************************************/
 
+#ifndef UNIT_TEST
+
 /** This type defines the possible program arguments. */
 typedef struct
 {
@@ -64,9 +66,12 @@ typedef struct
     const char* mqttPort;          /**< MQTT broker port */
     const char* radonUlzerAddress; /**< Radon Ulzer (socket) address */
     const char* radonUlzerPort;    /**< Radon Ulzer (socket) port */
+    const char* cfgFilePath;       /**< Configuration file path */
     bool        verbose;           /**< Show verbose information */
 
 } PrgArguments;
+
+#endif
 
 /******************************************************************************
  * Prototypes
@@ -74,12 +79,17 @@ typedef struct
 
 extern void setup();
 extern void loop();
+
+#ifndef UNIT_TEST
+
 static int  handleCommandLineArguments(PrgArguments& prgArguments, int argc, char** argv);
 static void showPrgArguments(const PrgArguments& prgArgs);
 static bool fileExists(const char* filePath);
 static int  createConfigFile(const PrgArguments& prgArgs);
 static int  makeDirRecursively(const char* path);
 static void extractDirectoryPath(const char* filePath, char* buffer, size_t bufferSize);
+
+#endif
 
 /******************************************************************************
  * Local Variables
@@ -91,8 +101,11 @@ static Terminal gTerminalStream;
 /** Serial driver, used by Arduino applications. */
 Serial_ Serial(gTerminalStream);
 
+#ifndef UNIT_TEST
+
 /** Supported long program arguments. */
 static const struct option LONG_OPTIONS[] = {{"help", no_argument, nullptr, 0},
+                                             {"cfgFilePath", required_argument, nullptr, 0},
                                              {"mqttAddr", required_argument, nullptr, 0},
                                              {"mqttPort", required_argument, nullptr, 0},
                                              {"radonUlzerAddr", required_argument, nullptr, 0},
@@ -114,6 +127,9 @@ static const char* PRG_ARG_RADON_ULZER_ADDR_DEFAULT = "localhost";
 /** Program argument default value of the Radon Ulzer port. */
 static const char* PRG_ARG_RADON_ULZER_PORT_DEFAULT = "1883";
 
+/** Program argument default value of the configuration file. */
+static const char* PRG_ARG_CFG_FILE_DEFAULT = "config/config.json";
+
 /** Program argument default value of the verbose flag. */
 static bool PRG_ARG_VERBOSE_DEFAULT = false;
 
@@ -122,6 +138,8 @@ static const char* WIFI_SSID_DEFAULT = "";
 
 /** Default value of the wifi passphrase. */
 static const char* WIFI_PASSPHRASE_DEFAULT = "";
+
+#endif
 
 /******************************************************************************
  * Public Methods
@@ -156,7 +174,7 @@ extern int main(int argc, char** argv)
     int          status = 0;
     PrgArguments prgArguments;
 
-    printf("*** Droid Control Ship ***\n");
+    printf("\n*** Droid Control Ship ***\n");
 
     /* Remove any buffering from stout and stderr to get the printed information immediately. */
     (void)setvbuf(stdout, NULL, _IONBF, 0);
@@ -173,19 +191,35 @@ extern int main(int argc, char** argv)
         }
 
         /* If no configuration file exists, create one. */
-        if (false == fileExists(CONFIG_FILE_PATH))
+        if (false == fileExists(prgArguments.cfgFilePath))
         {
+            if (true == prgArguments.verbose)
+            {
+                printf("Create config file %s.\n", prgArguments.cfgFilePath);
+            }
+
             status = createConfigFile(prgArguments);
+        }
+        else
+        {
+            if (true == prgArguments.verbose)
+            {
+                printf("Use existing config file %s.\n", prgArguments.cfgFilePath);
+            }
         }
 
         if (0 == status)
         {
-            /*
-             * Set Device Server from command line arguments.
+            Board::getInstance().setConfigFilePath(prgArguments.cfgFilePath);
+
+            /* Set Device Server from command line arguments.
              * Uses the Device Native Interface IDeviceNative instead of IDevice from HALInterfaces.
              */
             IDeviceNative& deviceNativeInterface = Board::getInstance().getDeviceNative();
             deviceNativeInterface.setServer(prgArguments.radonUlzerAddress, prgArguments.radonUlzerPort);
+
+            /* Print a empty line before the main application starts to print log messages. */
+            printf("\n");
 
             setup();
 
@@ -222,28 +256,7 @@ extern void delay(unsigned long ms)
  * Local Functions
  *****************************************************************************/
 
-#ifdef UNIT_TEST
-
-/**
- * Handle the arguments passed to the programm.
- *
- * @param[out]  prgArguments Parsed program arguments
- * @param[in]   argc         Program argument count
- * @param[in]   argv         Program argument vector
- *
- * @returns 0 if handling was succesful. Otherwise, -1
- */
-static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char** argv)
-{
-    /* Not implemented. */
-    (void)prgArguments;
-    (void)argc;
-    (void)argv;
-
-    return 0;
-}
-
-#else
+#ifndef UNIT_TEST
 
 /**
  * Handle the arguments passed to the programm.
@@ -264,11 +277,12 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
     int         option           = getopt_long(argc, argv, availableOptions, LONG_OPTIONS, &optionIndex);
 
     /* Set default values */
-    prgArguments.robotName         = PRG_ARG_ROBOT_NAME_DEFAULT;
+    prgArguments.cfgFilePath       = PRG_ARG_CFG_FILE_DEFAULT;
     prgArguments.mqttHost          = PRG_ARG_MQTT_ADDR_DEFAULT;
     prgArguments.mqttPort          = PRG_ARG_MQTT_PORT_DEFAULT;
     prgArguments.radonUlzerAddress = PRG_ARG_RADON_ULZER_ADDR_DEFAULT;
     prgArguments.radonUlzerPort    = PRG_ARG_RADON_ULZER_PORT_DEFAULT;
+    prgArguments.robotName         = PRG_ARG_ROBOT_NAME_DEFAULT;
     prgArguments.verbose           = PRG_ARG_VERBOSE_DEFAULT;
 
     while ((-1 != option) && (0 == status))
@@ -276,7 +290,12 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
         switch (option)
         {
         case 0: /* Long option */
-            if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "help"))
+
+            if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "cfgFilePath"))
+            {
+                prgArguments.cfgFilePath = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "help"))
             {
                 status = -1;
             }
@@ -331,6 +350,7 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
         printf("\t-h, --help\t\t\tShow this help message.\n");                     /* Help */
         printf("\t-n <NAME>\t\t\tSet robot name, which shall be unique.\n");       /* Robot name */
         printf("\t-v\t\t\t\tSet verbose mode.\n");                                 /* Verbose mode */
+        printf("\t--cfgFilePath <CFG-FILE>\tSet configuration file path.\n");      /* Configuration file path */
         printf("\t--mqttAddr <MQTT-ADDR>\t\tSet MQTT broker address.\n");          /* MQTT broker address */
         printf("\t--mqttPort <MQTT-PORT>\t\tSet MQTT broker port.\n");             /* MQTT broker port */
         printf("\t--radonUlzerAddr <RU-ADDR>\tSet Radon Ulzer server address.\n"); /* Radon Ulzer server address */
@@ -347,11 +367,12 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
  */
 static void showPrgArguments(const PrgArguments& prgArgs)
 {
-    printf("Robot name         : %s\n", prgArgs.robotName);
-    printf("MQTT broker address: %s\n", prgArgs.mqttHost);
-    printf("MQTT broker port   : %s\n", prgArgs.mqttPort);
-    printf("Radon Ulzer address: %s\n", prgArgs.radonUlzerAddress);
-    printf("Radon Ulzer port   : %s\n", prgArgs.radonUlzerPort);
+    printf("Configuration file path: %s\n", prgArgs.cfgFilePath);
+    printf("Robot name             : %s\n", prgArgs.robotName);
+    printf("MQTT broker address    : %s\n", prgArgs.mqttHost);
+    printf("MQTT broker port       : %s\n", prgArgs.mqttPort);
+    printf("Radon Ulzer address    : %s\n", prgArgs.radonUlzerAddress);
+    printf("Radon Ulzer port       : %s\n", prgArgs.radonUlzerPort);
     /* Skip verbose flag. */
 }
 
@@ -378,6 +399,8 @@ static bool fileExists(const char* filePath)
 
 /**
  * Create configuration settings file with program arguments.
+ * The location of the configuration settings is defined inside
+ * the program arguments!
  *
  * @param[in] prgArgs   Program arguments
  *
@@ -386,7 +409,7 @@ static bool fileExists(const char* filePath)
 static int createConfigFile(const PrgArguments& prgArgs)
 {
     int    retValue         = 0;
-    size_t len              = strlen(CONFIG_FILE_PATH);
+    size_t len              = strlen(prgArgs.cfgFilePath);
     char*  pathToConfigFile = new char[len + 1U];
 
     if (nullptr == pathToConfigFile)
@@ -396,16 +419,17 @@ static int createConfigFile(const PrgArguments& prgArgs)
     else
     {
         pathToConfigFile[0] = '\0';
-        extractDirectoryPath(CONFIG_FILE_PATH, pathToConfigFile, sizeof(pathToConfigFile));
+        extractDirectoryPath(prgArgs.cfgFilePath, pathToConfigFile, sizeof(pathToConfigFile));
 
-        if (0 != makeDirRecursively(pathToConfigFile))
+        if (('\0' != pathToConfigFile[0]) &&
+            (0 != makeDirRecursively(pathToConfigFile)))
         {
             printf("Failed to create config file directory.\n");
             retValue = -1;
         }
         else
         {
-            FILE* fd = fopen(CONFIG_FILE_PATH, "w");
+            FILE* fd = fopen(prgArgs.cfgFilePath, "w");
 
             if (nullptr == fd)
             {

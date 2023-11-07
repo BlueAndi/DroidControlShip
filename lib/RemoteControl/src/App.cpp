@@ -100,6 +100,7 @@ void App::setup()
 {
     bool      isSuccessful = false;
     Settings& settings     = Settings::getInstance();
+    Board&    board        = Board::getInstance();
 
     Serial.begin(SERIAL_BAUDRATE);
 
@@ -115,14 +116,14 @@ void App::setup()
     }
 
     /* Initialize HAL. */
-    if (false == Board::getInstance().init())
+    if (false == board.init())
     {
         LOG_FATAL("HAL init failed.");
     }
     /* Settings shall be loaded from configuration file. */
-    else if (false == settings.loadConfigurationFile(CONFIG_FILE_PATH))
+    else if (false == settings.loadConfigurationFile(board.getConfigFilePath()))
     {
-        LOG_FATAL("Settings could not be loaded from %s.", CONFIG_FILE_PATH);
+        LOG_FATAL("Settings could not be loaded from %s.", board.getConfigFilePath());
     }
     else
     {
@@ -140,7 +141,7 @@ void App::setup()
         NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
                                            ""};
 
-        if (false == Board::getInstance().getNetwork().setConfig(networkSettings))
+        if (false == board.getNetwork().setConfig(networkSettings))
         {
             LOG_FATAL("Network configuration could not be set.");
         }
