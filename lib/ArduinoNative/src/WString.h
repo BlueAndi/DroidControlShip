@@ -308,7 +308,7 @@ public:
             if (nullptr != tmp)
             {
                 strcpy(tmp, m_buffer);
-                strcat(tmp, cstr);
+                strcat(&tmp[m_size - 1], cstr);
 
                 delete[] m_buffer;
                 m_buffer = tmp;
@@ -328,7 +328,7 @@ public:
             const char cBuff[2] = {c, '\0'};
 
             strcpy(tmp, m_buffer);
-            strcat(tmp, cBuff);
+            strcpy(&tmp[m_size - 1], cBuff);
 
             delete[] m_buffer;
             m_buffer = tmp;
