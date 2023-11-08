@@ -58,14 +58,17 @@
  * Public Methods
  *****************************************************************************/
 
-WebServerCustom::WebServerCustom() : AsyncWebServer(80) {}
-
-WebServerCustom::~WebServerCustom()  {
-
+WebServerCustom::WebServerCustom() : AsyncWebServer(80)
+{
 }
 
-void WebServerCustom::begin() {
-    AsyncWebServer::begin(); 
+WebServerCustom::~WebServerCustom()
+{
+}
+
+void WebServerCustom::begin()
+{
+    AsyncWebServer::begin();
 }
 
 

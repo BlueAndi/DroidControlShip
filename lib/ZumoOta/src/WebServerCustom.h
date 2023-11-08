@@ -30,7 +30,6 @@
 
 class WebServerCustom : public AsyncWebServer{
 private:
-    AsyncWebServer* server;
 
 public:
     /**
