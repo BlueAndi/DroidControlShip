@@ -52,6 +52,14 @@ class IKalmanFilter
 {
 
 public:
+    /** Results of the Sensor Fusion Algorithm. */
+    typedef struct _PositionData
+    {
+        int32_t currentXPos;
+        int32_t currentYPos;
+        int32_t currentHeading;
+    } PositionData;
+
     /**
      * Initializes the variables of the Kalman Filter.
      */
@@ -65,9 +73,10 @@ public:
     /**
      * Update of the covariance and the state of the Kalman Filter.
      * @param[in] kalmanParameters   Input Parameters for the Kalman Filter
+     * @return Estimated Position as a PositionData struct.
      *
      */
-    virtual void updateStep(KalmanParameter& kalmanParameters) = 0;
+    virtual PositionData updateStep(KalmanParameter& kalmanParameters) = 0;
 };
 
 #endif /* IKALMANFILTER_H */

@@ -91,6 +91,9 @@ public:
 private:
     LinearKalmanFilter m_linearKalmanFilter;
 
+    /* Variable where the current estimated Position is saved in. */
+    IKalmanFilter::PositionData m_currentPosition = {0, 0, 0};
+
     /**
      * Transform the local acceleration vector [acc_x, acc_y] into a global vector using the provided angle.
      *
