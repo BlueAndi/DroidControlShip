@@ -90,7 +90,7 @@ const char* App::TOPIC_NAME_MOTOR_SPEEDS = "motorSpeeds";
 static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
 /** Buffer size for JSON serialization of birth / will message */
-static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64;
+static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
 /******************************************************************************
  * Public Methods
@@ -98,6 +98,10 @@ static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64;
 
 void App::setup()
 {
+    bool      isSuccessful = false;
+    Settings& settings     = Settings::getInstance();
+    Board&    board        = Board::getInstance();
+
     Serial.begin(SERIAL_BAUDRATE);
 
     /* Register serial log sink and select it per default. */
@@ -112,91 +116,95 @@ void App::setup()
     }
 
     /* Initialize HAL. */
-    if (false == Board::getInstance().init())
+    if (false == board.init())
     {
-        /* Log and Handle Board initialization error */
         LOG_FATAL("HAL init failed.");
-        fatalErrorHandler();
+    }
+    /* Settings shall be loaded from configuration file. */
+    else if (false == settings.loadConfigurationFile(board.getConfigFilePath()))
+    {
+        LOG_FATAL("Settings could not be loaded from %s.", board.getConfigFilePath());
     }
     else
     {
-        if (false == Settings::getInstance().isConfigLoaded())
+        /* If the robot name is empty, use the wifi MAC address as robot name. */
+        if (true == settings.getRobotName().isEmpty())
         {
             String robotName = WiFi.macAddress();
 
             /* Remove MAC separators from robot name. */
             robotName.replace(":", "");
 
-            /* Settings shall be loaded from configuration file. */
-            if (false == Settings::getInstance().loadConfigurationFile(CONFIG_FILE_PATH, robotName))
-            {
-                /* Log Settings error */
-                LOG_FATAL("Settings could not be loaded from file. ");
-                fatalErrorHandler();
-            }
-            else
-            {
-                /* Log Settings loaded */
-                LOG_DEBUG("Settings loaded from file.");
-            }
+            settings.setRobotName(robotName);
+        }
+
+        NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
+                                           ""};
+
+        if (false == board.getNetwork().setConfig(networkSettings))
+        {
+            LOG_FATAL("Network configuration could not be set.");
         }
         else
         {
-            LOG_DEBUG("Settings set externally.");
+            /* Setup MQTT Server, Birth and Will messages. */
+            StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
+            char                                           birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+            String                                         birthMessage;
+
+            birthDoc["name"] = settings.getRobotName().c_str();
+            (void)serializeJson(birthDoc, birthMsgArray);
+            birthMessage = birthMsgArray;
+
+            /* Setup SerialMuxProt Channels */
+            m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
+            m_serialMuxProtChannelIdMotorSpeeds =
+                m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+            m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
+            m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
+
+            if (false == m_mqttClient.init())
+            {
+                LOG_FATAL("Failed to initialize MQTT client.");
+            }
+            else
+            {
+                MqttSettings mqttSettings = {settings.getRobotName(),
+                                             settings.getMqttBrokerAddress(),
+                                             settings.getMqttPort(),
+                                             TOPIC_NAME_BIRTH,
+                                             birthMessage,
+                                             TOPIC_NAME_WILL,
+                                             birthMessage,
+                                             true};
+
+                if (false == m_mqttClient.setConfig(mqttSettings))
+                {
+                    LOG_FATAL("MQTT configuration could not be set.");
+                }
+                /* Subscribe to Command Topic. */
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_CMD,
+                                                         [this](const String& payload) { cmdTopicCallback(payload); }))
+                {
+                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_CMD);
+                }
+                /* Subscribe to Motor Speeds Topic. */
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, [this](const String& payload)
+                                                         { motorSpeedsTopicCallback(payload); }))
+                {
+                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
+                }
+                else
+                {
+                    isSuccessful = true;
+                }
+            }
         }
+    }
 
-        /* Setup SerialMuxProt Channels */
-        m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
-        m_serialMuxProtChannelIdMotorSpeeds =
-            m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
-        m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
-        m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
-
-        /* Setup Network. Get saved configuration.*/
-        String   clientId = Settings::getInstance().getRobotName();
-        String   ssid     = Settings::getInstance().getWiFiSSID();
-        String   password = Settings::getInstance().getWiFiPassword();
-        String   mqttAddr = Settings::getInstance().getMqttBrokerAddress();
-        uint16_t mqttPort = Settings::getInstance().getMqttPort();
-
-        /* Setup Network. */
-        NetworkSettings settings = {ssid, password, clientId, String("")};
-        if (false == Board::getInstance().getNetwork().setConfig(settings))
-        {
-            LOG_FATAL("Network Configuration could not be set.");
-            fatalErrorHandler();
-        }
-
-        /* Setup MQTT Server, Birth and Will messages. */
-        StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
-        birthDoc["name"] = clientId.c_str();
-        char birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
-        (void)serializeJson(birthDoc, birthMsgArray);
-        String birthMessage(birthMsgArray);
-        m_mqttClient.init();
-        MqttSettings mqttSettings = {clientId,     mqttAddr,        mqttPort,     TOPIC_NAME_BIRTH,
-                                     birthMessage, TOPIC_NAME_WILL, birthMessage, true};
-        if (false == m_mqttClient.setConfig(mqttSettings))
-        {
-            LOG_FATAL("MQTT Configuration could not be set.");
-            fatalErrorHandler();
-        }
-
-        /* Subscribe to Command Topic. */
-        if (false ==
-            m_mqttClient.subscribe(TOPIC_NAME_CMD, [this](const String& payload) { cmdTopicCallback(payload); }))
-        {
-            LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_CMD);
-            fatalErrorHandler();
-        }
-
-        /* Subscribe to Motor Speeds Topic. */
-        if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS,
-                                            [this](const String& payload) { motorSpeedsTopicCallback(payload); }))
-        {
-            LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
-            fatalErrorHandler();
-        }
+    if (false == isSuccessful)
+    {
+        fatalErrorHandler();
     }
 }
 
@@ -278,7 +286,7 @@ void App::motorSpeedsTopicCallback(const String& payload)
 
     if (error != DeserializationError::Ok)
     {
-        LOG_ERROR("JSON Deserialization Error %d.", error);
+        LOG_ERROR("JSON deserialization error %d.", error);
     }
     else
     {

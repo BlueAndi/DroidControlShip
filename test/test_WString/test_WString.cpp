@@ -25,14 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Printer log sink
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Test (some) WString functions.
+ * @author Luca Dubies <luca.dubies@newtec.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "LogSinkPrinter.h"
+#include <unity.h>
+#include <WString.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -50,6 +51,9 @@
  * Prototypes
  *****************************************************************************/
 
+static void testWStringReplacement(void);
+static void testWStringAppend(void);
+
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -57,38 +61,6 @@
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
-
-void LogSinkPrinter::send(const Logging::Msg& msg)
-{
-    if (nullptr != m_output)
-    {
-        char           buffer[LOG_MESSAGE_BUFFER_SIZE] = {0};
-        int            written                         = 0;
-        const char*    STR_CUT_OFF_SEQ                 = "...\n";
-        const uint16_t STR_CUT_OFF_SEQ_LEN             = strlen(STR_CUT_OFF_SEQ);
-
-        written = snprintf(buffer, LOG_MESSAGE_BUFFER_SIZE - STR_CUT_OFF_SEQ_LEN + 1U, /* + 1U for cut off detection. */
-                           "%*u %*s %*s:%-*d %s\n", TIMESTAMP_LEN, msg.timestamp, LOG_LEVEL_LEN,
-                           logLevelToString(msg.level), FILENAME_LEN, msg.filename, LINE_LEN, msg.line, msg.str);
-
-        /* Encoding error is skipped. */
-        if (0 <= written)
-        {
-            const uint16_t MAX_LOG_MSG_LEN = LOG_MESSAGE_BUFFER_SIZE - STR_CUT_OFF_SEQ_LEN - 1U;
-
-            /* If the message string is cut off, notify the user about in the
-             * log output.
-             */
-            if (MAX_LOG_MSG_LEN < written)
-            {
-                buffer[MAX_LOG_MSG_LEN] = '\0';
-                strcat(buffer, STR_CUT_OFF_SEQ);
-            }
-
-            (void)m_output->print(buffer);
-        }
-    }
-}
 
 /******************************************************************************
  * Protected Methods
@@ -98,48 +70,103 @@ void LogSinkPrinter::send(const Logging::Msg& msg)
  * Private Methods
  *****************************************************************************/
 
-const char* LogSinkPrinter::logLevelToString(const Logging::LogLevel LogLevel) const
-{
-    const char* logLevelString = nullptr;
-
-    switch (LogLevel)
-    {
-    case Logging::LOG_LEVEL_FATAL:
-        logLevelString = "FATAL  ";
-        break;
-
-    case Logging::LOG_LEVEL_ERROR:
-        logLevelString = "ERROR  ";
-        break;
-
-    case Logging::LOG_LEVEL_WARNING:
-        logLevelString = "WARNING";
-        break;
-
-    case Logging::LOG_LEVEL_INFO:
-        logLevelString = "INFO   ";
-        break;
-
-    case Logging::LOG_LEVEL_DEBUG:
-        logLevelString = "DEBUG  ";
-        break;
-
-    case Logging::LOG_LEVEL_TRACE:
-        logLevelString = "TRACE  ";
-        break;
-
-    default:
-        logLevelString = "UNKNOWN";
-        break;
-    }
-
-    return logLevelString;
-}
-
 /******************************************************************************
  * External Functions
  *****************************************************************************/
 
+/**
+ * Main entry point
+ *
+ * @param[in] argc  Number of command line arguments
+ * @param[in] argv  Command line arguments
+ *
+ * @returns Test failure count
+ */
+extern int main(int argc, char** argv)
+{
+    UNITY_BEGIN();
+
+    RUN_TEST(testWStringReplacement);
+    RUN_TEST(testWStringAppend);
+
+    return UNITY_END();
+}
+
+/**
+ * Setup a test. This function will be called before every test by unity.
+ */
+extern void setUp(void)
+{
+    /* Not used. */
+}
+
+/**
+ * Clean up test. This function will be called after every test by unity.
+ */
+extern void tearDown(void)
+{
+    /* Not used. */
+}
+
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
+
+/**
+ * Test WString replace.
+ */
+static void testWStringReplacement(void)
+{
+    String original = String("I am a long string that will feature some replacements!");
+    String tester;
+
+    /* same length replacement */
+    tester = String(original);
+    tester.replace(String("long"), String("same"));
+    TEST_ASSERT_EQUAL_STRING("I am a same string that will feature some replacements!", tester.c_str());
+
+    /* shorter replacement */
+    tester = String(original);
+    tester.replace(String("feature"), String("have"));
+    TEST_ASSERT_EQUAL_STRING("I am a long string that will have some replacements!", tester.c_str());
+    TEST_ASSERT_EQUAL(original.length() - 3, tester.length());
+
+    /* longer replacement */
+    tester = String(original);
+    tester.replace("a", "AAA");
+    TEST_ASSERT_EQUAL_STRING("I AAAm AAA long string thAAAt will feAAAture some replAAAcements!", tester.c_str());
+    TEST_ASSERT_EQUAL(original.length() + 10, tester.length());
+
+    /* replacement with empty string */
+    tester = String(original);
+    tester.replace(" ", "");
+    TEST_ASSERT_EQUAL_STRING("Iamalongstringthatwillfeaturesomereplacements!", tester.c_str());
+
+    /* test original empty string */
+    tester = String("");
+    tester.replace("never", "happens");
+    TEST_ASSERT_EQUAL_STRING("", tester.c_str());
+}
+
+/**
+ * Test WString += implementation.
+ */
+static void testWStringAppend(void)
+{
+    String original = String("Im short");
+    char classic[4];
+    classic[0]      = 'H';
+    classic[1]      = 'I';
+    classic[2]      = '!';
+    classic[3]      = '\0';
+
+    original += String("- first amendment -");
+    original += classic;
+    original += '-';
+
+    TEST_ASSERT_EQUAL_STRING("Im short- first amendment -HI!-", original.c_str());
+
+    String tester = String("");
+    tester += "Im new";
+    TEST_ASSERT_EQUAL_STRING("Im new", tester.c_str());
+}

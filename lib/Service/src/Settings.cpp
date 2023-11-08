@@ -52,25 +52,14 @@
  * Public Methods
  *****************************************************************************/
 
-bool Settings::isConfigLoaded() const
+bool Settings::loadConfigurationFile(const String& filename)
 {
-    return m_configLoaded;
-}
-
-bool Settings::loadConfigurationFile(const String& filename, const String& robotName)
-{
+    bool                              isSuccessful  = false;
     const uint32_t                    maxBufferSize = 1024;
     StaticJsonDocument<maxBufferSize> doc;
     char                              buffer[maxBufferSize];
 
-    /* Ignore previously saved configuration. */
-    m_configLoaded = false;
-
-    if (true == robotName.isEmpty())
-    {
-        LOG_ERROR("Robot name is required.");
-    }
-    else if (0U == m_fileReader.readFile(filename, buffer, maxBufferSize))
+    if (0U == m_fileReader.readFile(filename, buffer, maxBufferSize))
     {
         LOG_ERROR("Unable to load configuration file \"%s\".", filename.c_str());
     }
@@ -84,12 +73,16 @@ bool Settings::loadConfigurationFile(const String& filename, const String& robot
         }
         else
         {
-            JsonVariantConst    jsonWifiSsid    = doc["WIFI"]["SSID"];
-            JsonVariantConst    jsonWifiPswd    = doc["WIFI"]["PSWD"];
-            JsonVariantConst    jsonMqttHost    = doc["MQTT"]["HOST"];
-            JsonVariantConst    jsonMqttPort    = doc["MQTT"]["PORT"];
+            JsonVariantConst jsonRobotName = doc["robotName"];
+            JsonVariantConst jsonWifiSsid  = doc["WIFI"]["SSID"];
+            JsonVariantConst jsonWifiPswd  = doc["WIFI"]["PSWD"];
+            JsonVariantConst jsonMqttHost  = doc["MQTT"]["HOST"];
+            JsonVariantConst jsonMqttPort  = doc["MQTT"]["PORT"];
 
-            m_robotName = robotName;
+            if (false == jsonRobotName.isNull())
+            {
+                m_robotName = jsonRobotName.as<const char*>();
+            }
 
             if (false == jsonWifiSsid.isNull())
             {
@@ -111,31 +104,11 @@ bool Settings::loadConfigurationFile(const String& filename, const String& robot
                 m_mqttPort = jsonMqttPort.as<uint16_t>();
             }
 
-            m_configLoaded = true;
+            isSuccessful = true;
         }
     }
 
-    return m_configLoaded;
-}
-
-bool Settings::setConfiguration(const String& robotName, const String& networkSSID, const String& networkPassword,
-                                const String& mqttBrokerAddress, uint16_t mqttPort)
-{
-    if (true == robotName.isEmpty())
-    {
-        LOG_ERROR("Robot name is not allowed to be empty.");
-    }
-    else
-    {
-        m_robotName         = robotName;
-        m_wifiSSID          = networkSSID;
-        m_wifiPassword      = networkPassword;
-        m_mqttBrokerAddress = mqttBrokerAddress;
-        m_mqttPort          = mqttPort;
-        m_configLoaded      = true;
-    }
-
-    return m_configLoaded;
+    return isSuccessful;
 }
 
 /******************************************************************************
@@ -143,7 +116,6 @@ bool Settings::setConfiguration(const String& robotName, const String& networkSS
  *****************************************************************************/
 
 Settings::Settings() :
-    m_configLoaded(false),
     m_robotName(),
     m_wifiSSID(),
     m_wifiPassword(),

@@ -134,6 +134,13 @@ public:
      */
     virtual INetwork& getNetwork() = 0;
 
+    /**
+     * Get the file path of the configuration (settings).
+     * 
+     * @return Configuration file path
+     */
+    virtual const String& getConfigFilePath() const = 0;
+
 protected:
     /**
      * Constructs the board interface.
