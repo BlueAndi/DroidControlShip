@@ -347,14 +347,20 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
     if (0 > status)
     {
         printf("Usage: %s <option(s)>\nOptions:\n", programName);
-        printf("\t-h, --help\t\t\tShow this help message.\n");                     /* Help */
-        printf("\t-n <NAME>\t\t\tSet robot name, which shall be unique.\n");       /* Robot name */
-        printf("\t-v\t\t\t\tSet verbose mode.\n");                                 /* Verbose mode */
-        printf("\t--cfgFilePath <CFG-FILE>\tSet configuration file path.\n");      /* Configuration file path */
-        printf("\t--mqttAddr <MQTT-ADDR>\t\tSet MQTT broker address.\n");          /* MQTT broker address */
-        printf("\t--mqttPort <MQTT-PORT>\t\tSet MQTT broker port.\n");             /* MQTT broker port */
-        printf("\t--radonUlzerAddr <RU-ADDR>\tSet Radon Ulzer server address.\n"); /* Radon Ulzer server address */
-        printf("\t--radonUlzerPort <RU-PORT>\tSet Radon Ulzer server port.\n");    /* Radon Ulzer server port */
+        printf("\t-h, --help\t\t\tShow this help message.\n");              /* Help */
+        printf("\t-n <NAME>\t\t\tSet robot name, which shall be unique.");  /* Robot name */
+        printf(" Default: Derived from the process' PID.\n");               /* Robot name default value */
+        printf("\t-v\t\t\t\tSet verbose mode. Default: Disabled\n");        /* Verbose mode */
+        printf("\t--cfgFilePath <CFG-FILE>\tSet configuration file path."); /* Configuration file path */
+        printf(" Default: %s\n", PRG_ARG_CFG_FILE_DEFAULT);                 /* Configuration file path default value */
+        printf("\t--mqttAddr <MQTT-ADDR>\t\tSet MQTT broker address.");     /* MQTT broker address */
+        printf(" Default: %s\n", PRG_ARG_MQTT_ADDR_DEFAULT);                /* MQTT broker address default value */
+        printf("\t--mqttPort <MQTT-PORT>\t\tSet MQTT broker port.");        /* MQTT broker port */
+        printf(" Default: %s\n", PRG_ARG_MQTT_PORT_DEFAULT);                /* MQTT broker port default value */
+        printf("\t--radonUlzerAddr <RU-ADDR>\tSet Radon Ulzer server address."); /* Radon Ulzer server address */
+        printf(" Default: %s\n", PRG_ARG_RADON_ULZER_ADDR_DEFAULT); /* Radon Ulzer server address default value*/
+        printf("\t--radonUlzerPort <RU-PORT>\tSet Radon Ulzer server port."); /* Radon Ulzer server port */
+        printf(" Default: %s\n", PRG_ARG_RADON_ULZER_PORT_DEFAULT);           /* Radon Ulzer server port default value*/
     }
 
     return status;
@@ -421,8 +427,7 @@ static int createConfigFile(const PrgArguments& prgArgs)
         pathToConfigFile[0] = '\0';
         extractDirectoryPath(prgArgs.cfgFilePath, pathToConfigFile, sizeof(pathToConfigFile));
 
-        if (('\0' != pathToConfigFile[0]) &&
-            (0 != makeDirRecursively(pathToConfigFile)))
+        if (('\0' != pathToConfigFile[0]) && (0 != makeDirRecursively(pathToConfigFile)))
         {
             printf("Failed to create config file directory.\n");
             retValue = -1;
