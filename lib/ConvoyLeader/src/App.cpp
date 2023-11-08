@@ -260,17 +260,20 @@ void App::positionTopicCallback(const String& payload)
     }
     else
     {
-        JsonVariant xPos = jsonPayload["X"];
-        JsonVariant yPos = jsonPayload["Y"];
+        JsonVariant jsonXPos = jsonPayload["X"];
+        JsonVariant jsonYPos = jsonPayload["Y"];
 
-        if ((false == xPos.isNull()) && (false == yPos.isNull()))
+        if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()))
         {
-            LOG_DEBUG("Received position setpoint: x: %d y: %d", xPos.as<int32_t>(), yPos.as<int32_t>());
-            gHeadingFinder.setTargetHeading(xPos.as<int32_t>(), yPos.as<int32_t>());
+            int32_t positionX = jsonXPos.as<int32_t>();
+            int32_t positionY = jsonYPos.as<int32_t>();
+
+            LOG_DEBUG("Received position setpoint: x: %d y: %d", positionX, positionY);
+            gHeadingFinder.setTargetHeading(positionX, positionY);
         }
         else
         {
-            LOG_WARNING("Received invalid command.");
+            LOG_WARNING("Received invalid position.");
         }
     }
 }
