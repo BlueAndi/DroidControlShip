@@ -108,7 +108,7 @@ int16_t HeadingFinder::process(int16_t& targetSpeedLeft, int16_t& targetSpeedRig
         int32_t deltaY = m_data.targetYPos - m_data.currentYPos;
 
         /* Calculate target heading. */
-        float angle          = atan2(deltaY, deltaX) * 1000.0;         /* Angle in mrad. */
+        float angle          = atan2(deltaY, deltaX) * 1000.0F;        /* Angle in mrad. */
         m_data.targetHeading = static_cast<int32_t>(angle) % FP_2PI(); /* Fixed point heading. */
 
         /* Calculate PID delta. */

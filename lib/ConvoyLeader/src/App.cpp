@@ -216,7 +216,7 @@ void App::setup()
     {
         /* Blink Green LED to signal all-good. */
         Board::getInstance().getGreenLed().enable(true);
-        delay(100);
+        delay(100U);
         Board::getInstance().getGreenLed().enable(false);
     }
 }
