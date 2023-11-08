@@ -26,7 +26,7 @@
 *******************************************************************************/
 /**
  *  @brief  Channel structure definition for the SerialMuxProt.
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *  @author Juliane Kerpe <juliane.kerpe@web.de>
  */
 
 #ifndef SERIAL_MUX_CHANNELS_H_

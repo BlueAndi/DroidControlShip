@@ -85,9 +85,6 @@ public:
     void loop();
 
 private:
-    /** SerialMuxProt channel name for receiving sensor data used for sensor fusion. */
-    static const char* CH_NAME_SENSORDATA;
-
     /**
      * SerialMuxProt Server Instance
      *
