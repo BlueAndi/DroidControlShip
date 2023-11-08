@@ -39,7 +39,7 @@
  * Includes
  *****************************************************************************/
 
-#include "IKalmanParameter.h"
+#include "KalmanParameter.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -67,7 +67,7 @@ public:
      * @param[in] kalmanParameters   Input Parameters for the Kalman Filter
      *
      */
-    virtual void updateStep(IKalmanParameter& kalmanParameters) = 0;
+    virtual void updateStep(KalmanParameter& kalmanParameters) = 0;
 };
 
 #endif /* IKALMANFILTER_H */

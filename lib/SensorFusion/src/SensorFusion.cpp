@@ -81,7 +81,7 @@ void SensorFusion::estimateNewState(SensorData newSensorData)
     transfromLocalToGlobal(accelerationInGlobalCoordinateSystem, accelerationInRobotCoordinateSystem, estimatedAngle);
 
     /* Perform the Kalman Filter Prediction and Update Steps */
-    LinearKalmanParameter kalmanParameters;
+    KalmanParameter kalmanParameters;
     kalmanParameters.accelerationX    = physicalAccelerationX;
     kalmanParameters.accelerationY    = physicalAccelerationY;
     kalmanParameters.positionOdometryX = newSensorData.positionOdometryX;

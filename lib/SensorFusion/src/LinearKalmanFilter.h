@@ -45,7 +45,6 @@
 #include <ArduinoEigen.h>
 #include <stdint.h>
 #include "IKalmanFilter.h"
-#include "LinearKalmanParameter.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -90,10 +89,10 @@ public:
 
     /**
      * Update of the covariance and the state of the Kalman Filter.
-     * @param[in] kalmanParameters   Input Parameters for the Kalman Filter as a LinearKalmanParameter struct.
+     * @param[in] kalmanParameters   Input Parameters for the Kalman Filter as a KalmanParameter struct.
      *
      */
-    void updateStep(IKalmanParameter& kalmanParameters)
+    void updateStep(KalmanParameter& kalmanParameters)
     {
         // TODO: Implement Kalman Filter in cpp (TD072)
     }

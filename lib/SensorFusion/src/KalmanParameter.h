@@ -25,17 +25,17 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Interfact struct for Parameter used for a Kalman Filter
+ *  @brief  Struct for Parameter used for a Kalman Filter
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
  */
 
-#ifndef IKALMANPARAMETER_H
-#define IKALMANPARAMETER_H
+#ifndef KALMANPARAMETER_H
+#define KALMANPARAMETER_H
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
+#include <stdint.h>
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -44,13 +44,19 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Struct of the Sensor Data channel payload. */
-typedef struct _IKalmanParameter
+/** Struct of Data used in the Kalman Filter. */
+typedef struct _KalmanParameter
 {
-} __attribute__((packed)) IKalmanParameter;
+    int16_t accelerationX;
+    int16_t accelerationY;
+    int32_t positionOdometryX;
+    int32_t positionOdometryY;
+    int32_t angleOdometry;
+    int16_t turnRate;
+} __attribute__((packed)) KalmanParameter;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IKALMANPARAMETER_H */
+#endif /* KALMANPARAMETER_H */
