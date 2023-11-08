@@ -73,13 +73,13 @@ bool FileManager::createUploadPage() {
         return false;
     }
 
-    File file = LittleFS.open("/test.html", "w");
+    File file = LittleFS.open("/upload.html", "w");
     if(!file){
         Serial.println("Fehler beim Erstellen der Datei");
         return false;
     }
-
-    String content = R"rawliteral(
+ 
+    const char test_html[] PROGMEM  = R"rawliteral(
     <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -147,7 +147,7 @@ bool FileManager::createUploadPage() {
 </html>
 )rawliteral";
 
-    if (file.print(content)) {
+    if (file.print(test_html)) {
         Serial.println("Datei erfolgreich erstellt");
     } else {
         Serial.println("Fehler beim Schreiben der Datei");
@@ -164,7 +164,7 @@ String FileManager:: readUploadPage(){
         return "";
     }
 
-    File uploadPage = LittleFS.open("/test.html", "r");
+    File uploadPage = LittleFS.open("/upload.html", "r");
     if (!uploadPage) {
         Serial.println("Fehler beim Öffnen der Upload-Seite.");
         return "";
