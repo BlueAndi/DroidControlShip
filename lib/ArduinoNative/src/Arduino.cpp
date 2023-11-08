@@ -271,7 +271,7 @@ extern void delay(unsigned long ms)
 static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char** argv)
 {
     int         status           = 0;
-    const char* availableOptions = "n:v";
+    const char* availableOptions = "n:vh";
     const char* programName      = argv[0];
     int         optionIndex      = 0;
     int         option           = getopt_long(argc, argv, availableOptions, LONG_OPTIONS, &optionIndex);
@@ -349,7 +349,7 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
         printf("Usage: %s <option(s)>\nOptions:\n", programName);
         printf("\t-h, --help\t\t\tShow this help message.\n");              /* Help */
         printf("\t-n <NAME>\t\t\tSet robot name, which shall be unique.");  /* Robot name */
-        printf(" Default: Derived from the process' PID.\n");               /* Robot name default value */
+        printf(" Default: Derived from the process PID.\n");                /* Robot name default value */
         printf("\t-v\t\t\t\tSet verbose mode. Default: Disabled\n");        /* Verbose mode */
         printf("\t--cfgFilePath <CFG-FILE>\tSet configuration file path."); /* Configuration file path */
         printf(" Default: %s\n", PRG_ARG_CFG_FILE_DEFAULT);                 /* Configuration file path default value */
