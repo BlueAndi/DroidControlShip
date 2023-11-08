@@ -101,7 +101,7 @@ private:
      * @param[in] localVectorToTransform        The local acceleration vector [acc_x, acc_y] to be transformed.
      * @param[in] rotationAngle                 The angle used for the transformation, given in mrad.
      */
-    void transfromLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
+    void transformLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
                                 const int16_t& rotationAngle);
 
     void estimateAngle(int16_t& estimatedAngle, const int32_t& encoderAngle, const int16_t& magnetometerValueX,

@@ -78,7 +78,7 @@ void SensorFusion::estimateNewState(SensorData newSensorData)
     /* Transform the acceleration values from the robot coordinate system into the world coordinate system */
     int16_t accelerationInRobotCoordinateSystem[2] = {physicalAccelerationX, physicalAccelerationY};
     int16_t accelerationInGlobalCoordinateSystem[2];
-    transfromLocalToGlobal(accelerationInGlobalCoordinateSystem, accelerationInRobotCoordinateSystem, estimatedAngle);
+    transformLocalToGlobal(accelerationInGlobalCoordinateSystem, accelerationInRobotCoordinateSystem, estimatedAngle);
 
     /* Perform the Kalman Filter Prediction and Update Steps */
     KalmanParameter kalmanParameters;
@@ -99,7 +99,7 @@ void SensorFusion::estimateNewState(SensorData newSensorData)
  * Private Methods
  *****************************************************************************/
 
-void SensorFusion::transfromLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
+void SensorFusion::transformLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
                                           const int16_t& rotationAngle)
 {
     /*  Calculate the sin and cos of the rotationAngle; convert the angle from mrad to rad. */
