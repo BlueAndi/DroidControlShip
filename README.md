@@ -83,11 +83,21 @@ The DroidControlShip will always try to connect to the RadonUlzer, therefore its
 
 Some applications require to have an MQTT server running, but it may depend on the kind of application you choose.
 
-TODO
+A complete deployment, including MQTT server, would be started in the following way:
+
+MQTT Broker --> Webots World --> RadonUlzer --> DroidControlShip
+
+In order to simplify this process, the [Launcher](https://github.com/gabryelreyes/Launcher) project is under active development.
 
 ### Target
 
-TODO
+Upload the firmware to the ZumoComSystem using the ```Upload``` task in the "PlatformIO Project Tasks" tab, or the arrow on the bottom task bar.
+
+After succesfully uploading the firmware, the configuration has to be uploaded to the filesystem. Make sure that the information in ```data/config/config.json``` matches your setup. Upload the configuration using the ```Upload Filesystem Image``` task in the "PlatformIO Project Tasks" tab.
+
+Note that the robotName can be left empty in case you want the MAC address of the hardware to be used as the name. In case you prefer to give the robot a more descriptive name, can set the name. Beware, if you use multiple robots, you will have to give each a different name manually.
+
+In a similar way, not providing a WiFi configuration will force the target into going into Access Point Mode. In a future update it will be possible to update the WiFi credentials using this mode and an on-board web server.
 
 # Documentation
 
