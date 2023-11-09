@@ -114,7 +114,10 @@ int16_t HeadingFinder::process(int16_t& targetSpeedLeft, int16_t& targetSpeedRig
         pidDelta = m_pidCtrl.calculate(m_data.targetHeading, m_data.currentHeading);
         LOG_DEBUG("Heading: %d, Target: %d, PID Delta: %d", m_data.currentHeading, m_data.targetHeading, pidDelta);
 
-        /* Calculate target speed. */
+        /*
+         * Calculate target speed. Using only targetSpeedLeft as the robot shall stay in place,
+         * but must be changed in the future.
+         */
         targetSpeedLeft  = m_data.currentSpeedLeft - pidDelta;
         targetSpeedRight = -targetSpeedLeft;
 

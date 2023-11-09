@@ -55,21 +55,26 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Heading Finder Class. */
+/**
+ * Heading Finder Class.
+ * This class is used to calculate the heading of the robot using the odometry data.
+ * It uses a PID controller to calculate the target speed of the motors.
+ * The target heading is calculated using the current position and the target position.
+ */
 class HeadingFinder
 {
 public:
-    /** Heading finder data structure. */
+    /** Heading finder data structure. Contains all the data necessary for the calculation */
     typedef struct _HeadingFinderData
     {
-        int32_t currentXPos;
-        int32_t currentYPos;
-        int32_t currentHeading;
-        int16_t currentSpeedLeft;
-        int16_t currentSpeedRight;
-        int32_t targetXPos;
-        int32_t targetYPos;
-        int32_t targetHeading;
+        int32_t currentXPos;       /**< Current X position. */
+        int32_t currentYPos;       /**< Current Y position. */
+        int32_t currentHeading;    /**< Current heading. */
+        int16_t currentSpeedLeft;  /**< Current speed of the left motor. */
+        int16_t currentSpeedRight; /**< Current speed of the right motor. */
+        int32_t targetXPos;        /**< Target X position. */
+        int32_t targetYPos;        /**< Target Y position. */
+        int32_t targetHeading;     /**< Target heading. */
     } HeadingFinderData;
 
     /** HeadingFinder constructor.*/
