@@ -88,12 +88,11 @@ void HeadingFinder::init()
     m_pidProcessTime.start(0); /* Immediate */
 }
 
-void HeadingFinder::setPIDFactors(int32_t p_num, int32_t p_den, int32_t i_num, int32_t i_den, int32_t d_num,
-                                  int32_t d_den)
+void HeadingFinder::setPIDFactors(int32_t pNum, int32_t pDen, int32_t iNum, int32_t iDen, int32_t dNum, int32_t dDen)
 {
-    m_pidCtrl.setPFactor(p_num, p_den);
-    m_pidCtrl.setIFactor(i_num, i_den);
-    m_pidCtrl.setDFactor(d_num, d_den);
+    m_pidCtrl.setPFactor(pNum, pDen);
+    m_pidCtrl.setIFactor(iNum, iDen);
+    m_pidCtrl.setDFactor(dNum, dDen);
 }
 
 int16_t HeadingFinder::process(int16_t& targetSpeedLeft, int16_t& targetSpeedRight)
