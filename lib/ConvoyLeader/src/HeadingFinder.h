@@ -67,14 +67,14 @@ public:
     /** Heading finder data structure. Contains all the data necessary for the calculation */
     typedef struct _HeadingFinderData
     {
-        int32_t currentXPos;       /**< Current X position. */
-        int32_t currentYPos;       /**< Current Y position. */
-        int32_t currentHeading;    /**< Current heading. */
-        int16_t currentSpeedLeft;  /**< Current speed of the left motor. */
-        int16_t currentSpeedRight; /**< Current speed of the right motor. */
-        int32_t targetXPos;        /**< Target X position. */
-        int32_t targetYPos;        /**< Target Y position. */
-        int32_t targetHeading;     /**< Target heading. */
+        int32_t currentXPos;       /**< Current X position [mm]. */
+        int32_t currentYPos;       /**< Current Y position[mm]. */
+        int32_t currentHeading;    /**< Current heading [mrad]. */
+        int16_t currentSpeedLeft;  /**< Current speed of the left motor [steps/s]. */
+        int16_t currentSpeedRight; /**< Current speed of the right motor [steps/s]. */
+        int32_t targetXPos;        /**< Target X position[mm]. */
+        int32_t targetYPos;        /**< Target Y position[mm]. */
+        int32_t targetHeading;     /**< Target heading [mrad]. */
     } HeadingFinderData;
 
     /** HeadingFinder constructor.*/
@@ -91,44 +91,45 @@ public:
     /**
      * Set the factors for the PID controller.
      *
-     * @param[in] p_num Numerator of the proportional factor.
-     * @param[in] p_den Denominator of the proportional factor.
-     * @param[in] i_num Numerator of the integral factor.
-     * @param[in] i_den Denominator of the integral factor.
-     * @param[in] d_num Numerator of the derivative factor.
-     * @param[in] d_den Denominator of the derivative factor.
+     * @param[in] pNumerator Numerator of the proportional factor.
+     * @param[in] pDenominator Denominator of the proportional factor.
+     * @param[in] iNumerator Numerator of the integral factor.
+     * @param[in] iDenominator Denominator of the integral factor.
+     * @param[in] dNumerator Numerator of the derivative factor.
+     * @param[in] dDenominator Denominator of the derivative factor.
      */
-    void setPIDFactors(int32_t p_num, int32_t p_den, int32_t i_num, int32_t i_den, int32_t d_num, int32_t d_den);
+    void setPIDFactors(int32_t pNumerator, int32_t pDenominator, int32_t iNumerator, int32_t iDenominator,
+                       int32_t dNumerator, int32_t dDenominator);
 
     /**
      * Process the Heading finder and calculate the target speed for the motors.
-     * @param[out] targetSpeedLeft Target speed of the left motor.
-     * @param[out] targetSpeedRight Target speed of the right motor.
+     * @param[out] targetSpeedLeft Target speed of the left motor [steps/s].
+     * @param[out] targetSpeedRight Target speed of the right motor [steps/s].
      *
-     * @return the delta value calculated by the PID controller, if available.
+     * @return the delta speed [steps/s] calculated by the PID controller, if available.
      *        Otherwise 0.
      */
     int16_t process(int16_t& targetSpeedLeft, int16_t& targetSpeedRight);
 
     /**
      * Set lastest odometry data.
-     * @param[in] xPos X position.
-     * @param[in] yPos Y position.
-     * @param[in] heading Heading.
+     * @param[in] xPos X position [mm].
+     * @param[in] yPos Y position [mm].
+     * @param[in] heading Heading [mrad].
      */
     void setOdometryData(int32_t xPos, int32_t yPos, int32_t heading);
 
     /**
      * Set latest motor speed data.
-     * @param[in] speedLeft Speed of the left motor.
-     * @param[in] speedRight Speed of the right motor.
+     * @param[in] speedLeft Speed of the left motor [steps/s].
+     * @param[in] speedRight Speed of the right motor [steps/s].
      */
     void setMotorSpeedData(int16_t speedLeft, int16_t speedRight);
 
     /**
      * Set the target heading the robot shall face to using its x and y coordinates.
-     * @param[in] xPos X position.
-     * @param[in] yPos Y position.
+     * @param[in] xPos X position [mm].
+     * @param[in] yPos Y position [mm].
      */
     void setTargetHeading(int32_t xPos, int32_t yPos);
 
