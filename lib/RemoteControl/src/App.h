@@ -47,6 +47,7 @@
 #include <Board.h>
 #include <MqttClient.h>
 #include <SerialMuxProtServer.hpp>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -110,10 +111,9 @@ private:
     /**
      * SerialMuxProt Server Instance
      *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
+     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
-    SerialMuxProtServer<10U> m_smpServer;
+    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
 
     /**
      * MQTTClient Instance

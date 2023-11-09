@@ -42,6 +42,9 @@
  * Macros
  *****************************************************************************/
 
+/** Maximum number of SerialMuxProt Channels. */
+#define MAX_CHANNELS (10U)
+
 /** Name of Channel to send Commands to. */
 #define COMMAND_CHANNEL_NAME "CMD"
 
