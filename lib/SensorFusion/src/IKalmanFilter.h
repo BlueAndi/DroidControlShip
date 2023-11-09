@@ -72,11 +72,11 @@ public:
 
     /**
      * Update of the covariance and the state of the Kalman Filter.
-     * @param[in] kalmanParameters   Input Parameters for the Kalman Filter
+     * @param[in] kalmanParameter   Input Parameters for the Kalman Filter
      * @return Estimated Position as a PositionData struct.
      *
      */
-    virtual PositionData updateStep(KalmanParameter& kalmanParameters) = 0;
+    virtual PositionData updateStep(KalmanParameter& kalmanParameter) = 0;
 };
 
 #endif /* IKALMANFILTER_H */

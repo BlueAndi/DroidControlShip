@@ -89,10 +89,10 @@ public:
 
     /**
      * Update of the covariance and the state of the Kalman Filter.
-     * @param[in] kalmanParameters   Input Parameters for the Kalman Filter as a KalmanParameter struct.
+     * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
      * @return Estimated Position as a PositionData struct.
      */
-    PositionData updateStep(KalmanParameter& kalmanParameters)
+    PositionData updateStep(KalmanParameter& kalmanParameter)
     {
         PositionData currentPosition;
         currentPosition.currentXPos    = 0;
