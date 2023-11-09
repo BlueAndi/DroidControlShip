@@ -139,8 +139,9 @@ private:
     void motorSpeedsTopicCallback(const String& payload);
 
 private:
-    App(const App& app);
-    App& operator=(const App& app);
+    /* Not allowed. */
+    App(const App& app);            /**< Copy construction of an instance. */
+    App& operator=(const App& app); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
