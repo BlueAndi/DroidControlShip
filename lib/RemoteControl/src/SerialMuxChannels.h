@@ -95,7 +95,7 @@ typedef struct _SpeedData
 /** Struct of the "Line Sensor" channel payload. */
 typedef struct _LineSensorData
 {
-    uint16_t lineSensorData[5U]; /**< Line sensor data [digits] */
+    uint16_t lineSensorData[5U]; /**< Line sensor data [digits] normalized to max 1000 digits. */
 } __attribute__((packed)) LineSensorData;
 
 /******************************************************************************
