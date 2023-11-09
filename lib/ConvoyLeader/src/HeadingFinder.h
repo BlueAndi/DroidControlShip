@@ -173,7 +173,7 @@ private:
     /** New motor speed data flag. */
     bool m_newMotorSpeedData;
 
-    /**< PID controller, used for heading finding. */
+    /** PID controller, used for heading finding. */
     PIDController<int32_t> m_pidCtrl;
 
     /** Timer used for periodically PID processing. */
