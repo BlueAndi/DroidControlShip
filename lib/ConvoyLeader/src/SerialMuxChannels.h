@@ -25,61 +25,73 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Arduino native
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Channel structure definition for the SerialMuxProt.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALSim
+ * @addtogroup Application
  *
  * @{
  */
-
-#ifndef ARDUINO_H
-#define ARDUINO_H
+#ifndef SERIAL_MUX_CHANNELS_H
+#define SERIAL_MUX_CHANNELS_H
 
 /******************************************************************************
  * Compile Switches
  *****************************************************************************/
 
-#define _USE_MATH_DEFINES
-
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdio.h>
-#include "Stream.h"
-#include "WString.h"
-#include "Serial.h"
+
+#include <Arduino.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
-#define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
+/** Maximum number of SerialMuxProt Channels. */
+#define MAX_CHANNELS (10U)
 
-#define PI M_PI
+/** Name of Channel to send Odometry Data to. */
+#define ODOMETRY_CHANNEL_NAME "ODOMETRY"
+
+/** DLC of Odometry Channel */
+#define ODOMETRY_CHANNEL_DLC (sizeof(OdometryData))
+
+/** Name of Channel to send Speedometer Data to. */
+#define SPEED_CHANNEL_NAME "SPEED"
+
+/** DLC of Speedometer Channel */
+#define SPEED_CHANNEL_DLC (sizeof(SpeedData))
+
+/** Name of Channel to send Motor Speed Setpoints to. */
+#define SPEED_SETPOINT_CHANNEL_NAME "SPEED_SET"
+
+/** DLC of Speedometer Channel */
+#define SPEED_SETPOINT_CHANNEL_DLC (sizeof(SpeedData))
 
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
+/** Struct of the "Odometry" channel payload. */
+typedef struct _OdometryData
+{
+    int32_t xPos;        /**< X position [mm]. */
+    int32_t yPos;        /**< Y position [mm]. */
+    int32_t orientation; /**< Orientation [mrad]. */
+} __attribute__((packed)) OdometryData;
+
+/** Struct of the "Speed" channel payload. */
+typedef struct _SpeedData
+{
+    int16_t left;  /**< Left motor speed [steps/s]. */
+    int16_t right; /**< Right motor speed [steps/s]. */
+} __attribute__((packed)) SpeedData;
+
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-/**
- * Returns the number of milliseconds passed since the system start.
- *
- * @return The number of milliseconds.
- */
-extern unsigned long millis();
-
-/**
- * Delays the program for the specified amount of milliseconds. In the mean time the
- * simulation still steps to prevent an endless loop.
- *
- * @param[in] ms The amount of milliseconds that the program should be delayed by.
- */
-extern void delay(unsigned long ms);
-
-#endif /* ARDUINO_H */
+#endif /* SERIAL_MUX_CHANNELS_H */
 /** @} */

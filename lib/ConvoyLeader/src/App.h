@@ -44,6 +44,10 @@
  * Includes
  *****************************************************************************/
 #include <Arduino.h>
+#include <Board.h>
+#include <MqttClient.h>
+#include <SerialMuxProtServer.hpp>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -60,7 +64,10 @@ public:
     /**
      * Construct the convoy leader application.
      */
-    App()
+    App() :
+        m_smpServer(Board::getInstance().getDevice().getStream()),
+        m_serialMuxProtChannelIdMotorSpeedSetpoints(0U),
+        m_mqttClient()
     {
     }
 
@@ -82,12 +89,49 @@ public:
     void loop();
 
 private:
-    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
+    /** Minimum battery level in percent. */
+    static const uint8_t MIN_BATTERY_LEVEL = 10U;
+
+    /** MQTT topic name for birth messages. */
+    static const char* TOPIC_NAME_BIRTH;
+
+    /** MQTT topic name for will messages. */
+    static const char* TOPIC_NAME_WILL;
+
+    /** MQTT topic name for receiving position setpoint coordinates. */
+    static const char* TOPIC_NAME_POSITION_SETPOINT;
+
+    /** SerialMuxProt Channel id sending sending motor speed setpoints. */
+    uint8_t m_serialMuxProtChannelIdMotorSpeedSetpoints;
+
+    /**
+     * SerialMuxProt Server Instance
+     *
+     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
+     */
+    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
+
+    /**
+     * MQTTClient Instance
+     */
+    MqttClient m_mqttClient;
+
+private:
+    /**
+     * Callback for Position Setpoint MQTT Topic.
+     * @param[in] payload   Payload of the MQTT message.
+     */
+    void positionTopicCallback(const String& payload);
 
     /**
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();
+
+    /**
+     * Send speed setpoints using SerialMuxProt.
+     */
+    void sendSpeedSetpoints();
 
 private:
     /* Not allowed. */
