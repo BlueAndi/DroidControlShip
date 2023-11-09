@@ -27,7 +27,7 @@
 /**
  * @brief  Socket Client for Inter-Process Communication
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
- * 
+ *
  * @addtogroup HALSim
  *
  * @{
@@ -189,7 +189,7 @@ public:
 
     /**
      * Process the receiving of messages and client connections.
-     * 
+     *
      * @returns true if connection is active. Otherwise, false.
      */
     bool process();
@@ -206,7 +206,7 @@ private:
 
     /**
      * Connect to the socket server.
-     * 
+     *
      * @returns true if successfully connected to socket server. Otherwise, false.
      */
     bool connectSocket();
@@ -225,8 +225,8 @@ private:
 
 private:
     /* Not allowed. */
-    SocketClient(const SocketClient& srv);
-    SocketClient& operator=(const SocketClient& srv);
+    SocketClient(const SocketClient& srv);            /**< Copy construction of an instance. */
+    SocketClient& operator=(const SocketClient& srv); /**< Assignment of an instance. */
 };
 
 #endif /* SOCKET_SERVER_H_ */

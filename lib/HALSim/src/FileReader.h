@@ -72,8 +72,9 @@ public:
     size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) final;
 
 private:
-    FileReader(const FileReader& src);
-    FileReader& operator=(const FileReader& rhs);
+    /* Not allowed. */
+    FileReader(const FileReader& src);            /**< Copy construction of an instance. */
+    FileReader& operator=(const FileReader& rhs); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
