@@ -39,7 +39,6 @@
 #include <Settings.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
-#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Compiler Switches
