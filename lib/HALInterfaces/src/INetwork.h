@@ -57,10 +57,10 @@
 /** Struct encompassing all network settings */
 struct NetworkSettings
 {
-    String ssid;       /* SSID of the WiFi network. */
-    String password;   /* Password of the WiFi network. */
-    String apSsid;     /* SSID in AP mode. */
-    String apPassword; /* Password in AP mode. */
+    String ssid;       /**< SSID of the WiFi network. */
+    String password;   /**< Password of the WiFi network. */
+    String apSsid;     /**< SSID in AP mode. */
+    String apPassword; /**< Password in AP mode. */
 };
 
 /** The abstract network interface. */

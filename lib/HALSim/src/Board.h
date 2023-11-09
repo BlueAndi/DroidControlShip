@@ -241,9 +241,15 @@ private:
         m_configFilePath = configFilePath;
     }
 
-    /* The main entry needs access to be able to set the configuration file path.
+    /**
+     * The main entry needs access to be able to set the configuration file path.
      * But all other application parts shall have no access, which is
      * solved by this friend.
+     *
+     * @param[in] argc  Number of arguments
+     * @param[in] argv  Arguments
+     *
+     * @return Exit code
      */
     friend int main(int argc, char** argv);
 };

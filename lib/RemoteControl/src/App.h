@@ -47,6 +47,7 @@
 #include <Board.h>
 #include <MqttClient.h>
 #include <SerialMuxProtServer.hpp>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -110,10 +111,9 @@ private:
     /**
      * SerialMuxProt Server Instance
      *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
+     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
-    SerialMuxProtServer<10U> m_smpServer;
+    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
 
     /**
      * MQTTClient Instance
@@ -139,8 +139,9 @@ private:
     void motorSpeedsTopicCallback(const String& payload);
 
 private:
-    App(const App& app);
-    App& operator=(const App& app);
+    /* Not allowed. */
+    App(const App& app);            /**< Copy construction of an instance. */
+    App& operator=(const App& app); /**< Assignment of an instance. */
 };
 
 /******************************************************************************

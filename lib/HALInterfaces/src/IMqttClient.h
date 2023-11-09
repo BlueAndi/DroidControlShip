@@ -58,14 +58,14 @@
 /** MQTT settings struct */
 struct MqttSettings
 {
-    String   clientId;      /* Client ID. */
-    String   brokerAddress; /* Broker address to connect to. */
-    uint16_t brokerPort;    /* Broker port to connect to. */
-    String   birthTopic;    /* Birth topic. If empty, no birth message is used. */
-    String   birthMessage;  /* Birth message. */
-    String   willTopic;     /* Last will topic. If empty, no last will is used. */
-    String   willMessage;   /* Last will message. */
-    bool     reconnect;     /* If true, the client will try to reconnect to the broker, if the connection is lost. */
+    String   clientId;      /**< Client ID. */
+    String   brokerAddress; /**< Broker address to connect to. */
+    uint16_t brokerPort;    /**< Broker port to connect to. */
+    String   birthTopic;    /**< Birth topic. If empty, no birth message is used. */
+    String   birthMessage;  /**< Birth message. */
+    String   willTopic;     /**< Last will topic. If empty, no last will is used. */
+    String   willMessage;   /**< Last will message. */
+    bool     reconnect;     /**< If true, the client will try to reconnect to the broker, if the connection is lost. */
 };
 
 /** The abstract MQTT Client interface. */
