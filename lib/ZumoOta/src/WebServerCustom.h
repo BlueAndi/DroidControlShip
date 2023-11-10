@@ -17,7 +17,7 @@
  * Includes
  *****************************************************************************/
 #include <Arduino.h>
-#include "ESPAsyncWebServer.h"
+#include <ESPAsyncWebServer.h>
 #include "Upload.h"
 
 /******************************************************************************
@@ -28,8 +28,10 @@
  * Types and Classes
  *****************************************************************************/
 
-class WebServerCustom : public AsyncWebServer{
+class WebServerCustom
+{
 private:
+AsyncWebServer server{80};
 
 public:
     /**
@@ -47,7 +49,21 @@ public:
         * 
         * This function is used to initialize the web server and set it up for handling requests.
     */
-    void begin();
+    void start();
+
+    /**
+        * 
+        *This function is used to initialize the web server and set it up for handling requests. 
+        * 
+    */
+    void init();
+
+    /**
+        * 
+        * This function sets up a handler for processing HTTP POST requests to /upload.
+        * 
+    */
+    void handleUploadRequest();
 };
 
 #endif/* WEBSERVER_H */

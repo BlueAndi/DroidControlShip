@@ -30,7 +30,7 @@
  *
  * @addtogroup Application
  *
- * @{
+ * {
  */
 
 #ifndef APP_H
@@ -63,16 +63,13 @@ public:
     /**
      * Construct the app  application.
      */
-    App()
-    {
-    }
+    App();
+    
 
     /**
      * Destroy the app  application.
      */
-    ~App()
-    {
-    }
+    ~App();
 
     /**
      * Setup the application.
@@ -84,13 +81,15 @@ public:
      */
     void loop();
 
+    /**
+     * Start the Application.
+     */
+    void start();
+
 private:
-
-    
-
-/******************************************************************************
- * Functions
- *****************************************************************************/
+    FileManager fileManager{};
+    WebServerCustom webServer{};
+    Upload upload{};
 };
 
 #endif /* APP_H */
