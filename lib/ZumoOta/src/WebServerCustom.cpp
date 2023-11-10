@@ -33,7 +33,8 @@
  * Includes
  *****************************************************************************/
 #include "WebServerCustom.h"
-
+#include <LittleFS.h>
+#include <FS.h>
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -53,22 +54,45 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
+Upload upload;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-WebServerCustom::WebServerCustom() : AsyncWebServer(80)
+WebServerCustom::WebServerCustom()
 {
+    
 }
 
 WebServerCustom::~WebServerCustom()
 {
 }
 
-void WebServerCustom::begin()
+void WebServerCustom::init()
 {
-    AsyncWebServer::begin();
+    
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+        File file = LittleFS.open("/upload.html", "r");
+    if(file)
+    {
+        request->send(LittleFS, "/upload.html","text/html");
+        file.close();
+    }else
+    {
+        request->send(404, "text/plain", "File not found");
+    }
+    });
+
+    server.begin();
+}
+
+void WebServerCustom::handleUploadRequest()
+{
+    server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request)
+    {
+        upload.handleUploadButtonPress();
+        request->send(200, "text/plain", "Upload Button gedrueckt");
+    });
 }
 
 
