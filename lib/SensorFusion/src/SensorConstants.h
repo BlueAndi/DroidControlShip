@@ -27,7 +27,7 @@
 /**
  * @brief  Sensor specific constants
  * @author Juliane Kerpe <juliane.kerpe@web.de>
- * 
+ *
  *
  * @{
  */
@@ -46,7 +46,9 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-
+#ifndef M_PI
+#define M_PI 3.14159
+#endif
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
@@ -56,12 +58,14 @@
  */
 namespace SensorConstants
 {
-    /**
-     * The Linear Sensitivity Factors are specified in the data sheets of the sensors LSM303D (accelerometer+gyro), L3GD20H (gyro), LSM6DS33 (gyro + accelerometer), LIS3MDL (magnetometer)
-    */
-    static const float ACCELEROMETER_SENSITIVITY_FACTOR    = 0.061f * 9.81f;                /**< Sensitivity Factor of the LSM303D and LSM6DS33 accelerometer   in mm/s/s/LSB       at Range of +/- 2 g   */
-    static const float GYRO_SENSITIVITY_FACTOR             = 8.75f * 2 * 3.14159 / 360;     /**< Sensitivity Factor of the L3GD20H and LSM6DS33 gyro            in mrad/s/digit     at Range of +/- 245 dps */ 
-};
+    static const float ACCELEROMETER_SENSITIVITY_FACTOR =
+        0.061F * 9.81F; /* Sensitivity Factor of the LSM303D and LSM6DS33 accelerometer in mm/s/s/LSB at Range of +/-
+                           2 g. Converts raw accelerometer value to mm/s/s. */
+    static const float GYRO_SENSITIVITY_FACTOR =
+        8.75F * 2.0F * M_PI /
+        360.0F; /* Sensitivity Factor of the L3GD20H and LSM6DS33 gyro in
+                   mrad/s/digit at Range of +/- 245 dps. Converts raw gyroscope value to mrad/s. */
+};              // namespace SensorConstants
 
 /******************************************************************************
  * Functions

@@ -52,6 +52,8 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
+/** Number of states used in the state vector of the Extended Kalman Filter. */
+static const uint8_t NUMBER_OF_STATES = 3U;
 
 /** This class provides a Extended Kalman filter. */
 class ExtendedKalmanFilter : public LinearKalmanFilter
@@ -60,7 +62,9 @@ public:
     /**
      * Constructs the Extended Kalman Filter
      */
-    ExtendedKalmanFilter()
+    ExtendedKalmanFilter() :
+        m_state(Eigen::VectorXf::Constant(NUMBER_OF_STATES, 0.0)),
+        m_covariance(Eigen::MatrixXf::Constant(NUMBER_OF_STATES, NUMBER_OF_STATES, 0.0))
     {
     }
 
@@ -76,7 +80,7 @@ public:
      */
     void init()
     {
-        // TODO: Implement Kalman Filter in cpp (TD072)
+        /* TODO: Implement Kalman Filter in cpp (TD072) */
     }
 
     /**
@@ -84,7 +88,7 @@ public:
      */
     void predictionStep()
     {
-        // TODO: Implement Kalman Filter in cpp (TD072)
+        /* TODO: Implement Kalman Filter in cpp (TD072) */
     }
 
     /**
@@ -99,10 +103,12 @@ public:
         currentPosition.currentYPos    = 0;
         currentPosition.currentHeading = 0;
         return currentPosition;
-        // TODO: Implement Kalman Filter in cpp (TD072)
+        /* TODO: Implement Kalman Filter in cpp (TD072) */
     }
 
 private:
+    Eigen::VectorXf m_state;      /* Estimated state vector [p_x, p_y, v_x, v_y, a_x, a_y]*/
+    Eigen::MatrixXf m_covariance; /* Covariance Matrix of the state */
 };
 
 /******************************************************************************

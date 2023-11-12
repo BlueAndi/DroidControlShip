@@ -92,7 +92,7 @@ private:
     LinearKalmanFilter m_linearKalmanFilter;
 
     /* Variable where the current estimated Position is saved in. */
-    IKalmanFilter::PositionData m_currentPosition = {0, 0, 0};
+    IKalmanFilter::PositionData m_currentPosition;
 
     /**
      * Transform the local acceleration vector [acc_x, acc_y] into a global vector using the provided angle.
@@ -106,6 +106,13 @@ private:
 
     void estimateAngle(int16_t& estimatedAngle, const int32_t& encoderAngle, const int16_t& magnetometerValueX,
                        const int16_t& magnetometerValueY);
+
+    /**
+     * Constructs the SensorFusion Algorithm.
+     */
+    SensorFusion() : m_currentPosition{0, 0, 0}
+    {
+    }
 };
 
 /******************************************************************************
