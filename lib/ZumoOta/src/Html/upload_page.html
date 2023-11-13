@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            
+            background-image: url('https://www.robot-maker.com/shop/1252-thickbox_default/robot-pololu-zumo-32u4.jpg');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-color: rosybrown;
+        }
+
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px;
+            border: 8px solid black;
+            border-radius: 10px;
+            background-color: white;
+        }
+
+        .upload-form input[type="file"] {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .upload-form input[type="submit"] {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            background-color: lightblue;
+            cursor: pointer;
+        }
+        h1, p {
+            margin-top: 0;
+            color: yellow; 
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>Willkommen zur Upload Seite!</h1>
+    <p>Bitte Anweisungen folgen!</p>
+    <p> Bitte ein Dokument einreichen und auf Upload drücken!</p>
+    <form class="upload-form" method="post" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="firmware">
+        <input type="submit" value="Upload">
+    </form>
+    
+</body>
+</html>

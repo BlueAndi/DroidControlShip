@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ZumoOta application
- * @author Decareme Pauline Ngangnou <ngandeca@yahoo.fr>
+ * @brief  FileManager realization
+ * 
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "App.h"
+#include "FileManager.h"
+#include <LittleFS.h>
 #include <Arduino.h>
-#include <WiFi.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -56,74 +56,33 @@
  * Local Variables
  *****************************************************************************/
 
-/** Serial interface baudrate. */
-static const uint32_t SERIAL_BAUDRATE = 115200U;
-
-/*defines the WiFi Credentials*/
-const char* ssid = "your_ssid";
-const char* password = "your_password";
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-App::App()
+FileManager::FileManager()
 {
 }
+    
 
-App::~App()
+FileManager::~FileManager()
 {
 }
-
-void App::start() 
-{
-    if (m_fileManager.init())
-    {
-        Serial.println("LittleFS initialization successful");
-        m_webServer.init();
-    }
-    else
-    {
-        Serial.println("LittleFS initialization failed. The application will not start.");
-       
-    }
-}
-
-
-void App::setup()
-{
-  Serial.begin(SERIAL_BAUDRATE);
-// Access Point Modus start
-  /*WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, password);
-
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("Access Point IP-Adresse: ");
-  Serial.println(IP);*/
-
-  //Station Mode start
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.printf("WiFi Failed!\n");
-        return;
-    }
-
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
-
    
-    start();
-    m_webServer.handleUploadRequest();
-}
-
-void App::loop()
+bool FileManager::init()
 {
+    if (!LittleFS.begin(true))
+    {
+        Serial.println("An Error has occurred while mounting LittleFS");
+        return false;
+    }
+
+    return true;
 }
 
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
+    
 
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
+
+
+
+

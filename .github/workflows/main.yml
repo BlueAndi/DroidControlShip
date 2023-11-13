@@ -30,7 +30,7 @@ jobs:
     needs: intro
     strategy:
       matrix:
-        environment: ["ConvoyLeaderTarget", "ConvoyFollowerTarget", "RemoteControlTarget"]
+        environment: ["ConvoyLeaderTarget", "ConvoyFollowerTarget", "RemoteControlTarget", "ZumoOtaTarget"]
 
     # Steps represent a sequence of tasks that will be executed as part of the job.
     steps:
@@ -71,7 +71,7 @@ jobs:
     needs: intro
     strategy:
       matrix:
-        environment: ["ConvoyLeaderTarget", "ConvoyFollowerTarget", "RemoteControlTarget", "Test"]
+        environment: ["ConvoyLeaderTarget", "ConvoyFollowerTarget", "RemoteControlTarget", "Test", "ZumoOtaTarget"]
 
     steps:
     - name: Checkout repository

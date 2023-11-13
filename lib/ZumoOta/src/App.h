@@ -30,7 +30,7 @@
  *
  * @addtogroup Application
  *
- * @{
+ * {
  */
 
 #ifndef APP_H
@@ -43,8 +43,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
 #include <Board.h>
+#include "FileManager.h"
+#include "WebServerCustom.h"
 
 /******************************************************************************
  * Macros
@@ -59,18 +60,15 @@ class App
 {
 public:
     /**
-     * Construct the convoy leader application.
+     * Construct the app  application.
      */
-    App()
-    {
-    }
+    App();
+    
 
     /**
-     * Destroy the convoy leader application.
+     * Destroy the app  application.
      */
-    ~App()
-    {
-    }
+    ~App();
 
     /**
      * Setup the application.
@@ -82,11 +80,29 @@ public:
      */
     void loop();
 
-/******************************************************************************
- * Functions
- *****************************************************************************/
+    /**
+     * Start the Application.
+     */
+    void start();
+
+private:
+    /**
+     * Instance of the FileManager class 
+     *responsible for managing the LittleFs file System. 
+     */
+    FileManager m_fileManager;
+
+    /**
+     * Instance of the WebServerCustom class 
+     *representing a custom webserver for the application.
+     */
+    WebServerCustom m_webServer;
+
+    /**
+     * Instance of the Upload class 
+     */
+    Upload m_upload;
 };
 
 #endif /* APP_H */
 /** @} */
-

@@ -25,17 +25,17 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ZumoOta application
- * @author Decareme Pauline Ngangnou <ngandeca@yahoo.fr>
+ * @brief  WebServer realization
+ * 
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "App.h"
+#include "WebServerCustom.h"
+#include <LittleFS.h>
+#include <FS.h>
 #include <Arduino.h>
-#include <WiFi.h>
-
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -55,75 +55,54 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
-/** Serial interface baudrate. */
-static const uint32_t SERIAL_BAUDRATE = 115200U;
-
-/*defines the WiFi Credentials*/
-const char* ssid = "your_ssid";
-const char* password = "your_password";
+Upload upload;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-App::App()
+WebServerCustom::WebServerCustom()
+{
+    
+}
+
+WebServerCustom::~WebServerCustom()
 {
 }
 
-App::~App()
+void WebServerCustom::init()
 {
-}
-
-void App::start() 
-{
-    if (m_fileManager.init())
+    
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+        File file = LittleFS.open("/upload.html", "r");
+    if(file)
     {
-        Serial.println("LittleFS initialization successful");
-        m_webServer.init();
-    }
-    else
+        request->send(LittleFS, "/upload.html","text/html");
+        file.close();
+    }else
     {
-        Serial.println("LittleFS initialization failed. The application will not start.");
-       
+        request->send(404, "text/plain", "File not found");
     }
+    });
+
+    server.begin();
 }
 
-
-void App::setup()
+void WebServerCustom::handleUploadRequest()
 {
-  Serial.begin(SERIAL_BAUDRATE);
-// Access Point Modus start
-  /*WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, password);
-
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("Access Point IP-Adresse: ");
-  Serial.println(IP);*/
-
-  //Station Mode start
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.printf("WiFi Failed!\n");
-        return;
-    }
-
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
-
-   
-    start();
-    m_webServer.handleUploadRequest();
+    server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request)
+    {
+        upload.handleUploadButtonPress();
+        request->send(200, "text/plain", "Upload Button gedrueckt");
+    });
 }
 
-void App::loop()
-{
-}
 
 /******************************************************************************
- * Protected Methods
+ * External Functions
  *****************************************************************************/
 
 /******************************************************************************
- * Private Methods
+ * Local Functions
  *****************************************************************************/
+
+
