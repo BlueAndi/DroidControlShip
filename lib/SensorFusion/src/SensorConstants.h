@@ -41,14 +41,11 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdint.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
-#ifndef M_PI
-#define M_PI 3.14159
-#endif
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
@@ -58,14 +55,13 @@
  */
 namespace SensorConstants
 {
-    static const float ACCELEROMETER_SENSITIVITY_FACTOR =
-        0.061F * 9.81F; /* Sensitivity Factor of the LSM303D and LSM6DS33 accelerometer in mm/s/s/LSB at Range of +/-
-                           2 g. Converts raw accelerometer value to mm/s/s. */
-    static const float GYRO_SENSITIVITY_FACTOR =
-        8.75F * 2.0F * M_PI /
-        360.0F; /* Sensitivity Factor of the L3GD20H and LSM6DS33 gyro in
-                   mrad/s/digit at Range of +/- 245 dps. Converts raw gyroscope value to mrad/s. */
-};              // namespace SensorConstants
+    /** Sensitivity Factor of the LSM303D and LSM6DS33 accelerometer in mm/s/s/bit at Range of +/- 2 g. Converts a raw
+     * accelerometer value to mm/s/s. */
+    static const float ACCELEROMETER_SENSITIVITY_FACTOR = 0.061F * 9.81F;
+    /** Sensitivity Factor of the L3GD20H and LSM6DS33 gyro in
+                   mrad/s/bit at Range of +/- 245 dps. Converts a raw gyroscope value to mrad/s. */
+    static const float GYRO_SENSITIVITY_FACTOR = 8.75F * 2.0F * M_PI / 360.0F;
+}; // namespace SensorConstants
 
 /******************************************************************************
  * Functions

@@ -52,8 +52,6 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
-/** Number of states used in the state vector of the Linear Kalman Filter. */
-static const uint8_t NUMBER_OF_STATES = 3U;
 
 /** This class provides a Linear Kalman filter. */
 class LinearKalmanFilter : public IKalmanFilter
@@ -63,8 +61,8 @@ public:
      * Constructs the Linear Kalman Filter
      */
     LinearKalmanFilter() :
-        m_state(Eigen::VectorXf::Constant(NUMBER_OF_STATES, 0.0)),
-        m_covariance(Eigen::MatrixXf::Constant(NUMBER_OF_STATES, NUMBER_OF_STATES, 0.0))
+        m_state(Eigen::VectorXf::Constant(NUMBER_OF_STATES, 0.0F)),
+        m_covariance(Eigen::MatrixXf::Constant(NUMBER_OF_STATES, NUMBER_OF_STATES, 0.0F))
     {
     }
 
@@ -105,6 +103,9 @@ public:
         return currentPosition;
         /* TODO: Implement Kalman Filter in cpp (TD072) */
     }
+
+    /** Number of states used in the state vector of the Linear Kalman Filter. */
+    static const uint8_t NUMBER_OF_STATES = 3U;
 
 private:
     Eigen::VectorXf m_state;      /* Estimated state vector [p_x, p_y, v_x, v_y, a_x, a_y]*/

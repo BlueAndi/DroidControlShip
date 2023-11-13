@@ -110,7 +110,7 @@ private:
     /**
      * Constructs the SensorFusion Algorithm.
      */
-    SensorFusion() : m_currentPosition{0, 0, 0}
+    SensorFusion() : m_linearKalmanFilter(), m_currentPosition{0, 0, 0}
     {
     }
 };

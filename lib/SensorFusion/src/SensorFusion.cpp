@@ -103,8 +103,8 @@ void SensorFusion::transformLocalToGlobal(int16_t* globalResult, const int16_t* 
                                           const int16_t& rotationAngle)
 {
     /*  Calculate the sin and cos of the rotationAngle; convert the angle from mrad to rad. */
-    float cosValue = cosf(static_cast<float>(rotationAngle) / 1000);
-    float sinValue = sinf(static_cast<float>(rotationAngle) / 1000);
+    float cosValue = cosf(static_cast<float>(rotationAngle) / 1000.0F);
+    float sinValue = sinf(static_cast<float>(rotationAngle) / 1000.0F);
 
     globalResult[0] = cosValue * localVectorToTransform[0] - sinValue * localVectorToTransform[1];
     globalResult[1] = sinValue * localVectorToTransform[0] + cosValue * localVectorToTransform[1];

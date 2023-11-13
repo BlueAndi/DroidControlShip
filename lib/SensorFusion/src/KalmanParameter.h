@@ -47,8 +47,8 @@
 /** Struct of Data used in the Kalman Filter. */
 typedef struct _KalmanParameter
 {
-    int16_t accelerationX;     /* Acceleration in x direction in mm/s/s. */
-    int16_t accelerationY;     /* Acceleration in y direction in mm/s/s. */
+    int16_t accelerationX;     /* Acceleration in x direction in mm/s^2. */
+    int16_t accelerationY;     /* Acceleration in y direction in mm/s^2. */
     int32_t positionOdometryX; /* Position calculated by Odometry in x direction in mm. */
     int32_t positionOdometryY; /* Position calculated by Odometry in y direction in mm. */
     int32_t angleOdometry;     /* Orientation calculated by Odometry in mrad. */
