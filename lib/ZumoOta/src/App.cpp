@@ -60,8 +60,8 @@
 static const uint32_t SERIAL_BAUDRATE = 115200U;
 
 /*defines the WiFi Credentials*/
-const char* ssid = "Djokoh";
-const char* password = "djokep26nov2015";
+const char* ssid = "your_ssid";
+const char* password = "your_password";
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
