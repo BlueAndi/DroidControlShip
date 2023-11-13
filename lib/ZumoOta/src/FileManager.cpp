@@ -34,6 +34,7 @@
  *****************************************************************************/
 #include "FileManager.h"
 #include <LittleFS.h>
+#include <Arduino.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -68,13 +69,15 @@ FileManager::~FileManager()
 {
 }
    
-void FileManager::init()
+bool FileManager::init()
 {
-    if(!LittleFS.begin(true))
+    if (!LittleFS.begin(true))
     {
-        Serial.println("An Error has occurred while mountingLittleFS");
-        return;
+        Serial.println("An Error has occurred while mounting LittleFS");
+        return false;
     }
+
+    return true;
 }
 
     

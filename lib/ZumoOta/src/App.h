@@ -43,7 +43,6 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
 #include <Board.h>
 #include "FileManager.h"
 #include "WebServerCustom.h"
@@ -87,11 +86,23 @@ public:
     void start();
 
 private:
-    FileManager fileManager{};
-    WebServerCustom webServer{};
-    Upload upload{};
+    /**
+     * Instance of the FileManager class 
+     *responsible for managing the LittleFs file System. 
+     */
+    FileManager m_fileManager;
+
+    /**
+     * Instance of the WebServerCustom class 
+     *representing a custom webserver for the application.
+     */
+    WebServerCustom m_webServer;
+
+    /**
+     * Instance of the Upload class 
+     */
+    Upload m_upload;
 };
 
 #endif /* APP_H */
 /** @} */
-

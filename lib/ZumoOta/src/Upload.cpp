@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "Upload.h"
+#include <Arduino.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -69,6 +70,3 @@ Upload::~Upload() {
 void Upload::handleUploadButtonPress() {
     Serial.println("Upload Button gedrueckt");
 }
-
-
-

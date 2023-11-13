@@ -60,8 +60,8 @@
 static const uint32_t SERIAL_BAUDRATE = 115200U;
 
 /*defines the WiFi Credentials*/
-const char* ssid = "your_ssid";
-const char* password = "your_password";
+const char* ssid = "Djokoh";
+const char* password = "djokep26nov2015";
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -76,8 +76,18 @@ App::~App()
 
 void App::start() 
 {
-    webServer.init();
+    if (m_fileManager.init())
+    {
+        Serial.println("LittleFS initialization successful");
+        m_webServer.init();
+    }
+    else
+    {
+        Serial.println("LittleFS initialization failed. The application will not start.");
+       
+    }
 }
+
 
 void App::setup()
 {
@@ -101,9 +111,9 @@ void App::setup()
     Serial.print("IP Address: ");
     Serial.println(WiFi.localIP());
 
-    fileManager.init();
+   
     start();
-    webServer.handleUploadRequest();
+    m_webServer.handleUploadRequest();
 }
 
 void App::loop()
@@ -117,4 +127,3 @@ void App::loop()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
