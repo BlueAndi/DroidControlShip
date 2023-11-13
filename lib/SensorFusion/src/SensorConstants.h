@@ -55,8 +55,8 @@
  */
 namespace SensorConstants
 {
-    /** Sensitivity Factor of the LSM303D and LSM6DS33 accelerometer in mm/s/s/digit at Range of +/- 2 g. Converts a raw
-     * accelerometer value in digits to mm/s/s. */
+    /** Sensitivity Factor of the LSM303D and LSM6DS33 accelerometer in mm/s^2/digit at Range of +/- 2 g. Converts a raw
+     * accelerometer value in digits to mm/s^2. */
     static const float ACCELEROMETER_SENSITIVITY_FACTOR = 0.061F * 9.81F;
     /** Sensitivity Factor of the L3GD20H and LSM6DS33 gyro in
                    mrad/s/digit at Range of +/- 245 dps. Converts a raw gyroscope value in digits to mrad/s. */
