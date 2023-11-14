@@ -107,12 +107,12 @@ void App::start()
 {
     if (m_fileManager.init())
     {
-        Serial.println("LittleFS initialization successful");
+        LOG_DEBUG("LittleFS initialization successful");
         m_webServer.init();
     }
     else
     {
-        Serial.println("LittleFS initialization failed. The application will not start.");
+        LOG_FATAL("LittleFS initialization failed. The application will not start.");
        
     }
 }
