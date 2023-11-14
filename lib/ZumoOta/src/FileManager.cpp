@@ -35,7 +35,8 @@
 #include "FileManager.h"
 #include <LittleFS.h>
 #include <Arduino.h>
-
+#include <Logging.h>
+#include <LogSinkPrinter.h>
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -43,7 +44,9 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-
+#ifndef CONFIG_LOG_SEVERITY
+#define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
+#endif /* CONFIG_LOG_SEVERITY */
 /******************************************************************************
  * Types and classes
  *****************************************************************************/
@@ -55,7 +58,8 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
+/** Serial log sink */
+static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -71,9 +75,18 @@ FileManager::~FileManager()
    
 bool FileManager::init()
 {
+    if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
+    {
+        (void)Logging::getInstance().selectSink("Serial");
+
+        /* Set severity of logging system. */
+        Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
+
+        LOG_DEBUG("LOGGER READY");
+    }
     if (!LittleFS.begin(true))
     {
-        Serial.println("An Error has occurred while mounting LittleFS");
+        LOG_ERROR("Failed to mount file system.");
         return false;
     }
 

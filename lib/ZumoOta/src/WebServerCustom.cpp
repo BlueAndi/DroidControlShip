@@ -36,6 +36,7 @@
 #include <LittleFS.h>
 #include <FS.h>
 #include <Arduino.h>
+#include <Logging.h>
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -69,9 +70,49 @@ WebServerCustom::~WebServerCustom()
 {
 }
 
+String WebServerCustom::listFiles(bool ishtml)
+{
+  String returnText = "";
+  LOG_DEBUG("Listing files stored on LittleFS");
+  File root = LittleFS.open("/");
+  File foundfile = root.openNextFile();
+  if (ishtml) {
+    returnText += "<table><tr><th align='left'>Name</th><th align='left'>Size</th></tr>";
+  }
+  while (foundfile) {
+    if (ishtml) {
+      returnText += "<tr align='left'><td>" + String(foundfile.name()) + "</td><td>" + humanReadableSize(foundfile.size()) + "</td></tr>";
+    } else {
+      returnText += "File: " + String(foundfile.name()) + "\n";
+    }
+    foundfile = root.openNextFile();
+  }
+  if (ishtml) {
+    returnText += "</table>";
+  }
+  root.close();
+  foundfile.close();
+  return returnText;
+}
+
+String WebServerCustom:: humanReadableSize(const size_t bytes)
+{
+  if (bytes < 1024) return String(bytes) + " B";
+  else if (bytes < (1024 * 1024)) return String(bytes / 1024.0) + " KB";
+  else if (bytes < (1024 * 1024 * 1024)) return String(bytes / 1024.0 / 1024.0) + " MB";
+  else return String(bytes / 1024.0 / 1024.0 / 1024.0) + " GB";
+}
+
 void WebServerCustom::init()
 {
-    
+   server.on("/filelist", HTTP_GET, [this](AsyncWebServerRequest *request)
+    {
+        String fileList = listFiles(true);
+        request->send(200,"text/html", fileList);
+    });
+
+    // ... Weitere Routen und Konfigurationen ...
+   
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         File file = LittleFS.open("/upload.html", "r");
     if(file)
@@ -89,10 +130,10 @@ void WebServerCustom::init()
 
 void WebServerCustom::handleUploadRequest()
 {
-    server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request)
-    {
-        upload.handleUploadButtonPress();
-        request->send(200, "text/plain", "Upload Button gedrueckt");
+    server.on("/upload", HTTP_POST, [this](AsyncWebServerRequest *request) {
+    }, [this](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+        // Verarbeite den Dateiupload
+        upload.handleFileUpload(request, filename, index, data, len, final);
     });
 }
 

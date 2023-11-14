@@ -35,6 +35,9 @@
 #include "App.h"
 #include <Arduino.h>
 #include <WiFi.h>
+#include <Logging.h>
+#include <LogSinkPrinter.h>
+
 
 /******************************************************************************
  * Compiler Switches
@@ -43,6 +46,9 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
+#ifndef CONFIG_LOG_SEVERITY
+#define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
+#endif /* CONFIG_LOG_SEVERITY */
 
 /******************************************************************************
  * Types and classes
@@ -62,6 +68,9 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 /*defines the WiFi Credentials*/
 const char* ssid = "your_ssid";
 const char* password = "your_password";
+
+/** Serial log sink */
+static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -74,7 +83,27 @@ App::~App()
 {
 }
 
-void App::start() 
+bool App::loginit()
+{
+    if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
+    {
+        (void)Logging::getInstance().selectSink("Serial");
+
+        /* Set severity of logging system. */
+        Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
+
+        LOG_DEBUG("LOGGER READY");
+        return true;
+    }
+    else 
+    {
+        LOG_ERROR("Fail to init Logging!");
+        return false;
+    }
+
+} 
+
+void App::start()
 {
     if (m_fileManager.init())
     {
@@ -87,32 +116,33 @@ void App::start()
        
     }
 }
+  
 
 
 void App::setup()
 {
-  Serial.begin(SERIAL_BAUDRATE);
-// Access Point Modus start
-  /*WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, password);
+    Serial.begin(SERIAL_BAUDRATE);
+    loginit();
 
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("Access Point IP-Adresse: ");
-  Serial.println(IP);*/
+    // Access Point Modus start
+    /*WiFi.mode(WIFI_AP);
+    WiFi.softAP(ssid, password);
 
-  //Station Mode start
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.printf("WiFi Failed!\n");
-        return;
-    }
+    /*LOG_DEBUG("IP Address: %s", WiFi.softAPIP().toString().c_str());
+    */
 
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
+    //Station Mode start
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+        if (WiFi.waitForConnectResult() != WL_CONNECTED)
+        {
+            LOG_ERROR("WiFi Failed!\n");
+            return;
+        }
 
+    LOG_DEBUG("IP Address: %s", WiFi.localIP().toString().c_str());
    
-    start();
+   start();
     m_webServer.handleUploadRequest();
 }
 

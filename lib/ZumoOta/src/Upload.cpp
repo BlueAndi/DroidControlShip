@@ -33,8 +33,9 @@
  * Includes
  *****************************************************************************/
 #include "Upload.h"
-#include <Arduino.h>
-
+#include <LittleFS.h>
+#include <ESPAsyncWebServer.h>
+#include<Logging.h>
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -59,14 +60,91 @@
  * Public Methods
  *****************************************************************************/
 
-Upload::Upload() {
-   
+Upload::Upload()
+{   
 }
 
-Upload::~Upload() {
-    
+Upload::~Upload()
+{    
 }
 
-void Upload::handleUploadButtonPress() {
-    Serial.println("Upload Button gedrueckt");
+void Upload::handleUploadButtonPress(AsyncWebServerRequest *request)
+{
+    request->send(200, "text/plain", "Upload Button gedrueckt");
+ 
 }
+
+void Upload::handleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
+{
+    static File file;
+    if(!filename.startsWith("/"))
+    {
+      filename = "/"+filename;
+    }
+
+    if (!index)
+    {
+        // Dies ist der erste Datenblock, Datei öffnen oder erstellen
+        file = LittleFS.open(filename, "w");
+
+        if (!file)
+        {
+            LOG_DEBUG("Failed to open file for writing");
+            file.close();
+            return;
+        }
+    }
+    if (file)
+    {
+      // Datei im Request-Objekt speichern
+      request->_tempFile = file;
+      LOG_DEBUG("Upload Start: " + String(filename));
+    }
+    else
+    {
+      return;
+    }
+    if(len)
+    {
+        // Daten in die Datei schreiben
+        request->_tempFile.write(data, len);
+    }
+
+    // Wenn dies der letzte Datenblock ist, Datei schließen
+    if (final)
+    {
+        file.close();
+        request->redirect("/filelist");
+    }
+
+    // Überprüfe, ob die Datei im Dateisystem liegt
+    if (isFileUploaded(request, filename))
+    {
+        LOG_DEBUG("Die hochgeladene Datei liegt im Dateisystem.");
+    }
+    else
+    {
+        LOG_DEBUG("Die hochgeladene Datei liegt nicht im Dateisystem.");
+    }
+}
+
+bool Upload::isFileUploaded(AsyncWebServerRequest *request, String filename)
+{
+    if(LittleFS.exists(filename))
+    {
+        return true;
+    } 
+    else
+    {
+        return false;
+    }
+}
+
+
+
+
+
+
+
+
+

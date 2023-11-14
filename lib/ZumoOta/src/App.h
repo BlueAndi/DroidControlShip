@@ -64,7 +64,6 @@ public:
      */
     App();
     
-
     /**
      * Destroy the app  application.
      */
@@ -84,6 +83,11 @@ public:
      * Start the Application.
      */
     void start();
+
+    /**
+     * Initialize the logging
+     */
+    bool loginit();
 
 private:
     /**

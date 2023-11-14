@@ -64,6 +64,28 @@ public:
         * 
     */
     void handleUploadRequest();
+
+    /**
+    * @brief Makes the size of files human-readable.
+    * 
+    * This function converts the file size in bytes to a human-readable format.
+    * 
+    * @param bytes The size of the file in bytes
+    * @return A string representing the human-readable file size
+    */
+    String humanReadableSize(const size_t bytes);
+
+    /**
+    * @brief Lists files stored on LittleFS in either HTML or plaintext format.
+    * 
+    * This function generates a list of files stored on LittleFS and returns it as a string.
+    * The output format can be either HTML or plaintext, depending on the value of the `ishtml` parameter.
+    * 
+    * @param ishtml Flag indicating whether to generate HTML-formatted output (true) or plaintext (false)
+    * @return A string containing the list of files in the specified format
+    */
+    String listFiles(bool ishtml);
+
 };
 
 #endif/* WEBSERVER_H */
