@@ -100,7 +100,7 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
     {
       // Datei im Request-Objekt speichern
       request->_tempFile = file;
-      LOG_DEBUG("Upload Start: " + String(filename));
+      LOG_DEBUG("Upload Start: " + String(updatedFilename));
     }
     else
     {
@@ -130,7 +130,7 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
     }
 }
 
-bool Upload::isFileUploaded(AsyncWebServerRequest *request, String filename)
+bool Upload::isFileUploaded(AsyncWebServerRequest *request, const String& filename)
 {
     if(LittleFS.exists(filename))
     {

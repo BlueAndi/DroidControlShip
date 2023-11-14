@@ -66,7 +66,7 @@ public:
     * @param filename  The name of the file to check
     * @return          Returns true if the file exists, otherwise false.
     */
-    bool isFileUploaded(AsyncWebServerRequest *request, String filename);
+    bool isFileUploaded(AsyncWebServerRequest *request, const String& filename);
 };
 
 #endif/* Upload_H */
