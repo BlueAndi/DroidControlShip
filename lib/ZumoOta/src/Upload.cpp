@@ -74,18 +74,20 @@ void Upload::handleUploadButtonPress(AsyncWebServerRequest *request)
  
 }
 
-void Upload::handleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
+void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)
 {
     static File file;
-    if(!filename.startsWith("/"))
+    String updatedFilename = filename;
+
+    if (!filename.startsWith("/"))
     {
-      filename = "/"+filename;
+        updatedFilename = "/" + filename;
     }
 
     if (!index)
     {
         // Dies ist der erste Datenblock, Datei öffnen oder erstellen
-        file = LittleFS.open(filename, "w");
+        file = LittleFS.open(updatedFilename, "w");
 
         if (!file)
         {
@@ -118,7 +120,7 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, String filename, s
     }
 
     // Überprüfe, ob die Datei im Dateisystem liegt
-    if (isFileUploaded(request, filename))
+    if (isFileUploaded(request, updatedFilename))
     {
         LOG_DEBUG("Die hochgeladene Datei liegt im Dateisystem.");
     }
