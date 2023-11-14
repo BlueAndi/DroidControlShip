@@ -57,7 +57,7 @@ public:
     * @param len       The length of data being uploaded
     * @param final     Indicates if it's the final block of the file
     */
-    void handleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+    void handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
 
     /**
     * Checks whether a file exists in the file system.
