@@ -86,7 +86,7 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
 
     if (!index)
     {
-        // Dies ist der erste Datenblock, Datei öffnen oder erstellen
+        /*This is the first data block, open or create the file*/
         file = LittleFS.open(updatedFilename, "w");
 
         if (!file)
@@ -98,7 +98,7 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
     }
     if (file)
     {
-      // Datei im Request-Objekt speichern
+      /*Save file in the request object*/
       request->_tempFile = file;
       LOG_DEBUG("Upload Start: " + String(updatedFilename));
     }
@@ -108,18 +108,18 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
     }
     if(len)
     {
-        // Daten in die Datei schreiben
+        /* Write data to the file*/
         request->_tempFile.write(data, len);
     }
 
-    // Wenn dies der letzte Datenblock ist, Datei schließen
+    /* If this is the last data block, close the file*/
     if (final)
     {
         file.close();
         request->redirect("/filelist");
     }
 
-    // Überprüfe, ob die Datei im Dateisystem liegt
+    /*Check if the file exists in the file system*/
     if (isFileUploaded(request, updatedFilename))
     {
         LOG_DEBUG("Die hochgeladene Datei liegt im Dateisystem.");

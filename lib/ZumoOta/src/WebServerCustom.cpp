@@ -72,36 +72,55 @@ WebServerCustom::~WebServerCustom()
 
 String WebServerCustom::listFiles(bool ishtml)
 {
-  String returnText = "";
-  LOG_DEBUG("Listing files stored on LittleFS");
-  File root = LittleFS.open("/");
-  File foundfile = root.openNextFile();
-  if (ishtml) {
-    returnText += "<table><tr><th align='left'>Name</th><th align='left'>Size</th></tr>";
-  }
-  while (foundfile) {
+    String returnText = "";
+    LOG_DEBUG("Listing files stored on LittleFS");
+    File root = LittleFS.open("/");
+    File foundfile = root.openNextFile();
     if (ishtml) {
-      returnText += "<tr align='left'><td>" + String(foundfile.name()) + "</td><td>" + humanReadableSize(foundfile.size()) + "</td></tr>";
-    } else {
-      returnText += "File: " + String(foundfile.name()) + "\n";
+      returnText += "<table><tr><th align='left'>Name</th><th align='left'>Size</th></tr>";
     }
-    foundfile = root.openNextFile();
-  }
-  if (ishtml) {
-    returnText += "</table>";
-  }
-  root.close();
-  foundfile.close();
-  return returnText;
+    while (foundfile) {
+      if (ishtml) {
+        returnText += "<tr align='left'><td>" + String(foundfile.name()) + "</td><td>" + humanReadableSize(foundfile.size()) + "</td></tr>";
+      } else {
+        returnText += "File: " + String(foundfile.name()) + "\n";
+      }
+      foundfile = root.openNextFile();
+    }
+    if (ishtml) {
+      returnText += "</table>";
+    }
+    root.close();
+    foundfile.close();
+    return returnText;
 }
 
-String WebServerCustom:: humanReadableSize(const size_t bytes)
+String WebServerCustom::humanReadableSize(const size_t bytes)
 {
-  if (bytes < 1024) return String(bytes) + " B";
-  else if (bytes < (1024 * 1024)) return String(bytes / 1024.0) + " KB";
-  else if (bytes < (1024 * 1024 * 1024)) return String(bytes / 1024.0 / 1024.0) + " MB";
-  else return String(bytes / 1024.0 / 1024.0 / 1024.0) + " GB";
+    const char* sizes[] = { "B", "KB", "MB", "GB" };
+    int i = 0;
+    double value = static_cast<double>(bytes);
+
+    while (value >= 1024 && i < 3)
+    {
+        value /= 1024;
+        i++;
+    }
+    /*Adjust the buffer size as needed"*/
+    char buffer[16];  
+
+    if (i == 0)
+    {
+        snprintf(buffer, sizeof(buffer), "%.0f %s", value, sizes[i]);
+    }
+    else
+    {
+        snprintf(buffer, sizeof(buffer), "%.2f %s", value, sizes[i]);
+    }
+
+    return String(buffer);
 }
+
 
 void WebServerCustom::init()
 {
@@ -111,7 +130,7 @@ void WebServerCustom::init()
         request->send(200,"text/html", fileList);
     });
 
-    // ... Weitere Routen und Konfigurationen ...
+    /*...  Additional routes and configurations ...*/ 
    
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         File file = LittleFS.open("/upload.html", "r");
@@ -131,8 +150,9 @@ void WebServerCustom::init()
 void WebServerCustom::handleUploadRequest()
 {
     server.on("/upload", HTTP_POST, [this](AsyncWebServerRequest *request) {
-    }, [this](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-        // Verarbeite den Dateiupload
+    }, [this](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
+    {
+        /*Process the file upload*/
         upload.handleFileUpload(request, filename, index, data, len, final);
     });
 }

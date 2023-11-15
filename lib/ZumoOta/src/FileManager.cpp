@@ -58,8 +58,7 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-/** Serial log sink */
-static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -75,25 +74,14 @@ FileManager::~FileManager()
    
 bool FileManager::init()
 {
-    if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
-    {
-        (void)Logging::getInstance().selectSink("Serial");
-
-        /* Set severity of logging system. */
-        Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
-    }
     if (!LittleFS.begin(true))
     {
         LOG_ERROR("Failed to mount file system.");
         return false;
     }
-
     return true;
 }
 
-    
 
 
 

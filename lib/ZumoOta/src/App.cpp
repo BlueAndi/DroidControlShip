@@ -65,7 +65,7 @@
 /** Serial interface baudrate. */
 static const uint32_t SERIAL_BAUDRATE = 115200U;
 
-/*defines the WiFi Credentials*/
+/*defines the WiFi Credentials */
 const char* ssid = "your_ssid";
 const char* password = "your_password";
 
@@ -85,6 +85,10 @@ App::~App()
 
 bool App::loginit()
 {
+    /* Initialize Serial communication */
+    Serial.begin(SERIAL_BAUDRATE);
+
+    /* Register serial log sink and select it per default.*/
     if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
     {
         (void)Logging::getInstance().selectSink("Serial");
@@ -93,15 +97,9 @@ bool App::loginit()
         Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
 
         LOG_DEBUG("LOGGER READY");
-        return true;
     }
-    else 
-    {
-        LOG_ERROR("Fail to init Logging!");
-        return false;
-    }
-
-} 
+    return true;
+}
 
 void App::start()
 {
@@ -113,36 +111,46 @@ void App::start()
     else
     {
         LOG_FATAL("LittleFS initialization failed. The application will not start.");
-       
+        halt(); // Call a function to stop the application
     }
 }
-  
 
+void App::halt()
+{
+    LOG_ERROR("Application halted due to critical error.");
+    while (true)
+    {
+        // Stop the application in an endless loop
+    }
+}
 
 void App::setup()
 {
-    Serial.begin(SERIAL_BAUDRATE);
-    loginit();
+    if (false == loginit())
+    {
+        /* Halt the application or take appropriate action for failed logging initialization */
+        halt();
+    }
 
     // Access Point Modus start
     /*WiFi.mode(WIFI_AP);
     WiFi.softAP(ssid, password);
-
     /*LOG_DEBUG("IP Address: %s", WiFi.softAPIP().toString().c_str());
     */
 
     //Station Mode start
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
-        if (WiFi.waitForConnectResult() != WL_CONNECTED)
-        {
-            LOG_ERROR("WiFi Failed!\n");
-            return;
-        }
+    
+    if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    {
+        LOG_ERROR("WiFi Failed!\n");
+        return;
+    }
 
     LOG_DEBUG("IP Address: %s", WiFi.localIP().toString().c_str());
    
-   start();
+    start();
     m_webServer.handleUploadRequest();
 }
 

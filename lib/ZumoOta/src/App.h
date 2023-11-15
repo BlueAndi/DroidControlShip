@@ -89,6 +89,11 @@ public:
      */
     bool loginit();
 
+    /**
+     * Function to stop the application
+     */
+    void halt();
+
 private:
     /**
      * Instance of the FileManager class 
