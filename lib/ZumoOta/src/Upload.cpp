@@ -68,15 +68,8 @@ Upload::~Upload()
 {    
 }
 
-void Upload::handleUploadButtonPress(AsyncWebServerRequest *request)
-{
-    request->send(200, "text/plain", "Upload Button gedrueckt");
- 
-}
-
 void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)
 {
-    static File file;
     String updatedFilename = filename;
 
     if (!filename.startsWith("/"))
@@ -84,27 +77,16 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
         updatedFilename = "/" + filename;
     }
 
-    if (!index)
-    {
-        /*This is the first data block, open or create the file*/
-        file = LittleFS.open(updatedFilename, "w");
-
-        if (!file)
-        {
-            LOG_DEBUG("Failed to open file for writing");
-            file.close();
-            return;
-        }
-    }
-    if (file)
-    {
-      /*Save file in the request object*/
-      request->_tempFile = file;
-      LOG_DEBUG("Upload Start: " + String(updatedFilename));
+    if (index==0)
+    {   
+        /*Save file in the request object*/
+        request->_tempFile = LittleFS.open(updatedFilename, "w");
+        LOG_DEBUG("Upload Start: " + String(updatedFilename));
     }
     else
     {
-      return;
+        LOG_ERROR("Problem to save the request object!");
+       
     }
     if(len)
     {
@@ -115,30 +97,23 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
     /* If this is the last data block, close the file*/
     if (final)
     {
-        file.close();
-        request->redirect("/filelist");
-    }
-
-    /*Check if the file exists in the file system*/
-    if (isFileUploaded(request, updatedFilename))
-    {
-        LOG_DEBUG("Die hochgeladene Datei liegt im Dateisystem.");
-    }
+        request->_tempFile.close();
+        /*Check if the file exists in the file system*/
+        if(LittleFS.exists(updatedFilename))
+        {
+            LOG_DEBUG(String(updatedFilename) + " " + "exists in FileSystem.");
+        }
+        else
+        {
+            LOG_DEBUG(String(updatedFilename) + "is not found in FileSystem.");
+        }
+            request->redirect("/filelist");
+    
+        }
     else
     {
-        LOG_DEBUG("Die hochgeladene Datei liegt nicht im Dateisystem.");
-    }
-}
-
-bool Upload::isFileUploaded(AsyncWebServerRequest *request, const String& filename)
-{
-    if(LittleFS.exists(filename))
-    {
-        return true;
-    } 
-    else
-    {
-        return false;
+        LOG_ERROR("Please keep trying this is not the last datablock!");
+       
     }
 }
 

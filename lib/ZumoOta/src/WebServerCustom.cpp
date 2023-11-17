@@ -37,6 +37,7 @@
 #include <FS.h>
 #include <Arduino.h>
 #include <Logging.h>
+
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -57,6 +58,7 @@
  * Local Variables
  *****************************************************************************/
 Upload upload;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -76,19 +78,25 @@ String WebServerCustom::listFiles(bool ishtml)
     LOG_DEBUG("Listing files stored on LittleFS");
     File root = LittleFS.open("/");
     File foundfile = root.openNextFile();
-    if (ishtml) {
-      returnText += "<table><tr><th align='left'>Name</th><th align='left'>Size</th></tr>";
+    if (ishtml)
+    {
+        returnText += "<table><tr><th align='left'>Name</th><th align='left'>Size</th></tr>";
     }
-    while (foundfile) {
-      if (ishtml) {
-        returnText += "<tr align='left'><td>" + String(foundfile.name()) + "</td><td>" + humanReadableSize(foundfile.size()) + "</td></tr>";
-      } else {
-        returnText += "File: " + String(foundfile.name()) + "\n";
-      }
-      foundfile = root.openNextFile();
+    while (foundfile)
+    {
+        if(ishtml)
+        {
+            returnText += "<tr align='left'><td>" + String(foundfile.name()) + "</td><td>" + humanReadableSize(foundfile.size()) + "</td></tr>";
+        }
+        else
+        {
+            returnText += "File: " + String(foundfile.name()) + "\n";
+        }
+        foundfile = root.openNextFile();
     }
-    if (ishtml) {
-      returnText += "</table>";
+    if(ishtml)
+    {
+        returnText += "</table>";
     }
     root.close();
     foundfile.close();
@@ -121,10 +129,9 @@ String WebServerCustom::humanReadableSize(const size_t bytes)
     return String(buffer);
 }
 
-
 void WebServerCustom::init()
 {
-   server.on("/filelist", HTTP_GET, [this](AsyncWebServerRequest *request)
+    server.on("/filelist", HTTP_GET, [this](AsyncWebServerRequest *request)
     {
         String fileList = listFiles(true);
         request->send(200,"text/html", fileList);
@@ -132,16 +139,9 @@ void WebServerCustom::init()
 
     /*...  Additional routes and configurations ...*/ 
    
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        File file = LittleFS.open("/upload.html", "r");
-    if(file)
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
     {
         request->send(LittleFS, "/upload.html","text/html");
-        file.close();
-    }else
-    {
-        request->send(404, "text/plain", "File not found");
-    }
     });
 
     server.begin();

@@ -86,6 +86,9 @@ public:
     */
     String listFiles(bool ishtml);
 
+    void handleLoginPage(AsyncWebServerRequest *request);
+
+
 };
 
 #endif/* WEBSERVER_H */

@@ -26,8 +26,7 @@
  *****************************************************************************/
 
 class Upload {
-private:
-
+private:      
 public:
     /**
      * Construct the Upload class.
@@ -40,14 +39,6 @@ public:
     ~Upload();
 
     /**
-        * @brief Handles the upload button press.
-        * 
-        * This function is responsible for handling the upload button press.
-        * It performs necessary actions when the upload button is pressed.
-    */
-    void handleUploadButtonPress(AsyncWebServerRequest *request);
-
-    /**
     * Handles file uploads via the web server.
     * 
     * @param request   The web server request pointer
@@ -58,15 +49,6 @@ public:
     * @param final     Indicates if it's the final block of the file
     */
     void handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
-
-    /**
-    * Checks whether a file exists in the file system.
-    * 
-    * @param request   The web server request pointer
-    * @param filename  The name of the file to check
-    * @return          Returns true if the file exists, otherwise false.
-    */
-    bool isFileUploaded(AsyncWebServerRequest *request, const String& filename);
 };
 
 #endif/* Upload_H */
