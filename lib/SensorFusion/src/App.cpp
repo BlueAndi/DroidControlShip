@@ -89,7 +89,6 @@ static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
 void App::setup()
 {
-    bool      isSuccessful = false;
     Settings& settings     = Settings::getInstance();
     Board&    board        = Board::getInstance();
 
@@ -173,11 +172,6 @@ void App::setup()
                 }
             }
         }
-    }
-
-    if (false == isSuccessful)
-    {
-        fatalErrorHandler();
     }
 }
 
