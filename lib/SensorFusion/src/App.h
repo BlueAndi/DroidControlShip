@@ -47,6 +47,8 @@
 #include <Board.h>
 #include <SerialMuxProtServer.hpp>
 #include "SensorFusion.h"
+#include "SerialMuxChannels.h"
+#include <MqttClient.h>
 
 /******************************************************************************
  * Macros
@@ -85,13 +87,23 @@ public:
     void loop();
 
 private:
+    /** MQTT topic name for birth messages. */
+    static const char* TOPIC_NAME_BIRTH;
+
+    /** MQTT topic name for will messages. */
+    static const char* TOPIC_NAME_WILL;
+
+    /**
+     * MQTTClient Instance
+     */
+    MqttClient m_mqttClient;
+
     /**
      * SerialMuxProt Server Instance
      *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
+     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
-    SerialMuxProtServer<10U> m_smpServer;
+    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
 
     /**
      * Handler of fatal errors in the Application.

@@ -38,7 +38,7 @@
 #include <Util.h>
 #include <Settings.h>
 #include <ArduinoJson.h>
-#include "SerialMuxChannels.h"
+#include <WiFi.h>
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -71,14 +71,31 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 /** Serial log sink */
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 
+/* MQTT topic name for birth messages. */
+const char* App::TOPIC_NAME_BIRTH = "birth";
+
+/* MQTT topic name for will messages. */
+const char* App::TOPIC_NAME_WILL = "will";
+
+/** Default size of the JSON Document for parsing. */
+static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
+
+/** Buffer size for JSON serialization of birth / will message */
+static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
 void App::setup()
 {
-    Serial.begin(SERIAL_BAUDRATE);
+    bool      isSuccessful = false;
+    Settings& settings     = Settings::getInstance();
+    Board&    board        = Board::getInstance();
+
     SensorFusion::getInstance().init();
+
+    Serial.begin(SERIAL_BAUDRATE);
 
     /* Register serial log sink and select it per default. */
     if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
@@ -92,36 +109,75 @@ void App::setup()
     }
 
     /* Initialize HAL. */
-    if (false == Board::getInstance().init())
+    if (false == board.init())
     {
-        /* Log and Handle Board initialization error */
         LOG_FATAL("HAL init failed.");
-        fatalErrorHandler();
+    }
+    /* Settings shall be loaded from configuration file. */
+    else if (false == settings.loadConfigurationFile(board.getConfigFilePath()))
+    {
+        LOG_FATAL("Settings could not be loaded from %s.", board.getConfigFilePath());
     }
     else
     {
-        if (false == Settings::getInstance().isConfigLoaded())
+        /* If the robot name is empty, use the wifi MAC address as robot name. */
+        if (true == settings.getRobotName().isEmpty())
         {
-            /* Settings shall be loaded from configuration file. */
-            if (false == Settings::getInstance().loadConfigurationFile(CONFIG_FILE_PATH))
-            {
-                /* Log Settings error */
-                LOG_ERROR("Settings could not be loaded from file. ");
-                fatalErrorHandler();
-            }
-            else
-            {
-                /* Log Settings loaded */
-                LOG_DEBUG("Settings loaded from file.");
-            }
+            String robotName = WiFi.macAddress();
+
+            /* Remove MAC separators from robot name. */
+            robotName.replace(":", "");
+
+            settings.setRobotName(robotName);
+        }
+
+        NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
+                                           ""};
+
+        if (false == board.getNetwork().setConfig(networkSettings))
+        {
+            LOG_FATAL("Network configuration could not be set.");
         }
         else
         {
-            LOG_DEBUG("Settings set externally.");
-        }
+            /* Setup MQTT Server, Birth and Will messages. */
+            StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
+            char                                           birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+            String                                         birthMessage;
 
-        /* Setup SerialMuxProt Channels */
-        m_smpServer.subscribeToChannel(SENSORDATA_CHANNEL_NAME, App_sensorChannelCallback);
+            birthDoc["name"] = settings.getRobotName().c_str();
+            (void)serializeJson(birthDoc, birthMsgArray);
+            birthMessage = birthMsgArray;
+
+            /* Setup SerialMuxProt Channels */
+            m_smpServer.subscribeToChannel(SENSORDATA_CHANNEL_NAME, App_sensorChannelCallback);
+
+            if (false == m_mqttClient.init())
+            {
+                LOG_FATAL("Failed to initialize MQTT client.");
+            }
+            else
+            {
+                MqttSettings mqttSettings = {settings.getRobotName(),
+                                             settings.getMqttBrokerAddress(),
+                                             settings.getMqttPort(),
+                                             TOPIC_NAME_BIRTH,
+                                             birthMessage,
+                                             TOPIC_NAME_WILL,
+                                             birthMessage,
+                                             true};
+
+                if (false == m_mqttClient.setConfig(mqttSettings))
+                {
+                    LOG_FATAL("MQTT configuration could not be set.");
+                }
+            }
+        }
+    }
+
+    if (false == isSuccessful)
+    {
+        fatalErrorHandler();
     }
 }
 
@@ -134,6 +190,11 @@ void App::loop()
         LOG_FATAL("HAL process failed.");
         fatalErrorHandler();
     }
+
+    /* Process MQTT Communication */
+    m_mqttClient.process();
+
+    /* Process SerialMuxProt. */
     m_smpServer.process(millis());
 }
 

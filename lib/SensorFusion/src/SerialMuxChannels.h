@@ -42,6 +42,9 @@
  * Macros
  *****************************************************************************/
 
+/** Maximum number of SerialMuxProt Channels. */
+#define MAX_CHANNELS (10U)
+
 /** Name of Channel to send Sensor Data to. */
 #define SENSORDATA_CHANNEL_NAME "SENSOR_DATA"
 
