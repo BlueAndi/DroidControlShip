@@ -19,94 +19,84 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
-
 /*******************************************************************************
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
- * @author Juliane Kerpe <juliane.kerpe@web.de>
- *
- * @addtogroup Application
- *
- * @{
+ *  @brief  Channel structure definition for the SerialMuxProt.
+ *  @author Juliane Kerpe <juliane.kerpe@web.de>
  */
 
-#ifndef APP_H
-#define APP_H
-
-/******************************************************************************
- * Compile Switches
- *****************************************************************************/
+#ifndef SERIAL_MUX_CHANNELS_H_
+#define SERIAL_MUX_CHANNELS_H_
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
+
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
+/** Name of Channel to send Sensor Data to. */
+#define SENSORDATA_CHANNEL_NAME "SENSOR_DATA"
+
+/** DLC of Sensordata Channel */
+#define SENSORDATA_CHANNEL_DLC (sizeof(SensorData))
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/** Struct of the Sensor Data channel payload. */
+typedef struct _SensorData
 {
-public:
-    /**
-     * Construct the Sensor Fusion application.
-     */
-    App() : m_smpServer(Board::getInstance().getDevice().getStream())
-    {
-    }
+    /** Position in x direction in mm calculated by odometry. */
+    int32_t positionOdometryX;
 
-    /**
-     * Destroy the Sensor Fusion application.
-     */
-    ~App()
-    {
-    }
+    /** Position in y direction in mm calculated by odometry. */
+    int32_t positionOdometryY;
 
-    /**
-     * Setup the application.
-     */
-    void setup();
+    /** Orientation in mrad calculated by odometry. */
+    int32_t orientationOdometry;
 
-    /**
-     * Process the application periodically.
+    /** Acceleration in x direction as a raw sensor value in digits.
+     * It can be converted into a physical acceleration value in mm/s^2 via the
+     * multiplication with a sensitivity factor in mm/s^2/digit.
      */
-    void loop();
+    int16_t accelerationX;
 
-private:
-    /**
-     * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
+    /** Acceleration in y direction as a raw sensor value in digits.
+     * It can be converted into a physical acceleration value in mm/s^2 via the
+     * multiplication with a sensitivity factor in mm/s^2/digit.
      */
-    SerialMuxProtServer<10U> m_smpServer;
+    int16_t accelerationY;
 
-private:
-    /**
-     * Handler of fatal errors in the Application.
+    /** Magnetometer value in x direction as a raw sensor value in digits.
+     * It does not require conversion into a physical magnetometer value since only the
+     * ratio with the value in y direction is important.
      */
-    void fatalErrorHandler();
+    int16_t magnetometerValueX;
 
-private:
-    App(const App& app);
-    App& operator=(const App& app);
-};
+    /** Magnetometer value in y direction as a raw sensor value in digits.
+     * It does not require conversion into a physical magnetometer value since only the
+     * ratio with the value in x direction is important.
+     */
+    int16_t magnetometerValueY;
+
+    /** Gyroscope value around z axis as a raw sensor value in digits.
+     * It can be converted into a physical turn rate in mrad/s via the multiplication
+     * with a sensitivity factor in mrad/s/digit.
+     */
+    int16_t turnRate;
+} __attribute__((packed)) SensorData;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
-/** @} */
+#endif /* SERIAL_MUX_CHANNELS_H_ */

@@ -19,22 +19,17 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
-
 /*******************************************************************************
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
- * @author Juliane Kerpe <juliane.kerpe@web.de>
- *
- * @addtogroup Application
- *
- * @{
+ *  @brief  Interface Class of a Kalman Filter Implementation
+ *  @author Juliane Kerpe <juliane.kerpe@web.de>
  */
-
-#ifndef APP_H
-#define APP_H
+#ifndef IKALMANFILTER_H
+#define IKALMANFILTER_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,11 +38,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
 
+#include "KalmanParameter.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -55,58 +47,36 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
-
-/** The Sensor Fusion application. */
-class App
+/** The Kalman Filter Interface. */
+class IKalmanFilter
 {
+
 public:
-    /**
-     * Construct the Sensor Fusion application.
-     */
-    App() : m_smpServer(Board::getInstance().getDevice().getStream())
+    /** Results of the Sensor Fusion Algorithm. */
+    typedef struct _PositionData
     {
-    }
+        int32_t currentXPos; /* Current Position in x direction in mm. */
+        int32_t currentYPos; /* Current Position in y direction in mm. */
+        int32_t currentHeading; /* Current Orientation in in mrad. */
+    } PositionData;
 
     /**
-     * Destroy the Sensor Fusion application.
+     * Initializes the variables of the Kalman Filter.
      */
-    ~App()
-    {
-    }
+    virtual void init() = 0;
 
     /**
-     * Setup the application.
+     * Prediction of the covariance and the state of the Kalman Filter.
      */
-    void setup();
+    virtual void predictionStep() = 0;
 
     /**
-     * Process the application periodically.
-     */
-    void loop();
-
-private:
-    /**
-     * SerialMuxProt Server Instance
+     * Update of the covariance and the state of the Kalman Filter.
+     * @param[in] kalmanParameter   Input Parameters for the Kalman Filter
+     * @return Estimated Position as a PositionData struct.
      *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
      */
-    SerialMuxProtServer<10U> m_smpServer;
-
-private:
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-    App(const App& app);
-    App& operator=(const App& app);
+    virtual PositionData updateStep(KalmanParameter& kalmanParameter) = 0;
 };
 
-/******************************************************************************
- * Functions
- *****************************************************************************/
-
-#endif /* APP_H */
-/** @} */
+#endif /* IKALMANFILTER_H */

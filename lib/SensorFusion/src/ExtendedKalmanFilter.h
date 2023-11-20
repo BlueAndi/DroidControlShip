@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
+ * @brief  Implementation of the Extended Kalman Filter
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *
- * @addtogroup Application
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef EXTENDEDKALMANFILTER_H
+#define EXTENDEDKALMANFILTER_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,11 +42,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
-
+#include <ArduinoEigen.h>
+#include <stdint.h>
+#include "LinearKalmanFilter.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -55,58 +52,68 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
+/** Number of states used in the state vector of the Extended Kalman Filter. */
+static const uint8_t NUMBER_OF_STATES = 3U;
 
-/** The Sensor Fusion application. */
-class App
+/** This class provides a Extended Kalman filter. */
+class ExtendedKalmanFilter : public LinearKalmanFilter
 {
 public:
     /**
-     * Construct the Sensor Fusion application.
+     * Constructs the Extended Kalman Filter
      */
-    App() : m_smpServer(Board::getInstance().getDevice().getStream())
+    ExtendedKalmanFilter() :
+        m_state(Eigen::VectorXf::Constant(NUMBER_OF_STATES, 0.0)),
+        m_covariance(Eigen::MatrixXf::Constant(NUMBER_OF_STATES, NUMBER_OF_STATES, 0.0))
     {
     }
 
     /**
-     * Destroy the Sensor Fusion application.
+     * Destroys the Extended Kalman Filter
      */
-    ~App()
+    ~ExtendedKalmanFilter()
     {
     }
 
     /**
-     * Setup the application.
+     * Initializes the variables of the Extended Kalman Filter.
      */
-    void setup();
+    void init()
+    {
+        /* TODO: Implement Kalman Filter in cpp (TD072) */
+    }
 
     /**
-     * Process the application periodically.
+     * Prediction of the covariance and the state of the Extended Kalman Filter.
      */
-    void loop();
+    void predictionStep()
+    {
+        /* TODO: Implement Kalman Filter in cpp (TD072) */
+    }
 
-private:
     /**
-     * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
+     * Update of the covariance and the state of the Kalman Filter.
+     * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
+     * @return Estimated Position as a PositionData struct.
      */
-    SerialMuxProtServer<10U> m_smpServer;
+    PositionData updateStep(KalmanParameter& kalmanParameter)
+    {
+        PositionData currentPosition;
+        currentPosition.currentXPos    = 0;
+        currentPosition.currentYPos    = 0;
+        currentPosition.currentHeading = 0;
+        return currentPosition;
+        /* TODO: Implement Kalman Filter in cpp (TD072) */
+    }
 
 private:
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-    App(const App& app);
-    App& operator=(const App& app);
+    Eigen::VectorXf m_state;      /* Estimated state vector [p_x, p_y, v_x, v_y, a_x, a_y]*/
+    Eigen::MatrixXf m_covariance; /* Covariance Matrix of the state */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* EXTENDEDKALMANFILTER_H */
 /** @} */

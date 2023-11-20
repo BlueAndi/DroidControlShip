@@ -25,17 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
+ * @brief  Sensor specific constants
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *
- * @addtogroup Application
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
-
+#ifndef SENSORCONSTANTS_H
+#define SENSORCONSTANTS_H
 /******************************************************************************
  * Compile Switches
  *****************************************************************************/
@@ -43,10 +41,6 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
 
 /******************************************************************************
  * Macros
@@ -56,57 +50,24 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/**
+ * Abstracts the physical sensor constants.
+ */
+namespace SensorConstants
 {
-public:
-    /**
-     * Construct the Sensor Fusion application.
-     */
-    App() : m_smpServer(Board::getInstance().getDevice().getStream())
-    {
-    }
-
-    /**
-     * Destroy the Sensor Fusion application.
-     */
-    ~App()
-    {
-    }
-
-    /**
-     * Setup the application.
-     */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-private:
-    /**
-     * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
-     */
-    SerialMuxProtServer<10U> m_smpServer;
-
-private:
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-    App(const App& app);
-    App& operator=(const App& app);
-};
+    /** Sensitivity Factor of the LSM303D and LSM6DS33 accelerometer in mm/s^2/digit at Range of +/- 2 g (g-force).
+     * Converts a raw accelerometer value in digits to mm/s^2. The value 0.061 is defined in the Data sheets of the
+     * LSM303D and the LSM6DS33 accelerometer. Then the value is converted from mg into mm/s^2. */
+    static const float ACCELEROMETER_SENSITIVITY_FACTOR = 0.061F * 9.81F;
+    /** Sensitivity Factor of the L3GD20H and LSM6DS33 gyro in mrad/s/digit at Range of +/- 245 dps (degrees per
+     * second). Converts a raw gyroscope value in digits to mrad/s. The sensitivity factor 8.75 is defined in the Data
+     * sheets of the L3GD20H and the LSM6DS33 gyro. Then the value is converted from mdps/digit into mrad/s/digit. */
+    static const float GYRO_SENSITIVITY_FACTOR = 8.75F * 2.0F * M_PI / 360.0F;
+}; // namespace SensorConstants
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* SENSORCONSTANTS_H */
 /** @} */

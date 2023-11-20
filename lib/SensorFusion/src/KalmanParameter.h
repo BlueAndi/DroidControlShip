@@ -19,35 +19,23 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
-
 /*******************************************************************************
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
- * @author Juliane Kerpe <juliane.kerpe@web.de>
- *
- * @addtogroup Application
- *
- * @{
+ *  @brief  Struct for Parameter used for a Kalman Filter
+ *  @author Juliane Kerpe <juliane.kerpe@web.de>
  */
 
-#ifndef APP_H
-#define APP_H
-
-/******************************************************************************
- * Compile Switches
- *****************************************************************************/
+#ifndef KALMANPARAMETER_H
+#define KALMANPARAMETER_H
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
-
+#include <stdint.h>
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -56,57 +44,19 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/** Struct of Data used in the Kalman Filter. */
+typedef struct _KalmanParameter
 {
-public:
-    /**
-     * Construct the Sensor Fusion application.
-     */
-    App() : m_smpServer(Board::getInstance().getDevice().getStream())
-    {
-    }
-
-    /**
-     * Destroy the Sensor Fusion application.
-     */
-    ~App()
-    {
-    }
-
-    /**
-     * Setup the application.
-     */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-private:
-    /**
-     * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
-     */
-    SerialMuxProtServer<10U> m_smpServer;
-
-private:
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-    App(const App& app);
-    App& operator=(const App& app);
-};
+    int16_t accelerationX;     /* Acceleration in x direction in mm/s^2. */
+    int16_t accelerationY;     /* Acceleration in y direction in mm/s^2. */
+    int32_t positionOdometryX; /* Position calculated by Odometry in x direction in mm. */
+    int32_t positionOdometryY; /* Position calculated by Odometry in y direction in mm. */
+    int32_t angleOdometry;     /* Orientation calculated by Odometry in mrad. */
+    int16_t turnRate;          /* Turn rate in mrad/s. */
+} __attribute__((packed)) KalmanParameter;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
-/** @} */
+#endif /* KALMANPARAMETER_H */
