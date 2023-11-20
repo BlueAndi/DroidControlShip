@@ -1,0 +1,49 @@
+@startuml
+!define layerColor #LightBlue
+!define textColor #000000
+
+skinparam component {
+    BackgroundColor<<Application>> $layerColor
+    BackgroundColor<<HAL>> $layerColor
+    BackgroundColor<<Service>> $layerColor
+    BorderColor<<Application>> $textColor
+    BorderColor<<HAL>> $textColor
+    BorderColor<<Service>> $textColor
+}
+
+package "Zumo OTA Layer" <<Application>> {
+    component "Webpages" as Wb
+    component  "App" as AP
+    component "Flashmanager" as FM
+    component "UploadManager" as UM
+    component  "WebserverCustom" as WC
+    component "BootloaderCom" as BC
+    
+}
+
+package "Service Layer" <<Service>> {
+    component "AsyncWebserver" as Ws
+    component "Settings"  as SS
+    
+    
+}
+
+package "HAL (Hardware Abstraction Layer)" <<HAL>> {
+    component "Device " as Device
+    component "Network" as Nw
+    component "FileSystem" as FS
+}
+
+BC ----> Device: Bootloader Protocol
+Ws --> Wb: Request
+WC --> Ws : Uses
+FS --> Wb: saves
+FM --> FS: uses
+UM --> FS: uses
+Device ----> FS: uses
+AP --> WC: manages
+Nw --> SS: uses 
+AP --> FS: configures
+SS --> FS: read
+AP --> SS: uses
+@enduml

@@ -33,8 +33,9 @@
  * Includes
  *****************************************************************************/
 #include "Upload.h"
-#include <Arduino.h>
-
+#include <LittleFS.h>
+#include <ESPAsyncWebServer.h>
+#include<Logging.h>
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -59,14 +60,68 @@
  * Public Methods
  *****************************************************************************/
 
-Upload::Upload() {
-   
+Upload::Upload()
+{   
 }
 
-Upload::~Upload() {
+Upload::~Upload()
+{    
+}
+
+void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)
+{
+    String updatedFilename = filename;
+
+    if (!filename.startsWith("/"))
+    {
+        updatedFilename = "/" + filename;
+    }
+
+    if (index==0)
+    {   
+        /*Save file in the request object*/
+        request->_tempFile = LittleFS.open(updatedFilename, "w");
+        LOG_DEBUG("Upload Start: " + String(updatedFilename));
+    }
+    else
+    {
+        LOG_ERROR("Problem to save the request object!");
+       
+    }
+    if(len)
+    {
+        /* Write data to the file*/
+        request->_tempFile.write(data, len);
+    }
+
+    /* If this is the last data block, close the file*/
+    if (final)
+    {
+        request->_tempFile.close();
+        /*Check if the file exists in the file system*/
+        if(LittleFS.exists(updatedFilename))
+        {
+            LOG_DEBUG(String(updatedFilename) + " " + "exists in FileSystem.");
+        }
+        else
+        {
+            LOG_DEBUG(String(updatedFilename) + "is not found in FileSystem.");
+        }
+            request->redirect("/filelist");
     
+        }
+    else
+    {
+        LOG_ERROR("Please keep trying this is not the last datablock!");
+       
+    }
 }
 
-void Upload::handleUploadButtonPress() {
-    Serial.println("Upload Button gedrueckt");
-}
+
+
+
+
+
+
+
+

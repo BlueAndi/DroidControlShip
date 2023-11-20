@@ -16,7 +16,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
+#include <ESPAsyncWebServer.h>
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -26,8 +26,7 @@
  *****************************************************************************/
 
 class Upload {
-private:
-    
+private:      
 public:
     /**
      * Construct the Upload class.
@@ -40,12 +39,16 @@ public:
     ~Upload();
 
     /**
-        * @brief Handles the upload button press.
-        * 
-        * This function is responsible for handling the upload button press.
-        * It performs necessary actions when the upload button is pressed.
+    * Handles file uploads via the web server.
+    * 
+    * @param request   The web server request pointer
+    * @param filename  The name of the uploaded file
+    * @param index     The index of the file block being uploaded
+    * @param data      Pointer to the data buffer being uploaded
+    * @param len       The length of data being uploaded
+    * @param final     Indicates if it's the final block of the file
     */
-    void handleUploadButtonPress();
+    void handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
 };
 
 #endif/* Upload_H */

@@ -35,7 +35,8 @@
 #include "FileManager.h"
 #include <LittleFS.h>
 #include <Arduino.h>
-
+#include <Logging.h>
+#include <LogSinkPrinter.h>
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -43,7 +44,9 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-
+#ifndef CONFIG_LOG_SEVERITY
+#define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
+#endif /* CONFIG_LOG_SEVERITY */
 /******************************************************************************
  * Types and classes
  *****************************************************************************/
@@ -73,14 +76,12 @@ bool FileManager::init()
 {
     if (!LittleFS.begin(true))
     {
-        Serial.println("An Error has occurred while mounting LittleFS");
+        LOG_ERROR("Failed to mount file system.");
         return false;
     }
-
     return true;
 }
 
-    
 
 
 

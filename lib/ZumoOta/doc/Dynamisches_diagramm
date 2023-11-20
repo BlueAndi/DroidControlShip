@@ -1,0 +1,16 @@
+@startuml
+participant Browser
+participant "AsyncWebserver" as  AsyncWebserver
+participant "App" as  App
+
+App --> AsyncWebserver: Register Function(GET/POST)
+deactivate App
+Browser -> AsyncWebserver: Request
+activate AsyncWebserver
+AsyncWebserver -> App: Call service method
+activate App
+App --> AsyncWebserver: Return result
+deactivate App
+AsyncWebserver --> Browser: Return response
+deactivate AsyncWebserver
+@enduml

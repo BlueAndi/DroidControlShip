@@ -35,6 +35,9 @@
 #include "App.h"
 #include <Arduino.h>
 #include <WiFi.h>
+#include <Logging.h>
+#include <LogSinkPrinter.h>
+
 
 /******************************************************************************
  * Compiler Switches
@@ -43,6 +46,9 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
+#ifndef CONFIG_LOG_SEVERITY
+#define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
+#endif /* CONFIG_LOG_SEVERITY */
 
 /******************************************************************************
  * Types and classes
@@ -59,9 +65,12 @@
 /** Serial interface baudrate. */
 static const uint32_t SERIAL_BAUDRATE = 115200U;
 
-/*defines the WiFi Credentials*/
+/*defines the WiFi Credentials */
 const char* ssid = "your_ssid";
 const char* password = "your_password";
+
+/** Serial log sink */
+static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -74,43 +83,72 @@ App::~App()
 {
 }
 
-void App::start() 
+bool App::loginit()
+{
+    /* Initialize Serial communication */
+    Serial.begin(SERIAL_BAUDRATE);
+
+    /* Register serial log sink and select it per default.*/
+    if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
+    {
+        (void)Logging::getInstance().selectSink("Serial");
+
+        /* Set severity of logging system. */
+        Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
+
+        LOG_DEBUG("LOGGER READY");
+    }
+    return true;
+}
+
+void App::start()
 {
     if (m_fileManager.init())
     {
-        Serial.println("LittleFS initialization successful");
+        LOG_DEBUG("LittleFS initialization successful");
         m_webServer.init();
     }
     else
     {
-        Serial.println("LittleFS initialization failed. The application will not start.");
-       
+        LOG_FATAL("LittleFS initialization failed. The application will not start.");
+        halt(); // Call a function to stop the application
     }
 }
 
+void App::halt()
+{
+    LOG_ERROR("Application halted due to critical error.");
+    while (true)
+    {
+        // Stop the application in an endless loop
+    }
+}
 
 void App::setup()
 {
-  Serial.begin(SERIAL_BAUDRATE);
-// Access Point Modus start
-  /*WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, password);
+    if (false == loginit())
+    {
+        /* Halt the application or take appropriate action for failed logging initialization */
+        halt();
+    }
 
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("Access Point IP-Adresse: ");
-  Serial.println(IP);*/
+    // Access Point Modus start
+    /*WiFi.mode(WIFI_AP);
+    WiFi.softAP(ssid, password);
+    /*LOG_DEBUG("IP Address: %s", WiFi.softAPIP().toString().c_str());
+    */
 
-  //Station Mode start
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.printf("WiFi Failed!\n");
+    //Station Mode start
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    
+    if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    {
+        LOG_ERROR("WiFi Failed!\n");
         return;
     }
 
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
-
+    LOG_DEBUG("IP Address: %s", WiFi.localIP().toString().c_str());
    
     start();
     m_webServer.handleUploadRequest();
