@@ -107,8 +107,8 @@ public:
     }
 
 private:
-    Eigen::VectorXf m_state;      /* Estimated state vector [p_x, p_y, v_x, v_y, a_x, a_y]*/
-    Eigen::MatrixXf m_covariance; /* Covariance Matrix of the state */
+    Eigen::VectorXf m_state;      /**< Estimated state vector [p_x, p_y, v_x, v_y, a_x, a_y]*/
+    Eigen::MatrixXf m_covariance; /**< Covariance Matrix of the state */
 };
 
 /******************************************************************************

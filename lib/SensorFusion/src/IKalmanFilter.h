@@ -55,9 +55,9 @@ public:
     /** Results of the Sensor Fusion Algorithm. */
     typedef struct _PositionData
     {
-        int32_t currentXPos; /* Current Position in x direction in mm. */
-        int32_t currentYPos; /* Current Position in y direction in mm. */
-        int32_t currentHeading; /* Current Orientation in in mrad. */
+        int32_t currentXPos;    /**< Current Position in x direction in mm. */
+        int32_t currentYPos;    /**< Current Position in y direction in mm. */
+        int32_t currentHeading; /**< Current Orientation in in mrad. */
     } PositionData;
 
     /**

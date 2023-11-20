@@ -93,15 +93,15 @@ private:
      */
     SerialMuxProtServer<10U> m_smpServer;
 
-private:
     /**
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();
 
 private:
-    App(const App& app);
-    App& operator=(const App& app);
+    /* Not allowed. */
+    App(const App& app);            /**< Copy construction of an instance. */
+    App& operator=(const App& app); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
