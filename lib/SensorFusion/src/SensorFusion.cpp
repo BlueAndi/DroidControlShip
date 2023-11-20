@@ -66,7 +66,7 @@ void SensorFusion::init(void)
 void SensorFusion::estimateNewState(SensorData newSensorData)
 {
     /* Estimate the current angle. */
-    int16_t estimatedAngle;
+    int16_t estimatedAngle = 0;
     estimateAngle(estimatedAngle, newSensorData.orientationOdometry, newSensorData.magnetometerValueX,
                   newSensorData.magnetometerValueY);
 
