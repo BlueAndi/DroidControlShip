@@ -25,60 +25,81 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader
+ *  @brief  Channel structure definition for the SerialMuxProt.
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
-#ifndef FILE_READER_H_
-#define FILE_READER_H_
+#ifndef SERIAL_MUX_CHANNELS_H_
+#define SERIAL_MUX_CHANNELS_H_
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
 
-#include <IFileReader.h>
+#include <Arduino.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
+/** Maximum number of SerialMuxProt Channels. */
+#define MAX_CHANNELS (10U)
+
+/** Name of Channel to send Commands to. */
+#define COMMAND_CHANNEL_NAME "CMD"
+
+/** DLC of Command Channel. */
+#define COMMAND_CHANNEL_DLC (sizeof(Command))
+
+/** Name of Channel to receive Command Responses from. */
+#define COMMAND_RESPONSE_CHANNEL_NAME "CMD_RSP"
+
+/** DLC of Command Response Channel. */
+#define COMMAND_RESPONSE_CHANNEL_DLC (sizeof(CommandResponse))
+
+/** Name of Channel to send Motor Speed Setpoints to. */
+#define SPEED_SETPOINT_CHANNEL_NAME "SPEED_SET"
+
+/** DLC of Speedometer Channel */
+#define SPEED_SETPOINT_CHANNEL_DLC (sizeof(SpeedData))
+
+/** Name of the Channel to receive Line Sensor Data from. */
+#define LINE_SENSOR_CHANNEL_NAME "LINE_SENS"
+
+/** DLC of Line Sensor Channel */
+#define LINE_SENSOR_CHANNEL_DLC (sizeof(LineSensorData))
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-/**
- * File Reader class.
- */
-class FileReader : public IFileReader
+/** Struct of the "Command" channel payload. */
+typedef struct _Command
 {
-public:
-    /**
-     * Constructs the concrete FileReader.
-     */
-    FileReader();
+    uint8_t commandId; /**< Command ID */
+} __attribute__((packed)) Command;
 
-    /**
-     * Destroys the concrete FileReader.
-     */
-    virtual ~FileReader();
+/** Struct of the "Command Response" channel payload. */
+typedef struct _CommandResponse
+{
+    uint8_t response; /**< Response to the command */
+} __attribute__((packed)) CommandResponse;
 
-    /**
-     * Read a file from the filesystem.
-     * @param[in] fileName Name of the file to read. Name must be an absolute path.
-     * @param[out] outBuffer Buffer to write file to.
-     * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     * @returns number of bytes read.
-     */
-    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) final;
+/** Struct of the "Speed" channel payload. */
+typedef struct _SpeedData
+{
+    int16_t left;  /**< Left motor speed [steps/s] */
+    int16_t right; /**< Right motor speed [steps/s] */
+} __attribute__((packed)) SpeedData;
 
-private:
-    /* Not allowed. */
-    FileReader(const FileReader& src);            /**< Copy construction of an instance. */
-    FileReader& operator=(const FileReader& rhs); /**< Assignment of an instance. */
-};
+/** Struct of the "Line Sensor" channel payload. */
+typedef struct _LineSensorData
+{
+    uint16_t lineSensorData[5U]; /**< Line sensor data [digits] normalized to max 1000 digits. */
+} __attribute__((packed)) LineSensorData;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* FILE_READER_H_ */
+#endif /* SERIAL_MUX_CHANNELS_H_ */

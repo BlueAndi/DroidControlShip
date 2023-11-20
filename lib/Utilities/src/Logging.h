@@ -77,69 +77,93 @@
 
 #if (0 == LOG_FATAL_ENABLE)
 
-    #define LOG_FATAL(...)
+#define LOG_FATAL(...)
 
-#else/* (0 == LOG_FATAL_ENABLE) */
+#else /* (0 == LOG_FATAL_ENABLE) */
 
-    /** Log fatal error message. */
-    #define LOG_FATAL(...)      do{ Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_FATAL, __VA_ARGS__); }while(0)
+/** Log fatal error message. */
+#define LOG_FATAL(...)                                                                                                 \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_FATAL, __VA_ARGS__);           \
+    } while (0)
 
-#endif  /* (0 == LOG_FATAL_ENABLE) */
+#endif /* (0 == LOG_FATAL_ENABLE) */
 
 #if (0 == LOG_ERROR_ENABLE)
 
-    #define LOG_ERROR(...)
+#define LOG_ERROR(...)
 
-#else/* (0 == LOG_ERROR_ENABLE) */
+#else /* (0 == LOG_ERROR_ENABLE) */
 
-    /** Log error message. */
-    #define LOG_ERROR(...)      do{ Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_ERROR, __VA_ARGS__); }while(0)
+/** Log error message. */
+#define LOG_ERROR(...)                                                                                                 \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_ERROR, __VA_ARGS__);           \
+    } while (0)
 
-#endif  /* (0 == LOG_ERROR_ENABLE) */
+#endif /* (0 == LOG_ERROR_ENABLE) */
 
 #if (0 == LOG_WARNING_ENABLE)
 
-    #define LOG_WARNING(...)
+#define LOG_WARNING(...)
 
-#else/* (0 == LOG_WARNING_ENABLE) */
+#else /* (0 == LOG_WARNING_ENABLE) */
 
-    /** Log warning message. */
-    #define LOG_WARNING(...)    do{ Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_WARNING, __VA_ARGS__); }while(0)
+/** Log warning message. */
+#define LOG_WARNING(...)                                                                                               \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_WARNING, __VA_ARGS__);         \
+    } while (0)
 
-#endif  /* (0 == LOG_WARNING_ENABLE) */
+#endif /* (0 == LOG_WARNING_ENABLE) */
 
 #if (0 == LOG_INFO_ENABLE)
 
-    #define LOG_INFO(...)
+#define LOG_INFO(...)
 
-#else/* (0 == LOG_INFO_ENABLE) */
+#else /* (0 == LOG_INFO_ENABLE) */
 
-    /** Log info error message. */
-    #define LOG_INFO(...)       do{ Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_INFO, __VA_ARGS__); }while(0)
+/** Log info error message. */
+#define LOG_INFO(...)                                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_INFO, __VA_ARGS__);            \
+    } while (0)
 
-#endif  /* (0 == LOG_INFO_ENABLE) */
+#endif /* (0 == LOG_INFO_ENABLE) */
 
 #if (0 == LOG_DEBUG_ENABLE)
 
-    #define LOG_DEBUG(...)
+#define LOG_DEBUG(...)
 
-#else  /* (0 == LOG_DEBUG_ENABLE) */
+#else /* (0 == LOG_DEBUG_ENABLE) */
 
-    /** Log debug message. */
-    #define LOG_DEBUG(...)      do{ Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_DEBUG, __VA_ARGS__); }while(0)
+/** Log debug message. */
+#define LOG_DEBUG(...)                                                                                                 \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_DEBUG, __VA_ARGS__);           \
+    } while (0)
 
-#endif  /* (0 == LOG_DEBUG_ENABLE) */
+#endif /* (0 == LOG_DEBUG_ENABLE) */
 
 #if (0 == LOG_TRACE_ENABLE)
 
-    #define LOG_TRACE(...)
+#define LOG_TRACE(...)
 
-#else/* (0 == LOG_TRACE_ENABLE) */
+#else /* (0 == LOG_TRACE_ENABLE) */
 
-    /** Log trace message. */
-    #define LOG_TRACE(...)      do{ Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_TRACE, __VA_ARGS__); }while(0)
+/** Log trace message. */
+#define LOG_TRACE(...)                                                                                                 \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        Logging::getInstance().processLogMessage(__FILE__, __LINE__, Logging::LOG_LEVEL_TRACE, __VA_ARGS__);           \
+    } while (0)
 
-#endif  /* (0 == LOG_TRACE_ENABLE) */
+#endif /* (0 == LOG_TRACE_ENABLE) */
 
 /******************************************************************************
  * Types and Classes
@@ -159,12 +183,13 @@ public:
      */
     enum LogLevel
     {
-        LOG_LEVEL_FATAL = 0,    /**< Any error that is forcing a shutdown of service or application, because there is no way out. */
-        LOG_LEVEL_ERROR,        /**< Any error that is fatal for the operating, but not for the service or application. */
-        LOG_LEVEL_WARNING,      /**< Anything that shows the user to pay attention, but can be automatically be recovered. */
-        LOG_LEVEL_INFO,         /**< General useful information for the user. */
-        LOG_LEVEL_DEBUG,        /**< A diagnostic message helpful for the developer. */
-        LOG_LEVEL_TRACE         /**< Only used for tracing code. */
+        LOG_LEVEL_FATAL =
+            0, /**< Any error that is forcing a shutdown of service or application, because there is no way out. */
+        LOG_LEVEL_ERROR,   /**< Any error that is fatal for the operating, but not for the service or application. */
+        LOG_LEVEL_WARNING, /**< Anything that shows the user to pay attention, but can be automatically be recovered. */
+        LOG_LEVEL_INFO,    /**< General useful information for the user. */
+        LOG_LEVEL_DEBUG,   /**< A diagnostic message helpful for the developer. */
+        LOG_LEVEL_TRACE    /**< Only used for tracing code. */
     };
 
     /**

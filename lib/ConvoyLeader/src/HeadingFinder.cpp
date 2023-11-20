@@ -25,14 +25,17 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Red LED realization
+ * @brief  Heading Finder Module
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "LedRed.h"
+
+#include "HeadingFinder.h"
+#include <math.h>
+#include <FPMath.h>
 #include <Logging.h>
 
 /******************************************************************************
@@ -59,9 +62,108 @@
  * Public Methods
  *****************************************************************************/
 
-void LedRed::enable(bool enableIt)
+HeadingFinder::HeadingFinder() :
+    m_data(),
+    m_newOdometryData(false),
+    m_newMotorSpeedData(false),
+    m_pidCtrl(),
+    m_pidProcessTime()
 {
-    LOG_DEBUG("Red LED State: %s", enableIt ? "ON" : "OFF");
+}
+
+HeadingFinder::~HeadingFinder()
+{
+}
+
+void HeadingFinder::init()
+{
+    /* Configure PID. */
+    m_pidCtrl.clear();
+    setPIDFactors(PID_P_NUMERATOR, PID_P_DENOMINATOR, PID_I_NUMERATOR, PID_I_DENOMINATOR, PID_D_NUMERATOR,
+                  PID_D_DENOMINATOR);
+    m_pidCtrl.setSampleTime(PID_PROCESS_PERIOD);
+    m_pidCtrl.setLimits(-MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    m_pidCtrl.setDerivativeOnMeasurement(true);
+
+    m_pidProcessTime.start(0); /* Immediate */
+}
+
+void HeadingFinder::setPIDFactors(int32_t pNumerator, int32_t pDenominator, int32_t iNumerator, int32_t iDenominator,
+                                  int32_t dNumerator, int32_t dDenominator)
+{
+    m_pidCtrl.setPFactor(pNumerator, pDenominator);
+    m_pidCtrl.setIFactor(iNumerator, iDenominator);
+    m_pidCtrl.setDFactor(dNumerator, dDenominator);
+}
+
+int16_t HeadingFinder::process(int16_t& targetSpeedLeft, int16_t& targetSpeedRight)
+{
+    int16_t pidDelta = 0;
+
+    /* Process PID controller when timer is done and new data is found. */
+    if ((true == m_pidProcessTime.isTimeout()) && (true == m_newOdometryData) && (true == m_newMotorSpeedData))
+    {
+        /* Delta position. */
+        int32_t deltaX = m_data.targetXPos - m_data.currentXPos;
+        int32_t deltaY = m_data.targetYPos - m_data.currentYPos;
+
+        /* Calculate target heading. */
+        float angle          = atan2(deltaY, deltaX) * 1000.0F;        /* Angle in mrad. */
+        m_data.targetHeading = static_cast<int32_t>(angle) % FP_2PI(); /* Fixed point heading. */
+
+        /* Calculate PID delta. */
+        pidDelta = m_pidCtrl.calculate(m_data.targetHeading, m_data.currentHeading);
+        LOG_DEBUG("Heading: %d, Target: %d, PID Delta: %d", m_data.currentHeading, m_data.targetHeading, pidDelta);
+
+        /*
+         * Calculate target speed. Using only targetSpeedLeft as the robot shall stay in place,
+         * but must be changed in the future.
+         */
+        targetSpeedLeft  = m_data.currentSpeedLeft - pidDelta;
+        targetSpeedRight = -targetSpeedLeft;
+
+        /* Reset new data flags. */
+        m_newOdometryData   = false;
+        m_newMotorSpeedData = false;
+
+        /* Restart timer. */
+        m_pidProcessTime.start(PID_PROCESS_PERIOD);
+    }
+
+    return pidDelta;
+}
+
+void HeadingFinder::setOdometryData(int32_t xPos, int32_t yPos, int32_t heading)
+{
+    /* Set odometry data. */
+    m_data.currentXPos    = xPos;
+    m_data.currentYPos    = yPos;
+    m_data.currentHeading = heading;
+
+    /* Set new odometry data flag. */
+    m_newOdometryData = true;
+}
+
+void HeadingFinder::setMotorSpeedData(int16_t speedLeft, int16_t speedRight)
+{
+    /* Set motor speeds. */
+    m_data.currentSpeedLeft  = speedLeft;
+    m_data.currentSpeedRight = speedRight;
+
+    /* Set new motor speed data flag. */
+    m_newMotorSpeedData = true;
+}
+
+void HeadingFinder::setTargetHeading(int32_t xPos, int32_t yPos)
+{
+    /* Set internal values.*/
+    m_data.targetXPos = xPos;
+    m_data.targetYPos = yPos;
+}
+
+HeadingFinder::HeadingFinderData HeadingFinder::getLatestData() const
+{
+    return m_data;
 }
 
 /******************************************************************************

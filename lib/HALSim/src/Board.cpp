@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2019 - 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Printer log sink
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  The simulation board realization.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "LogSinkPrinter.h"
+#include "Board.h"
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -51,6 +52,10 @@
  *****************************************************************************/
 
 /******************************************************************************
+ * Global Variables
+ *****************************************************************************/
+
+/******************************************************************************
  * Local Variables
  *****************************************************************************/
 
@@ -58,36 +63,50 @@
  * Public Methods
  *****************************************************************************/
 
-void LogSinkPrinter::send(const Logging::Msg& msg)
+bool Board::init()
 {
-    if (nullptr != m_output)
+    bool isReady = false;
+
+    if (false == m_device.init())
     {
-        char           buffer[LOG_MESSAGE_BUFFER_SIZE] = {0};
-        int            written                         = 0;
-        const char*    STR_CUT_OFF_SEQ                 = "...\n";
-        const uint16_t STR_CUT_OFF_SEQ_LEN             = strlen(STR_CUT_OFF_SEQ);
-
-        written = snprintf(buffer, LOG_MESSAGE_BUFFER_SIZE - STR_CUT_OFF_SEQ_LEN + 1U, /* + 1U for cut off detection. */
-                           "%*u %*s %*s:%-*d %s\n", TIMESTAMP_LEN, msg.timestamp, LOG_LEVEL_LEN,
-                           logLevelToString(msg.level), FILENAME_LEN, msg.filename, LINE_LEN, msg.line, msg.str);
-
-        /* Encoding error is skipped. */
-        if (0 <= written)
-        {
-            const uint16_t MAX_LOG_MSG_LEN = LOG_MESSAGE_BUFFER_SIZE - STR_CUT_OFF_SEQ_LEN - 1U;
-
-            /* If the message string is cut off, notify the user about in the
-             * log output.
-             */
-            if (MAX_LOG_MSG_LEN < written)
-            {
-                buffer[MAX_LOG_MSG_LEN] = '\0';
-                strcat(buffer, STR_CUT_OFF_SEQ);
-            }
-
-            (void)m_output->print(buffer);
-        }
+        /* Log Device error */
+        LOG_ERROR("Device initialization failed.");
     }
+    else if (false == m_network.init())
+    {
+        /* Log Network error */
+        LOG_ERROR("Network initialization failed.");
+    }
+    else
+    {
+        /* Ready */
+        isReady = true;
+    }
+
+    return isReady;
+}
+
+bool Board::process()
+{
+    bool isSuccess = false;
+
+    if (false == m_device.process())
+    {
+        /* Log Device error */
+        LOG_ERROR("Device process failed.");
+    }
+    else if (false == m_network.process())
+    {
+        /* Log Network error */
+        LOG_ERROR("Network process failed.");
+    }
+    else
+    {
+        /* No Errors */
+        isSuccess = true;
+    }
+
+    return isSuccess;
 }
 
 /******************************************************************************
@@ -97,44 +116,6 @@ void LogSinkPrinter::send(const Logging::Msg& msg)
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-const char* LogSinkPrinter::logLevelToString(const Logging::LogLevel LogLevel) const
-{
-    const char* logLevelString = nullptr;
-
-    switch (LogLevel)
-    {
-    case Logging::LOG_LEVEL_FATAL:
-        logLevelString = "FATAL  ";
-        break;
-
-    case Logging::LOG_LEVEL_ERROR:
-        logLevelString = "ERROR  ";
-        break;
-
-    case Logging::LOG_LEVEL_WARNING:
-        logLevelString = "WARNING";
-        break;
-
-    case Logging::LOG_LEVEL_INFO:
-        logLevelString = "INFO   ";
-        break;
-
-    case Logging::LOG_LEVEL_DEBUG:
-        logLevelString = "DEBUG  ";
-        break;
-
-    case Logging::LOG_LEVEL_TRACE:
-        logLevelString = "TRACE  ";
-        break;
-
-    default:
-        logLevelString = "UNKNOWN";
-        break;
-    }
-
-    return logLevelString;
-}
 
 /******************************************************************************
  * External Functions

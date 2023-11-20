@@ -33,9 +33,13 @@
  * Includes
  *****************************************************************************/
 #include "App.h"
+#include "HeadingFinder.h"
 #include <Board.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
+#include <Settings.h>
+#include <ArduinoJson.h>
+#include <WiFi.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -57,6 +61,9 @@
  * Prototypes
  *****************************************************************************/
 
+static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -67,12 +74,34 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 /** Serial log sink */
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 
+/* MQTT topic name for birth messages. */
+const char* App::TOPIC_NAME_BIRTH = "birth";
+
+/* MQTT topic name for will messages. */
+const char* App::TOPIC_NAME_WILL = "will";
+
+/* MQTT topic name for receiving position setpoint coordinates. */
+const char* App::TOPIC_NAME_POSITION_SETPOINT = "positionSetpoint";
+
+/** Default size of the JSON Document for parsing. */
+static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
+
+/** Buffer size for JSON serialization of birth / will message */
+static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
+
+/** HeadingFinder Instance. */
+static HeadingFinder gHeadingFinder;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
 void App::setup()
 {
+    bool      isSuccessful = false;
+    Settings& settings     = Settings::getInstance();
+    Board&    board        = Board::getInstance();
+
     Serial.begin(SERIAL_BAUDRATE);
 
     /* Register serial log sink and select it per default. */
@@ -87,28 +116,107 @@ void App::setup()
     }
 
     /* Initialize HAL. */
-    if (false == Board::getInstance().init())
+    if (false == board.init())
     {
-        /* Log and Handle Board initialization error */
         LOG_FATAL("HAL init failed.");
+    }
+    /* Settings shall be loaded from configuration file. */
+    else if (false == settings.loadConfigurationFile(board.getConfigFilePath()))
+    {
+        LOG_FATAL("Settings could not be loaded from %s.", board.getConfigFilePath());
+    }
+    else if (MIN_BATTERY_LEVEL > board.getBattery().getChargeLevel())
+    {
+        LOG_FATAL("Battery too low.");
+    }
+    else
+    {
+        /* If the robot name is empty, use the wifi MAC address as robot name. */
+        if (true == settings.getRobotName().isEmpty())
+        {
+            String robotName = WiFi.macAddress();
+
+            /* Remove MAC separators from robot name. */
+            robotName.replace(":", "");
+
+            settings.setRobotName(robotName);
+        }
+
+        NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
+                                           ""};
+
+        if (false == board.getNetwork().setConfig(networkSettings))
+        {
+            LOG_FATAL("Network configuration could not be set.");
+        }
+        else
+        {
+            /* Setup MQTT Server, Birth and Will messages. */
+            StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
+            char                                           birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+            String                                         birthMessage;
+
+            birthDoc["name"] = settings.getRobotName().c_str();
+            (void)serializeJson(birthDoc, birthMsgArray);
+            birthMessage = birthMsgArray;
+
+            if (false == m_mqttClient.init())
+            {
+                LOG_FATAL("Failed to initialize MQTT client.");
+            }
+            else
+            {
+                MqttSettings mqttSettings = {settings.getRobotName(),
+                                             settings.getMqttBrokerAddress(),
+                                             settings.getMqttPort(),
+                                             TOPIC_NAME_BIRTH,
+                                             birthMessage,
+                                             TOPIC_NAME_WILL,
+                                             birthMessage,
+                                             true};
+
+                if (false == m_mqttClient.setConfig(mqttSettings))
+                {
+                    LOG_FATAL("MQTT configuration could not be set.");
+                }
+                /* Subscribe to Position Setpoint Topic. */
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_POSITION_SETPOINT, [this](const String& payload)
+                                                         { positionTopicCallback(payload); }))
+                {
+                    LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_POSITION_SETPOINT);
+                }
+                else
+                {
+                    /* Setup SerialMuxProt Channels */
+                    m_smpServer.subscribeToChannel(ODOMETRY_CHANNEL_NAME, App_odometryChannelCallback);
+                    m_smpServer.subscribeToChannel(SPEED_CHANNEL_NAME, App_speedChannelCallback);
+                    m_serialMuxProtChannelIdMotorSpeedSetpoints =
+                        m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+
+                    if (0U == m_serialMuxProtChannelIdMotorSpeedSetpoints)
+                    {
+                        LOG_FATAL("Could not create SerialMuxProt Channel: %s.", SPEED_SETPOINT_CHANNEL_NAME);
+                    }
+                    else
+                    {
+                        /* Initialize HeadingFinder. */
+                        gHeadingFinder.init();
+                        isSuccessful = true;
+                    }
+                }
+            }
+        }
+    }
+
+    if (false == isSuccessful)
+    {
         fatalErrorHandler();
     }
     else
     {
-        /* Check Battery. */
-        uint8_t batteryLevel = Board::getInstance().getBattery().getChargeLevel();
-        LOG_DEBUG("Battery level: %u%%", batteryLevel);
-        LOG_DEBUG("Battery voltage: %u", Board::getInstance().getBattery().getVoltage());
-
-        if (MIN_BATTERY_LEVEL > batteryLevel)
-        {
-            LOG_FATAL("Battery too low.");
-            fatalErrorHandler();
-        }
-
         /* Blink Green LED to signal all-good. */
         Board::getInstance().getGreenLed().enable(true);
-        delay(1000);
+        delay(100U);
         Board::getInstance().getGreenLed().enable(false);
     }
 }
@@ -122,6 +230,15 @@ void App::loop()
         LOG_FATAL("HAL process failed.");
         fatalErrorHandler();
     }
+
+    /* Process SerialMuxProt. */
+    m_smpServer.process(millis());
+
+    /* Process MQTT Communication */
+    m_mqttClient.process();
+
+    /* Set new target speeds. */
+    sendSpeedSetpoints();
 }
 
 /******************************************************************************
@@ -131,6 +248,35 @@ void App::loop()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+void App::positionTopicCallback(const String& payload)
+{
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
+
+    if (error != DeserializationError::Ok)
+    {
+        LOG_ERROR("JSON Deserialization Error %d.", error);
+    }
+    else
+    {
+        JsonVariant jsonXPos = jsonPayload["X"];
+        JsonVariant jsonYPos = jsonPayload["Y"];
+
+        if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()))
+        {
+            int32_t positionX = jsonXPos.as<int32_t>();
+            int32_t positionY = jsonYPos.as<int32_t>();
+
+            LOG_DEBUG("Received position setpoint: x: %d y: %d", positionX, positionY);
+            gHeadingFinder.setTargetHeading(positionX, positionY);
+        }
+        else
+        {
+            LOG_WARNING("Received invalid position.");
+        }
+    }
+}
 
 void App::fatalErrorHandler()
 {
@@ -143,6 +289,41 @@ void App::fatalErrorHandler()
     }
 }
 
+void App::sendSpeedSetpoints()
+{
+    int16_t targetSpeedLeft  = 0;
+    int16_t targetSpeedRight = 0;
+
+    if (0 != gHeadingFinder.process(targetSpeedLeft, targetSpeedRight))
+    {
+        SpeedData payload;
+        payload.left  = targetSpeedLeft;
+        payload.right = targetSpeedRight;
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints,
+                                          reinterpret_cast<uint8_t*>(&payload), sizeof(payload)))
+        {
+            LOG_DEBUG("Could not send speed setpoints.");
+        }
+        else
+        {
+            StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
+            HeadingFinder::HeadingFinderData          data = gHeadingFinder.getLatestData();
+            char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
+
+            payloadJson["targetSpeedLeft"]  = targetSpeedLeft;
+            payloadJson["targetSpeedRight"] = targetSpeedRight;
+            payloadJson["targetHeading"]    = data.targetHeading;
+            payloadJson["currentHeading"]   = data.currentHeading;
+
+            (void)serializeJson(payloadJson, payloadArray);
+            String payloadStr(payloadArray);
+
+            m_mqttClient.publish("pid", true, payloadStr);
+        }
+    }
+}
+
 /******************************************************************************
  * External Functions
  *****************************************************************************/
@@ -150,3 +331,44 @@ void App::fatalErrorHandler()
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
+
+/**
+ * Receives current position and heading of the robot over SerialMuxProt channel.
+ *
+ * @param[in] payload       Odometry data. Two coordinates and one orientation.
+ * @param[in] payloadSize   Size of two coordinates and one orientation.
+ */
+void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+{
+    if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize))
+    {
+        const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
+        LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", odometryData->xPos, odometryData->yPos,
+                  odometryData->orientation);
+        gHeadingFinder.setOdometryData(odometryData->xPos, odometryData->yPos, odometryData->orientation);
+    }
+    else
+    {
+        LOG_WARNING("ODOMETRY: Invalid payload size. Expected: %u Received: %u", ODOMETRY_CHANNEL_DLC, payloadSize);
+    }
+}
+
+/**
+ * Receives current motor speeds of the robot over SerialMuxProt channel.
+ *
+ * @param[in] payload       Motor speeds.
+ * @param[in] payloadSize   Size of two motor speeds.
+ */
+void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+{
+    if ((nullptr != payload) && (SPEED_CHANNEL_DLC == payloadSize))
+    {
+        const SpeedData* motorSpeedData = reinterpret_cast<const SpeedData*>(payload);
+        LOG_DEBUG("SPEED: left: %d right: %d", motorSpeedData->left, motorSpeedData->right);
+        gHeadingFinder.setMotorSpeedData(motorSpeedData->left, motorSpeedData->right);
+    }
+    else
+    {
+        LOG_WARNING("SPEED: Invalid payload size. Expected: %u Received: %u", SPEED_CHANNEL_DLC, payloadSize);
+    }
+}

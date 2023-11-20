@@ -25,60 +25,51 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Fixpoint math
+ * @author Andreas Merkle <web@blue-andi.de>
+ *
+ * @addtogroup utilities
+ *
+ * @{
  */
 
-#ifndef FILE_READER_H_
-#define FILE_READER_H_
+#ifndef FPMATH_H
+#define FPMATH_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include <IFileReader.h>
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
+/** Fixpoint PI [mrad] */
+#define FP_PI() (static_cast<int32_t>(1000.0f * PI))
+
+/** Fixpoint 2 * PI [mrad] */
+#define FP_2PI() (static_cast<int32_t>(2000.0f * PI))
+
+/** Convert value from mrad to deg. */
+#define MRAD2DEG(__mrad) ((static_cast<int32_t>(__mrad) * static_cast<int32_t>(360)) / FP_2PI())
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
-
-/**
- * File Reader class.
- */
-class FileReader : public IFileReader
-{
-public:
-    /**
-     * Constructs the concrete FileReader.
-     */
-    FileReader();
-
-    /**
-     * Destroys the concrete FileReader.
-     */
-    virtual ~FileReader();
-
-    /**
-     * Read a file from the filesystem.
-     * @param[in] fileName Name of the file to read. Name must be an absolute path.
-     * @param[out] outBuffer Buffer to write file to.
-     * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     * @returns number of bytes read.
-     */
-    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) final;
-
-private:
-    /* Not allowed. */
-    FileReader(const FileReader& src);            /**< Copy construction of an instance. */
-    FileReader& operator=(const FileReader& rhs); /**< Assignment of an instance. */
-};
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* FILE_READER_H_ */
+namespace FPMath
+{
+
+}
+
+#endif /* FPMATH_H */
+/** @} */

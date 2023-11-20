@@ -25,60 +25,51 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Fixpoint math
+ * @author Andreas Merkle <web@blue-andi.de>
  */
-
-#ifndef FILE_READER_H_
-#define FILE_READER_H_
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
+#include "FPMath.h"
 
-#include <IFileReader.h>
+/******************************************************************************
+ * Compiler Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and Classes
+ * Types and classes
  *****************************************************************************/
-
-/**
- * File Reader class.
- */
-class FileReader : public IFileReader
-{
-public:
-    /**
-     * Constructs the concrete FileReader.
-     */
-    FileReader();
-
-    /**
-     * Destroys the concrete FileReader.
-     */
-    virtual ~FileReader();
-
-    /**
-     * Read a file from the filesystem.
-     * @param[in] fileName Name of the file to read. Name must be an absolute path.
-     * @param[out] outBuffer Buffer to write file to.
-     * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     * @returns number of bytes read.
-     */
-    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) final;
-
-private:
-    /* Not allowed. */
-    FileReader(const FileReader& src);            /**< Copy construction of an instance. */
-    FileReader& operator=(const FileReader& rhs); /**< Assignment of an instance. */
-};
 
 /******************************************************************************
- * Functions
+ * Prototypes
  *****************************************************************************/
 
-#endif /* FILE_READER_H_ */
+/******************************************************************************
+ * Local Variables
+ *****************************************************************************/
+
+/******************************************************************************
+ * Public Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * External Functions
+ *****************************************************************************/
+
+/******************************************************************************
+ * Local Functions
+ *****************************************************************************/

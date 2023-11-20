@@ -118,8 +118,8 @@ private:
     const uint8_t m_pinMode; /**< Arduino pin mode */
 
     /* An instance shall not be copied. */
-    IoPin(const IoPin& ioPin);
-    IoPin& operator=(const IoPin& ioPin);
+    IoPin(const IoPin& ioPin);            /**< Copy construction of an instance. */
+    IoPin& operator=(const IoPin& ioPin); /**< Assignment of an instance. */
 };
 
 /**
@@ -168,8 +168,8 @@ public:
 
 private:
     /* An instance shall not be copied. */
-    DOutPin(const DOutPin& dOutPin);
-    DOutPin& operator=(const DOutPin& dOutPin);
+    DOutPin(const DOutPin& dOutPin);            /**< Copy construction of an instance. */
+    DOutPin& operator=(const DOutPin& dOutPin); /**< Assignment of an instance. */
 };
 
 /**
@@ -195,8 +195,8 @@ private:
     }
 
     /* An instance shall not be copied. */
-    DInPin(const DInPin& dInPin);
-    DInPin& operator=(const DInPin& dInPin);
+    DInPin(const DInPin& dInPin);            /**< Copy construction of an instance. */
+    DInPin& operator=(const DInPin& dInPin); /**< Assignment of an instance. */
 };
 
 /**
@@ -232,8 +232,8 @@ public:
 
 private:
     /* An instance shall not be copied. */
-    DInPin(const DInPin& dInPin);
-    DInPin& operator=(const DInPin& dInPin);
+    DInPin(const DInPin& dInPin);            /**< Copy construction of an instance. */
+    DInPin& operator=(const DInPin& dInPin); /**< Assignment of an instance. */
 };
 
 /**
@@ -269,8 +269,8 @@ public:
 
 private:
     /* An instance shall not be copied. */
-    DInPin(const DInPin& dInPin);
-    DInPin& operator=(const DInPin& dInPin);
+    DInPin(const DInPin& dInPin);            /**< Copy construction of an instance. */
+    DInPin& operator=(const DInPin& dInPin); /**< Assignment of an instance. */
 };
 
 /**
@@ -306,8 +306,8 @@ public:
 
 private:
     /* An instance shall not be copied. */
-    DInPin(const DInPin& dInPin);
-    DInPin& operator=(const DInPin& dInPin);
+    DInPin(const DInPin& dInPin);            /**< Copy construction of an instance. */
+    DInPin& operator=(const DInPin& dInPin); /**< Assignment of an instance. */
 };
 
 /**
@@ -352,9 +352,9 @@ public:
     }
 
 private:
-    /* An instance shall not be copied. */
-    AnalogPin(const AnalogPin& analogPin);
-    AnalogPin& operator=(const AnalogPin& analogPin);
+    /* Not allowed. */
+    AnalogPin(const AnalogPin& analogPin);            /**< Copy construction of an instance. */
+    AnalogPin& operator=(const AnalogPin& analogPin); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
@@ -363,4 +363,4 @@ private:
 
 #endif /* IO_H */
 
-       /** @} */
+/** @} */

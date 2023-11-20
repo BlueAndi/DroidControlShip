@@ -35,7 +35,6 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
 #include <WString.h>
 #include <stdint.h>
 #include <FileReader.h>
@@ -69,67 +68,67 @@ public:
     }
 
     /**
-     * Get status of configuration loaded.
-     */
-    bool isConfigLoaded() const;
-
-    /**
      * Loads the configuration from a file.
+     *
      * @param[in] filename Name of file to read.
+     *
      * @returns true if configuration succesfully loaded. Otherwise, false.
      */
     bool loadConfigurationFile(const String& filename);
 
     /**
-     * Set configuration manually.
-     * @param[in] instanceName Instance name.
-     * @param[in] wifiSSID WiFi SSID.
-     * @param[in] wifiPassword WiFi password.
-     * @param[in] mqttBrokerAddress MQTT Broker IP/HOST.
-     * @param[in] mqttPort MQTT Broker Port.
-     * @returns true if configuration succesfully loaded. Otherwise, false.
-     */
-    bool setConfiguration(const String& instanceName, const String& wifiSSID, const String& wifiPassword,
-                          const String& mqttBrokerAddress, uint16_t mqttPort);
-
-    /**
      * Get robot name.
+     *
      * @returns Robot name.
      */
-    String& getRobotName()
+    const String& getRobotName()
     {
         return m_robotName;
     }
 
     /**
+     * Set the robot name.
+     * 
+     * @param[in] robotName The robot name.
+     */
+    void setRobotName(const String& robotName)
+    {
+        m_robotName = robotName;
+    }
+
+    /**
      * Get network SSID.
+     *
      * @returns Network SSID.
      */
-    String& getWiFiSSID()
+    const String& getWiFiSSID()
     {
         return m_wifiSSID;
     }
 
     /**
      * Get network password.
+     *
      * @returns Network password.
      */
-    String& getWiFiPassword()
+    const String& getWiFiPassword()
     {
         return m_wifiPassword;
     }
 
     /**
      * Get MQTT Broker IP/HOST.
+     *
      * @returns MQTT Broker IP/HOST.
      */
-    String& getMqttBrokerAddress()
+    const String& getMqttBrokerAddress()
     {
         return m_mqttBrokerAddress;
     }
 
     /**
      * Get MQTT Broker Port.
+     *
      * @returns MQTT Broker Port.
      */
     uint16_t getMqttPort()
@@ -138,10 +137,6 @@ public:
     }
 
 private:
-    /**
-     * Configuration loaded flag.
-     */
-    bool m_configLoaded;
 
     /**
      * Instance Name.
@@ -171,7 +166,6 @@ private:
     /* FileReader instance. */
     FileReader m_fileReader;
 
-private:
     /**
      * Settings Constructor.
      */
@@ -182,7 +176,6 @@ private:
      */
     ~Settings();
 
-private:
     Settings(const Settings& settings);
     Settings& operator=(const Settings& settings);
 };
