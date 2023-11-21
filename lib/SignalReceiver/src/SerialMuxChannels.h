@@ -69,6 +69,12 @@
 /** DLC of Line Sensor Channel */
 #define LINE_SENSOR_CHANNEL_DLC (sizeof(LineSensorData))
 
+/** Name of Channel to send Traffic Light Color IDs to. */
+#define TRAFFIC_LIGHT_COLORS_CHANNEL_NAME "TL_COLORS"
+
+/** DLC of Traffic Light Channel */
+#define TRAFFIC_LIGHT_COLORS_CHANNEL_DLC (sizeof(Color))
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
@@ -98,6 +104,11 @@ typedef struct _LineSensorData
     uint16_t lineSensorData[5U]; /**< Line sensor data [digits] normalized to max 1000 digits. */
 } __attribute__((packed)) LineSensorData;
 
+/** Struct of the "Color" channel payload. */
+typedef struct _Color
+{
+    uint8_t colorId; /**< Command ID */
+} __attribute__((packed)) Color;
 /******************************************************************************
  * Functions
  *****************************************************************************/

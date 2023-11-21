@@ -102,11 +102,17 @@ private:
     /** MQTT topic name for receiving motor speeds. */
     static const char* TOPIC_NAME_MOTOR_SPEEDS;
 
+    /** MQTT topic name for receiving traffic light color IDs. */
+    static const char* TOPIC_NAME_TRAFFIC_LIGHT_COLORS;
+
     /** SerialMuxProt Channel id sending remote control commands. */
     uint8_t m_serialMuxProtChannelIdRemoteCtrl;
 
     /** SerialMuxProt Channel id sending sending motor speeds. */
     uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+
+    /** SerialMuxProt Channel id sending current traffic light color ID. */
+    uint8_t m_serialMuxProtChannelIdTrafficLightColors;
 
     /**
      * SerialMuxProt Server Instance
@@ -137,6 +143,12 @@ private:
      * @param[in] payload   Payload of the MQTT message.
      */
     void motorSpeedsTopicCallback(const String& payload);
+
+    /**
+     * Callback for Traffic Light Colors MQTT Topic.
+     * @param[in] payload   Payload of the MQTT message.
+     */
+    void trafficLightColorsCallback(const String& payload);
 
 private:
     /* Not allowed. */

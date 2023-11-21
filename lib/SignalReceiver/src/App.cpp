@@ -85,6 +85,9 @@ const char* App::TOPIC_NAME_CMD = "cmd";
 /* MQTT topic name for receiving motor speeds. */
 const char* App::TOPIC_NAME_MOTOR_SPEEDS = "motorSpeeds";
 
+/* MQTT topic name for receiving traffic light color IDs. */
+const char* App::TOPIC_NAME_TRAFFIC_LIGHT_COLORS = "trafficLightColors";
+
 /** Default size of the JSON Document for parsing. */
 static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
@@ -159,6 +162,8 @@ void App::setup()
             m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
             m_serialMuxProtChannelIdMotorSpeeds =
                 m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+            m_serialMuxProtChannelIdTrafficLightColors =
+                m_smpServer.createChannel(TRAFFIC_LIGHT_COLORS_CHANNEL_NAME, TRAFFIC_LIGHT_COLORS_CHANNEL_DLC);
             m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
             m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
 
@@ -192,6 +197,12 @@ void App::setup()
                                                          { motorSpeedsTopicCallback(payload); }))
                 {
                     LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
+                }
+                /* Subscribe to Traffic Light Colors Topic. */
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_TRAFFIC_LIGHT_COLORS, [this](const String& payload)
+                                                         { trafficLightColorsCallback(payload); }))
+                {
+                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_TRAFFIC_LIGHT_COLORS);
                 }
                 else
                 {
@@ -315,6 +326,40 @@ void App::motorSpeedsTopicCallback(const String& payload)
     }
 }
 
+void App::trafficLightColorsCallback(const String& payload)
+{
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
+
+    if (error != DeserializationError::Ok)
+    {
+        LOG_ERROR("JSON Deserialization Error %d.", error);
+    }
+    else
+    {
+        JsonVariant color = jsonPayload["COLOR"];
+
+        if (false == color.isNull())
+        {
+            Color clr;
+            clr.colorId = color.as<uint8_t>();
+
+            if (true == m_smpServer.sendData(m_serialMuxProtChannelIdTrafficLightColors,
+                                             reinterpret_cast<uint8_t*>(&clr), sizeof(clr)))
+            {
+                LOG_DEBUG("Color %d sent.", clr.colorId);
+            }
+            else
+            {
+                LOG_WARNING("Failed to send color %d.", clr.colorId);
+            }
+        }
+        else
+        {
+            LOG_WARNING("Received invalid color.");
+        }
+    }
+}
 /******************************************************************************
  * External Functions
  *****************************************************************************/
