@@ -25,17 +25,14 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Upload realization
+ * @brief  FileManager realization
  * 
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Upload.h"
-#include <LittleFS.h>
-#include <ESPAsyncWebServer.h>
-#include<Logging.h>
+#include "MySettings.h"
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -60,68 +57,62 @@
  * Public Methods
  *****************************************************************************/
 
-Upload::Upload()
-{   
-}
-
-Upload::~Upload()
-{    
-}
-
-void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)
+MySettings::MySettings()
 {
-    String updatedFilename = filename;
+    wifiSSID     = "your_ssid";
+    wifiPassword = "your_password";
+    authUsername = "defaultusername";
+    authPassword = "defaultpassword";
+    apSSID       = "your_apssid";
+    apPassword   = "your_appassword";
+}
     
 
-    if (!filename.startsWith("/"))
-    {
-        updatedFilename = "/" + filename;
-    }
-
-    if (index==0)
-    {   
-        
-        /*Save file in the request object*/
-        request->_tempFile = LittleFS.open(updatedFilename, "w");
-        LOG_DEBUG("Upload Start: " + String(updatedFilename));
-    }
-    else
-    {
-        LOG_ERROR("Problem to save the request object!");
-       
-    }
-    if(len)
-    {
-        /* Write data to the file*/
-        request->_tempFile.write(data, len);
-    }
-
-    /* If this is the last data block, close the file*/
-    if (final)
-    {
-        request->_tempFile.close();
-        /*Check if the file exists in the file system*/
-        if(LittleFS.exists(updatedFilename))
-        {
-            LOG_DEBUG(String(updatedFilename) + " " + "exists in FileSystem.");
-        }
-        else
-        {
-            LOG_DEBUG(String(updatedFilename) + "is not found in FileSystem.");
-        }
-            request->redirect("/filelist");
-    
-        }
-    else
-    {
-        LOG_ERROR("Please keep trying this is not the last datablock!");
-       
-    }
+MySettings::~MySettings()
+{
 }
 
+const char* MySettings::getWiFiSSID()
+{
+    return wifiSSID;
+}
 
+const char* MySettings::getWiFiPassword()
+{
+    return wifiPassword;
+}
 
+const char* MySettings::getapSSID()
+{
+    return apSSID;
+}
 
+const char* MySettings::getapPassword()
+{
+    return apPassword;
+}
+
+void MySettings::setWiFiCredentials(const char* ssid, const char* password)
+{
+    wifiSSID = ssid;
+    wifiPassword = password;
+}
+
+const char* MySettings::getAuthUsername()
+{
+    return authUsername;
+}
+
+const char* MySettings::getAuthPassword()
+{
+    return authPassword;
+}
+
+void MySettings::setAuthCredentials(const char* username, const char* password)
+{
+    authUsername = username;
+    authPassword = password;
+}
 
 
 

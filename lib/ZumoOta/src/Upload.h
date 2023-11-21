@@ -26,7 +26,8 @@
  *****************************************************************************/
 
 class Upload {
-private:      
+private:   
+        
 public:
     /**
      * Construct the Upload class.

@@ -38,7 +38,6 @@
 #include <Logging.h>
 #include <LogSinkPrinter.h>
 
-
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -65,12 +64,9 @@
 /** Serial interface baudrate. */
 static const uint32_t SERIAL_BAUDRATE = 115200U;
 
-/*defines the WiFi Credentials */
-const char* ssid = "your_ssid";
-const char* password = "your_password";
-
 /** Serial log sink */
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -132,24 +128,7 @@ void App::setup()
         halt();
     }
 
-    // Access Point Modus start
-    /*WiFi.mode(WIFI_AP);
-    WiFi.softAP(ssid, password);
-    /*LOG_DEBUG("IP Address: %s", WiFi.softAPIP().toString().c_str());
-    */
-
-    //Station Mode start
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
-    
-    if (WiFi.waitForConnectResult() != WL_CONNECTED)
-    {
-        LOG_ERROR("WiFi Failed!\n");
-        return;
-    }
-
-    LOG_DEBUG("IP Address: %s", WiFi.localIP().toString().c_str());
-   
+    network.connectToWiFi();
     start();
     m_webServer.handleUploadRequest();
 }

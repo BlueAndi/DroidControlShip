@@ -33,8 +33,8 @@
  * {
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef NETWORK_CUSTOM_H
+#define NETWORK_CUSTOM_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,10 +43,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Board.h>
-#include "FileManager.h"
-#include "WebServerCustom.h"
-#include "NetworkCustom.h"
+
 
 /******************************************************************************
  * Macros
@@ -56,68 +53,46 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Remote Control application. */
-class App
-{
+class NetworkCustom {
 public:
     /**
-     * Construct the app  application.
+     * Constructor for the NetworkCustome class.
      */
-    App();
+    NetworkCustom();
+
+    /**
+     * Destructor for the NetworkCustome class.
+     */
+    ~NetworkCustom();
+
+    /**
+     *  Initiates the process of connecting to a WiFi network.
+     */
+    void connectToWiFi();
+
+    /**
+     *  Checks the current status of the network connection.
+     */
+    void checkConnection();
+
+    /**
+     *  Transitions the system into Access Point (AP) mode.
+     */
+    void switchToAPMode();
     
-    /**
-     * Destroy the app  application.
-     */
-    ~App();
-
-    /**
-     * Setup the application.
-     */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-    /**
-     * Start the Application.
-     */
-    void start();
-
-    /**
-     * Initialize the logging
-     */
-    bool loginit();
-
-    /**
-     * Function to stop the application
-     */
-    void halt();
 
 private:
     /**
-     * Instance of the FileManager class 
-     *responsible for managing the LittleFs file System. 
+     *  A boolean variable indicating the current connection status (true if connected, false if not).
      */
-    FileManager m_fileManager;
+    bool connected;
 
     /**
-     * Instance of the WebServerCustom class 
-     *representing a custom webserver for the application.
+     *  An integer variable tracking the number of attempts made to establish a connection.
      */
-    WebServerCustom m_webServer;
+    int connectAttempts;
 
-    /**
-     * Instance of the Upload class 
-     */
-    Upload m_upload;
-
-    /**
-     * Instance of the NetworkCustom class 
-     */
-    NetworkCustom network;
 };
 
-#endif /* APP_H */
+#endif /* NETWORK_CUSTOM_H */
 /** @} */
