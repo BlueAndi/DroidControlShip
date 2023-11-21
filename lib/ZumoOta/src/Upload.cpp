@@ -36,6 +36,7 @@
 #include <LittleFS.h>
 #include <ESPAsyncWebServer.h>
 #include<Logging.h>
+#include <map> 
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -100,14 +101,36 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
     if (final)
     {
         request->_tempFile.close();
-        /*Check if the file exists in the file system*/
-        if(LittleFS.exists(updatedFilename))
+       /* Check if the file exits in FileSystem */
+        if (LittleFS.exists(updatedFilename))
         {
-            LOG_DEBUG(String(updatedFilename) + " " + "exists in FileSystem.");
+            /* Open the file in read mode */
+            File file = LittleFS.open(updatedFilename, "r");
+
+            if (file)
+            {
+                /* Move to the end of the file */
+                file.seek(0, SeekEnd);
+
+                /* Get the current position in the file content (the size of the file) */
+                size_t fileSize = file.position();
+
+                /* Move back to the beginning of the file */
+                file.seek(0, SeekSet);
+
+                LOG_DEBUG("Size of " + updatedFilename + ": " + String(fileSize));
+
+                /* Close the file */
+                file.close();
+            }
+            else
+            {
+                LOG_ERROR("Failed to open " + updatedFilename);
+            }
         }
         else
         {
-            LOG_DEBUG(String(updatedFilename) + "is not found in FileSystem.");
+            LOG_DEBUG(updatedFilename + " is not in FileSystem.");
         }
             request->redirect("/filelist");
     
