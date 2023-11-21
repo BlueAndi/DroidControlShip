@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benutzerprofil</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            
+            background-image: url('https://www.robot-maker.com/shop/1252-thickbox_default/robot-pololu-zumo-32u4.jpg');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-color: rosybrown;
+        
+        }
+
+        h1,h2, p {
+            margin-top: 0;
+            color: yellow; 
+        }
+
+        #profileForm {
+            display: none;
+        }
+
+        .custom-link {
+        font-weight: 900;
+        color: gold; 
+        text-decoration: none; 
+        background-color: black;
+       
+        margin-bottom: 30px;
+        padding: 20px;
+        border-radius: 50px;
+        border: 1px solid #ccc;
+    }
+
+    ul {
+        display: flex;
+        list-style: none; /* Entfernt die Listenpunkte */
+        padding: 0; /* Entfernt den Listen-Padding */
+    }
+
+    /* Styles für die Listenelemente */
+    li {
+        margin-right: 50px; /* Abstand zwischen den Listenelementen */
+    }
+    </style>
+</head>
+
+<body>
+    <h1>Benutzerprofil</h1>
+    <!-- Button, um das Formular anzuzeigen -->
+    <button onclick="toggleForm()">Profilinformationen ändern</button>
+
+    <!-- Formular für die Profiländerungen -->
+    <form id="profileForm" action="/changeProfile" method="post">
+        <label for="newUsername">Neuer Benutzername:</label>
+        <input type="text" id="newUsername" name="newUsername"><br>
+        <label for="newPassword">Neues Passwort:</label>
+        <input type="password" id="newPassword" name="newPassword"><br>
+        <input type="submit" value="Profil aktualisieren">
+    </form>
+    
+
+    <ul>
+        <li><a href="/upload" class="custom-link" target="_blank">Upload-Seite</a></li>
+        <li><a href="/otaUpdate" class="custom-link" target="_blank">OTA Update durchführen</a></li>
+    </ul>
+    <script>
+        function toggleForm() {
+            var form = document.getElementById("profileForm");
+            if (form.style.display === "none") {
+                form.style.display = "block";
+            } else {
+                form.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

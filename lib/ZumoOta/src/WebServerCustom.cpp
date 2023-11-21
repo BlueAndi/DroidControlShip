@@ -145,6 +145,19 @@ void WebServerCustom::init()
         request->send(LittleFS, "/upload.html","text/html");
     });
 
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+    {
+        if (!request->authenticate(set.getAuthUsername(), set.getAuthPassword()))
+        {
+            return request->requestAuthentication();
+        }
+        else
+        {
+            request->send(LittleFS, "/login.html","text/html");
+        
+        }
+    });
+
     server.begin();
 }
 

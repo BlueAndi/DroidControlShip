@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            
+            background-image: url('https://www.robot-maker.com/shop/1252-thickbox_default/robot-pololu-zumo-32u4.jpg');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-color: rosybrown;
+        }
+
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px;
+            border: 8px solid black;
+            border-radius: 10px;
+            background-color: white;
+        }
+
+        .upload-form input[type="file"] {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .upload-form input[type="submit"] {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            background-color: lightblue;
+            cursor: pointer;
+        }
+        h1,h2, p {
+            margin-top: 0;
+            color: yellow; 
+        }
+
+        /* Neuer Stil für das Anzeigen des Bildes */
+        .uploaded-file {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+        
+    </style>
+    
+</head>
+<body>
+    <h1>Willkommen zur Upload Seite!</h1>
+    <p>Bitte Anweisungen folgen!</p>
+    <p> Bitte ein Dokument einreichen und auf Upload drücken!</p>
+    <form class="upload-form" method="post" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="firmware" id="fileInput">
+        <input id="uploadButton" type="submit" value="Upload">
+    </form>
+
+    <!-- Anzeige der hochgeladenen Dateien in einer Tabelle -->
+    <table id="uploadedFilesTable">
+        <thead>
+            <tr>
+                <th>Dateiname</th>
+                <th>Typ</th>
+                <th>Größe</th>
+            </tr>
+        </thead>
+        <tbody id="fileList"></tbody>
+    </table>
+    
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        
+        fileInput.addEventListener('change', function() {
+            fileList.innerHTML = ''; // Leert die Tabelle vor dem Hinzufügen der neuen Dateien
+            
+            const files = fileInput.files;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const row = fileList.insertRow();
+                
+                const fileNameCell = row.insertCell(0);
+                fileNameCell.textContent = file.name;
+                
+                const fileTypeCell = row.insertCell(1);
+                fileTypeCell.textContent = file.type || 'Unbekannter Typ';
+                
+                const fileSizeCell = row.insertCell(2);
+                const fileSizeKB = (file.size / 1024).toFixed(2);
+                fileSizeCell.textContent = `${fileSizeKB} KB`;
+
+                // Überprüfung der Dateigröße
+                if (file.size > MAX_FILE_SIZE_IN_BYTES) {
+                    // Datei zu groß, hier kannst du entsprechend handeln
+                    alert('Die Dateigröße überschreitet die maximale Größe.');
+                    // Verhindern des Uploads oder andere Maßnahmen ergreifen
+                    // z.B. fileInput.value = ''; um die Dateiauswahl zu leeren
+                }
+            }
+        });
+    </script>
+   
+
+
+
+    
+    
+</body>
+</html>

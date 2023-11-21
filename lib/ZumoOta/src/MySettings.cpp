@@ -67,7 +67,6 @@ MySettings::MySettings()
     apPassword   = "your_appassword";
 }
     
-
 MySettings::~MySettings()
 {
 }
