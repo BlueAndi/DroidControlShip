@@ -37,6 +37,7 @@
 #include <FS.h>
 #include <Arduino.h>
 #include <Logging.h>
+#include "MySettings.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -58,7 +59,7 @@
  * Local Variables
  *****************************************************************************/
 Upload upload;
-
+MySettings set;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -139,7 +140,7 @@ void WebServerCustom::init()
 
     /*...  Additional routes and configurations ...*/ 
    
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+    server.on("/upload", HTTP_GET, [](AsyncWebServerRequest *request)
     {
         request->send(LittleFS, "/upload.html","text/html");
     });
@@ -156,7 +157,6 @@ void WebServerCustom::handleUploadRequest()
         upload.handleFileUpload(request, filename, index, data, len, final);
     });
 }
-
 
 /******************************************************************************
  * External Functions

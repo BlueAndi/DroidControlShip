@@ -25,17 +25,18 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Upload realization
- * 
+ * @brief  ZumoOta application
+ * @author Decareme Pauline Ngangnou <ngandeca@yahoo.fr>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Upload.h"
-#include <LittleFS.h>
-#include <ESPAsyncWebServer.h>
-#include<Logging.h>
+#include "NetworkCustom.h"
+#include <WiFi.h>
+#include <Logging.h>
+#include "MySettings.h"
+
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -55,75 +56,70 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
+MySettings settings;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
-
-Upload::Upload()
-{   
-}
-
-Upload::~Upload()
-{    
-}
-
-void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)
+NetworkCustom::NetworkCustom()
 {
-    String updatedFilename = filename;
+    connected = false;
+    connectAttempts = 0;
+}
+
+NetworkCustom::~NetworkCustom()
+{
     
+}
 
-    if (!filename.startsWith("/"))
+void NetworkCustom::connectToWiFi()
+{
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(settings.getWiFiSSID(), settings.getWiFiPassword());
+    delay(10000);
+
+    if (WiFi.status() == WL_CONNECTED)
     {
-        updatedFilename = "/" + filename;
+        connected = true;
+        LOG_DEBUG("Connected to WiFi. IP Address: %s", WiFi.localIP().toString().c_str());
     }
+    else
+    {
+        connected = false;
+        checkConnection();
+    }
+}
 
-    if (index==0)
-    {   
+void NetworkCustom::switchToAPMode()
+{
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(settings.getapSSID(), settings.getapPassword());
+    LOG_DEBUG("IP Address: %s", WiFi.softAPIP().toString().c_str());
+    connected = true;
+    
+}
+
+void NetworkCustom::checkConnection()
+{
+    while(!connected)
+    {
+        LOG_ERROR("Connection failed. Retry a connection...");
+        connectAttempts++;
         
-        /*Save file in the request object*/
-        request->_tempFile = LittleFS.open(updatedFilename, "w");
-        LOG_DEBUG("Upload Start: " + String(updatedFilename));
-    }
-    else
-    {
-        LOG_ERROR("Problem to save the request object!");
-       
-    }
-    if(len)
-    {
-        /* Write data to the file*/
-        request->_tempFile.write(data, len);
-    }
-
-    /* If this is the last data block, close the file*/
-    if (final)
-    {
-        request->_tempFile.close();
-        /*Check if the file exists in the file system*/
-        if(LittleFS.exists(updatedFilename))
+        if (connectAttempts >= 3)
         {
-            LOG_DEBUG(String(updatedFilename) + " " + "exists in FileSystem.");
+            switchToAPMode();
+            connectAttempts = 0;
         }
-        else
-        {
-            LOG_DEBUG(String(updatedFilename) + "is not found in FileSystem.");
-        }
-            request->redirect("/filelist");
-    
-        }
-    else
-    {
-        LOG_ERROR("Please keep trying this is not the last datablock!");
-       
+        delay(30000);
     }
 }
 
 
 
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
 
-
-
-
-
-
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
