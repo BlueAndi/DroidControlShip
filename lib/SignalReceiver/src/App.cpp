@@ -62,6 +62,7 @@
 
 static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
 static void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_handShakeChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
 
 /******************************************************************************
  * Local Variables
@@ -93,6 +94,12 @@ static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
+
+/** Handshake ID to send through MQTT. */
+static uint8_t HAND_SHAKE_ID;
+
+/** Handshake ID shall be sent only on change. */
+static uint8_t OLD_HAND_SHAKE_ID = 0;
 
 /******************************************************************************
  * Public Methods
@@ -166,6 +173,7 @@ void App::setup()
                 m_smpServer.createChannel(TRAFFIC_LIGHT_COLORS_CHANNEL_NAME, TRAFFIC_LIGHT_COLORS_CHANNEL_DLC);
             m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
             m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
+            m_smpServer.subscribeToChannel(HANDSHAKE_CHANNEL_NAME, App_handShakeChannelCallback);
 
             if (false == m_mqttClient.init())
             {
@@ -226,6 +234,67 @@ void App::loop()
         /* Log and Handle Board processing error */
         LOG_FATAL("HAL process failed.");
         fatalErrorHandler();
+    }
+
+    /** Process Hand Shake IDs only on change. */
+    if ((HAND_SHAKE_ID != OLD_HAND_SHAKE_ID))
+    {
+        /** Publish received handshake. */
+        /**
+         * Again WIP because of if/else algorithm.
+         * No idea how to cast an int to JSON.
+         */
+        if (HAND_SHAKE_ID == 0)
+        {
+            if (true == m_mqttClient.publish("TL_0/handShake", false,
+                                             "{"
+                                             "HS_ID"
+                                             ": 0}"))
+            {
+                LOG_DEBUG("Handshake 0 sent through MQTT.");
+            }
+            else
+            {
+                LOG_DEBUG("Handshake 0 failed to sen through MQTT.");
+            }
+
+            /* Handshake has been processed, so toggle the flag. */
+            OLD_HAND_SHAKE_ID = HAND_SHAKE_ID;
+        }
+        else if (HAND_SHAKE_ID == 1)
+        {
+            if (true == m_mqttClient.publish("TL_0/handShake", false,
+                                             "{"
+                                             "HS_ID"
+                                             ": 1}"))
+            {
+                LOG_DEBUG("Handshake 1 sent through MQTT.");
+            }
+            else
+            {
+                LOG_DEBUG("Handshake 1 failed to sen through MQTT.");
+            }
+
+            /* Handshake has been processed, so toggle the flag. */
+            OLD_HAND_SHAKE_ID = HAND_SHAKE_ID;
+        }
+        else if (HAND_SHAKE_ID == 2)
+        {
+            if (true == m_mqttClient.publish("TL_0/handShake", false,
+                                             "{"
+                                             "HS_ID"
+                                             ": 2}"))
+            {
+                LOG_DEBUG("Handshake 2 sent through MQTT.");
+            }
+            else
+            {
+                LOG_DEBUG("Handshake 2 failed to sen through MQTT.");
+            }
+
+            /* Handshake has been processed, so toggle the flag. */
+            OLD_HAND_SHAKE_ID = HAND_SHAKE_ID;
+        }
     }
 
     /* Process MQTT Communication */
@@ -397,4 +466,26 @@ void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payload
 {
     UTIL_NOT_USED(payload);
     UTIL_NOT_USED(payloadSize);
+}
+
+/**
+ * Receives Handshake IDs from the robot over SerialMuxProt channel.
+ *
+ * @param[in] payload       Handshake ID
+ * @param[in] payloadSize   Size of handshake ID
+ */
+void App_handShakeChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+{
+    if (HANDSHAKE_CHANNEL_DLC == payloadSize)
+    {
+        const Handshake* hsId = reinterpret_cast<const Handshake*>(payload);
+        LOG_DEBUG("HAND_SHAKE: 0x%02X", hsId->handShakeId);
+
+        HAND_SHAKE_ID = *payload;
+    }
+    else
+    {
+        LOG_WARNING("HAND_SHAKE: Invalid payload size. Expected: %u Received: %u", HANDSHAKE_CHANNEL_DLC,
+                    payloadSize);
+    }
 }

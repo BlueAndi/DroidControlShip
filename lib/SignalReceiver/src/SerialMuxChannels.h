@@ -75,6 +75,12 @@
 /** DLC of Traffic Light Channel */
 #define TRAFFIC_LIGHT_COLORS_CHANNEL_DLC (sizeof(Color))
 
+/** Name of Channel to receive Handshake IDs. */
+#define HANDSHAKE_CHANNEL_NAME "HAND_SHAKE"
+
+/** DLC of Handshake ID Channel. */
+#define HANDSHAKE_CHANNEL_DLC (sizeof(Handshake))
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
@@ -109,6 +115,12 @@ typedef struct _Color
 {
     uint8_t colorId; /**< Command ID */
 } __attribute__((packed)) Color;
+
+/** Struct of the "Handshake" channel payload. */
+typedef struct _Handshake
+{
+    uint8_t handShakeId; /**< Handshake ID */
+} __attribute__((packed)) Handshake;
 /******************************************************************************
  * Functions
  *****************************************************************************/
