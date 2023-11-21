@@ -1,0 +1,28 @@
+{
+    "name": "SignalReceiver",
+    "version": "0.1.0",
+    "description": "SignalReceiver application",
+    "authors": [
+        {
+            "name": "Gabryel Reyes",
+            "email": "gabryelrdiaz@gmail.com",
+            "url": "https://github.com/gabryelreyes",
+            "maintainer": true
+        }
+    ],
+    "license": "MIT",
+    "dependencies": [
+        {
+            "owner": "gabryelreyes",
+            "name": "SerialMuxProt",
+            "version": "1.0.0"
+        },
+        {
+            "owner": "bblanchon",
+            "name": "ArduinoJson",
+            "version": "^6.21.3"
+        }
+    ],
+    "frameworks": "*",
+    "platforms": "*"
+}
