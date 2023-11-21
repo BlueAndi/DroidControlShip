@@ -68,6 +68,7 @@ public:
         m_smpServer(Board::getInstance().getDevice().getStream()),
         m_serialMuxProtChannelIdRemoteCtrl(0U),
         m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_serialMuxProtChannelIdTrafficLightColors(0U),
         m_mqttClient()
     {
     }
