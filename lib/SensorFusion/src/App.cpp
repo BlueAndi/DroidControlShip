@@ -59,7 +59,8 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_endlineChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -77,6 +78,9 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
 
+/** MQTT topic name for sending the Position calculated by Sensor Fusion. */
+const char* App::TOPIC_NAME_POSITION = "position";
+
 /** Default size of the JSON Document for parsing. */
 static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
@@ -89,8 +93,8 @@ static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
 void App::setup()
 {
-    Settings& settings     = Settings::getInstance();
-    Board&    board        = Board::getInstance();
+    Settings& settings = Settings::getInstance();
+    Board&    board    = Board::getInstance();
 
     SensorFusion::getInstance().init();
 
@@ -150,6 +154,7 @@ void App::setup()
 
             /* Setup SerialMuxProt Channels */
             m_smpServer.subscribeToChannel(SENSORDATA_CHANNEL_NAME, App_sensorChannelCallback);
+            m_smpServer.subscribeToChannel(ENDLINE_CHANNEL_NAME, App_endlineChannelCallback);
 
             if (false == m_mqttClient.init())
             {
@@ -190,6 +195,9 @@ void App::loop()
 
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
+
+    /* Publish the current Sensor Fusion Data */
+    publishSensorFusionPosition();
 }
 
 /******************************************************************************
@@ -211,6 +219,20 @@ void App::fatalErrorHandler()
     }
 }
 
+void App::publishSensorFusionPosition()
+{
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
+    char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
+    /* Write newest Sensor Fusion Data in JSON String */
+    IKalmanFilter::PositionData currentPosition = SensorFusion::getInstance().getLatestPosition();
+    payloadJson["X"]                            = currentPosition.currentXPos;
+    payloadJson["X"]                            = currentPosition.currentYPos;
+    payloadJson["angle"]                        = currentPosition.currentHeading;
+    (void)serializeJson(payloadJson, payloadArray);
+    String payloadStr(payloadArray);
+    // m_mqttClient.publish(TOPIC_NAME_POSITION, false, payloadStr);
+}
+
 /******************************************************************************
  * External Functions
  *****************************************************************************/
@@ -224,7 +246,7 @@ void App::fatalErrorHandler()
  * @param[in]   payload         Sensor data
  * @param[in]   payloadSize     Size of 8 sensor data
  */
-void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
     if ((nullptr != payload) && (SENSORDATA_CHANNEL_DLC == payloadSize))
     {
@@ -238,5 +260,26 @@ void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize
     {
         LOG_WARNING("SENSOR_DATA:: Invalid payload size. Expected: %u Received: %u", SENSORDATA_CHANNEL_DLC,
                     payloadSize);
+    }
+}
+
+/**
+ * Receives an End Line detection Flag over SerialMuxProt channel.
+ * @param[in]   payload         End Line detection flag
+ * @param[in]   payloadSize     Size of the data
+ */
+void App_endlineChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+{
+    if ((nullptr != payload) && (ENDLINE_CHANNEL_DLC == payloadSize) && (nullptr != userData))
+    {
+        App* application = reinterpret_cast<App*>(userData);
+        application->publishSensorFusionPosition();
+
+        LOG_DEBUG("END_LINE: New End Line Data!");
+        bool endLineHasBeenDetected = true;
+    }
+    else
+    {
+        LOG_WARNING("END_LINE: Invalid payload size. Expected: %u Received: %u", ENDLINE_CHANNEL_DLC, payloadSize);
     }
 }

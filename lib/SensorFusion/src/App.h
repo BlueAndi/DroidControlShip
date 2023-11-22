@@ -65,7 +65,7 @@ public:
     /**
      * Construct the Sensor Fusion application.
      */
-    App() : m_smpServer(Board::getInstance().getDevice().getStream())
+    App() : m_smpServer(Board::getInstance().getDevice().getStream(), this), m_mqttClient()
     {
     }
 
@@ -86,12 +86,23 @@ public:
      */
     void loop();
 
+    /**
+     * Publish Position calculated by Sensor Fusion via MQTT.
+     * It will only be published if a new End Line has been detected.
+     */
+    void publishSensorFusionPosition();
+
 private:
+    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
+
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
 
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
+
+    /** MQTT topic name for sending Position Data. */
+    static const char* TOPIC_NAME_POSITION;
 
     /**
      * MQTTClient Instance

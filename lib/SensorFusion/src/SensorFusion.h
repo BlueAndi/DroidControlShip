@@ -88,6 +88,16 @@ public:
      */
     void estimateNewState(SensorData newSensorData);
 
+    /**
+     * Get the Latest calculated State
+     *
+     * @return Latest Position as a PositionData Struct.
+     */
+    IKalmanFilter::PositionData getLatestPosition()
+    {
+        return m_currentPosition;
+    }
+
 private:
     LinearKalmanFilter m_linearKalmanFilter; /**< An Instance of the Kalman Filter algorithm class. */
 
