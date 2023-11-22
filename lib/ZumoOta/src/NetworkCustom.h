@@ -85,12 +85,12 @@ private:
     /**
      *  A boolean variable indicating the current connection status (true if connected, false if not).
      */
-    bool connected;
+    bool m_connected;
 
     /**
      *  An integer variable tracking the number of attempts made to establish a connection.
      */
-    int connectAttempts;
+    int m_connectAttempts;
 
 };
 
