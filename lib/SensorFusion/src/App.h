@@ -65,7 +65,7 @@ public:
     /**
      * Construct the Sensor Fusion application.
      */
-    App() : m_smpServer(Board::getInstance().getDevice().getStream(), this), m_mqttClient()
+    App() : m_sensorFusion(), m_smpServer(Board::getInstance().getDevice().getStream(), this), m_mqttClient()
     {
     }
 
@@ -92,7 +92,16 @@ public:
      */
     void publishSensorFusionPosition();
 
+    /**
+     * Process the Receiving of New Sensor Data via SerialMuxProt
+     * 
+     * @param[in] newSensorData New Sensor Data.
+     */
+    void processNewSensorData(const SensorData newData);
+
 private:
+    SensorFusion m_sensorFusion; /**< Instance of the SensorFusion algorithm. */
+
     static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
 
     /** MQTT topic name for birth messages. */

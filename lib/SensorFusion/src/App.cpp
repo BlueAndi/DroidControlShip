@@ -96,7 +96,7 @@ void App::setup()
     Settings& settings = Settings::getInstance();
     Board&    board    = Board::getInstance();
 
-    SensorFusion::getInstance().init();
+    m_sensorFusion.init();
 
     Serial.begin(SERIAL_BAUDRATE);
 
@@ -195,9 +195,6 @@ void App::loop()
 
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
-
-    /* Publish the current Sensor Fusion Data */
-    publishSensorFusionPosition();
 }
 
 /******************************************************************************
@@ -223,14 +220,20 @@ void App::publishSensorFusionPosition()
 {
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
     char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
+
     /* Write newest Sensor Fusion Data in JSON String */
-    IKalmanFilter::PositionData currentPosition = SensorFusion::getInstance().getLatestPosition();
-    payloadJson["X"]                            = currentPosition.currentXPos;
-    payloadJson["X"]                            = currentPosition.currentYPos;
-    payloadJson["angle"]                        = currentPosition.currentHeading;
+    IKalmanFilter::PositionData currentPosition = m_sensorFusion.getLatestPosition();
+    payloadJson["positionX"]                    = currentPosition.currentXPos;
+    payloadJson["positionY"]                    = currentPosition.currentYPos;
+    payloadJson["heading"]                      = currentPosition.currentHeading;
     (void)serializeJson(payloadJson, payloadArray);
     String payloadStr(payloadArray);
-    // m_mqttClient.publish(TOPIC_NAME_POSITION, false, payloadStr);
+    m_mqttClient.publish(TOPIC_NAME_POSITION, false, payloadStr);
+}
+
+void App::processNewSensorData(const SensorData newData)
+{
+    m_sensorFusion.estimateNewState(newData);
 }
 
 /******************************************************************************
@@ -248,13 +251,12 @@ void App::publishSensorFusionPosition()
  */
 void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
-    if ((nullptr != payload) && (SENSORDATA_CHANNEL_DLC == payloadSize))
+    if ((nullptr != payload) && (SENSORDATA_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
+        App* application = reinterpret_cast<App*>(userData);
 
-        LOG_DEBUG("SENSOR_DATA: New Sensor Data!");
         const SensorData* newSensorData = reinterpret_cast<const SensorData*>(payload);
-
-        SensorFusion::getInstance().estimateNewState(*newSensorData);
+        application->processNewSensorData(*newSensorData);
     }
     else
     {

@@ -60,13 +60,10 @@ class SensorFusion
 {
 public:
     /**
-     * Constructs the SensorFusion
+     * Constructs the SensorFusion Algorithm.
      */
-    static SensorFusion& getInstance()
+    SensorFusion() : m_linearKalmanFilter(), m_currentPosition{0, 0, 0}
     {
-        static SensorFusion instance; /* idiom */
-
-        return instance;
     }
 
     /**
@@ -125,13 +122,6 @@ private:
      */
     void estimateAngle(int16_t& estimatedAngle, const int32_t& encoderAngle, const int16_t& magnetometerValueX,
                        const int16_t& magnetometerValueY);
-
-    /**
-     * Constructs the SensorFusion Algorithm.
-     */
-    SensorFusion() : m_linearKalmanFilter(), m_currentPosition{0, 0, 0}
-    {
-    }
 };
 
 /******************************************************************************
