@@ -57,14 +57,15 @@
  * Public Methods
  *****************************************************************************/
 
-MySettings::MySettings()
+MySettings::MySettings() :
+    m_wifiSSID("your_ssid"),
+    m_wifiPassword("your_password"),
+    m_authUsername("defaultusername"),
+    m_authPassword("defaultpassword"),
+    m_apSSID("your_apssid"),
+    m_apPassword("your_appassword")
 {
-    wifiSSID     = "your_ssid";
-    wifiPassword = "your_password";
-    authUsername = "defaultusername";
-    authPassword = "defaultpassword";
-    apSSID       = "your_apssid";
-    apPassword   = "your_appassword";
+    
 }
     
 MySettings::~MySettings()
@@ -73,44 +74,44 @@ MySettings::~MySettings()
 
 const char* MySettings::getWiFiSSID()
 {
-    return wifiSSID;
+    return m_wifiSSID;
 }
 
 const char* MySettings::getWiFiPassword()
 {
-    return wifiPassword;
+    return m_wifiPassword;
 }
 
 const char* MySettings::getapSSID()
 {
-    return apSSID;
+    return m_apSSID;
 }
 
 const char* MySettings::getapPassword()
 {
-    return apPassword;
+    return m_apPassword;
 }
 
 void MySettings::setWiFiCredentials(const char* ssid, const char* password)
 {
-    wifiSSID = ssid;
-    wifiPassword = password;
+    m_wifiSSID = ssid;
+    m_wifiPassword = password;
 }
 
 const char* MySettings::getAuthUsername()
 {
-    return authUsername;
+    return m_authUsername;
 }
 
 const char* MySettings::getAuthPassword()
 {
-    return authPassword;
+    return m_authPassword;
 }
 
 void MySettings::setAuthCredentials(const char* username, const char* password)
 {
-    authUsername = username;
-    authPassword = password;
+    m_authUsername = username;
+    m_authPassword = password;
 }
 
 
