@@ -37,7 +37,7 @@
 #include <Board.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
-#include <Settings.h>
+#include <SettingsHandler.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
 
@@ -98,9 +98,9 @@ static HeadingFinder gHeadingFinder;
 
 void App::setup()
 {
-    bool      isSuccessful = false;
-    Settings& settings     = Settings::getInstance();
-    Board&    board        = Board::getInstance();
+    bool             isSuccessful = false;
+    SettingsHandler& settings     = SettingsHandler::getInstance();
+    Board&           board        = Board::getInstance();
 
     Serial.begin(SERIAL_BAUDRATE);
 
