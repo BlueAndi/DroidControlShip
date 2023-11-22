@@ -25,16 +25,24 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Settings Service for loading configuration.
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Settings Handler for loading and managing configuration.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup Service
+ *
+ * @{
  */
+#ifndef SETTINGS_HANDLER_H
+#define SETTINGS_HANDLER_H
 
-#ifndef SETTINGS_H_
-#define SETTINGS_H_
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
+
 #include <WString.h>
 #include <stdint.h>
 #include <FileReader.h>
@@ -47,23 +55,19 @@
  * Types and Classes
  *****************************************************************************/
 
-/******************************************************************************
- * Functions
- *****************************************************************************/
-
 /**
- * Settings Service.
+ * Settings Handler for loading and managing configuration.
  */
-class Settings
+class SettingsHandler
 {
 public:
     /**
-     * Get Settings instance.
-     * @returns Settings instance.
+     * Get the settings handler instance.
+     * @returns Settings handler instance.
      */
-    static Settings& getInstance()
+    static SettingsHandler& getInstance()
     {
-        static Settings instance; /* Idiom. */
+        static SettingsHandler instance; /* Idiom. */
         return instance;
     }
 
@@ -88,7 +92,7 @@ public:
 
     /**
      * Set the robot name.
-     * 
+     *
      * @param[in] robotName The robot name.
      */
     void setRobotName(const String& robotName)
@@ -137,7 +141,6 @@ public:
     }
 
 private:
-
     /**
      * Instance Name.
      */
@@ -163,21 +166,30 @@ private:
      */
     uint16_t m_mqttPort;
 
-    /* FileReader instance. */
+    /**
+     * FileReader instance.
+     */
     FileReader m_fileReader;
 
     /**
-     * Settings Constructor.
+     * Settings Handler Default Constructor.
      */
-    Settings();
+    SettingsHandler();
 
     /**
-     * Settings Default Destructor.
+     * Settings Handler Default Destructor.
      */
-    ~Settings();
+    ~SettingsHandler();
 
-    Settings(const Settings& settings);
-    Settings& operator=(const Settings& settings);
+private:
+    /* Not allowed. */
+    SettingsHandler(const SettingsHandler& handler);            /**< Copy construction of an instance. */
+    SettingsHandler& operator=(const SettingsHandler& handler); /**< Assignment of an instance. */
 };
 
-#endif /* SETTINGS_H_ */
+/******************************************************************************
+ * Functions
+ *****************************************************************************/
+
+#endif /* SETTINGS_HANDLER_H */
+/** @} */
