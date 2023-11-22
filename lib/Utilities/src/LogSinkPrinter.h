@@ -150,13 +150,14 @@ private:
     String m_name;   /**< Name of the sink */
     Print* m_output; /**< Log sink output */
 
-    LogSinkPrinter(const LogSinkPrinter& sink);
-    LogSinkPrinter& operator=(const LogSinkPrinter& sink);
+    /* Not allowed. */
+    LogSinkPrinter(const LogSinkPrinter& sink);            /**< Copy construction of an instance. */
+    LogSinkPrinter& operator=(const LogSinkPrinter& sink); /**< Assignment of an instance. */
 
     /**
      * Get a string representation of the given logLevel.
      *
-     * @param[in] logLevel The logLevel.
+     * @param[in] LogLevel The logLevel.
      *
      * @return The severity of the given logLevel as string.
      */
