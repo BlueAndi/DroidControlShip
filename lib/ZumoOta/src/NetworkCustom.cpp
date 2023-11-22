@@ -62,8 +62,8 @@ MySettings settings;
  *****************************************************************************/
 NetworkCustom::NetworkCustom()
 {
-    connected = false;
-    connectAttempts = 0;
+    m_connected = false;
+    m_connectAttempts = 0;
 }
 
 NetworkCustom::~NetworkCustom()
@@ -79,12 +79,12 @@ void NetworkCustom::connectToWiFi()
 
     if (WiFi.status() == WL_CONNECTED)
     {
-        connected = true;
+        m_connected = true;
         LOG_DEBUG("Connected to WiFi. IP Address: %s", WiFi.localIP().toString().c_str());
     }
     else
     {
-        connected = false;
+        m_connected = false;
         checkConnection();
     }
 }
@@ -94,21 +94,21 @@ void NetworkCustom::switchToAPMode()
     WiFi.mode(WIFI_AP);
     WiFi.softAP(settings.getapSSID(), settings.getapPassword());
     LOG_DEBUG("IP Address: %s", WiFi.softAPIP().toString().c_str());
-    connected = true;
+    m_connected = true;
     
 }
 
 void NetworkCustom::checkConnection()
 {
-    while(!connected)
+    while(!m_connected)
     {
         LOG_ERROR("Connection failed. Retry a connection...");
-        connectAttempts++;
+        m_connectAttempts++;
         
-        if (connectAttempts >= 3)
+        if (m_connectAttempts >= 3)
         {
             switchToAPMode();
-            connectAttempts = 0;
+            m_connectAttempts = 0;
         }
         delay(30000);
     }

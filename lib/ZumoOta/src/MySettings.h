@@ -26,32 +26,32 @@ private:
         /**
         * Network SSID. 
         */
-        const char* wifiSSID;
+        const char* m_wifiSSID;
 
         /**
         * Network Password. 
         */
-        const char* wifiPassword;
+        const char* m_wifiPassword;
 
         /**
-        * AP SSID. 
+        * Access Point SSID. 
         */
-        const char* apSSID;
+        const char* m_apSSID;
 
         /**
-        * AP Password. 
+        * Access Point Password. 
         */
-        const char* apPassword;
+        const char* m_apPassword;
 
         /**
         * Basic Authentication username.
         */
-        const char* authUsername;
+        const char* m_authUsername;
 
         /**
         * Basic Authentication password.
         */
-        const char* authPassword;
+        const char* m_authPassword;
        
 public:
     /**
