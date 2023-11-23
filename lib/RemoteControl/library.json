@@ -12,11 +12,14 @@
     "dependencies": [{
         "owner": "gabryelreyes",
         "name": "SerialMuxProt",
-        "version": "1.0.0"
+        "version": "^2.0.0"
     },{
         "owner": "bblanchon",
         "name": "ArduinoJson",
         "version": "^6.21.3"
+    },
+    {
+        "name": "Utilities"
     }],
     "frameworks": "*",
     "platforms": "*"
