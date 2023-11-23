@@ -9,11 +9,10 @@
         "maintainer": true
     }],
     "license": "MIT",
-    "dependencies": [
-        {
+    "dependencies": [{
         "owner": "gabryelreyes",
         "name": "SerialMuxProt",
-        "version": "^2.0.0"
+        "version": "1.0.0"
     },{
         "owner": "bblanchon",
         "name": "ArduinoJson",
