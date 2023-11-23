@@ -99,7 +99,7 @@ public:
         PositionData currentPosition;
         currentPosition.currentXPos    = kalmanParameter.positionOdometryX;
         currentPosition.currentYPos    = kalmanParameter.positionOdometryY;
-        currentPosition.currentHeading = kalmanParameter.angleOdometry;
+        currentPosition.currentAngle = kalmanParameter.angleOdometry;
         return currentPosition;
         /* TODO: Implement Kalman Filter in cpp (TD072) */
     }
