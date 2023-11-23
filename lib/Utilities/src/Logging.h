@@ -41,26 +41,32 @@
  *****************************************************************************/
 
 #ifndef LOG_FATAL_ENABLE
+/** Enable/disable fatal log messages. */
 #define LOG_FATAL_ENABLE (1)
 #endif /* LOG_FATAL_ENABLE */
 
 #ifndef LOG_ERROR_ENABLE
+/** Enable/disable error log messages. */
 #define LOG_ERROR_ENABLE (1)
 #endif /* LOG_ERROR_ENABLE */
 
 #ifndef LOG_WARNING_ENABLE
+/** Enable/disable warning log messages. */
 #define LOG_WARNING_ENABLE (1)
 #endif /* LOG_WARNING_ENABLE */
 
 #ifndef LOG_INFO_ENABLE
+/** Enable/disable info log messages. */
 #define LOG_INFO_ENABLE (1)
 #endif /* LOG_INFO_ENABLE */
 
 #ifndef LOG_DEBUG_ENABLE
+/** Enable/disable debug log messages. */
 #define LOG_DEBUG_ENABLE (0)
 #endif /* LOG_DEBUG_ENABLE */
 
 #ifndef LOG_TRACE_ENABLE
+/** Enable/disable trace log messages. */
 #define LOG_TRACE_ENABLE (0)
 #endif /* LOG_TRACE_ENABLE */
 
@@ -77,6 +83,7 @@
 
 #if (0 == LOG_FATAL_ENABLE)
 
+/** Log fatal error message. */
 #define LOG_FATAL(...)
 
 #else /* (0 == LOG_FATAL_ENABLE) */
@@ -92,6 +99,7 @@
 
 #if (0 == LOG_ERROR_ENABLE)
 
+/** Log error message. */
 #define LOG_ERROR(...)
 
 #else /* (0 == LOG_ERROR_ENABLE) */
@@ -107,6 +115,7 @@
 
 #if (0 == LOG_WARNING_ENABLE)
 
+/** Log warning message. */
 #define LOG_WARNING(...)
 
 #else /* (0 == LOG_WARNING_ENABLE) */
@@ -122,6 +131,7 @@
 
 #if (0 == LOG_INFO_ENABLE)
 
+/** Log info error message. */
 #define LOG_INFO(...)
 
 #else /* (0 == LOG_INFO_ENABLE) */
@@ -137,6 +147,7 @@
 
 #if (0 == LOG_DEBUG_ENABLE)
 
+/** Log debug message. */
 #define LOG_DEBUG(...)
 
 #else /* (0 == LOG_DEBUG_ENABLE) */
@@ -152,6 +163,7 @@
 
 #if (0 == LOG_TRACE_ENABLE)
 
+/** Log trace message. */
 #define LOG_TRACE(...)
 
 #else /* (0 == LOG_TRACE_ENABLE) */
@@ -364,9 +376,9 @@ private:
     {
     }
 
-    /* Prevent copying */
-    Logging(const Logging&);
-    Logging& operator=(const Logging&);
+    /* Not allowed. */
+    Logging(const Logging&);            /**< Copy construction of an instance. */
+    Logging& operator=(const Logging&); /**< Assignment of an instance. */
 };
 
 /**

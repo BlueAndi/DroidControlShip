@@ -25,19 +25,28 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Settings Service
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Settings Handler for loading and managing configuration.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Settings.h"
+
+#include "SettingsHandler.h"
 #include <ArduinoJson.h>
 #include <Logging.h>
 
 /******************************************************************************
+ * Compiler Switches
+ *****************************************************************************/
+
+/******************************************************************************
  * Macros
+ *****************************************************************************/
+
+/******************************************************************************
+ * Types and classes
  *****************************************************************************/
 
 /******************************************************************************
@@ -52,7 +61,7 @@
  * Public Methods
  *****************************************************************************/
 
-bool Settings::loadConfigurationFile(const String& filename)
+bool SettingsHandler::loadConfigurationFile(const String& filename)
 {
     bool                              isSuccessful  = false;
     const uint32_t                    maxBufferSize = 1024;
@@ -112,10 +121,14 @@ bool Settings::loadConfigurationFile(const String& filename)
 }
 
 /******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
  * Private Methods
  *****************************************************************************/
 
-Settings::Settings() :
+SettingsHandler::SettingsHandler() :
     m_robotName(),
     m_wifiSSID(),
     m_wifiPassword(),
@@ -125,9 +138,13 @@ Settings::Settings() :
 {
 }
 
-Settings::~Settings()
+SettingsHandler::~SettingsHandler()
 {
 }
+
+/******************************************************************************
+ * External Functions
+ *****************************************************************************/
 
 /******************************************************************************
  * Local Functions

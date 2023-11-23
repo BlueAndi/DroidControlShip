@@ -36,7 +36,7 @@
 #include <Logging.h>
 #include <LogSinkPrinter.h>
 #include <Util.h>
-#include <Settings.h>
+#include <SettingsHandler.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
 
@@ -97,9 +97,9 @@ static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
 void App::setup()
 {
-    bool      isSuccessful = false;
-    Settings& settings     = Settings::getInstance();
-    Board&    board        = Board::getInstance();
+    bool             isSuccessful = false;
+    SettingsHandler& settings     = SettingsHandler::getInstance();
+    Board&           board        = Board::getInstance();
 
     Serial.begin(SERIAL_BAUDRATE);
 
