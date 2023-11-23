@@ -65,7 +65,7 @@ public:
      * Construct the convoy leader application.
      */
     App() :
-        m_smpServer(Board::getInstance().getDevice().getStream()),
+        m_smpServer(Board::getInstance().getDevice().getStream(), nullptr),
         m_serialMuxProtChannelIdMotorSpeedSetpoints(0U),
         m_mqttClient()
     {
