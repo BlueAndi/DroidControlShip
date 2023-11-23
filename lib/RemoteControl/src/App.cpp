@@ -328,7 +328,7 @@ void App::motorSpeedsTopicCallback(const String& payload)
  *
  * @param[in] payload       Command id
  * @param[in] payloadSize   Size of command id
- * @param[in] userData      User data (not used)
+ * @param[in] userData      User data
  */
 void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
@@ -349,7 +349,7 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
  * Receives line sensor data over SerialMuxProt channel.
  * @param[in]   payload         Line sensor data
  * @param[in]   payloadSize     Size of 5 line sensor data
- * @param[in]   userData        User data (not used)
+ * @param[in]   userData        User data
  */
 void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
