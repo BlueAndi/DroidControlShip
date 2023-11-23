@@ -60,8 +60,8 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
-static void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -328,10 +328,12 @@ void App::motorSpeedsTopicCallback(const String& payload)
  *
  * @param[in] payload       Command id
  * @param[in] payloadSize   Size of command id
+ * @param[in] userData      User data
  */
-void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
-    if (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize)
+    UTIL_NOT_USED(userData);
+    if ((nullptr != payload) && (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize))
     {
         const CommandResponse* cmdRsp = reinterpret_cast<const CommandResponse*>(payload);
         LOG_DEBUG("CMD_RSP: 0x%02X", cmdRsp->response);
@@ -347,9 +349,11 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
  * Receives line sensor data over SerialMuxProt channel.
  * @param[in]   payload         Line sensor data
  * @param[in]   payloadSize     Size of 5 line sensor data
+ * @param[in]   userData        User data
  */
-void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
     UTIL_NOT_USED(payload);
     UTIL_NOT_USED(payloadSize);
+    UTIL_NOT_USED(userData);
 }

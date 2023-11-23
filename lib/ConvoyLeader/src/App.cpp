@@ -40,6 +40,7 @@
 #include <SettingsHandler.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -61,8 +62,8 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
-static void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -337,9 +338,11 @@ void App::sendSpeedSetpoints()
  *
  * @param[in] payload       Odometry data. Two coordinates and one orientation.
  * @param[in] payloadSize   Size of two coordinates and one orientation.
+ * @param[in] userData      User data
  */
-void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
+    UTIL_NOT_USED(userData);
     if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize))
     {
         const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
@@ -358,9 +361,12 @@ void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSi
  *
  * @param[in] payload       Motor speeds.
  * @param[in] payloadSize   Size of two motor speeds.
+ * @param[in] userData      User data
  */
-void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
+    UTIL_NOT_USED(userData);
+
     if ((nullptr != payload) && (SPEED_CHANNEL_DLC == payloadSize))
     {
         const SpeedData* motorSpeedData = reinterpret_cast<const SpeedData*>(payload);
