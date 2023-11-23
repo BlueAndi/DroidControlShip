@@ -246,8 +246,9 @@ void App::processNewSensorData(const SensorData newData)
 
 /**
  * Receives sensor data for sensor fusion over SerialMuxProt channel in the order defined in SerialMuxChannels.
- * @param[in]   payload         Sensor data
- * @param[in]   payloadSize     Size of 8 sensor data
+ * @param[in] payload         Sensor data
+ * @param[in] payloadSize     Size of 8 sensor data
+ * @param[in] userData      User data provided by the application.
  */
 void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
@@ -267,8 +268,9 @@ void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize
 
 /**
  * Receives an End Line detection Flag over SerialMuxProt channel.
- * @param[in]   payload         End Line detection flag
- * @param[in]   payloadSize     Size of the data
+ * @param[in] payload         End Line detection flag
+ * @param[in] payloadSize     Size of the data
+ * @param[in] userData      User data provided by the application.
  */
 void App_endlineChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {

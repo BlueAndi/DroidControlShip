@@ -95,7 +95,7 @@ public:
     /**
      * Process the Receiving of New Sensor Data via SerialMuxProt
      * 
-     * @param[in] newSensorData New Sensor Data.
+     * @param[in] newData New Sensor Data.
      */
     void processNewSensorData(const SensorData newData);
 
