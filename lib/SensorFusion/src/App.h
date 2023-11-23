@@ -102,8 +102,6 @@ public:
 private:
     SensorFusion m_sensorFusion; /**< Instance of the SensorFusion algorithm. */
 
-    static const uint8_t MIN_BATTERY_LEVEL = 10U; /**< Minimum battery level in percent. */
-
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
 
