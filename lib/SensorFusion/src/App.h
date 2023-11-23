@@ -97,7 +97,7 @@ public:
      * 
      * @param[in] newData New Sensor Data.
      */
-    void processNewSensorData(const SensorData newData);
+    void processNewSensorData(const SensorData& newData);
 
 private:
     SensorFusion m_sensorFusion; /**< Instance of the SensorFusion algorithm. */

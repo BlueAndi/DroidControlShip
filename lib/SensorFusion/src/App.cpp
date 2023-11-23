@@ -228,10 +228,14 @@ void App::publishSensorFusionPosition()
     payloadJson["angle"]                        = currentPosition.currentAngle;
     (void)serializeJson(payloadJson, payloadArray);
     String payloadStr(payloadArray);
-    m_mqttClient.publish(TOPIC_NAME_POSITION, false, payloadStr);
+    bool   wasPublishingSucessful = m_mqttClient.publish(TOPIC_NAME_POSITION, false, payloadStr);
+    if (false == wasPublishingSucessful)
+    {
+        LOG_WARNING("Publishing Position via MQTT went wrong.");
+    }
 }
 
-void App::processNewSensorData(const SensorData newData)
+void App::processNewSensorData(const SensorData& newData)
 {
     m_sensorFusion.estimateNewState(newData);
 }
@@ -246,9 +250,9 @@ void App::processNewSensorData(const SensorData newData)
 
 /**
  * Receives sensor data for sensor fusion over SerialMuxProt channel in the order defined in SerialMuxChannels.
- * @param[in] payload         Sensor data
- * @param[in] payloadSize     Size of 8 sensor data
- * @param[in] userData      User data provided by the application.
+ * @param[in] payload      Sensor data
+ * @param[in] payloadSize  Size of 8 sensor data
+ * @param[in] userData     Pointer to the SensorFusion App.
  */
 void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
@@ -268,9 +272,9 @@ void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize
 
 /**
  * Receives an End Line detection Flag over SerialMuxProt channel.
- * @param[in] payload         End Line detection flag
- * @param[in] payloadSize     Size of the data
- * @param[in] userData      User data provided by the application.
+ * @param[in] payload      Sensor data
+ * @param[in] payloadSize  Size of 8 sensor data
+ * @param[in] userData     Pointer to the SensorFusion App.
  */
 void App_endlineChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
@@ -280,7 +284,6 @@ void App_endlineChannelCallback(const uint8_t* payload, const uint8_t payloadSiz
         application->publishSensorFusionPosition();
 
         LOG_DEBUG("END_LINE: New End Line Data!");
-        bool endLineHasBeenDetected = true;
     }
     else
     {
