@@ -101,7 +101,7 @@ public:
         PositionData currentPosition;
         currentPosition.currentXPos    = 0;
         currentPosition.currentYPos    = 0;
-        currentPosition.currentHeading = 0;
+        currentPosition.currentAngle = 0;
         return currentPosition;
         /* TODO: Implement Kalman Filter in cpp (TD072) */
     }

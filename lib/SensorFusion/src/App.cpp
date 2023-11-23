@@ -59,7 +59,8 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_endlineChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -77,6 +78,9 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
 
+/** MQTT topic name for sending the Position calculated by Sensor Fusion. */
+const char* App::TOPIC_NAME_POSITION = "position";
+
 /** Default size of the JSON Document for parsing. */
 static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
@@ -92,7 +96,7 @@ void App::setup()
     SettingsHandler& settings = SettingsHandler::getInstance();
     Board&           board    = Board::getInstance();
 
-    SensorFusion::getInstance().init();
+    m_sensorFusion.init();
 
     Serial.begin(SERIAL_BAUDRATE);
 
@@ -150,6 +154,7 @@ void App::setup()
 
             /* Setup SerialMuxProt Channels */
             m_smpServer.subscribeToChannel(SENSORDATA_CHANNEL_NAME, App_sensorChannelCallback);
+            m_smpServer.subscribeToChannel(ENDLINE_CHANNEL_NAME, App_endlineChannelCallback);
 
             if (false == m_mqttClient.init())
             {
@@ -211,6 +216,30 @@ void App::fatalErrorHandler()
     }
 }
 
+void App::publishSensorFusionPosition()
+{
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
+    char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
+
+    /* Write newest Sensor Fusion Data in JSON String */
+    IKalmanFilter::PositionData currentPosition = m_sensorFusion.getLatestPosition();
+    payloadJson["positionX"]                    = currentPosition.currentXPos;
+    payloadJson["positionY"]                    = currentPosition.currentYPos;
+    payloadJson["angle"]                        = currentPosition.currentAngle;
+    (void)serializeJson(payloadJson, payloadArray);
+    String payloadStr(payloadArray);
+    bool   wasPublishingSucessful = m_mqttClient.publish(TOPIC_NAME_POSITION, false, payloadStr);
+    if (false == wasPublishingSucessful)
+    {
+        LOG_WARNING("Publishing Position via MQTT went wrong.");
+    }
+}
+
+void App::processNewSensorData(const SensorData& newData)
+{
+    m_sensorFusion.estimateNewState(newData);
+}
+
 /******************************************************************************
  * External Functions
  *****************************************************************************/
@@ -221,22 +250,43 @@ void App::fatalErrorHandler()
 
 /**
  * Receives sensor data for sensor fusion over SerialMuxProt channel in the order defined in SerialMuxChannels.
- * @param[in]   payload         Sensor data
- * @param[in]   payloadSize     Size of 8 sensor data
+ * @param[in] payload      Sensor data
+ * @param[in] payloadSize  Size of 8 sensor data
+ * @param[in] userData     Pointer to the SensorFusion App.
  */
-void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
-    if ((nullptr != payload) && (SENSORDATA_CHANNEL_DLC == payloadSize))
+    if ((nullptr != payload) && (SENSORDATA_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
+        App* application = reinterpret_cast<App*>(userData);
 
-        LOG_DEBUG("SENSOR_DATA: New Sensor Data!");
         const SensorData* newSensorData = reinterpret_cast<const SensorData*>(payload);
-
-        SensorFusion::getInstance().estimateNewState(*newSensorData);
+        application->processNewSensorData(*newSensorData);
     }
     else
     {
         LOG_WARNING("SENSOR_DATA:: Invalid payload size. Expected: %u Received: %u", SENSORDATA_CHANNEL_DLC,
                     payloadSize);
+    }
+}
+
+/**
+ * Receives an End Line detection Flag over SerialMuxProt channel.
+ * @param[in] payload      Sensor data
+ * @param[in] payloadSize  Size of 8 sensor data
+ * @param[in] userData     Pointer to the SensorFusion App.
+ */
+void App_endlineChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+{
+    if ((nullptr != payload) && (ENDLINE_CHANNEL_DLC == payloadSize) && (nullptr != userData))
+    {
+        App* application = reinterpret_cast<App*>(userData);
+        application->publishSensorFusionPosition();
+
+        LOG_DEBUG("END_LINE: New End Line Data!");
+    }
+    else
+    {
+        LOG_WARNING("END_LINE: Invalid payload size. Expected: %u Received: %u", ENDLINE_CHANNEL_DLC, payloadSize);
     }
 }

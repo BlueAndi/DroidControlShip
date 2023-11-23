@@ -60,13 +60,10 @@ class SensorFusion
 {
 public:
     /**
-     * Constructs the SensorFusion
+     * Constructs the SensorFusion Algorithm.
      */
-    static SensorFusion& getInstance()
+    SensorFusion() : m_linearKalmanFilter(), m_currentPosition{0, 0, 0}
     {
-        static SensorFusion instance; /* idiom */
-
-        return instance;
     }
 
     /**
@@ -87,6 +84,16 @@ public:
      * @param[in] newSensorData New Sensor Data.
      */
     void estimateNewState(SensorData newSensorData);
+
+    /**
+     * Get the Latest calculated State
+     *
+     * @return Latest Position as a PositionData Struct.
+     */
+    IKalmanFilter::PositionData getLatestPosition()
+    {
+        return m_currentPosition;
+    }
 
 private:
     LinearKalmanFilter m_linearKalmanFilter; /**< An Instance of the Kalman Filter algorithm class. */
@@ -115,13 +122,6 @@ private:
      */
     void estimateAngle(int16_t& estimatedAngle, const int32_t& encoderAngle, const int16_t& magnetometerValueX,
                        const int16_t& magnetometerValueY);
-
-    /**
-     * Constructs the SensorFusion Algorithm.
-     */
-    SensorFusion() : m_linearKalmanFilter(), m_currentPosition{0, 0, 0}
-    {
-    }
 };
 
 /******************************************************************************

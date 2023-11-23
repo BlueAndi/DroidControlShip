@@ -21,6 +21,7 @@
  * SOFTWARE.
  *
  */
+
 /*******************************************************************************
     DESCRIPTION
 *******************************************************************************/
@@ -50,6 +51,12 @@
 
 /** DLC of Sensordata Channel */
 #define SENSORDATA_CHANNEL_DLC (sizeof(SensorData))
+
+/** Name of Channel to End Line Detected Signal. */
+#define ENDLINE_CHANNEL_NAME "END_LINE"
+
+/** DLC of End Line Channel */
+#define ENDLINE_CHANNEL_DLC (sizeof(EndLineFlag))
 
 /******************************************************************************
  * Types and Classes
@@ -91,12 +98,19 @@ typedef struct _SensorData
      */
     int16_t magnetometerValueY;
 
-    /** Gyroscope value around z axis as a raw sensor value in digits.
+    /** Gyro value around z axis as a raw sensor value in digits.
      * It can be converted into a physical turn rate in mrad/s via the multiplication
      * with a sensitivity factor in mrad/s/digit.
      */
     int16_t turnRate;
 } __attribute__((packed)) SensorData;
+
+/** Struct of the End Line Detection payload. */
+typedef struct _EndLineFlag
+{
+    /** Indicates if the End Line has been detected. */
+    bool isEndLineDetected;
+} __attribute__((packed)) EndLineFlag;
 
 /******************************************************************************
  * Functions
