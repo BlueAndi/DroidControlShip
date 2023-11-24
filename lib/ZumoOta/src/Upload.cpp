@@ -73,15 +73,28 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
 {
     String updatedFilename = filename;
     
-
-    if (!filename.startsWith("/"))
+    if (false == filename.startsWith("/"))
     {
         updatedFilename = "/" + filename;
     }
 
-    if (index==0)
-    {   
-        
+    if (0 == index)
+    {
+        AsyncWebHeader* headerXFileSizeFirmware = request->getHeader("X-File-Size-Firmware");
+
+        /* Firmware file size available? */
+        if (nullptr != headerXFileSizeFirmware)
+        {
+            int fileSize = headerXFileSizeFirmware->value().toInt();
+
+            /* TODO If file size is too large, abort upload. */
+            LOG_DEBUG("File size: %d", fileSize);
+        }
+        else
+        {
+            LOG_DEBUG("No file size given.");
+        }
+
         /*Save file in the request object*/
         request->_tempFile = LittleFS.open(updatedFilename, "w");
         LOG_DEBUG("Upload Start: " + String(updatedFilename));
@@ -91,6 +104,7 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
         LOG_ERROR("Problem to save the request object!");
        
     }
+
     if(len)
     {
         /* Write data to the file*/
@@ -101,7 +115,8 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
     if (final)
     {
         request->_tempFile.close();
-       /* Check if the file exits in FileSystem */
+
+        /* Check if the file exits in FileSystem */
         if (LittleFS.exists(updatedFilename))
         {
             /* Open the file in read mode */
@@ -138,7 +153,6 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
     else
     {
         LOG_ERROR("Please keep trying this is not the last datablock!");
-       
     }
 }
 

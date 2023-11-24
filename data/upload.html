@@ -64,7 +64,7 @@
     <h1>Willkommen zur Upload Seite!</h1>
     <p>Bitte Anweisungen folgen!</p>
     <p> Bitte ein Dokument einreichen und auf Upload drücken!</p>
-    <form class="upload-form" method="post" action="/upload" enctype="multipart/form-data">
+    <form id="uploadForm" class="upload-form" method="post" action="/upload" enctype="multipart/form-data">
         <input type="file" name="firmware" id="fileInput">
         <input id="uploadButton" type="submit" value="Upload">
     </form>
@@ -112,12 +112,20 @@
                 }
             }
         });
+
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            var file = document.getElementById("fileInput").files[0];
+            var fileSizeFirmware = file.size;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+            xhr.setRequestHeader('X-File-Size-Firmware', fileSizeFirmware);
+            
+            var formData = new FormData(document.getElementById('uploadForm'));
+            xhr.send(formData);
+
+            // Prevent the form from submitting the traditional way
+            event.preventDefault();
+        });
     </script>
-   
-
-
-
-    
-    
 </body>
 </html>
