@@ -66,8 +66,7 @@ public:
      */
     App() :
         m_smpServer(Board::getInstance().getDevice().getStream()),
-        m_serialMuxProtChannelIdRemoteCtrl(0U),
-        m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_serialMuxProtChannelIdCoordinates(0U),
         m_serialMuxProtChannelIdTrafficLightColors(0U),
         m_mqttClient()
     {
@@ -91,26 +90,20 @@ public:
     void loop();
 
 private:
+    /** Minimum battery level in percent. */
+    static const uint8_t MIN_BATTERY_LEVEL = 10U;
+
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
 
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
 
-    /** MQTT topic name for receiving commands. */
-    static const char* TOPIC_NAME_CMD;
-
-    /** MQTT topic name for receiving motor speeds. */
-    static const char* TOPIC_NAME_MOTOR_SPEEDS;
-
     /** MQTT topic name for receiving traffic light color IDs. */
     static const char* TOPIC_NAME_TRAFFIC_LIGHT_COLORS;
 
-    /** SerialMuxProt Channel id sending remote control commands. */
-    uint8_t m_serialMuxProtChannelIdRemoteCtrl;
-
-    /** SerialMuxProt Channel id sending sending motor speeds. */
-    uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+    /** SerialMuxProt Channel id receiving coordinates. */
+    uint8_t m_serialMuxProtChannelIdCoordinates;
 
     /** SerialMuxProt Channel id sending current traffic light color ID. */
     uint8_t m_serialMuxProtChannelIdTrafficLightColors;
@@ -132,18 +125,6 @@ private:
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();
-
-    /**
-     * Callback for Command MQTT Topic.
-     * @param[in] payload   Payload of the MQTT message.
-     */
-    void cmdTopicCallback(const String& payload);
-
-    /**
-     * Callback for Motor Speeds MQTT Topic.
-     * @param[in] payload   Payload of the MQTT message.
-     */
-    void motorSpeedsTopicCallback(const String& payload);
 
     /**
      * Callback for Traffic Light Colors MQTT Topic.

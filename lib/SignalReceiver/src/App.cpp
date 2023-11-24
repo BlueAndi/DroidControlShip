@@ -35,7 +35,6 @@
 #include "App.h"
 #include <Logging.h>
 #include <LogSinkPrinter.h>
-#include <Util.h>
 #include <Settings.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
@@ -60,9 +59,7 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
-static void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
-static void App_handShakeChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
 
 /******************************************************************************
  * Local Variables
@@ -80,12 +77,6 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
 
-/* MQTT topic name for receiving commands. */
-const char* App::TOPIC_NAME_CMD = "cmd";
-
-/* MQTT topic name for receiving motor speeds. */
-const char* App::TOPIC_NAME_MOTOR_SPEEDS = "motorSpeeds";
-
 /* MQTT topic name for receiving traffic light color IDs. */
 const char* App::TOPIC_NAME_TRAFFIC_LIGHT_COLORS = "trafficLightColors";
 
@@ -94,12 +85,6 @@ static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
-
-/** Handshake ID to send through MQTT. */
-static uint8_t HAND_SHAKE_ID;
-
-/** Handshake ID shall be sent only on change. */
-static uint8_t OLD_HAND_SHAKE_ID = 0;
 
 /******************************************************************************
  * Public Methods
@@ -134,6 +119,10 @@ void App::setup()
     {
         LOG_FATAL("Settings could not be loaded from %s.", board.getConfigFilePath());
     }
+    else if (MIN_BATTERY_LEVEL > board.getBattery().getChargeLevel())
+    {
+        LOG_FATAL("Battery too low.");
+    }
     else
     {
         /* If the robot name is empty, use the wifi MAC address as robot name. */
@@ -166,14 +155,10 @@ void App::setup()
             birthMessage = birthMsgArray;
 
             /* Setup SerialMuxProt Channels */
-            m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
-            m_serialMuxProtChannelIdMotorSpeeds =
-                m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
             m_serialMuxProtChannelIdTrafficLightColors =
                 m_smpServer.createChannel(TRAFFIC_LIGHT_COLORS_CHANNEL_NAME, TRAFFIC_LIGHT_COLORS_CHANNEL_DLC);
-            m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
-            m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
-            m_smpServer.subscribeToChannel(HANDSHAKE_CHANNEL_NAME, App_handShakeChannelCallback);
+
+            m_smpServer.subscribeToChannel(ODOMETRY_CHANNEL_NAME, App_odometryChannelCallback);
 
             if (false == m_mqttClient.init())
             {
@@ -193,18 +178,6 @@ void App::setup()
                 if (false == m_mqttClient.setConfig(mqttSettings))
                 {
                     LOG_FATAL("MQTT configuration could not be set.");
-                }
-                /* Subscribe to Command Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_CMD,
-                                                         [this](const String& payload) { cmdTopicCallback(payload); }))
-                {
-                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_CMD);
-                }
-                /* Subscribe to Motor Speeds Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, [this](const String& payload)
-                                                         { motorSpeedsTopicCallback(payload); }))
-                {
-                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
                 }
                 /* Subscribe to Traffic Light Colors Topic. */
                 else if (false == m_mqttClient.subscribe(TOPIC_NAME_TRAFFIC_LIGHT_COLORS, [this](const String& payload)
@@ -236,67 +209,6 @@ void App::loop()
         fatalErrorHandler();
     }
 
-    /** Process Hand Shake IDs only on change. */
-    if ((HAND_SHAKE_ID != OLD_HAND_SHAKE_ID))
-    {
-        /** Publish received handshake. */
-        /**
-         * Again WIP because of if/else algorithm.
-         * No idea how to cast an int to JSON.
-         */
-        if (HAND_SHAKE_ID == 0)
-        {
-            if (true == m_mqttClient.publish("TL_0/handShake", false,
-                                             "{"
-                                             "HS_ID"
-                                             ": 0}"))
-            {
-                LOG_DEBUG("Handshake 0 sent through MQTT.");
-            }
-            else
-            {
-                LOG_DEBUG("Handshake 0 failed to sen through MQTT.");
-            }
-
-            /* Handshake has been processed, so toggle the flag. */
-            OLD_HAND_SHAKE_ID = HAND_SHAKE_ID;
-        }
-        else if (HAND_SHAKE_ID == 1)
-        {
-            if (true == m_mqttClient.publish("TL_0/handShake", false,
-                                             "{"
-                                             "HS_ID"
-                                             ": 1}"))
-            {
-                LOG_DEBUG("Handshake 1 sent through MQTT.");
-            }
-            else
-            {
-                LOG_DEBUG("Handshake 1 failed to sen through MQTT.");
-            }
-
-            /* Handshake has been processed, so toggle the flag. */
-            OLD_HAND_SHAKE_ID = HAND_SHAKE_ID;
-        }
-        else if (HAND_SHAKE_ID == 2)
-        {
-            if (true == m_mqttClient.publish("TL_0/handShake", false,
-                                             "{"
-                                             "HS_ID"
-                                             ": 2}"))
-            {
-                LOG_DEBUG("Handshake 2 sent through MQTT.");
-            }
-            else
-            {
-                LOG_DEBUG("Handshake 2 failed to sen through MQTT.");
-            }
-
-            /* Handshake has been processed, so toggle the flag. */
-            OLD_HAND_SHAKE_ID = HAND_SHAKE_ID;
-        }
-    }
-
     /* Process MQTT Communication */
     m_mqttClient.process();
 
@@ -323,78 +235,10 @@ void App::fatalErrorHandler()
     }
 }
 
-void App::cmdTopicCallback(const String& payload)
-{
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
-
-    if (error != DeserializationError::Ok)
-    {
-        LOG_ERROR("JSON Deserialization Error %d.", error);
-    }
-    else
-    {
-        JsonVariant command = jsonPayload["CMD_ID"];
-
-        if (false == command.isNull())
-        {
-            Command cmd;
-            cmd.commandId = command.as<uint8_t>();
-
-            if (true ==
-                m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, reinterpret_cast<uint8_t*>(&cmd), sizeof(cmd)))
-            {
-                LOG_DEBUG("Command %d sent.", cmd.commandId);
-            }
-            else
-            {
-                LOG_WARNING("Failed to send command %d.", cmd.commandId);
-            }
-        }
-        else
-        {
-            LOG_WARNING("Received invalid command.");
-        }
-    }
-}
-
-void App::motorSpeedsTopicCallback(const String& payload)
-{
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
-
-    if (error != DeserializationError::Ok)
-    {
-        LOG_ERROR("JSON deserialization error %d.", error);
-    }
-    else
-    {
-        JsonVariant leftSpeed  = jsonPayload["LEFT"];
-        JsonVariant rightSpeed = jsonPayload["RIGHT"];
-
-        if ((false == leftSpeed.isNull()) && (false == rightSpeed.isNull()))
-        {
-            SpeedData motorSetpoints;
-            motorSetpoints.left  = leftSpeed.as<int16_t>();
-            motorSetpoints.right = rightSpeed.as<int16_t>();
-
-            if (true == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds,
-                                             reinterpret_cast<uint8_t*>(&motorSetpoints), sizeof(motorSetpoints)))
-            {
-                LOG_DEBUG("Motor speeds sent");
-            }
-            else
-            {
-                LOG_WARNING("Failed to send motor speeds");
-            }
-        }
-        else
-        {
-            LOG_WARNING("Received invalid motor speeds.");
-        }
-    }
-}
-
+/**
+ * Type: Rx MQTT & Tx SMP
+ * Name: trafficLightColorsCallback
+ */
 void App::trafficLightColorsCallback(const String& payload)
 {
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
@@ -438,54 +282,24 @@ void App::trafficLightColorsCallback(const String& payload)
  *****************************************************************************/
 
 /**
- * Receives remote control command responses over SerialMuxProt channel.
+ * Type: Rx SMP
+ * Name: odometryChannelCallback
  *
- * @param[in] payload       Command id
- * @param[in] payloadSize   Size of command id
+ * Receives current position and heading of the robot over SerialMuxProt channel.
+ *
+ * @param[in] payload       Odometry data. Two coordinates and one orientation.
+ * @param[in] payloadSize   Size of two coordinates and one orientation.
  */
-void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
 {
-    if (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize)
+    if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize))
     {
-        const CommandResponse* cmdRsp = reinterpret_cast<const CommandResponse*>(payload);
-        LOG_DEBUG("CMD_RSP: 0x%02X", cmdRsp->response);
+        const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
+        LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", odometryData->xPos, odometryData->yPos,
+                  odometryData->orientation);
     }
     else
     {
-        LOG_WARNING("CMD_RSP: Invalid payload size. Expected: %u Received: %u", COMMAND_RESPONSE_CHANNEL_DLC,
-                    payloadSize);
-    }
-}
-
-/**
- * Receives line sensor data over SerialMuxProt channel.
- * @param[in]   payload         Line sensor data
- * @param[in]   payloadSize     Size of 5 line sensor data
- */
-void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
-{
-    UTIL_NOT_USED(payload);
-    UTIL_NOT_USED(payloadSize);
-}
-
-/**
- * Receives Handshake IDs from the robot over SerialMuxProt channel.
- *
- * @param[in] payload       Handshake ID
- * @param[in] payloadSize   Size of handshake ID
- */
-void App_handShakeChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
-{
-    if (HANDSHAKE_CHANNEL_DLC == payloadSize)
-    {
-        const Handshake* hsId = reinterpret_cast<const Handshake*>(payload);
-        LOG_DEBUG("HAND_SHAKE: 0x%02X", hsId->handShakeId);
-
-        HAND_SHAKE_ID = *payload;
-    }
-    else
-    {
-        LOG_WARNING("HAND_SHAKE: Invalid payload size. Expected: %u Received: %u", HANDSHAKE_CHANNEL_DLC,
-                    payloadSize);
+        LOG_WARNING("ODOMETRY: Invalid payload size. Expected: %u Received: %u", ODOMETRY_CHANNEL_DLC, payloadSize);
     }
 }

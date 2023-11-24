@@ -45,26 +45,11 @@
 /** Maximum number of SerialMuxProt Channels. */
 #define MAX_CHANNELS (10U)
 
-/** Name of Channel to send Commands to. */
-#define COMMAND_CHANNEL_NAME "CMD"
+/** Name of Channel to send Odometry Data to. */
+#define ODOMETRY_CHANNEL_NAME "ODOMETRY"
 
-/** DLC of Command Channel. */
-#define COMMAND_CHANNEL_DLC (sizeof(Command))
-
-/** Name of Channel to receive Command Responses from. */
-#define COMMAND_RESPONSE_CHANNEL_NAME "CMD_RSP"
-
-/** DLC of Command Response Channel. */
-#define COMMAND_RESPONSE_CHANNEL_DLC (sizeof(CommandResponse))
-
-/** Name of Channel to send Motor Speed Setpoints to. */
-#define SPEED_SETPOINT_CHANNEL_NAME "SPEED_SET"
-
-/** DLC of Speedometer Channel */
-#define SPEED_SETPOINT_CHANNEL_DLC (sizeof(SpeedData))
-
-/** Name of the Channel to receive Line Sensor Data from. */
-#define LINE_SENSOR_CHANNEL_NAME "LINE_SENS"
+/** DLC of Odometry Channel */
+#define ODOMETRY_CHANNEL_DLC (sizeof(OdometryData))
 
 /** DLC of Line Sensor Channel */
 #define LINE_SENSOR_CHANNEL_DLC (sizeof(LineSensorData))
@@ -75,40 +60,17 @@
 /** DLC of Traffic Light Channel */
 #define TRAFFIC_LIGHT_COLORS_CHANNEL_DLC (sizeof(Color))
 
-/** Name of Channel to receive Handshake IDs. */
-#define HANDSHAKE_CHANNEL_NAME "HAND_SHAKE"
-
-/** DLC of Handshake ID Channel. */
-#define HANDSHAKE_CHANNEL_DLC (sizeof(Handshake))
-
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-/** Struct of the "Command" channel payload. */
-typedef struct _Command
+/** Struct of the "Odometry" channel payload. */
+typedef struct _OdometryData
 {
-    uint8_t commandId; /**< Command ID */
-} __attribute__((packed)) Command;
-
-/** Struct of the "Command Response" channel payload. */
-typedef struct _CommandResponse
-{
-    uint8_t response; /**< Response to the command */
-} __attribute__((packed)) CommandResponse;
-
-/** Struct of the "Speed" channel payload. */
-typedef struct _SpeedData
-{
-    int16_t left;  /**< Left motor speed [steps/s] */
-    int16_t right; /**< Right motor speed [steps/s] */
-} __attribute__((packed)) SpeedData;
-
-/** Struct of the "Line Sensor" channel payload. */
-typedef struct _LineSensorData
-{
-    uint16_t lineSensorData[5U]; /**< Line sensor data [digits] normalized to max 1000 digits. */
-} __attribute__((packed)) LineSensorData;
+    int32_t xPos;        /**< X position [mm]. */
+    int32_t yPos;        /**< Y position [mm]. */
+    int32_t orientation; /**< Orientation [mrad]. */
+} __attribute__((packed)) OdometryData;
 
 /** Struct of the "Color" channel payload. */
 typedef struct _Color
@@ -116,11 +78,6 @@ typedef struct _Color
     uint8_t colorId; /**< Command ID */
 } __attribute__((packed)) Color;
 
-/** Struct of the "Handshake" channel payload. */
-typedef struct _Handshake
-{
-    uint8_t handShakeId; /**< Handshake ID */
-} __attribute__((packed)) Handshake;
 /******************************************************************************
  * Functions
  *****************************************************************************/
