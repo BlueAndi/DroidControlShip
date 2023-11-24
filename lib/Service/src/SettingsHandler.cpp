@@ -144,6 +144,47 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
     return isSuccessful;
 }
 
+bool SettingsHandler::saveConfigurationFile(const String& filename)
+{
+    bool                           isSuccessful = false;
+    const size_t                   maxDocSize   = 1024;
+    StaticJsonDocument<maxDocSize> doc;
+    size_t                         jsonBufferSize = 0U;
+    size_t                         bytesToWrite   = 0U;
+
+    doc["robotName"]         = m_robotName.c_str();
+    doc["WIFI"]["SSID"]      = m_wifiSSID.c_str();
+    doc["WIFI"]["PSWD"]      = m_wifiPassword.c_str();
+    doc["MQTT"]["HOST"]      = m_mqttBrokerAddress.c_str();
+    doc["MQTT"]["PORT"]      = m_mqttPort;
+    doc["AP"]["SSID"]        = m_apSSID.c_str();
+    doc["AP"]["PSWD"]        = m_apPassword.c_str();
+    doc["WEBSERVER"]["USER"] = m_webServerUser.c_str();
+    doc["WEBSERVER"]["PSWD"] = m_webServerPassword.c_str();
+
+    jsonBufferSize = measureJsonPretty(doc) + 1U;
+    char jsonBuffer[jsonBufferSize];
+    bytesToWrite = serializeJsonPretty(doc, jsonBuffer, jsonBufferSize);
+
+    if (0U == bytesToWrite)
+    {
+        LOG_ERROR("Unable to serialize configuration file.");
+    }
+    else
+    {
+        if (0U == m_fileReader.writeFile(filename, jsonBuffer, bytesToWrite))
+        {
+            LOG_ERROR("Unable to save configuration file \"%s\".", filename.c_str());
+        }
+        else
+        {
+            isSuccessful = true;
+        }
+    }
+
+    return isSuccessful;
+}
+
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/

@@ -141,6 +141,7 @@ void App::setup()
             robotName.replace(":", "");
 
             settings.setRobotName(robotName);
+            settings.saveConfigurationFile(board.getConfigFilePath());
         }
 
         NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),

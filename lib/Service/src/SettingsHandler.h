@@ -81,6 +81,15 @@ public:
     bool loadConfigurationFile(const String& filename);
 
     /**
+     * Saves the current configuration to a file.
+     *
+     * @param[in] filename Name of file to write.
+     *
+     * @returns true if configuration succesfully saved. Otherwise, false.
+     */
+    bool saveConfigurationFile(const String& filename);
+
+    /**
      * Get robot name.
      *
      * @returns Robot name.
@@ -111,6 +120,16 @@ public:
     }
 
     /**
+     * Set WiFi SSID.
+     *
+     * @param[in] wifiSSID WiFi SSID.
+     */
+    void setWiFiSSID(const String& wifiSSID)
+    {
+        m_wifiSSID = wifiSSID;
+    }
+
+    /**
      * Get network password.
      *
      * @returns Network password.
@@ -118,6 +137,16 @@ public:
     const String& getWiFiPassword()
     {
         return m_wifiPassword;
+    }
+
+    /**
+     * Set WiFi password.
+     *
+     * @param[in] wifiPassword WiFi password.
+     */
+    void setWiFiPassword(const String& wifiPassword)
+    {
+        m_wifiPassword = wifiPassword;
     }
 
     /**
