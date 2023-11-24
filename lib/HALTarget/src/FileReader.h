@@ -71,6 +71,15 @@ public:
      */
     size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) final;
 
+    /**
+     * Write a file to the filesystem.
+     * @param[in] fileName Name of the file to write. Name must be an absolute path.
+     * @param[in] buffer Buffer to write file from.
+     * @param[in] bufferSize Number of bytes in the buffer.
+     * @returns number of bytes written.
+     */
+    size_t writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize) final;
+
 private:
     /* Not allowed. */
     FileReader(const FileReader& src);            /**< Copy construction of an instance. */

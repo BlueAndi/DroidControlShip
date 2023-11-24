@@ -95,6 +95,34 @@ size_t FileReader::readFile(const String& fileName, char* outBuffer, const uint3
     return bytesRead;
 }
 
+size_t FileReader::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
+{
+    size_t bytesWritten = 0;
+    File   file         = LittleFS.open(fileName, "w");
+
+    if ((false == file) || (file.isDirectory()))
+    {
+        LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
+    }
+    else
+    {
+        bytesWritten = file.write((const uint8_t*)buffer, bufferSize);
+
+        if (bytesWritten != bufferSize)
+        {
+            LOG_ERROR("Failed to write file \"%s\".", fileName.c_str());
+            bytesWritten = 0;
+        }
+        else
+        {
+            /* File written successfully. */
+        }
+        file.close();
+    }
+
+    return bytesWritten;
+}
+
 /******************************************************************************
  * Private Methods
  *****************************************************************************/

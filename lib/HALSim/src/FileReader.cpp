@@ -94,6 +94,35 @@ size_t FileReader::readFile(const String& fileName, char* outBuffer, const uint3
     return readBytes;
 }
 
+size_t FileReader::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
+{
+    size_t writtenBytes = 0;
+    FILE*  file         = fopen(fileName.c_str(), "w");
+
+    if (nullptr == file)
+    {
+        LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
+    }
+    else
+    {
+        writtenBytes = fwrite(buffer, sizeof(char), bufferSize, file);
+
+        if (ferror(file) != 0)
+        {
+            LOG_ERROR("Error ocurred while writing file \"%s\".", fileName.c_str());
+            writtenBytes = 0;
+        }
+        else
+        {
+            /* File written successfully. */
+            LOG_DEBUG("File \"%s\" written successfully.", fileName.c_str());
+        }
+        fclose(file);
+    }
+
+    return writtenBytes;
+}
+
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
