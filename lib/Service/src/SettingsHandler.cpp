@@ -82,11 +82,15 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
         }
         else
         {
-            JsonVariantConst jsonRobotName = doc["robotName"];
-            JsonVariantConst jsonWifiSsid  = doc["WIFI"]["SSID"];
-            JsonVariantConst jsonWifiPswd  = doc["WIFI"]["PSWD"];
-            JsonVariantConst jsonMqttHost  = doc["MQTT"]["HOST"];
-            JsonVariantConst jsonMqttPort  = doc["MQTT"]["PORT"];
+            JsonVariantConst jsonRobotName     = doc["robotName"];
+            JsonVariantConst jsonWifiSsid      = doc["WIFI"]["SSID"];
+            JsonVariantConst jsonWifiPswd      = doc["WIFI"]["PSWD"];
+            JsonVariantConst jsonMqttHost      = doc["MQTT"]["HOST"];
+            JsonVariantConst jsonMqttPort      = doc["MQTT"]["PORT"];
+            JsonVariantConst jsonApSSID        = doc["AP"]["SSID"];
+            JsonVariantConst jsonApPswd        = doc["AP"]["PSWD"];
+            JsonVariantConst jsonWebServerUser = doc["WEBSERVER"]["USER"];
+            JsonVariantConst jsonWebServerPswd = doc["WEBSERVER"]["PSWD"];
 
             if (false == jsonRobotName.isNull())
             {
@@ -111,6 +115,26 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
             if (false == jsonMqttPort.isNull())
             {
                 m_mqttPort = jsonMqttPort.as<uint16_t>();
+            }
+
+            if (false == jsonApSSID.isNull())
+            {
+                m_apSSID = jsonApSSID.as<const char*>();
+            }
+
+            if (false == jsonApPswd.isNull())
+            {
+                m_apPassword = jsonApPswd.as<const char*>();
+            }
+
+            if (false == jsonWebServerUser.isNull())
+            {
+                m_webServerUser = jsonWebServerUser.as<const char*>();
+            }
+
+            if (false == jsonWebServerPswd.isNull())
+            {
+                m_webServerPassword = jsonWebServerPswd.as<const char*>();
             }
 
             isSuccessful = true;

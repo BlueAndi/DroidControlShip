@@ -140,6 +140,46 @@ public:
         return m_mqttPort;
     }
 
+    /**
+     * Get Access Point SSID.
+     *
+     * @returns Access Point SSID.
+     */
+    const String& getApSSID()
+    {
+        return m_apSSID;
+    }
+
+    /**
+     * Get Access Point Password.
+     *
+     * @returns Access Point Password.
+     */
+    const String& getApPassword()
+    {
+        return m_apPassword;
+    }
+
+    /**
+     * Get Web Server User.
+     *
+     * @returns Web Server User.
+     */
+    const String& getWebServerUser()
+    {
+        return m_webServerUser;
+    }
+
+    /**
+     * Get Web Server Password.
+     *
+     * @returns Web Server Password.
+     */
+    const String& getWebServerPassword()
+    {
+        return m_webServerPassword;
+    }
+
 private:
     /**
      * Instance Name.
@@ -165,6 +205,26 @@ private:
      * MQTT Broker Port.
      */
     uint16_t m_mqttPort;
+
+    /**
+     * Access Point SSID.
+     */
+    String m_apSSID;
+
+    /**
+     * Access Point Password.
+     */
+    String m_apPassword;
+
+    /**
+     * Web Server User.
+     */
+    String m_webServerUser;
+
+    /**
+     * Web Server Password.
+     */
+    String m_webServerPassword;
 
     /**
      * FileReader instance.
