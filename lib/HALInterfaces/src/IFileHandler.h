@@ -25,12 +25,12 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader Interface
+ *  @brief  File Handler Interface
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
-#ifndef IFILE_READER_H_
-#define IFILE_READER_H_
+#ifndef IFILE_HANDLER_H_
+#define IFILE_HANDLER_H_
 
 /******************************************************************************
  * Includes
@@ -48,15 +48,15 @@
  *****************************************************************************/
 
 /**
- * Abstracts the File Reader interface.
+ * Abstracts the File Handler interface.
  */
-class IFileReader
+class IFileHandler
 {
 public:
     /**
-     * Destructs the File Reader Interface.
+     * Destructs the File Handler Interface.
      */
-    virtual ~IFileReader()
+    virtual ~IFileHandler()
     {
     }
 
@@ -80,9 +80,9 @@ public:
 
 protected:
     /**
-     * Contructs the File Reader Interface.
+     * Contructs the File Handler Interface.
      */
-    IFileReader()
+    IFileHandler()
     {
     }
 };
@@ -91,4 +91,4 @@ protected:
  * Functions
  *****************************************************************************/
 
-#endif /* IFILE_READER_H_ */
+#endif /* IFILE_HANDLER_H_ */

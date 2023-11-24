@@ -68,7 +68,7 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
     StaticJsonDocument<maxBufferSize> doc;
     char                              buffer[maxBufferSize];
 
-    if (0U == m_fileReader.readFile(filename, buffer, maxBufferSize))
+    if (0U == m_fileHandler.readFile(filename, buffer, maxBufferSize))
     {
         LOG_ERROR("Unable to load configuration file \"%s\".", filename.c_str());
     }
@@ -172,7 +172,7 @@ bool SettingsHandler::saveConfigurationFile(const String& filename)
     }
     else
     {
-        if (0U == m_fileReader.writeFile(filename, jsonBuffer, bytesToWrite))
+        if (0U == m_fileHandler.writeFile(filename, jsonBuffer, bytesToWrite))
         {
             LOG_ERROR("Unable to save configuration file \"%s\".", filename.c_str());
         }
@@ -199,7 +199,7 @@ SettingsHandler::SettingsHandler() :
     m_wifiPassword(),
     m_mqttBrokerAddress(),
     m_mqttPort(0U),
-    m_fileReader()
+    m_fileHandler()
 {
 }
 

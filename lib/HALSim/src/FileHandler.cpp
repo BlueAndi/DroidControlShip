@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader
+ *  @brief  File Handler
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
@@ -33,9 +33,8 @@
  * Includes
  *****************************************************************************/
 
-#include "FileReader.h"
-#include <FS.h>
-#include <LittleFS.h>
+#include "FileHandler.h"
+#include <stdio.h>
 #include <Logging.h>
 
 /******************************************************************************
@@ -54,73 +53,74 @@
  * Public Methods
  *****************************************************************************/
 
-FileReader::FileReader()
+FileHandler::FileHandler()
 {
-    if (false == LittleFS.begin(true))
-    {
-        LOG_ERROR("Failed to mount file system.");
-    }
 }
 
-FileReader::~FileReader()
+FileHandler::~FileHandler()
 {
-    LittleFS.end();
 }
 
-size_t FileReader::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
+size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
 {
-    size_t bytesRead = 0;
-    File   file      = LittleFS.open(fileName, "r");
+    size_t readBytes = 0;
+    FILE*  file      = fopen(fileName.c_str(), "r");
 
-    if ((false == file) || (file.isDirectory()))
+    if (nullptr == file)
     {
         LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
     }
     else
     {
-        bytesRead = file.readBytes(outBuffer, maxBufferSize);
+        readBytes = fread(outBuffer, sizeof(char), maxBufferSize, file);
 
-        if (true == file.available())
+        if (ferror(file) != 0)
+        {
+            LOG_ERROR("Error ocurred while reading file \"%s\".", fileName.c_str());
+            readBytes = 0;
+        }
+        else if (feof(file) == 0)
         {
             LOG_ERROR("File \"%s\" is too big for the buffer.", fileName.c_str());
-            bytesRead = 0;
+            readBytes = 0;
         }
         else
         {
             /* File read successfully. */
         }
-        file.close();
+        fclose(file);
     }
 
-    return bytesRead;
+    return readBytes;
 }
 
-size_t FileReader::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
+size_t FileHandler::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
 {
-    size_t bytesWritten = 0;
-    File   file         = LittleFS.open(fileName, "w");
+    size_t writtenBytes = 0;
+    FILE*  file         = fopen(fileName.c_str(), "w");
 
-    if ((false == file) || (file.isDirectory()))
+    if (nullptr == file)
     {
         LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
     }
     else
     {
-        bytesWritten = file.write((const uint8_t*)buffer, bufferSize);
+        writtenBytes = fwrite(buffer, sizeof(char), bufferSize, file);
 
-        if (bytesWritten != bufferSize)
+        if (ferror(file) != 0)
         {
-            LOG_ERROR("Failed to write file \"%s\".", fileName.c_str());
-            bytesWritten = 0;
+            LOG_ERROR("Error ocurred while writing file \"%s\".", fileName.c_str());
+            writtenBytes = 0;
         }
         else
         {
             /* File written successfully. */
+            LOG_DEBUG("File \"%s\" written successfully.", fileName.c_str());
         }
-        file.close();
+        fclose(file);
     }
 
-    return bytesWritten;
+    return writtenBytes;
 }
 
 /******************************************************************************

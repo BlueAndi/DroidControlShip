@@ -25,18 +25,18 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader
+ *  @brief  File Handler
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
-#ifndef FILE_READER_H_
-#define FILE_READER_H_
+#ifndef FILE_HANDLER_H_
+#define FILE_HANDLER_H_
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
 
-#include <IFileReader.h>
+#include <IFileHandler.h>
 
 /******************************************************************************
  * Macros
@@ -47,20 +47,20 @@
  *****************************************************************************/
 
 /**
- * File Reader class.
+ * File Handler class.
  */
-class FileReader : public IFileReader
+class FileHandler : public IFileHandler
 {
 public:
     /**
-     * Constructs the concrete FileReader.
+     * Constructs the concrete FileHandler.
      */
-    FileReader();
+    FileHandler();
 
     /**
-     * Destroys the concrete FileReader.
+     * Destroys the concrete FileHandler.
      */
-    virtual ~FileReader();
+    virtual ~FileHandler();
 
     /**
      * Read a file from the filesystem.
@@ -82,12 +82,12 @@ public:
 
 private:
     /* Not allowed. */
-    FileReader(const FileReader& src);            /**< Copy construction of an instance. */
-    FileReader& operator=(const FileReader& rhs); /**< Assignment of an instance. */
+    FileHandler(const FileHandler& src);            /**< Copy construction of an instance. */
+    FileHandler& operator=(const FileHandler& rhs); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* FILE_READER_H_ */
+#endif /* FILE_HANDLER_H_ */

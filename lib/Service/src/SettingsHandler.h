@@ -45,7 +45,7 @@
 
 #include <WString.h>
 #include <stdint.h>
-#include <FileReader.h>
+#include <FileHandler.h>
 
 /******************************************************************************
  * Macros
@@ -256,9 +256,9 @@ private:
     String m_webServerPassword;
 
     /**
-     * FileReader instance.
+     * FileHandler instance.
      */
-    FileReader m_fileReader;
+    FileHandler m_fileHandler;
 
     /**
      * Settings Handler Default Constructor.
