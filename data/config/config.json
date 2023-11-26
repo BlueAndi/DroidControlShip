@@ -7,5 +7,13 @@
     "MQTT": {
         "HOST": "192.168.137.1",
         "PORT": 1883
+    },
+    "AP": {
+        "SSID": "DCS_AP",
+        "PSWD": "hanshotfirst"
+    },
+    "WEBSERVER": {
+        "USER": "admin",
+        "PSWD": "admin"
     }
 }
