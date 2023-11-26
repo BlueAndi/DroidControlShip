@@ -25,17 +25,23 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Handler
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  FileHandler implementation.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup HALTarget
+ *
+ * @{
  */
-
 #ifndef FILE_HANDLER_H_
 #define FILE_HANDLER_H_
 
 /******************************************************************************
- * Includes
+ * Compile Switches
  *****************************************************************************/
 
+/******************************************************************************
+ * Includes
+ *****************************************************************************/
 #include <IFileHandler.h>
 
 /******************************************************************************
@@ -69,7 +75,7 @@ public:
      * @param[in] maxBufferSize Max. number of bytes in the buffer.
      * @returns number of bytes read.
      */
-    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) final;
+    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const final;
 
     /**
      * Write a file to the filesystem.
@@ -91,3 +97,4 @@ private:
  *****************************************************************************/
 
 #endif /* FILE_HANDLER_H_ */
+/** @} */

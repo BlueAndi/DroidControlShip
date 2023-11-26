@@ -61,9 +61,9 @@ FileHandler::~FileHandler()
 {
 }
 
-size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
+size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const
 {
-    size_t readBytes = 0;
+    size_t readBytes = 0U;
     FILE*  file      = fopen(fileName.c_str(), "r");
 
     if (nullptr == file)
@@ -74,15 +74,15 @@ size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint
     {
         readBytes = fread(outBuffer, sizeof(char), maxBufferSize, file);
 
-        if (ferror(file) != 0)
+        if (0 != ferror(file))
         {
             LOG_ERROR("Error ocurred while reading file \"%s\".", fileName.c_str());
-            readBytes = 0;
+            readBytes = 0U;
         }
-        else if (feof(file) == 0)
+        else if (0 == feof(file))
         {
             LOG_ERROR("File \"%s\" is too big for the buffer.", fileName.c_str());
-            readBytes = 0;
+            readBytes = 0U;
         }
         else
         {
@@ -96,7 +96,7 @@ size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint
 
 size_t FileHandler::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
 {
-    size_t writtenBytes = 0;
+    size_t writtenBytes = 0U;
     FILE*  file         = fopen(fileName.c_str(), "w");
 
     if (nullptr == file)
@@ -107,10 +107,10 @@ size_t FileHandler::writeFile(const String& fileName, const char* buffer, const 
     {
         writtenBytes = fwrite(buffer, sizeof(char), bufferSize, file);
 
-        if (ferror(file) != 0)
+        if (0 != ferror(file))
         {
             LOG_ERROR("Error ocurred while writing file \"%s\".", fileName.c_str());
-            writtenBytes = 0;
+            writtenBytes = 0U;
         }
         else
         {

@@ -62,19 +62,23 @@ public:
 
     /**
      * Read a file from the filesystem.
+     *
      * @param[in] fileName Name of the file to read. Name must be an absolute path.
      * @param[out] outBuffer Buffer to write file to.
      * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     * @returns number of bytes read.
+     *
+     * @returns Number of bytes read.
      */
-    virtual size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) = 0;
+    virtual size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const = 0;
 
     /**
      * Write a file to the filesystem.
+     *
      * @param[in] fileName Name of the file to write. Name must be an absolute path.
      * @param[in] buffer Buffer to write file from.
      * @param[in] bufferSize Number of bytes in the buffer.
-     * @returns number of bytes written.
+     *
+     * @returns Number of bytes written.
      */
     virtual size_t writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize) = 0;
 

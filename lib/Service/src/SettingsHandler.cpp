@@ -64,7 +64,7 @@
 bool SettingsHandler::loadConfigurationFile(const String& filename)
 {
     bool                              isSuccessful  = false;
-    const uint32_t                    maxBufferSize = 1024;
+    const uint32_t                    maxBufferSize = 1024U;
     StaticJsonDocument<maxBufferSize> doc;
     char                              buffer[maxBufferSize];
 
@@ -147,7 +147,7 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
 bool SettingsHandler::saveConfigurationFile(const String& filename)
 {
     bool                           isSuccessful = false;
-    const size_t                   maxDocSize   = 1024;
+    const size_t                   maxDocSize   = 1024U;
     StaticJsonDocument<maxDocSize> doc;
     size_t                         jsonBufferSize = 0U;
     size_t                         bytesToWrite   = 0U;

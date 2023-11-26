@@ -67,12 +67,12 @@ FileHandler::~FileHandler()
     LittleFS.end();
 }
 
-size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
+size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const
 {
-    size_t bytesRead = 0;
+    size_t bytesRead = 0U;
     File   file      = LittleFS.open(fileName, "r");
 
-    if ((false == file) || (file.isDirectory()))
+    if ((false == file) || (true == file.isDirectory()))
     {
         LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
     }
@@ -97,10 +97,10 @@ size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint
 
 size_t FileHandler::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
 {
-    size_t bytesWritten = 0;
+    size_t bytesWritten = 0U;
     File   file         = LittleFS.open(fileName, "w");
 
-    if ((false == file) || (file.isDirectory()))
+    if ((false == file) || (true == file.isDirectory()))
     {
         LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
     }
@@ -111,7 +111,7 @@ size_t FileHandler::writeFile(const String& fileName, const char* buffer, const 
         if (bytesWritten != bufferSize)
         {
             LOG_ERROR("Failed to write file \"%s\".", fileName.c_str());
-            bytesWritten = 0;
+            bytesWritten = 0U;
         }
         else
         {
