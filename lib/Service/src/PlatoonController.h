@@ -70,29 +70,25 @@ typedef struct _Waypoint
 /**
  * Input waypoint callback.
  * Called in order to get the next waypoint into the platoon controller.
- *
- * @param[out] waypoint   Next waypoint.
  */
 typedef std::function<void(Waypoint& waypoint)> InputWaypointCallback;
 
 /**
  * Output waypoint callback.
  * Called in order to send the last waypoint to the next platoon participant.
- *
- * @param[in] waypoint    Last waypoint.
  */
 typedef std::function<void(const Waypoint& waypoint)> OutputWaypointCallback;
 
 /**
  * Motor setpoint callback.
  * Called in order to set the motor speeds.
- *
- * @param[in] left      Left motor speed [steps/s].
- * @param[in] right     Right motor speed [steps/s].
- * @param[in] center    Center speed [steps/s].
  */
 typedef std::function<void(const int16_t left, const int16_t right, const int16_t center)> MotorSetpointCallback;
 
+/**
+ * Processing chain configuration structure definition.
+ * Defines the ids of the processing chain elements to be used.
+ */
 typedef struct _ProcessingChainConfig
 {
     uint8_t LogitudinalControllerId   = 0U; /**< Longitudinal controller id. */
@@ -121,6 +117,7 @@ public:
     /**
      * Initialize the platoon controller with the application callbacks and processing chain configuration.
      *
+     * @param[in] chainConfig             Processing chain configuration.
      * @param[in] inputWaypointCallback   Input waypoint callback.
      * @param[in] outputWaypointCallback  Output waypoint callback.
      * @param[in] motorSetpointCallback   Motor setpoint callback.
