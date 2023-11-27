@@ -62,8 +62,7 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
-static void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -195,8 +194,8 @@ void App::setup()
                 else
                 {
                     /* Setup SerialMuxProt Channels */
-                    m_smpServer.subscribeToChannel(ODOMETRY_CHANNEL_NAME, App_odometryChannelCallback);
-                    m_smpServer.subscribeToChannel(SPEED_CHANNEL_NAME, App_speedChannelCallback);
+                    m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME,
+                                                   App_currentVehicleChannelCallback);
                     m_serialMuxProtChannelIdMotorSpeedSetpoints =
                         m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
 
@@ -342,45 +341,27 @@ void App::sendSpeedSetpoints()
 /**
  * Receives current position and heading of the robot over SerialMuxProt channel.
  *
- * @param[in] payload       Odometry data. Two coordinates and one orientation.
- * @param[in] payloadSize   Size of two coordinates and one orientation.
+ * @param[in] payload       Current vehicle data. Two coordinates, one orientation and two motor speeds.
+ * @param[in] payloadSize   Size of two coordinates, one orientation and two motor speeds.
  * @param[in] userData      User data
  */
-void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
     UTIL_NOT_USED(userData);
-    if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize))
+    if ((nullptr != payload) && (CURRENT_VEHICLE_DATA_CHANNEL_DLC == payloadSize))
     {
-        const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
-        LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", odometryData->xPos, odometryData->yPos,
-                  odometryData->orientation);
-        gHeadingFinder.setOdometryData(odometryData->xPos, odometryData->yPos, odometryData->orientation);
+        const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
+        LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", currentVehicleData->xPos, currentVehicleData->yPos,
+                  currentVehicleData->orientation);
+        LOG_DEBUG("SPEED: left: %d right: %d", currentVehicleData->left, currentVehicleData->right);
+
+        gHeadingFinder.setOdometryData(currentVehicleData->xPos, currentVehicleData->yPos,
+                                       currentVehicleData->orientation);
+        gHeadingFinder.setMotorSpeedData(currentVehicleData->left, currentVehicleData->right);
     }
     else
     {
-        LOG_WARNING("ODOMETRY: Invalid payload size. Expected: %u Received: %u", ODOMETRY_CHANNEL_DLC, payloadSize);
-    }
-}
-
-/**
- * Receives current motor speeds of the robot over SerialMuxProt channel.
- *
- * @param[in] payload       Motor speeds.
- * @param[in] payloadSize   Size of two motor speeds.
- * @param[in] userData      User data
- */
-void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
-{
-    UTIL_NOT_USED(userData);
-
-    if ((nullptr != payload) && (SPEED_CHANNEL_DLC == payloadSize))
-    {
-        const SpeedData* motorSpeedData = reinterpret_cast<const SpeedData*>(payload);
-        LOG_DEBUG("SPEED: left: %d right: %d", motorSpeedData->left, motorSpeedData->right);
-        gHeadingFinder.setMotorSpeedData(motorSpeedData->left, motorSpeedData->right);
-    }
-    else
-    {
-        LOG_WARNING("SPEED: Invalid payload size. Expected: %u Received: %u", SPEED_CHANNEL_DLC, payloadSize);
+        LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u",
+                    CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME, CURRENT_VEHICLE_DATA_CHANNEL_DLC, payloadSize);
     }
 }
