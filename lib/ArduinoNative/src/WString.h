@@ -27,6 +27,7 @@
 /**
  * @brief  String implementation for test
  * @author Andreas Merkle <web@blue-andi.de>
+ * @author Luca Dubies <luca.dubies@newtec.de>
  *
  * @addtogroup test
  *
@@ -281,7 +282,7 @@ public:
     {
         if (nullptr != str.m_buffer)
         {
-            char* tmp = new char[m_size + str.m_size];
+            char* tmp = new char[m_size + str.m_size - 1];
 
             if (nullptr != tmp)
             {
@@ -290,7 +291,28 @@ public:
 
                 delete[] m_buffer;
                 m_buffer = tmp;
-                m_size += str.m_size;
+                m_size += (str.m_size - 1);
+            }
+        }
+
+        return *this;
+    }
+
+    String& operator+=(const char* cstr)
+    {
+        size_t cstrLen = (nullptr != cstr) ? strlen(cstr) : 0U;
+        if (nullptr != cstr)
+        {
+            char* tmp = new char[m_size + cstrLen];
+
+            if (nullptr != tmp)
+            {
+                strcpy(tmp, m_buffer);
+                strcat(&tmp[m_size - 1], cstr);
+
+                delete[] m_buffer;
+                m_buffer = tmp;
+                m_size   = m_size + cstrLen;
             }
         }
 
@@ -306,7 +328,7 @@ public:
             const char cBuff[2] = {c, '\0'};
 
             strcpy(tmp, m_buffer);
-            strcat(tmp, cBuff);
+            strcpy(&tmp[m_size - 1], cBuff);
 
             delete[] m_buffer;
             m_buffer = tmp;
@@ -476,6 +498,103 @@ public:
         }
 
         return isEmptyFlag;
+    }
+
+    /**
+     * If the find pattern is found in the String, it is replaced by the String replace.
+     *
+     * @param[in] find      Pattern
+     * @param[in] replace   Replacement for Pattern
+     */
+    void replace(const String& find, const String& replace)
+    {
+        unsigned int replaceLen = replace.length();
+        unsigned int findLen    = find.length();
+
+        if ((0 == length()) || (0 == findLen) || (nullptr == m_buffer))
+        {
+            /* return early if this or find pattern have length 0 */
+            return;
+        }
+
+        int   diff                  = replaceLen - findLen;
+        int   accumulatedLengthDiff = 0;
+        char* readFrom              = m_buffer;
+        char* foundAt;
+
+        if (0 == diff)
+        {
+            while (nullptr != (foundAt = strstr(readFrom, find.m_buffer)))
+            {
+                memcpy(foundAt, replace.m_buffer, replaceLen);
+                readFrom = foundAt + replaceLen;
+            }
+        }
+        else if (0 > diff)
+        {
+            char* writeTo = m_buffer;
+
+            /* copy original and replacement inplace */
+            while (nullptr != (foundAt = strstr(readFrom, find.m_buffer)))
+            {
+                unsigned int numberCharsToCopy = foundAt - readFrom;
+                memcpy(writeTo, readFrom, numberCharsToCopy);
+                writeTo += numberCharsToCopy;
+                memcpy(writeTo, replace.m_buffer, replaceLen);
+                writeTo += replaceLen;
+                readFrom = foundAt + findLen;
+                accumulatedLengthDiff += diff;
+            }
+            strcpy(writeTo, readFrom);
+
+            /* reduce m_buffer to new size */
+            if (0 > accumulatedLengthDiff)
+            {
+                char* tmp = new char[m_size + accumulatedLengthDiff];
+                if (nullptr != tmp)
+                {
+                    strcpy(tmp, m_buffer);
+                }
+                delete[] m_buffer;
+                m_buffer = tmp;
+                m_size += accumulatedLengthDiff;
+            }
+        }
+        else
+        {
+            /* calculate new buffer size */
+            while (nullptr != (foundAt = strstr(readFrom, find.m_buffer)))
+            {
+                readFrom = foundAt + findLen;
+                accumulatedLengthDiff += diff;
+            }
+
+            readFrom = m_buffer;
+            if (0 < accumulatedLengthDiff)
+            {
+                /* replace m_buffer with increased size buffer */
+                char* tmp = new char[m_size + accumulatedLengthDiff];
+                if (nullptr != tmp)
+                {
+                    char* writeTo = tmp;
+
+                    /* write new buffer from original and replacement */
+                    while (nullptr != (foundAt = strstr(readFrom, find.m_buffer)))
+                    {
+                        unsigned int numberCharsToCopy = foundAt - readFrom;
+                        memcpy(writeTo, readFrom, numberCharsToCopy);
+                        writeTo += numberCharsToCopy;
+                        memcpy(writeTo, replace.m_buffer, replaceLen);
+                        writeTo += replaceLen;
+                        readFrom = foundAt + findLen;
+                    }
+                    strcpy(writeTo, readFrom);
+                }
+                delete[] m_buffer;
+                m_buffer = tmp;
+                m_size += accumulatedLengthDiff;
+            }
+        }
     }
 
     /**

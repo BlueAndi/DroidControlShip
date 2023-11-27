@@ -25,59 +25,73 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Channel structure definition for the SerialMuxProt.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup Application
+ *
+ * @{
  */
+#ifndef SERIAL_MUX_CHANNELS_H
+#define SERIAL_MUX_CHANNELS_H
 
-#ifndef FILE_READER_H_
-#define FILE_READER_H_
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
 
-#include <IFileReader.h>
+#include <Arduino.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
+/** Maximum number of SerialMuxProt Channels. */
+#define MAX_CHANNELS (10U)
+
+/** Name of Channel to send Odometry Data to. */
+#define ODOMETRY_CHANNEL_NAME "ODOMETRY"
+
+/** DLC of Odometry Channel */
+#define ODOMETRY_CHANNEL_DLC (sizeof(OdometryData))
+
+/** Name of Channel to send Speedometer Data to. */
+#define SPEED_CHANNEL_NAME "SPEED"
+
+/** DLC of Speedometer Channel */
+#define SPEED_CHANNEL_DLC (sizeof(SpeedData))
+
+/** Name of Channel to send Motor Speed Setpoints to. */
+#define SPEED_SETPOINT_CHANNEL_NAME "SPEED_SET"
+
+/** DLC of Speedometer Channel */
+#define SPEED_SETPOINT_CHANNEL_DLC (sizeof(SpeedData))
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-/**
- * File Reader class.
- */
-class FileReader : public IFileReader
+/** Struct of the "Odometry" channel payload. */
+typedef struct _OdometryData
 {
-public:
-    /**
-     * Constructs the concrete FileReader.
-     */
-    FileReader();
+    int32_t xPos;        /**< X position [mm]. */
+    int32_t yPos;        /**< Y position [mm]. */
+    int32_t orientation; /**< Orientation [mrad]. */
+} __attribute__((packed)) OdometryData;
 
-    /**
-     * Destroys the concrete FileReader.
-     */
-    virtual ~FileReader();
-
-    /**
-     * Read a file from the filesystem.
-     * @param[in] fileName Name of the file to read. Name must be an absolute path.
-     * @param[out] outBuffer Buffer to write file to.
-     * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     * @returns number of bytes read.
-     */
-    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) final;
-
-private:
-    FileReader(const FileReader& src);
-    FileReader& operator=(const FileReader& rhs);
-};
+/** Struct of the "Speed" channel payload. */
+typedef struct _SpeedData
+{
+    int16_t left;  /**< Left motor speed [steps/s]. */
+    int16_t right; /**< Right motor speed [steps/s]. */
+} __attribute__((packed)) SpeedData;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* FILE_READER_H_ */
+#endif /* SERIAL_MUX_CHANNELS_H */
+/** @} */

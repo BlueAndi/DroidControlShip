@@ -43,7 +43,7 @@
  * Includes
  *****************************************************************************/
 #include <IBoard.h>
-#include <Logging.h>
+#include <WString.h>
 #include "Battery.h"
 #include "Button.h"
 #include "Device.h"
@@ -83,56 +83,14 @@ public:
      *
      * @returns If all components are correctly initialized, returns true. Otherwise, false.
      */
-    bool init() final
-    {
-        bool isReady = false;
-
-        if (false == m_device.init())
-        {
-            /* Log Device error */
-            LOG_ERROR("Device not initialized. ");
-        }
-        else if (false == m_network.init())
-        {
-            /* Log Network error */
-            LOG_ERROR("Network not initialized. ");
-        }
-        else
-        {
-            /* Ready */
-            isReady = true;
-        }
-
-        return isReady;
-    }
+    bool init() final;
 
     /**
      * Process board components.
      *
      * @returns If all components are processed correctly, returns true. Otherwise, false
      */
-    bool process() final
-    {
-        bool isSuccess = false;
-
-        if (false == m_device.process())
-        {
-            /* Log Device error */
-            LOG_ERROR("Device process failed. ");
-        }
-        else if (false == m_network.process())
-        {
-            /* Log Network error */
-            LOG_ERROR("Network process failed. ");
-        }
-        else
-        {
-            /* No Errors */
-            isSuccess = true;
-        }
-
-        return isSuccess;
-    }
+    bool process() final;
 
     /**
      * Get battery driver.
@@ -214,6 +172,16 @@ public:
         return m_network;
     }
 
+    /**
+     * Get the file path of the configuration (settings).
+     *
+     * @return Configuration file path
+     */
+    const String& getConfigFilePath() const
+    {
+        return m_configFilePath;
+    }
+
 protected:
 private:
     /** Battery driver */
@@ -237,10 +205,22 @@ private:
     /** Network driver */
     Network m_network;
 
+    /** Configuration file path */
+    String m_configFilePath;
+
     /**
      * Constructs the concrete board.
      */
-    Board() : IBoard(), m_battery(), m_button(), m_device(), m_ledBlue(), m_ledGreen(), m_ledRed(), m_network()
+    Board() :
+        IBoard(),
+        m_battery(),
+        m_button(),
+        m_device(),
+        m_ledBlue(),
+        m_ledGreen(),
+        m_ledRed(),
+        m_network(),
+        m_configFilePath(CONFIG_FILE_PATH)
     {
     }
 
@@ -250,6 +230,28 @@ private:
     virtual ~Board()
     {
     }
+
+    /**
+     * Set the file path of the configuration (settings).
+     *
+     * @param[in] configFilePath Configuration file path
+     */
+    void setConfigFilePath(const char* configFilePath)
+    {
+        m_configFilePath = configFilePath;
+    }
+
+    /**
+     * The main entry needs access to be able to set the configuration file path.
+     * But all other application parts shall have no access, which is
+     * solved by this friend.
+     *
+     * @param[in] argc  Number of arguments
+     * @param[in] argv  Arguments
+     *
+     * @return Exit code
+     */
+    friend int main(int argc, char** argv);
 };
 
 /******************************************************************************

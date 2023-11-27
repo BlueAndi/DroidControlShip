@@ -25,18 +25,25 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  FileHandler implementation.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup HALSim
+ *
+ * @{
  */
 
-#ifndef FILE_READER_H_
-#define FILE_READER_H_
+#ifndef FILE_HANDLER_H_
+#define FILE_HANDLER_H_
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include <IFileReader.h>
+#include <IFileHandler.h>
 
 /******************************************************************************
  * Macros
@@ -47,20 +54,20 @@
  *****************************************************************************/
 
 /**
- * File Reader class.
+ * File Handler class.
  */
-class FileReader : public IFileReader
+class FileHandler : public IFileHandler
 {
 public:
     /**
-     * Constructs the concrete FileReader.
+     * Constructs the concrete FileHandler.
      */
-    FileReader();
+    FileHandler();
 
     /**
-     * Destroys the concrete FileReader.
+     * Destroys the concrete FileHandler.
      */
-    virtual ~FileReader();
+    virtual ~FileHandler();
 
     /**
      * Read a file from the filesystem.
@@ -69,15 +76,26 @@ public:
      * @param[in] maxBufferSize Max. number of bytes in the buffer.
      * @returns number of bytes read.
      */
-    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) final;
+    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const final;
+
+    /**
+     * Write a file to the filesystem.
+     * @param[in] fileName Name of the file to write. Name must be an absolute path.
+     * @param[in] buffer Buffer to write file from.
+     * @param[in] bufferSize Number of bytes in the buffer.
+     * @returns number of bytes written.
+     */
+    size_t writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize) final;
 
 private:
-    FileReader(const FileReader& src);
-    FileReader& operator=(const FileReader& rhs);
+    /* Not allowed. */
+    FileHandler(const FileHandler& src);            /**< Copy construction of an instance. */
+    FileHandler& operator=(const FileHandler& rhs); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* FILE_READER_H_ */
+#endif /* FILE_HANDLER_H_ */
+/** @} */

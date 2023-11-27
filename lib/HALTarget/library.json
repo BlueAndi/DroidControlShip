@@ -9,22 +9,7 @@
         "maintainer": true
     }],
     "license": "MIT",
-    "dependencies": [{
-        "name": "HALInterfaces"
-    },{
-        "owner": "knolleary",
-        "name": "PubSubClient",
-        "version": "~2.8"
-    },{
-        "name": "USB Host Shield 2.0",
-        "version": "https://github.com/NewTec-GmbH/USB_Host_Shield_2.0.git#3_Endpoints_ACM"
-    },{
-        "name": "SPI"
-    },{
-        "name": "FS"
-    },{
-        "name": "LittleFS"
-    }],
+    "dependencies": [],
     "frameworks": "arduino",
     "platforms": "*"
 }
