@@ -238,6 +238,12 @@ void App::loop()
     m_mqttClient.process();
 }
 
+void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
+{
+    LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", vehicleData.xPos, vehicleData.yPos, vehicleData.orientation);
+    LOG_DEBUG("SPEED: left: %d right: %d", vehicleData.left, vehicleData.right);
+}
+
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/
@@ -298,17 +304,15 @@ void App::fatalErrorHandler()
  *
  * @param[in] payload       Current vehicle data. Two coordinates, one orientation and two motor speeds.
  * @param[in] payloadSize   Size of two coordinates, one orientation and two motor speeds.
- * @param[in] userData      User data
+ * @param[in] userData      Instance of App class.
  */
 void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
-    UTIL_NOT_USED(userData);
-    if ((nullptr != payload) && (CURRENT_VEHICLE_DATA_CHANNEL_DLC == payloadSize))
+    if ((nullptr != payload) && (CURRENT_VEHICLE_DATA_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
-        LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", currentVehicleData->xPos, currentVehicleData->yPos,
-                  currentVehicleData->orientation);
-        LOG_DEBUG("SPEED: left: %d right: %d", currentVehicleData->left, currentVehicleData->right);
+        App*               application        = reinterpret_cast<App*>(userData);
+        application->currentVehicleChannelCallback(*currentVehicleData);
     }
     else
     {

@@ -65,7 +65,7 @@ public:
      * Construct the convoy leader application.
      */
     App() :
-        m_smpServer(Board::getInstance().getDevice().getStream()),
+        m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_serialMuxProtChannelIdMotorSpeedSetpoints(0U),
         m_mqttClient()
     {
@@ -87,6 +87,13 @@ public:
      * Process the application periodically.
      */
     void loop();
+
+    /**
+     * Callback for the current vehicle data.
+     *
+     * @param[in] vehicleData Current vehicle data.
+     */
+    void currentVehicleChannelCallback(const VehicleData& vehicleData);
 
 private:
     /** Minimum battery level in percent. */
