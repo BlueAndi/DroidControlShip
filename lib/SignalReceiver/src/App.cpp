@@ -197,6 +197,9 @@ void App::setup()
     {
         fatalErrorHandler();
     }
+
+    /* Sending coordinates every 250ms. */
+    m_sendPackageTimer.start(250U);
 }
 
 void App::loop()
@@ -214,6 +217,14 @@ void App::loop()
 
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
+
+    if (true == m_sendPackageTimer.isTimeout())
+    {
+        /* Send current robot coordinates. */
+        createPackage();
+
+        m_sendPackageTimer.restart();
+    }
 }
 
 /******************************************************************************
@@ -233,6 +244,29 @@ void App::fatalErrorHandler()
     {
         ;
     }
+}
+
+bool App::createPackage()
+{
+    bool isSuccess;
+
+    OdometryData coordinates;
+
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
+    char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
+
+    payloadJson["x:"] = coordinates.xPos;
+    payloadJson["y:"] = coordinates.yPos;
+
+    (void)serializeJson(payloadJson, payloadArray);
+    String payloadStr(payloadArray);
+
+    if (true == m_mqttClient.publish("TL_0/coordinates", false, payloadStr))
+    {
+        isSuccess = true;
+    }
+
+    return isSuccess;
 }
 
 /**

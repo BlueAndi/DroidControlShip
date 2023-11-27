@@ -68,7 +68,8 @@ public:
         m_smpServer(Board::getInstance().getDevice().getStream()),
         m_serialMuxProtChannelIdCoordinates(0U),
         m_serialMuxProtChannelIdTrafficLightColors(0U),
-        m_mqttClient()
+        m_mqttClient(),
+        m_sendPackageTimer()
     {
     }
 
@@ -121,6 +122,8 @@ private:
     MqttClient m_mqttClient;
 
 private:
+    SimpleTimer m_sendPackageTimer;
+
     /**
      * Handler of fatal errors in the Application.
      */
@@ -131,6 +134,9 @@ private:
      * @param[in] payload   Payload of the MQTT message.
      */
     void trafficLightColorsCallback(const String& payload);
+
+    /* Creates JSON formatted package to send through MQTT. */
+    bool createPackage();
 
 private:
     /* Not allowed. */
