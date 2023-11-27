@@ -65,7 +65,8 @@ PlatoonController::PlatoonController() :
     m_outputWaypointCallback(nullptr),
     m_motorSetpointCallback(nullptr),
     m_currentWaypoint(),
-    m_currentVehicleData()
+    m_currentVehicleData(),
+    m_processingChainTimer()
 {
 }
 
@@ -90,6 +91,10 @@ bool PlatoonController::init(const ProcessingChainConfig&  chainConfig,
                   chainConfig.LongitdinalSafetyPolicyId, chainConfig.LateralControllerId,
                   chainConfig.LateralSafetyPolicyId);
 
+        /* TODO : Pass configuration to ProcessingChainFactory and create chain. */
+
+        m_processingChainTimer.start(PROCESSING_CHAIN_PERIOD);
+
         isSuccessful = true;
     }
 
@@ -98,6 +103,22 @@ bool PlatoonController::init(const ProcessingChainConfig&  chainConfig,
 
 void PlatoonController::process()
 {
+    /* Check if target waypoint has been reached. */
+    if ((true == targetWaypointReached()) && (nullptr != m_inputWaypointCallback) &&
+        (nullptr != m_outputWaypointCallback))
+    {
+        /* Send current waypoint to the next vehicle. */
+        m_outputWaypointCallback(m_currentWaypoint);
+
+        /* Get next waypoint. */
+        m_inputWaypointCallback(m_currentWaypoint);
+    }
+
+    /* Process chain on timeout. */
+    if ((true == m_processingChainTimer.isTimeout()) && (nullptr != m_motorSetpointCallback))
+    {
+        /* TODO : Process chain. */
+    }
 }
 
 void PlatoonController::setLatestVehicleData(const Waypoint& vehicleData)
@@ -112,6 +133,21 @@ void PlatoonController::setLatestVehicleData(const Waypoint& vehicleData)
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+bool PlatoonController::targetWaypointReached() const
+{
+    bool isReached = false;
+
+    int32_t differenceX = abs(m_currentWaypoint.xPos - m_currentVehicleData.xPos);
+    int32_t differenceY = abs(m_currentWaypoint.yPos - m_currentVehicleData.yPos);
+
+    if ((TARGET_WAYPOINT_ERROR_MARGIN >= differenceX) && (TARGET_WAYPOINT_ERROR_MARGIN >= differenceY))
+    {
+        isReached = true;
+    }
+
+    return isReached;
+}
 
 /******************************************************************************
  * External Functions

@@ -254,6 +254,9 @@ void App::loop()
 
     /* Process MQTT Communication */
     m_mqttClient.process();
+
+    /* Process Platoon Controller */
+    m_platoonController.process();
 }
 
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)

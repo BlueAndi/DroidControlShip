@@ -44,6 +44,7 @@
  *****************************************************************************/
 #include <stdint.h>
 #include <functional>
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
@@ -155,6 +156,17 @@ public:
 
 private:
     /**
+     * Period in ms for processing chain.
+     */
+    static const uint32_t PROCESSING_CHAIN_PERIOD = 50U;
+
+    /**
+     * Error margin in mm for target waypoint.
+     * Used to determine if target waypoint has been reached.
+     */
+    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 5U;
+
+    /**
      * Input waypoint callback.
      */
     InputWaypointCallback m_inputWaypointCallback;
@@ -178,6 +190,19 @@ private:
      * Current vehicle data in the form of a waypoint.
      */
     Waypoint m_currentVehicleData;
+
+    /**
+     * Processing chain timer.
+     */
+    SimpleTimer m_processingChainTimer;
+
+private:
+    /**
+     * Check if the target waypoint has been reached.
+     *
+     * @return If target waypoint has been reached, returns true. Otherwise, false.
+     */
+    bool targetWaypointReached() const;
 };
 
 /******************************************************************************

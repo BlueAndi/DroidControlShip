@@ -53,6 +53,13 @@ group Loop
         app -> platCtrl: process()
 
             alt Reached Target Waypoint
+                platCtrl -> app : OutputWaypointCallback(Waypoint)
+                    app -> v2v : sendWaypoint(Waypoint)
+                        v2v -> next : Outgoing Waypoint
+                        deactivate
+                    return success
+                return
+
                 platCtrl -> app: inputWaypointCallback()
                     app -> v2v : getWaypoint()
                         v2v -> v2v : popWaypointFromQueue()
@@ -68,15 +75,7 @@ group Loop
                 app -> radonUlzer: <<SerialMuxProt>> setMotorSpeeds
                 deactivate
             return
-        
-            alt Send Waypoint to Follower
-                platCtrl -> app : OutputWaypointCallback(Waypoint)
-                    app -> v2v : sendWaypoint(Waypoint)
-                        v2v -> next : Outgoing Waypoint
-                        deactivate
-                    return success
-                return
-            end
+
         return success
     return
 end
