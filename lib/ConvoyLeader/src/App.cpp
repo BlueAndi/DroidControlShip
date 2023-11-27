@@ -201,7 +201,25 @@ void App::setup()
                     }
                     else
                     {
-                        isSuccessful = true;
+                        ProcessingChainConfig processingChainConfig;
+                        processingChainConfig.LogitudinalControllerId   = 0U;
+                        processingChainConfig.LongitdinalSafetyPolicyId = 0U;
+                        processingChainConfig.LateralControllerId       = 0U;
+                        processingChainConfig.LateralSafetyPolicyId     = 0U;
+
+                        if (false == m_platoonController.init(
+                                         processingChainConfig,
+                                         [this](Waypoint& waypoint) { inputWaypointCallback(waypoint); },
+                                         [this](const Waypoint& waypoint) { outputWaypointCallback(waypoint); },
+                                         [this](const int16_t left, const int16_t right, const int16_t center)
+                                         { motorSetpointCallback(left, right, center); }))
+                        {
+                            LOG_FATAL("Could not initialize Platoon Controller.");
+                        }
+                        else
+                        {
+                            isSuccessful = true;
+                        }
                     }
                 }
             }
@@ -242,6 +260,23 @@ void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
 {
     LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", vehicleData.xPos, vehicleData.yPos, vehicleData.orientation);
     LOG_DEBUG("SPEED: left: %d right: %d center: %d", vehicleData.left, vehicleData.right, vehicleData.center);
+}
+
+void App::inputWaypointCallback(Waypoint& waypoint)
+{
+    UTIL_NOT_USED(waypoint);
+}
+
+void App::outputWaypointCallback(const Waypoint& waypoint)
+{
+    UTIL_NOT_USED(waypoint);
+}
+
+void App::motorSetpointCallback(const int16_t left, const int16_t right, const int16_t center)
+{
+    UTIL_NOT_USED(left);
+    UTIL_NOT_USED(right);
+    UTIL_NOT_USED(center);
 }
 
 /******************************************************************************
