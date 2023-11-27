@@ -33,7 +33,6 @@
  * Includes
  *****************************************************************************/
 #include "App.h"
-#include "HeadingFinder.h"
 #include <Board.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
@@ -88,9 +87,6 @@ static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
-
-/** HeadingFinder Instance. */
-static HeadingFinder gHeadingFinder;
 
 /******************************************************************************
  * Public Methods
@@ -205,8 +201,6 @@ void App::setup()
                     }
                     else
                     {
-                        /* Initialize HeadingFinder. */
-                        gHeadingFinder.init();
                         isSuccessful = true;
                     }
                 }
@@ -242,9 +236,6 @@ void App::loop()
 
     /* Process MQTT Communication */
     m_mqttClient.process();
-
-    /* Set new target speeds. */
-    sendSpeedSetpoints();
 }
 
 /******************************************************************************
@@ -275,7 +266,6 @@ void App::positionTopicCallback(const String& payload)
             int32_t positionY = jsonYPos.as<int32_t>();
 
             LOG_DEBUG("Received position setpoint: x: %d y: %d", positionX, positionY);
-            gHeadingFinder.setTargetHeading(positionX, positionY);
         }
         else
         {
@@ -292,41 +282,6 @@ void App::fatalErrorHandler()
     while (true)
     {
         ;
-    }
-}
-
-void App::sendSpeedSetpoints()
-{
-    int16_t targetSpeedLeft  = 0;
-    int16_t targetSpeedRight = 0;
-
-    if (0 != gHeadingFinder.process(targetSpeedLeft, targetSpeedRight))
-    {
-        SpeedData payload;
-        payload.left  = targetSpeedLeft;
-        payload.right = targetSpeedRight;
-
-        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints,
-                                          reinterpret_cast<uint8_t*>(&payload), sizeof(payload)))
-        {
-            LOG_DEBUG("Could not send speed setpoints.");
-        }
-        else
-        {
-            StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
-            HeadingFinder::HeadingFinderData          data = gHeadingFinder.getLatestData();
-            char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
-
-            payloadJson["targetSpeedLeft"]  = targetSpeedLeft;
-            payloadJson["targetSpeedRight"] = targetSpeedRight;
-            payloadJson["targetHeading"]    = data.targetHeading;
-            payloadJson["currentHeading"]   = data.currentHeading;
-
-            (void)serializeJson(payloadJson, payloadArray);
-            String payloadStr(payloadArray);
-
-            m_mqttClient.publish("pid", true, payloadStr);
-        }
     }
 }
 
@@ -354,10 +309,6 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
         LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", currentVehicleData->xPos, currentVehicleData->yPos,
                   currentVehicleData->orientation);
         LOG_DEBUG("SPEED: left: %d right: %d", currentVehicleData->left, currentVehicleData->right);
-
-        gHeadingFinder.setOdometryData(currentVehicleData->xPos, currentVehicleData->yPos,
-                                       currentVehicleData->orientation);
-        gHeadingFinder.setMotorSpeedData(currentVehicleData->left, currentVehicleData->right);
     }
     else
     {
