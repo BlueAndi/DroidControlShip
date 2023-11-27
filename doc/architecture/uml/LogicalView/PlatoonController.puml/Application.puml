@@ -1,0 +1,127 @@
+@startuml PlatoonControllerApplication
+
+title Basic application with PlatoonController
+
+package "Application" as appLayer {
+
+    struct WaypointData {
+        + xPos : int32_t
+        + yPos : int32_t
+        + orientation : int32_t
+        + leftSpeed : int16_t
+        + rightSpeed : int16_t
+        + centerSpeed : int16_t
+    }
+
+    class App <<main>>{
+        - m_platoonController : PlatoonController
+        - m_v2vClient : V2VClient
+        + setup() : void
+        + loop() : void
+        + outputWaypointCallback(const WaypointData&) : void
+        + inputWaypointCallback(const WaypointData&) : void
+        + motorSetpointCallback(int16_t leftSpeed, int16_t rightSpeed) : void
+    }
+
+    class "V2V Client" as v2v
+    {
+        - m_mqttClient : MqttClient
+        - m_rxWaypointQueue : Queue
+        + init(MqttConfig) : bool
+        + process() : bool
+        + sendWaypoint(const WaypointData&) : bool
+        + getWaypoint(WaypointData&) : bool
+    }
+
+    class PlatoonController {
+        + init(ProcessingChainConfig&, OutputWaypointCallback, InputWaypointCallback, motorSetpointCallback) : bool
+        + setCurrentRobotData(const WaypointData&) : void
+        + setNewWaypoint(const WaypointData&) : void
+        + process() : void
+
+        - m_waypoint : WaypointData
+        - m_processingChain : ProcessingChain*
+    }
+
+    class ProcessingChainFactory {
+        + createChain(ProcessingChainConfig) : ProcessingChain*
+    }
+
+    struct ProcessingChainConfig {
+        + LongitudinalControllerId : uint8_t
+        + LongitudinalSafetyPolicyId : uint8_t
+        + LateralControllerId : uint8_t
+        + LateralSafetyPolicyId : uint8_t
+    }
+
+    class ProcessingChain {
+        - m_longitudinalController: ILongitudinalController&
+        - m_longitudinalSafetyPolicy: ILongitudinalSafetyPolicy&
+        + ProcessingChain(ILongitudinalController&, ILongitudinalSafetyPolicy&, ILateralController&, ILateralSafetyPolicy&)
+        + calculateTargetSpeeds(int16_t& leftSpeed, int16_t& rightSpeed) : bool
+    }
+
+    interface ILongitudinalController
+    interface ILongitudinalSafetyPolicy
+    interface ILateralController
+    interface ILateralSafetyPolicy
+
+
+    package "Concrete Components" as concreteComponents {
+        class LongitudinalController0
+        class LongitudinalSafetyPolicy0
+        class LateralController0
+        class LateralSafetyPolicy0
+        class LongitudinalController1
+        class LongitudinalSafetyPolicy1
+        class LateralController1
+        class LateralSafetyPolicy1
+    }
+
+    package "Contrete Component Enumerations" as enumerations {
+        enum LongitudinalControllerIds
+        enum LateralControllerIds
+        enum LongitudinalSafetyPolicyIds
+        enum LateralSafetyPolicyIds
+    }
+}
+
+package "Service" as serviceLayer {
+    class DiffDrive <<Singleton>>
+    class Settings <<Singleton>>
+}
+
+App *--> PlatoonController : <<use>>
+App .right.> Settings : <<use>>
+App *-left-> v2v : <<use>>
+
+PlatoonController ..left.> WaypointData : <<use>>
+PlatoonController ..right.> DiffDrive : <<use>>
+PlatoonController --> ProcessingChainFactory : <<use>>
+PlatoonController o--> ProcessingChain: <<use>>
+
+ProcessingChainConfig ..> enumerations : <<use>>
+
+ProcessingChainFactory ..> ProcessingChainConfig : <<use>>
+ProcessingChainFactory ..> ProcessingChain: <<use>>
+
+enumerations ..> concreteComponents : <<enumerates>>
+
+ProcessingChain ..> ILongitudinalController : <<use>>
+ProcessingChain ..> ILongitudinalSafetyPolicy : <<use>>
+ProcessingChain ..> ILateralController : <<use>>
+ProcessingChain ..> ILateralSafetyPolicy : <<use>>
+
+ILongitudinalController <|.. LongitudinalController0 : <<realize>>
+ILongitudinalController <|.. LongitudinalController1 : <<realize>>
+
+ILongitudinalSafetyPolicy <|.. LongitudinalSafetyPolicy0 : <<realize>>
+ILongitudinalSafetyPolicy <|.. LongitudinalSafetyPolicy1 : <<realize>>
+
+ILateralController <|.. LateralController0 : <<realize>>
+ILateralController <|.. LateralController1 : <<realize>>
+
+ILateralSafetyPolicy <|.. LateralSafetyPolicy0 : <<realize>>
+ILateralSafetyPolicy <|.. LateralSafetyPolicy1 : <<realize>>
+
+@enduml

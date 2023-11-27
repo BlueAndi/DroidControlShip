@@ -1,0 +1,84 @@
+@startuml ApplicationProcess
+
+autoactivate on
+
+title Application Process
+
+entity "PreviousRobot" as prev
+entity "NextRobot" as next
+participant "Application" as app
+participant "Settings" as settings
+participant "V2VClient" as v2v
+participant "PlatoonController" as platCtrl
+participant "ProcessingChainFactory" as factory
+actor "RadonUlzer" as radonUlzer
+
+group Setup
+    app -> app #0055F0: setup()
+        app -> settings: getProcessingChainConfig()
+        return success
+
+        app -> settings: getMqttConfig()
+        return success
+
+        app -> v2v : init()
+        return success
+
+        app -> platCtrl: init(ProcessingChainConfig&,\nOutputWaypointCallback\nInputWaypointCallback\nmotorSetpointCallback)
+            platCtrl -> factory: createChain(StageConfig)
+            return ProcessingChain*
+        return success
+    return 
+end
+
+group Loop
+    app -> app #0055F0: loop()
+
+        alt Received current data
+            radonUlzer -> app : <<SerialMuxProt>> Incoming Odometry and Speeds
+                app -> platCtrl: setCurrentRobotData(const WaypointData&)
+                return
+            deactivate
+        end
+
+        app -> v2v : process()
+            alt New Waypoint
+                prev -> v2v : <<MQTT>> Incoming Waypoint
+                    v2v -> v2v : pushWaypointToQueue()
+                    return
+                deactivate
+            end
+        return success
+
+        app -> platCtrl: process()
+
+            alt Reached Target Waypoint
+                platCtrl -> app: inputWaypointCallback()
+                    app -> v2v : getWaypoint()
+                        v2v -> v2v : popWaypointFromQueue()
+                        return Waypoint
+                    return Waypoint
+                return success
+            end
+
+            platCtrl -> platCtrl: runProcessingChain()
+            return targetMotorSpeeds
+
+            platCtrl -> app: motorSetpointCallback()
+                app -> radonUlzer: <<SerialMuxProt>> setMotorSpeeds
+                deactivate
+            return
+        
+            alt Send Waypoint to Follower
+                platCtrl -> app : OutputWaypointCallback(Waypoint)
+                    app -> v2v : sendWaypoint(Waypoint)
+                        v2v -> next : Outgoing Waypoint
+                        deactivate
+                    return success
+                return
+            end
+        return success
+    return
+end
+
+@enduml
