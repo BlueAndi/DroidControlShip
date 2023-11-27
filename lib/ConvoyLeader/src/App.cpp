@@ -211,8 +211,8 @@ void App::setup()
                                          processingChainConfig,
                                          [this](Waypoint& waypoint) { inputWaypointCallback(waypoint); },
                                          [this](const Waypoint& waypoint) { outputWaypointCallback(waypoint); },
-                                         [this](const int16_t left, const int16_t right, const int16_t center)
-                                         { motorSetpointCallback(left, right, center); }))
+                                         [this](const int16_t left, const int16_t right)
+                                         { motorSetpointCallback(left, right); }))
                         {
                             LOG_FATAL("Could not initialize Platoon Controller.");
                         }
@@ -275,11 +275,10 @@ void App::outputWaypointCallback(const Waypoint& waypoint)
     UTIL_NOT_USED(waypoint);
 }
 
-void App::motorSetpointCallback(const int16_t left, const int16_t right, const int16_t center)
+void App::motorSetpointCallback(const int16_t left, const int16_t right)
 {
     UTIL_NOT_USED(left);
     UTIL_NOT_USED(right);
-    UTIL_NOT_USED(center);
 }
 
 /******************************************************************************

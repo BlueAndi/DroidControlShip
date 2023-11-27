@@ -119,9 +119,8 @@ public:
      *
      * @param[in] left      Left motor speed [steps/s].
      * @param[in] right     Right motor speed [steps/s].
-     * @param[in] center    Center speed [steps/s].
      */
-    void motorSetpointCallback(const int16_t left, const int16_t right, const int16_t center);
+    void motorSetpointCallback(const int16_t left, const int16_t right);
 
 private:
     /** Minimum battery level in percent. */

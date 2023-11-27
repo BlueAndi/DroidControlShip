@@ -45,6 +45,8 @@
 #include <stdint.h>
 #include <functional>
 #include <SimpleTimer.hpp>
+#include "Waypoint.h"
+#include "ProcessingChain.h"
 
 /******************************************************************************
  * Macros
@@ -53,34 +55,6 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
-
-/**
- * Waypoint structure definition.
- * Defines the position of a waypoint in the map and the speed at which is to be reached.
- */
-typedef struct _Waypoint
-{
-    int32_t xPos        = 0; /**< X position [mm]. */
-    int32_t yPos        = 0; /**< Y position [mm]. */
-    int32_t orientation = 0; /**< Orientation [mrad]. */
-    int16_t left        = 0; /**< Left motor speed [steps/s]. */
-    int16_t right       = 0; /**< Right motor speed [steps/s]. */
-    int16_t center      = 0; /**< Center speed [steps/s]. */
-
-    /**
-     * Waypoint assignment operator.
-     */
-    void operator=(const _Waypoint& other)
-    {
-        xPos        = other.xPos;
-        yPos        = other.yPos;
-        orientation = other.orientation;
-        left        = other.left;
-        right       = other.right;
-        center      = other.center;
-    }
-
-} __attribute__((packed)) Waypoint;
 
 /**
  * Input waypoint callback.
@@ -98,7 +72,7 @@ typedef std::function<void(const Waypoint& waypoint)> OutputWaypointCallback;
  * Motor setpoint callback.
  * Called in order to set the motor speeds.
  */
-typedef std::function<void(const int16_t left, const int16_t right, const int16_t center)> MotorSetpointCallback;
+typedef std::function<void(const int16_t left, const int16_t right)> MotorSetpointCallback;
 
 /**
  * Processing chain configuration structure definition.
@@ -195,6 +169,11 @@ private:
      * Processing chain timer.
      */
     SimpleTimer m_processingChainTimer;
+
+    /**
+     * Processing chain.
+     */
+    ProcessingChain* m_processingChain;
 
 private:
     /**

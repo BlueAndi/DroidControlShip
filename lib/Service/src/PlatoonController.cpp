@@ -66,7 +66,8 @@ PlatoonController::PlatoonController() :
     m_motorSetpointCallback(nullptr),
     m_currentWaypoint(),
     m_currentVehicleData(),
-    m_processingChainTimer()
+    m_processingChainTimer(),
+    m_processingChain(nullptr)
 {
 }
 
@@ -117,7 +118,25 @@ void PlatoonController::process()
     /* Process chain on timeout. */
     if ((true == m_processingChainTimer.isTimeout()) && (nullptr != m_motorSetpointCallback))
     {
-        /* TODO : Process chain. */
+        if (nullptr != m_processingChain)
+        {
+            int16_t leftMotorSpeedSetpoint  = 0;
+            int16_t rightMotorSpeedSetpoint = 0;
+
+            if (false == m_processingChain->calculateMotorSetpoints(m_currentVehicleData, m_currentWaypoint,
+                                                                    leftMotorSpeedSetpoint, rightMotorSpeedSetpoint))
+            {
+                LOG_ERROR("Failed to calculate motor setpoints.");
+            }
+            else
+            {
+                m_motorSetpointCallback(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
+            }
+        }
+        else
+        {
+            LOG_ERROR("Processing chain is not initialized.");
+        }
     }
 }
 
