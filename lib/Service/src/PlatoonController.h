@@ -43,6 +43,7 @@
  * Includes
  *****************************************************************************/
 #include <stdint.h>
+#include <functional>
 
 /******************************************************************************
  * Macros
@@ -72,7 +73,7 @@ typedef struct _Waypoint
  *
  * @param[out] waypoint   Next waypoint.
  */
-typedef void (*InputWaypointCallback)(Waypoint& waypoint);
+typedef std::function<void(Waypoint& waypoint)> InputWaypointCallback;
 
 /**
  * Output waypoint callback.
@@ -80,7 +81,7 @@ typedef void (*InputWaypointCallback)(Waypoint& waypoint);
  *
  * @param[in] waypoint    Last waypoint.
  */
-typedef void (*OutputWaypointCallback)(const Waypoint& waypoint);
+typedef std::function<void(const Waypoint& waypoint)> OutputWaypointCallback;
 
 /**
  * Motor setpoint callback.
@@ -90,7 +91,15 @@ typedef void (*OutputWaypointCallback)(const Waypoint& waypoint);
  * @param[in] right     Right motor speed [steps/s].
  * @param[in] center    Center speed [steps/s].
  */
-typedef void (*MotorSetpointCallback)(const int16_t left, const int16_t right, const int16_t center);
+typedef std::function<void(const int16_t left, const int16_t right, const int16_t center)> MotorSetpointCallback;
+
+typedef struct _ProcessingChainConfig
+{
+    uint8_t LogitudinalControllerId   = 0U; /**< Longitudinal controller id. */
+    uint8_t LongitdinalSafetyPolicyId = 0U; /**< Longitudinal safety policy id. */
+    uint8_t LateralControllerId       = 0U; /**< Lateral controller id. */
+    uint8_t LateralSafetyPolicyId     = 0U; /**< Lateral safety policy id. */
+} ProcessingChainConfig;
 
 /**
  * Platoon controller class for calculating each step inside a platoon context.
@@ -100,19 +109,26 @@ class PlatoonController
 {
 public:
     /**
-     * PlatoonController constructor.
-     *
-     * @param[in] inputWaypointCallback   Input waypoint callback.
-     * @param[in] outputWaypointCallback  Output waypoint callback.
-     * @param[in] motorSetpointCallback   Motor setpoint callback.
+     * PlatoonController default constructor.
      */
-    PlatoonController(InputWaypointCallback inputWaypointCallback, OutputWaypointCallback outputWaypointCallback,
-                      MotorSetpointCallback motorSetpointCallback);
+    PlatoonController();
 
     /**
      * PlatoonController default destructor.
      */
     ~PlatoonController();
+
+    /**
+     * Initialize the platoon controller with the application callbacks and processing chain configuration.
+     *
+     * @param[in] inputWaypointCallback   Input waypoint callback.
+     * @param[in] outputWaypointCallback  Output waypoint callback.
+     * @param[in] motorSetpointCallback   Motor setpoint callback.
+     *
+     * @return If successfully initialized, returns true. Otherwise, false.
+     */
+    bool init(const ProcessingChainConfig& chainConfig, InputWaypointCallback inputWaypointCallback,
+              OutputWaypointCallback outputWaypointCallback, MotorSetpointCallback motorSetpointCallback);
 
 private:
     /**
@@ -131,10 +147,6 @@ private:
     MotorSetpointCallback m_motorSetpointCallback;
 
 private:
-    /**
-     * PlatoonController default constructor.
-     */
-    PlatoonController();
 };
 
 /******************************************************************************

@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 #include "PlatoonController.h"
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -59,17 +60,33 @@
  * Public Methods
  *****************************************************************************/
 
-PlatoonController::PlatoonController(InputWaypointCallback  inputWaypointCallback,
-                                     OutputWaypointCallback outputWaypointCallback,
-                                     MotorSetpointCallback  motorSetpointCallback) :
-    m_inputWaypointCallback(inputWaypointCallback),
-    m_outputWaypointCallback(outputWaypointCallback),
-    m_motorSetpointCallback(motorSetpointCallback)
+PlatoonController::PlatoonController()
 {
 }
 
 PlatoonController::~PlatoonController()
 {
+}
+
+bool PlatoonController::init(const ProcessingChainConfig& chainConfig, InputWaypointCallback inputWaypointCallback,
+                             OutputWaypointCallback outputWaypointCallback, MotorSetpointCallback motorSetpointCallback)
+{
+    bool isSuccessful = false;
+
+    if ((nullptr != inputWaypointCallback) && (nullptr != outputWaypointCallback) && (nullptr != motorSetpointCallback))
+    {
+        m_inputWaypointCallback  = inputWaypointCallback;
+        m_outputWaypointCallback = outputWaypointCallback;
+        m_motorSetpointCallback  = motorSetpointCallback;
+
+        LOG_DEBUG("PlatoonController configuration: %d %d %d %d", chainConfig.LogitudinalControllerId,
+                  chainConfig.LongitdinalSafetyPolicyId, chainConfig.LateralControllerId,
+                  chainConfig.LateralSafetyPolicyId);
+
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
 }
 
 /******************************************************************************
@@ -79,10 +96,6 @@ PlatoonController::~PlatoonController()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-PlatoonController::PlatoonController()
-{
-}
 
 /******************************************************************************
  * External Functions
