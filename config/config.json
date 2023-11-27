@@ -1,0 +1,19 @@
+{
+  "robotName": "020000005124",
+  "WIFI": {
+    "SSID": "",
+    "PSWD": ""
+  },
+  "MQTT": {
+    "HOST": "localhost",
+    "PORT": 1883
+  },
+  "AP": {
+    "SSID": "",
+    "PSWD": ""
+  },
+  "WEBSERVER": {
+    "USER": "",
+    "PSWD": ""
+  }
+}
