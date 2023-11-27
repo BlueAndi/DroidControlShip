@@ -241,7 +241,7 @@ void App::loop()
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
 {
     LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", vehicleData.xPos, vehicleData.yPos, vehicleData.orientation);
-    LOG_DEBUG("SPEED: left: %d right: %d", vehicleData.left, vehicleData.right);
+    LOG_DEBUG("SPEED: left: %d right: %d center: %d", vehicleData.left, vehicleData.right, vehicleData.center);
 }
 
 /******************************************************************************
