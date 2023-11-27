@@ -60,7 +60,12 @@
  * Public Methods
  *****************************************************************************/
 
-PlatoonController::PlatoonController()
+PlatoonController::PlatoonController() :
+    m_inputWaypointCallback(nullptr),
+    m_outputWaypointCallback(nullptr),
+    m_motorSetpointCallback(nullptr),
+    m_currentWaypoint(),
+    m_currentVehicleData()
 {
 }
 
@@ -68,8 +73,10 @@ PlatoonController::~PlatoonController()
 {
 }
 
-bool PlatoonController::init(const ProcessingChainConfig& chainConfig, InputWaypointCallback inputWaypointCallback,
-                             OutputWaypointCallback outputWaypointCallback, MotorSetpointCallback motorSetpointCallback)
+bool PlatoonController::init(const ProcessingChainConfig&  chainConfig,
+                             const InputWaypointCallback&  inputWaypointCallback,
+                             const OutputWaypointCallback& outputWaypointCallback,
+                             const MotorSetpointCallback&  motorSetpointCallback)
 {
     bool isSuccessful = false;
 
@@ -87,6 +94,15 @@ bool PlatoonController::init(const ProcessingChainConfig& chainConfig, InputWayp
     }
 
     return isSuccessful;
+}
+
+void PlatoonController::process()
+{
+}
+
+void PlatoonController::setLatestVehicleData(const Waypoint& vehicleData)
+{
+    m_currentVehicleData = vehicleData;
 }
 
 /******************************************************************************

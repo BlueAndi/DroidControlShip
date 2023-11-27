@@ -59,12 +59,26 @@
  */
 typedef struct _Waypoint
 {
-    int32_t xPos;        /**< X position [mm]. */
-    int32_t yPos;        /**< Y position [mm]. */
-    int32_t orientation; /**< Orientation [mrad]. */
-    int16_t left;        /**< Left motor speed [steps/s]. */
-    int16_t right;       /**< Right motor speed [steps/s]. */
-    int16_t center;      /**< Center speed [steps/s]. */
+    int32_t xPos        = 0; /**< X position [mm]. */
+    int32_t yPos        = 0; /**< Y position [mm]. */
+    int32_t orientation = 0; /**< Orientation [mrad]. */
+    int16_t left        = 0; /**< Left motor speed [steps/s]. */
+    int16_t right       = 0; /**< Right motor speed [steps/s]. */
+    int16_t center      = 0; /**< Center speed [steps/s]. */
+
+    /**
+     * Waypoint assignment operator.
+     */
+    void operator=(const _Waypoint& other)
+    {
+        xPos        = other.xPos;
+        yPos        = other.yPos;
+        orientation = other.orientation;
+        left        = other.left;
+        right       = other.right;
+        center      = other.center;
+    }
+
 } __attribute__((packed)) Waypoint;
 
 /**
@@ -124,8 +138,20 @@ public:
      *
      * @return If successfully initialized, returns true. Otherwise, false.
      */
-    bool init(const ProcessingChainConfig& chainConfig, InputWaypointCallback inputWaypointCallback,
-              OutputWaypointCallback outputWaypointCallback, MotorSetpointCallback motorSetpointCallback);
+    bool init(const ProcessingChainConfig& chainConfig, const InputWaypointCallback& inputWaypointCallback,
+              const OutputWaypointCallback& outputWaypointCallback, const MotorSetpointCallback& motorSetpointCallback);
+
+    /**
+     * Process the PlatoonController.
+     */
+    void process();
+
+    /**
+     * Set lastest vehicle data.
+     *
+     * @param[in] vehicleData  Lastest vehicle data in the form of a waypoint.
+     */
+    void setLatestVehicleData(const Waypoint& vehicleData);
 
 private:
     /**
@@ -143,7 +169,15 @@ private:
      */
     MotorSetpointCallback m_motorSetpointCallback;
 
-private:
+    /**
+     * Current waypoint to follow.
+     */
+    Waypoint m_currentWaypoint;
+
+    /**
+     * Current vehicle data in the form of a waypoint.
+     */
+    Waypoint m_currentVehicleData;
 };
 
 /******************************************************************************
