@@ -65,7 +65,7 @@ public:
      * Construct the Remote Control application.
      */
     App() :
-        m_smpServer(Board::getInstance().getDevice().getStream()),
+        m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_serialMuxProtChannelIdCoordinates(0U),
         m_serialMuxProtChannelIdTrafficLightColors(0U),
         m_mqttClient(),
@@ -89,6 +89,13 @@ public:
      * Process the application periodically.
      */
     void loop();
+
+    /**
+     * Odometry Callback
+     *
+     * @param[in] odometry  Odometry data.
+     */
+    void odometryCallback(const OdometryData& odometry);
 
 private:
     /** Minimum battery level in percent. */

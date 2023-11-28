@@ -35,7 +35,7 @@
 #include "App.h"
 #include <Logging.h>
 #include <LogSinkPrinter.h>
-#include <Settings.h>
+#include <SettingsHandler.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
 
@@ -59,7 +59,7 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -92,9 +92,9 @@ static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
 void App::setup()
 {
-    bool      isSuccessful = false;
-    Settings& settings     = Settings::getInstance();
-    Board&    board        = Board::getInstance();
+    bool             isSuccessful = false;
+    SettingsHandler& settings     = SettingsHandler::getInstance();
+    Board&           board        = Board::getInstance();
 
     Serial.begin(SERIAL_BAUDRATE);
 
@@ -227,6 +227,11 @@ void App::loop()
     }
 }
 
+void App::odometryCallback(const OdometryData& odometry)
+{
+    LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", odometry.xPos, odometry.yPos, odometry.orientation);
+}
+
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/
@@ -323,14 +328,16 @@ void App::trafficLightColorsCallback(const String& payload)
  *
  * @param[in] payload       Odometry data. Two coordinates and one orientation.
  * @param[in] payloadSize   Size of two coordinates and one orientation.
+ * @param[in] userData      Instance of App class.
  */
-void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
-    if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize))
+    if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
         const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
-        LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", odometryData->xPos, odometryData->yPos,
-                  odometryData->orientation);
+        App*                application  = reinterpret_cast<App*>(userData);
+
+        application->odometryCallback(*odometryData);
     }
     else
     {
