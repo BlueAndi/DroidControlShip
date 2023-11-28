@@ -94,12 +94,15 @@ public:
 
     /**
      * Process the Receiving of New Sensor Data via SerialMuxProt
-     * 
+     *
      * @param[in] newData New Sensor Data.
      */
     void processNewSensorData(const SensorData& newData);
 
 private:
+    /** Minimum battery level in percent. */
+    static const uint8_t MIN_BATTERY_LEVEL = 10U;
+
     SensorFusion m_sensorFusion; /**< Instance of the SensorFusion algorithm. */
 
     /** MQTT topic name for birth messages. */

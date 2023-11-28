@@ -121,6 +121,10 @@ void App::setup()
     {
         LOG_FATAL("Settings could not be loaded from %s.", board.getConfigFilePath());
     }
+    else if (MIN_BATTERY_LEVEL > board.getBattery().getChargeLevel())
+    {
+        LOG_FATAL("Battery too low.");
+    }
     else
     {
         /* If the robot name is empty, use the wifi MAC address as robot name. */
@@ -132,6 +136,12 @@ void App::setup()
             robotName.replace(":", "");
 
             settings.setRobotName(robotName);
+
+            if (false == settings.saveConfigurationFile(board.getConfigFilePath()))
+            {
+                /* Error saving settings, but it is not fatal. */
+                LOG_ERROR("Settings file could not be saved.");
+            }
         }
 
         NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
