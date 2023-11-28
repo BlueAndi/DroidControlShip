@@ -89,16 +89,23 @@ bool PlatoonController::init(const ProcessingChainConfig&  chainConfig,
 
     if ((nullptr != inputWaypointCallback) && (nullptr != outputWaypointCallback) && (nullptr != motorSetpointCallback))
     {
-        ProcessingChainFactory factory;
-        m_processingChain = factory.create(chainConfig);
+        m_processingChain = ProcessingChainFactory::getInstance().create(chainConfig);
 
-        m_inputWaypointCallback  = inputWaypointCallback;
-        m_outputWaypointCallback = outputWaypointCallback;
-        m_motorSetpointCallback  = motorSetpointCallback;
+        if (nullptr == m_processingChain)
+        {
+            LOG_ERROR("Failed to create processing chain.");
+        }
+        else
+        {
 
-        m_processingChainTimer.start(PROCESSING_CHAIN_PERIOD);
+            m_inputWaypointCallback  = inputWaypointCallback;
+            m_outputWaypointCallback = outputWaypointCallback;
+            m_motorSetpointCallback  = motorSetpointCallback;
 
-        isSuccessful = true;
+            m_processingChainTimer.start(PROCESSING_CHAIN_PERIOD);
+
+            isSuccessful = true;
+        }
     }
 
     return isSuccessful;

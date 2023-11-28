@@ -59,12 +59,11 @@
  * Public Methods
  *****************************************************************************/
 
-ProcessingChainFactory::ProcessingChainFactory()
+ProcessingChainFactory& ProcessingChainFactory::getInstance()
 {
-}
+    static ProcessingChainFactory instance; /* Idiom. */
 
-ProcessingChainFactory::~ProcessingChainFactory()
-{
+    return instance;
 }
 
 ProcessingChain* ProcessingChainFactory::create(const ProcessingChainConfig& config)
@@ -79,6 +78,14 @@ ProcessingChain* ProcessingChainFactory::create(const ProcessingChainConfig& con
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+ProcessingChainFactory::ProcessingChainFactory()
+{
+}
+
+ProcessingChainFactory::~ProcessingChainFactory()
+{
+}
 
 /******************************************************************************
  * External Functions

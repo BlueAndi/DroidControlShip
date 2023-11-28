@@ -73,14 +73,11 @@ class ProcessingChainFactory
 {
 public:
     /**
-     * Default Constructor.
+     * Get the factory instance.
+     *
+     * @return Factory instance.
      */
-    ProcessingChainFactory();
-
-    /**
-     * Default destructor.
-     */
-    ~ProcessingChainFactory();
+    static ProcessingChainFactory& getInstance();
 
     /**
      * Create a processing chain. The factory creates the instance, but the user is responsible for deleting it.
@@ -92,6 +89,25 @@ public:
     ProcessingChain* create(const ProcessingChainConfig& config);
 
 private:
+    /**
+     * Default Constructor.
+     */
+    ProcessingChainFactory();
+
+    /**
+     * Default destructor.
+     */
+    ~ProcessingChainFactory();
+
+    /**
+     * Copy constructor.
+     */
+    ProcessingChainFactory(const ProcessingChainFactory& factory);
+
+    /**
+     * Assignment operator.
+     */
+    ProcessingChainFactory& operator=(const ProcessingChainFactory& factory);
 };
 
 /******************************************************************************
