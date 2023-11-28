@@ -95,15 +95,14 @@ public:
     /**
      * Initialize the platoon controller with the application callbacks and processing chain configuration.
      *
-     * @param[in] chainConfig             Processing chain configuration.
      * @param[in] inputWaypointCallback   Input waypoint callback.
      * @param[in] outputWaypointCallback  Output waypoint callback.
      * @param[in] motorSetpointCallback   Motor setpoint callback.
      *
      * @return If successfully initialized, returns true. Otherwise, false.
      */
-    bool init(const ProcessingChainConfig& chainConfig, const InputWaypointCallback& inputWaypointCallback,
-              const OutputWaypointCallback& outputWaypointCallback, const MotorSetpointCallback& motorSetpointCallback);
+    bool init(const InputWaypointCallback& inputWaypointCallback, const OutputWaypointCallback& outputWaypointCallback,
+              const MotorSetpointCallback& motorSetpointCallback);
 
     /**
      * Process the PlatoonController.

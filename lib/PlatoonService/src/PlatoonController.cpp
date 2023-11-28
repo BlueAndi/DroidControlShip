@@ -80,8 +80,7 @@ PlatoonController::~PlatoonController()
     }
 }
 
-bool PlatoonController::init(const ProcessingChainConfig&  chainConfig,
-                             const InputWaypointCallback&  inputWaypointCallback,
+bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback,
                              const OutputWaypointCallback& outputWaypointCallback,
                              const MotorSetpointCallback&  motorSetpointCallback)
 {
@@ -89,7 +88,7 @@ bool PlatoonController::init(const ProcessingChainConfig&  chainConfig,
 
     if ((nullptr != inputWaypointCallback) && (nullptr != outputWaypointCallback) && (nullptr != motorSetpointCallback))
     {
-        m_processingChain = ProcessingChainFactory::getInstance().create(chainConfig);
+        m_processingChain = ProcessingChainFactory::getInstance().create();
 
         if (nullptr == m_processingChain)
         {

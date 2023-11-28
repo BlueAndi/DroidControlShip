@@ -66,7 +66,7 @@ ProcessingChainFactory& ProcessingChainFactory::getInstance()
     return instance;
 }
 
-ProcessingChain* ProcessingChainFactory::create(const ProcessingChainConfig& config)
+ProcessingChain* ProcessingChainFactory::create()
 {
     ProcessingChain* processingChain = nullptr;
 
