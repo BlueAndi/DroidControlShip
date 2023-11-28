@@ -58,6 +58,12 @@ class ILongitudinalController
 {
 public:
     /**
+     * ILongitudinalController creation function, used by the ProcessingChainFactory to create a ILongitudinalController
+     * instance.
+     */
+    typedef ILongitudinalController* (*CreateFunc)(void);
+
+    /**
      * Destroys the interface.
      */
     virtual ~ILongitudinalController()

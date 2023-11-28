@@ -58,6 +58,12 @@ class ILongitudinalSafetyPolicy
 {
 public:
     /**
+     * ILongitudinalSafetyPolicy creation function, used by the ProcessingChainFactory to create a
+     * ILongitudinalSafetyPolicy instance.
+     */
+    typedef ILongitudinalSafetyPolicy* (*CreateFunc)(void);
+
+    /**
      * Destroys the interface.
      */
     virtual ~ILongitudinalSafetyPolicy()

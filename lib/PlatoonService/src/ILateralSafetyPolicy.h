@@ -58,6 +58,12 @@ class ILateralSafetyPolicy
 {
 public:
     /**
+     * ILateralSafetyPolicy creation function, used by the ProcessingChainFactory to create a
+     * ILateralSafetyPolicy instance.
+     */
+    typedef ILateralSafetyPolicy* (*CreateFunc)(void);
+
+    /**
      * Destroys the interface.
      */
     virtual ~ILateralSafetyPolicy()

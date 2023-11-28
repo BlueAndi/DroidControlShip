@@ -58,6 +58,12 @@ class ILateralController
 {
 public:
     /**
+     * ILateralController creation function, used by the ProcessingChainFactory to create a ILateralController
+     * instance.
+     */
+    typedef ILateralController* (*CreateFunc)(void);
+
+    /**
      * Destroys the interface.
      */
     virtual ~ILateralController()

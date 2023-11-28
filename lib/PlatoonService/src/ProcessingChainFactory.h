@@ -88,6 +88,55 @@ public:
      */
     ProcessingChain* create(const ProcessingChainConfig& config);
 
+    /**
+     * Register ILongitudinalController create function.
+     *
+     * @param[in] createFunc    Create function.
+     */
+    void registerLongitudinalControllerCreateFunc(ILongitudinalController::CreateFunc createFunc);
+
+    /**
+     * Register ILongitudinalSafetyPolicy create function.
+     *
+     * @param[in] createFunc    Create function.
+     */
+    void registerLongitudinalSafetyPolicyCreateFunc(ILongitudinalSafetyPolicy::CreateFunc createFunc);
+
+    /**
+     * Register ILateralController create function.
+     *
+     * @param[in] createFunc    Create function.
+     */
+    void registerLateralControllerCreateFunc(ILateralController::CreateFunc createFunc);
+
+    /**
+     * Register ILateralSafetyPolicy create function.
+     *
+     * @param[in] createFunc    Create function.
+     */
+    void registerLateralSafetyPolicyCreateFunc(ILateralSafetyPolicy::CreateFunc createFunc);
+
+private:
+    /**
+     * Longitudinal controller create function.
+     */
+    ILongitudinalController::CreateFunc m_longitudinalControllerCreateFunc;
+
+    /**
+     * Longitudinal safety policy create function.
+     */
+    ILongitudinalSafetyPolicy::CreateFunc m_longitudinalSafetyPolicyCreateFunc;
+
+    /**
+     * Lateral controller create function.
+     */
+    ILateralController::CreateFunc m_lateralControllerCreateFunc;
+
+    /**
+     * Lateral safety policy create function.
+     */
+    ILateralSafetyPolicy::CreateFunc m_lateralSafetyPolicyCreateFunc;
+
 private:
     /**
      * Default Constructor.
