@@ -66,6 +66,11 @@ public:
      */
     ~LongitudinalController();
 
+    /**
+     * Creates a LongitudinalController instance, for registering in the ProcessingChainFactory.
+     *
+     * @return If successful, returns a pointer to the LongitudinalController instance. Otherwise nullptr.
+     */
     static ILongitudinalController* create()
     {
         return new LongitudinalController();
