@@ -145,6 +145,8 @@ void PlatoonController::process()
         {
             LOG_ERROR("Processing chain is not initialized.");
         }
+
+        m_processingChainTimer.restart();
     }
 }
 
