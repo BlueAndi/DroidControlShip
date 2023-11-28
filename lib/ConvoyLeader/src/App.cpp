@@ -206,14 +206,16 @@ void App::setup()
                     }
                     else
                     {
-                        ProcessingChainConfig processingChainConfig;
-                        processingChainConfig.LogitudinalControllerId   = 0U;
-                        processingChainConfig.LongitdinalSafetyPolicyId = 0U;
-                        processingChainConfig.LateralControllerId       = 0U;
-                        processingChainConfig.LateralSafetyPolicyId     = 0U;
+
+                        ProcessingChainFactory& processingChainFactory = ProcessingChainFactory::getInstance();
+
+                        processingChainFactory.registerLongitudinalControllerCreateFunc(LongitudinalController::create);
+                        processingChainFactory.registerLongitudinalSafetyPolicyCreateFunc(
+                            LongitudinalSafetyPolicy::create);
+                        processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
+                        processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
 
                         if (false == m_platoonController.init(
-                                         processingChainConfig,
                                          [this](Waypoint& waypoint) { inputWaypointCallback(waypoint); },
                                          [this](const Waypoint& waypoint) { outputWaypointCallback(waypoint); },
                                          [this](const int16_t left, const int16_t right)
@@ -223,15 +225,6 @@ void App::setup()
                         }
                         else
                         {
-                            ProcessingChainFactory& processingChainFactory = ProcessingChainFactory::getInstance();
-
-                            processingChainFactory.registerLongitudinalControllerCreateFunc(
-                                LongitudinalController::create);
-                            processingChainFactory.registerLongitudinalSafetyPolicyCreateFunc(
-                                LongitudinalSafetyPolicy::create);
-                            processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
-                            processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
-
                             isSuccessful = true;
                         }
                     }
