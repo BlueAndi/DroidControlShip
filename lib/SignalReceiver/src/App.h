@@ -129,6 +129,7 @@ private:
     MqttClient m_mqttClient;
 
 private:
+    /** Timer for sending coordinate sets. */
     SimpleTimer m_sendPackageTimer;
 
     /**
