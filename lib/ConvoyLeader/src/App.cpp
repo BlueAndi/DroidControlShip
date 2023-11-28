@@ -40,6 +40,11 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <Util.h>
+#include <ProcessingChainFactory.h>
+#include "LongitudinalController.h"
+#include "LongitudinalSafetyPolicy.h"
+#include "LateralController.h"
+#include "LateralSafetyPolicy.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -218,6 +223,15 @@ void App::setup()
                         }
                         else
                         {
+                            ProcessingChainFactory& processingChainFactory = ProcessingChainFactory::getInstance();
+
+                            processingChainFactory.registerLongitudinalControllerCreateFunc(
+                                LongitudinalController::create);
+                            processingChainFactory.registerLongitudinalSafetyPolicyCreateFunc(
+                                LongitudinalSafetyPolicy::create);
+                            processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
+                            processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
+
                             isSuccessful = true;
                         }
                     }
