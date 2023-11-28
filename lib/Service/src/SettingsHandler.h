@@ -45,7 +45,7 @@
 
 #include <WString.h>
 #include <stdint.h>
-#include <FileReader.h>
+#include <FileHandler.h>
 
 /******************************************************************************
  * Macros
@@ -81,6 +81,15 @@ public:
     bool loadConfigurationFile(const String& filename);
 
     /**
+     * Saves the current configuration to a file.
+     *
+     * @param[in] filename Name of file to write.
+     *
+     * @returns true if configuration succesfully saved. Otherwise, false.
+     */
+    bool saveConfigurationFile(const String& filename);
+
+    /**
      * Get robot name.
      *
      * @returns Robot name.
@@ -111,6 +120,16 @@ public:
     }
 
     /**
+     * Set WiFi SSID.
+     *
+     * @param[in] wifiSSID WiFi SSID.
+     */
+    void setWiFiSSID(const String& wifiSSID)
+    {
+        m_wifiSSID = wifiSSID;
+    }
+
+    /**
      * Get network password.
      *
      * @returns Network password.
@@ -118,6 +137,16 @@ public:
     const String& getWiFiPassword()
     {
         return m_wifiPassword;
+    }
+
+    /**
+     * Set WiFi password.
+     *
+     * @param[in] wifiPassword WiFi password.
+     */
+    void setWiFiPassword(const String& wifiPassword)
+    {
+        m_wifiPassword = wifiPassword;
     }
 
     /**
@@ -138,6 +167,46 @@ public:
     uint16_t getMqttPort()
     {
         return m_mqttPort;
+    }
+
+    /**
+     * Get Access Point SSID.
+     *
+     * @returns Access Point SSID.
+     */
+    const String& getApSSID()
+    {
+        return m_apSSID;
+    }
+
+    /**
+     * Get Access Point Password.
+     *
+     * @returns Access Point Password.
+     */
+    const String& getApPassword()
+    {
+        return m_apPassword;
+    }
+
+    /**
+     * Get Web Server User.
+     *
+     * @returns Web Server User.
+     */
+    const String& getWebServerUser()
+    {
+        return m_webServerUser;
+    }
+
+    /**
+     * Get Web Server Password.
+     *
+     * @returns Web Server Password.
+     */
+    const String& getWebServerPassword()
+    {
+        return m_webServerPassword;
     }
 
 private:
@@ -167,9 +236,29 @@ private:
     uint16_t m_mqttPort;
 
     /**
-     * FileReader instance.
+     * Access Point SSID.
      */
-    FileReader m_fileReader;
+    String m_apSSID;
+
+    /**
+     * Access Point Password.
+     */
+    String m_apPassword;
+
+    /**
+     * Web Server User.
+     */
+    String m_webServerUser;
+
+    /**
+     * Web Server Password.
+     */
+    String m_webServerPassword;
+
+    /**
+     * FileHandler instance.
+     */
+    FileHandler m_fileHandler;
 
     /**
      * Settings Handler Default Constructor.

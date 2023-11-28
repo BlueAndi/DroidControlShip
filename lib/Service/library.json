@@ -9,11 +9,7 @@
         "maintainer": true
     }],
     "license": "MIT",
-    "dependencies": [{
-        "owner": "bblanchon",
-        "name": "ArduinoJson",
-        "version": "^6.21.3"
-    }],
+    "dependencies": [],
     "frameworks": "*",
     "platforms": "*"
 }

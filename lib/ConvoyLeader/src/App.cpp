@@ -141,6 +141,12 @@ void App::setup()
             robotName.replace(":", "");
 
             settings.setRobotName(robotName);
+
+            if (false == settings.saveConfigurationFile(board.getConfigFilePath()))
+            {
+                /* Error saving settings, but it is not fatal. */
+                LOG_ERROR("Settings file could not be saved.");
+            }
         }
 
         NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
