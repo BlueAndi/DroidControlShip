@@ -142,7 +142,11 @@ private:
      */
     void trafficLightColorsCallback(const String& payload);
 
-    /* Creates JSON formatted package to send through MQTT. */
+    /**
+     *  Creates JSON formatted package to send through MQTT.
+     *
+     * @return true for successful package creation
+     */
     bool createPackage();
 
 private:

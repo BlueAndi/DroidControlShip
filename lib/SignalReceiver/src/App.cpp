@@ -251,17 +251,25 @@ void App::fatalErrorHandler()
     }
 }
 
+/**
+ * Type: Tx MQTT
+ * Name: createPackage
+ */
 bool App::createPackage()
 {
-    bool isSuccess;
+    bool    isSuccess;
+    int32_t xCoordinate = 0;
+    int32_t yCoordinate = 0;
 
     OdometryData coordinates;
+    coordinates.xPos = xCoordinate;
+    coordinates.yPos = yCoordinate;
 
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
     char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
 
-    payloadJson["x:"] = coordinates.xPos;
-    payloadJson["y:"] = coordinates.yPos;
+    payloadJson["x"] = coordinates.xPos;
+    payloadJson["y"] = coordinates.yPos;
 
     (void)serializeJson(payloadJson, payloadArray);
     String payloadStr(payloadArray);
