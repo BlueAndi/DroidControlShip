@@ -37,9 +37,10 @@
 #include <Board.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
-#include <Settings.h>
+#include <SettingsHandler.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -61,8 +62,8 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
-static void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -98,9 +99,9 @@ static HeadingFinder gHeadingFinder;
 
 void App::setup()
 {
-    bool      isSuccessful = false;
-    Settings& settings     = Settings::getInstance();
-    Board&    board        = Board::getInstance();
+    bool             isSuccessful = false;
+    SettingsHandler& settings     = SettingsHandler::getInstance();
+    Board&           board        = Board::getInstance();
 
     Serial.begin(SERIAL_BAUDRATE);
 
@@ -140,6 +141,12 @@ void App::setup()
             robotName.replace(":", "");
 
             settings.setRobotName(robotName);
+
+            if (false == settings.saveConfigurationFile(board.getConfigFilePath()))
+            {
+                /* Error saving settings, but it is not fatal. */
+                LOG_ERROR("Settings file could not be saved.");
+            }
         }
 
         NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
@@ -337,9 +344,11 @@ void App::sendSpeedSetpoints()
  *
  * @param[in] payload       Odometry data. Two coordinates and one orientation.
  * @param[in] payloadSize   Size of two coordinates and one orientation.
+ * @param[in] userData      User data
  */
-void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
+    UTIL_NOT_USED(userData);
     if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize))
     {
         const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
@@ -358,9 +367,12 @@ void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSi
  *
  * @param[in] payload       Motor speeds.
  * @param[in] payloadSize   Size of two motor speeds.
+ * @param[in] userData      User data
  */
-void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
+    UTIL_NOT_USED(userData);
+
     if ((nullptr != payload) && (SPEED_CHANNEL_DLC == payloadSize))
     {
         const SpeedData* motorSpeedData = reinterpret_cast<const SpeedData*>(payload);

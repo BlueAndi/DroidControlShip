@@ -25,19 +25,27 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Settings Service for loading configuration.
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Settings Handler for loading and managing configuration.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup Service
+ *
+ * @{
  */
+#ifndef SETTINGS_HANDLER_H
+#define SETTINGS_HANDLER_H
 
-#ifndef SETTINGS_H_
-#define SETTINGS_H_
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
+
 #include <WString.h>
 #include <stdint.h>
-#include <FileReader.h>
+#include <FileHandler.h>
 
 /******************************************************************************
  * Macros
@@ -47,23 +55,19 @@
  * Types and Classes
  *****************************************************************************/
 
-/******************************************************************************
- * Functions
- *****************************************************************************/
-
 /**
- * Settings Service.
+ * Settings Handler for loading and managing configuration.
  */
-class Settings
+class SettingsHandler
 {
 public:
     /**
-     * Get Settings instance.
-     * @returns Settings instance.
+     * Get the settings handler instance.
+     * @returns Settings handler instance.
      */
-    static Settings& getInstance()
+    static SettingsHandler& getInstance()
     {
-        static Settings instance; /* Idiom. */
+        static SettingsHandler instance; /* Idiom. */
         return instance;
     }
 
@@ -77,6 +81,15 @@ public:
     bool loadConfigurationFile(const String& filename);
 
     /**
+     * Saves the current configuration to a file.
+     *
+     * @param[in] filename Name of file to write.
+     *
+     * @returns true if configuration succesfully saved. Otherwise, false.
+     */
+    bool saveConfigurationFile(const String& filename);
+
+    /**
      * Get robot name.
      *
      * @returns Robot name.
@@ -88,7 +101,7 @@ public:
 
     /**
      * Set the robot name.
-     * 
+     *
      * @param[in] robotName The robot name.
      */
     void setRobotName(const String& robotName)
@@ -107,6 +120,16 @@ public:
     }
 
     /**
+     * Set WiFi SSID.
+     *
+     * @param[in] wifiSSID WiFi SSID.
+     */
+    void setWiFiSSID(const String& wifiSSID)
+    {
+        m_wifiSSID = wifiSSID;
+    }
+
+    /**
      * Get network password.
      *
      * @returns Network password.
@@ -114,6 +137,16 @@ public:
     const String& getWiFiPassword()
     {
         return m_wifiPassword;
+    }
+
+    /**
+     * Set WiFi password.
+     *
+     * @param[in] wifiPassword WiFi password.
+     */
+    void setWiFiPassword(const String& wifiPassword)
+    {
+        m_wifiPassword = wifiPassword;
     }
 
     /**
@@ -136,8 +169,47 @@ public:
         return m_mqttPort;
     }
 
-private:
+    /**
+     * Get Access Point SSID.
+     *
+     * @returns Access Point SSID.
+     */
+    const String& getApSSID()
+    {
+        return m_apSSID;
+    }
 
+    /**
+     * Get Access Point Password.
+     *
+     * @returns Access Point Password.
+     */
+    const String& getApPassword()
+    {
+        return m_apPassword;
+    }
+
+    /**
+     * Get Web Server User.
+     *
+     * @returns Web Server User.
+     */
+    const String& getWebServerUser()
+    {
+        return m_webServerUser;
+    }
+
+    /**
+     * Get Web Server Password.
+     *
+     * @returns Web Server Password.
+     */
+    const String& getWebServerPassword()
+    {
+        return m_webServerPassword;
+    }
+
+private:
     /**
      * Instance Name.
      */
@@ -163,21 +235,50 @@ private:
      */
     uint16_t m_mqttPort;
 
-    /* FileReader instance. */
-    FileReader m_fileReader;
+    /**
+     * Access Point SSID.
+     */
+    String m_apSSID;
 
     /**
-     * Settings Constructor.
+     * Access Point Password.
      */
-    Settings();
+    String m_apPassword;
 
     /**
-     * Settings Default Destructor.
+     * Web Server User.
      */
-    ~Settings();
+    String m_webServerUser;
 
-    Settings(const Settings& settings);
-    Settings& operator=(const Settings& settings);
+    /**
+     * Web Server Password.
+     */
+    String m_webServerPassword;
+
+    /**
+     * FileHandler instance.
+     */
+    FileHandler m_fileHandler;
+
+    /**
+     * Settings Handler Default Constructor.
+     */
+    SettingsHandler();
+
+    /**
+     * Settings Handler Default Destructor.
+     */
+    ~SettingsHandler();
+
+private:
+    /* Not allowed. */
+    SettingsHandler(const SettingsHandler& handler);            /**< Copy construction of an instance. */
+    SettingsHandler& operator=(const SettingsHandler& handler); /**< Assignment of an instance. */
 };
 
-#endif /* SETTINGS_H_ */
+/******************************************************************************
+ * Functions
+ *****************************************************************************/
+
+#endif /* SETTINGS_HANDLER_H */
+/** @} */

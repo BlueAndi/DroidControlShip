@@ -25,19 +25,28 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Settings Service
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Settings Handler for loading and managing configuration.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Settings.h"
+
+#include "SettingsHandler.h"
 #include <ArduinoJson.h>
 #include <Logging.h>
 
 /******************************************************************************
+ * Compiler Switches
+ *****************************************************************************/
+
+/******************************************************************************
  * Macros
+ *****************************************************************************/
+
+/******************************************************************************
+ * Types and classes
  *****************************************************************************/
 
 /******************************************************************************
@@ -52,14 +61,14 @@
  * Public Methods
  *****************************************************************************/
 
-bool Settings::loadConfigurationFile(const String& filename)
+bool SettingsHandler::loadConfigurationFile(const String& filename)
 {
     bool                              isSuccessful  = false;
-    const uint32_t                    maxBufferSize = 1024;
+    const uint32_t                    maxBufferSize = 1024U;
     StaticJsonDocument<maxBufferSize> doc;
     char                              buffer[maxBufferSize];
 
-    if (0U == m_fileReader.readFile(filename, buffer, maxBufferSize))
+    if (0U == m_fileHandler.readFile(filename, buffer, maxBufferSize))
     {
         LOG_ERROR("Unable to load configuration file \"%s\".", filename.c_str());
     }
@@ -73,11 +82,15 @@ bool Settings::loadConfigurationFile(const String& filename)
         }
         else
         {
-            JsonVariantConst jsonRobotName = doc["robotName"];
-            JsonVariantConst jsonWifiSsid  = doc["WIFI"]["SSID"];
-            JsonVariantConst jsonWifiPswd  = doc["WIFI"]["PSWD"];
-            JsonVariantConst jsonMqttHost  = doc["MQTT"]["HOST"];
-            JsonVariantConst jsonMqttPort  = doc["MQTT"]["PORT"];
+            JsonVariantConst jsonRobotName     = doc["robotName"];
+            JsonVariantConst jsonWifiSsid      = doc["WIFI"]["SSID"];
+            JsonVariantConst jsonWifiPswd      = doc["WIFI"]["PSWD"];
+            JsonVariantConst jsonMqttHost      = doc["MQTT"]["HOST"];
+            JsonVariantConst jsonMqttPort      = doc["MQTT"]["PORT"];
+            JsonVariantConst jsonApSSID        = doc["AP"]["SSID"];
+            JsonVariantConst jsonApPswd        = doc["AP"]["PSWD"];
+            JsonVariantConst jsonWebServerUser = doc["WEBSERVER"]["USER"];
+            JsonVariantConst jsonWebServerPswd = doc["WEBSERVER"]["PSWD"];
 
             if (false == jsonRobotName.isNull())
             {
@@ -104,6 +117,67 @@ bool Settings::loadConfigurationFile(const String& filename)
                 m_mqttPort = jsonMqttPort.as<uint16_t>();
             }
 
+            if (false == jsonApSSID.isNull())
+            {
+                m_apSSID = jsonApSSID.as<const char*>();
+            }
+
+            if (false == jsonApPswd.isNull())
+            {
+                m_apPassword = jsonApPswd.as<const char*>();
+            }
+
+            if (false == jsonWebServerUser.isNull())
+            {
+                m_webServerUser = jsonWebServerUser.as<const char*>();
+            }
+
+            if (false == jsonWebServerPswd.isNull())
+            {
+                m_webServerPassword = jsonWebServerPswd.as<const char*>();
+            }
+
+            isSuccessful = true;
+        }
+    }
+
+    return isSuccessful;
+}
+
+bool SettingsHandler::saveConfigurationFile(const String& filename)
+{
+    bool                           isSuccessful = false;
+    const size_t                   maxDocSize   = 1024U;
+    StaticJsonDocument<maxDocSize> doc;
+    size_t                         jsonBufferSize = 0U;
+    size_t                         bytesToWrite   = 0U;
+
+    doc["robotName"]         = m_robotName.c_str();
+    doc["WIFI"]["SSID"]      = m_wifiSSID.c_str();
+    doc["WIFI"]["PSWD"]      = m_wifiPassword.c_str();
+    doc["MQTT"]["HOST"]      = m_mqttBrokerAddress.c_str();
+    doc["MQTT"]["PORT"]      = m_mqttPort;
+    doc["AP"]["SSID"]        = m_apSSID.c_str();
+    doc["AP"]["PSWD"]        = m_apPassword.c_str();
+    doc["WEBSERVER"]["USER"] = m_webServerUser.c_str();
+    doc["WEBSERVER"]["PSWD"] = m_webServerPassword.c_str();
+
+    jsonBufferSize = measureJsonPretty(doc) + 1U;
+    char jsonBuffer[jsonBufferSize];
+    bytesToWrite = serializeJsonPretty(doc, jsonBuffer, jsonBufferSize);
+
+    if (0U == bytesToWrite)
+    {
+        LOG_ERROR("Unable to serialize configuration file.");
+    }
+    else
+    {
+        if (0U == m_fileHandler.writeFile(filename, jsonBuffer, bytesToWrite))
+        {
+            LOG_ERROR("Unable to save configuration file \"%s\".", filename.c_str());
+        }
+        else
+        {
             isSuccessful = true;
         }
     }
@@ -112,22 +186,30 @@ bool Settings::loadConfigurationFile(const String& filename)
 }
 
 /******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
  * Private Methods
  *****************************************************************************/
 
-Settings::Settings() :
+SettingsHandler::SettingsHandler() :
     m_robotName(),
     m_wifiSSID(),
     m_wifiPassword(),
     m_mqttBrokerAddress(),
     m_mqttPort(0U),
-    m_fileReader()
+    m_fileHandler()
 {
 }
 
-Settings::~Settings()
+SettingsHandler::~SettingsHandler()
 {
 }
+
+/******************************************************************************
+ * External Functions
+ *****************************************************************************/
 
 /******************************************************************************
  * Local Functions

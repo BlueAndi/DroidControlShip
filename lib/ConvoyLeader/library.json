@@ -2,20 +2,14 @@
     "name": "ConvoyLeader",
     "version": "0.1.0",
     "description": "ConvoyLeader application",
-    "authors": [
-        {
-            "name": "Gabryel Reyes",
-            "email": "gabryelrdiaz@gmail.com",
-            "url": "https://github.com/gabryelreyes",
-            "maintainer": true
-        }
-    ],
+    "authors": [{
+        "name": "Gabryel Reyes",
+        "email": "gabryelrdiaz@gmail.com",
+        "url": "https://github.com/gabryelreyes",
+        "maintainer": true
+    }],
     "license": "MIT",
-    "dependencies": [
-        {
-            "name": "Utilities"
-        }
-    ],
+    "dependencies": [],
     "frameworks": "*",
     "platforms": "*"
 }
