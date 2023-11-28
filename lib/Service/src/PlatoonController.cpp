@@ -73,6 +73,11 @@ PlatoonController::PlatoonController() :
 
 PlatoonController::~PlatoonController()
 {
+    if (nullptr != m_processingChain)
+    {
+        delete m_processingChain;
+        m_processingChain = nullptr;
+    }
 }
 
 bool PlatoonController::init(const ProcessingChainConfig&  chainConfig,
@@ -84,15 +89,12 @@ bool PlatoonController::init(const ProcessingChainConfig&  chainConfig,
 
     if ((nullptr != inputWaypointCallback) && (nullptr != outputWaypointCallback) && (nullptr != motorSetpointCallback))
     {
+        ProcessingChainFactory factory;
+        m_processingChain = factory.create(chainConfig);
+
         m_inputWaypointCallback  = inputWaypointCallback;
         m_outputWaypointCallback = outputWaypointCallback;
         m_motorSetpointCallback  = motorSetpointCallback;
-
-        LOG_DEBUG("PlatoonController configuration: %d %d %d %d", chainConfig.LogitudinalControllerId,
-                  chainConfig.LongitdinalSafetyPolicyId, chainConfig.LateralControllerId,
-                  chainConfig.LateralSafetyPolicyId);
-
-        /* TODO : Pass configuration to ProcessingChainFactory and create chain. */
 
         m_processingChainTimer.start(PROCESSING_CHAIN_PERIOD);
 

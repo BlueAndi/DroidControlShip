@@ -72,6 +72,10 @@ ProcessingChain::ProcessingChain(ILongitudinalController&   longitudinalControll
 
 ProcessingChain::~ProcessingChain()
 {
+    delete &m_longitudinalController;
+    delete &m_longitudinalSafetyPolicy;
+    delete &m_lateralController;
+    delete &m_lateralSafetyPolicy;
 }
 
 bool ProcessingChain::calculateMotorSetpoints(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,

@@ -47,6 +47,7 @@
 #include <SimpleTimer.hpp>
 #include "Waypoint.h"
 #include "ProcessingChain.h"
+#include "ProcessingChainFactory.h"
 
 /******************************************************************************
  * Macros
@@ -73,18 +74,6 @@ typedef std::function<void(const Waypoint& waypoint)> OutputWaypointCallback;
  * Called in order to set the motor speeds.
  */
 typedef std::function<void(const int16_t left, const int16_t right)> MotorSetpointCallback;
-
-/**
- * Processing chain configuration structure definition.
- * Defines the ids of the processing chain elements to be used.
- */
-typedef struct _ProcessingChainConfig
-{
-    uint8_t LogitudinalControllerId   = 0U; /**< Longitudinal controller id. */
-    uint8_t LongitdinalSafetyPolicyId = 0U; /**< Longitudinal safety policy id. */
-    uint8_t LateralControllerId       = 0U; /**< Lateral controller id. */
-    uint8_t LateralSafetyPolicyId     = 0U; /**< Lateral safety policy id. */
-} ProcessingChainConfig;
 
 /**
  * Platoon controller class for calculating each step inside a platoon context.

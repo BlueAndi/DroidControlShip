@@ -1,0 +1,102 @@
+/* MIT License
+ *
+ * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+/*******************************************************************************
+    DESCRIPTION
+*******************************************************************************/
+/**
+ * @brief  Factory of ProcessingChain.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup Service
+ *
+ * @{
+ */
+#ifndef PROCESSING_CHAIN_FACTORY_H
+#define PROCESSING_CHAIN_FACTORY_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
+
+/******************************************************************************
+ * Includes
+ *****************************************************************************/
+
+#include <stdint.h>
+#include "ProcessingChain.h"
+
+/******************************************************************************
+ * Macros
+ *****************************************************************************/
+
+/******************************************************************************
+ * Types and Classes
+ *****************************************************************************/
+
+/**
+ * Processing chain configuration structure definition.
+ * Defines the ids of the processing chain elements to be used.
+ */
+typedef struct _ProcessingChainConfig
+{
+    uint8_t LogitudinalControllerId   = 0U; /**< Longitudinal controller id. */
+    uint8_t LongitdinalSafetyPolicyId = 0U; /**< Longitudinal safety policy id. */
+    uint8_t LateralControllerId       = 0U; /**< Lateral controller id. */
+    uint8_t LateralSafetyPolicyId     = 0U; /**< Lateral safety policy id. */
+} ProcessingChainConfig;
+
+/**
+ * Factory of ProcessingChain.
+ */
+class ProcessingChainFactory
+{
+public:
+    /**
+     * Default Constructor.
+     */
+    ProcessingChainFactory();
+
+    /**
+     * Default destructor.
+     */
+    ~ProcessingChainFactory();
+
+    /**
+     * Create a processing chain. The factory creates the instance, but the user is responsible for deleting it.
+     *
+     * @param[in] config    Configuration of the processing chain.
+     *
+     * @return Pointer to a ProcessingChain instance or nullptr if creation failed.
+     */
+    ProcessingChain* create(const ProcessingChainConfig& config);
+
+private:
+};
+
+/******************************************************************************
+ * Functions
+ *****************************************************************************/
+
+#endif /* PROCESSING_CHAIN_FACTORY_H */
+/** @} */

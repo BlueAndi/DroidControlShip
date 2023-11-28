@@ -62,6 +62,13 @@ class ProcessingChain
 public:
     /**
      * Constructs the processing chain.
+     * The processing chain will take ownership of the longitudinal and lateral components.
+     * The processing chain will delete the longitudinal and lateral components when it is destroyed.
+     *
+     * @param[in]   longitudinalController      Longitudinal controller.
+     * @param[in]   longitudinalSafetyPolicy    Longitudinal safety policy.
+     * @param[in]   lateralController           Lateral controller.
+     * @param[in]   lateralSafetyPolicy         Lateral safety policy.
      */
     ProcessingChain(ILongitudinalController&   longitudinalController,
                     ILongitudinalSafetyPolicy& longitudinalSafetyPolicy, ILateralController& lateralController,
@@ -97,6 +104,13 @@ private:
 
     /** Lateral safety policy. */
     ILateralSafetyPolicy& m_lateralSafetyPolicy;
+
+private:
+    /**
+     * Default constructor.
+     * Not allowed to use.
+     */
+    ProcessingChain();
 };
 
 /******************************************************************************
