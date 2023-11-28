@@ -85,7 +85,7 @@ public:
                                           const int16_t centerSpeedSetpoint, int16_t& leftMotorSpeedSetpoint,
                                           int16_t& rightMotorSpeedSetpoint) = 0;
 
-private:
+protected:
     /**
      * Constructs the interface.
      */

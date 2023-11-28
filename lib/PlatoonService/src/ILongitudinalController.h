@@ -82,7 +82,7 @@ public:
     virtual bool calculateLongitudinalMovement(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
                                                int16_t& centerSpeedSetpoint) = 0;
 
-private:
+protected:
     /**
      * Constructs the interface.
      */

@@ -81,7 +81,7 @@ public:
      */
     virtual bool check(int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint) = 0;
 
-private:
+protected:
     /**
      * Constructs the interface.
      */

@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Interface for a Longitudinal Safety Policy.
+ * @brief  Concrete Longitudinal Controller.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Service
+ * @addtogroup Application
  *
  * @{
  */
-#ifndef I_LONGITUDINAL_SAFETY_POLICY_H
-#define I_LONGITUDINAL_SAFETY_POLICY_H
+#ifndef LONGITUDINAL_CONTROLLER_H
+#define LONGITUDINAL_CONTROLLER_H
 
 /******************************************************************************
  * Compile Switches
@@ -42,8 +42,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include <stdint.h>
+#include <ILongitudinalController.h>
 
 /******************************************************************************
  * Macros
@@ -53,45 +52,20 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Abstract longitudinal safety policy interface. */
-class ILongitudinalSafetyPolicy
+/** Concrete Longitudinal Controller */
+class LongitudinalController : public ILongitudinalController
 {
 public:
-    /**
-     * ILongitudinalSafetyPolicy creation function, used by the ProcessingChainFactory to create a
-     * ILongitudinalSafetyPolicy instance.
-     */
-    typedef ILongitudinalSafetyPolicy* (*CreateFunc)(void);
+    /***/
+    LongitudinalController();
+    ~LongitudinalController();
 
-    /**
-     * Destroys the interface.
-     */
-    virtual ~ILongitudinalSafetyPolicy()
-    {
-    }
-
-    /**
-     * Checks if the longitudinal safety policy is satisfied by the calculated center speed.
-     * If not, the center speed is adjusted accordingly.
-     *
-     * @param[in,out]   centerSpeedSetpoint  Center speed [steps/s].
-     *
-     * @return True is satisfied, otherwise false.
-     */
-    virtual bool check(int16_t& centerSpeedSetpoint) = 0;
-
-protected:
-    /**
-     * Constructs the interface.
-     */
-    ILongitudinalSafetyPolicy()
-    {
-    }
+private:
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* I_LONGITUDINAL_SAFETY_POLICY_H */
+#endif /* LONGITUDINAL_CONTROLLER_H */
 /** @} */
