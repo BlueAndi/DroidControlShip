@@ -68,6 +68,27 @@ ProcessingChainFactory& ProcessingChainFactory::getInstance()
 
 ProcessingChain* ProcessingChainFactory::create(const ProcessingChainConfig& config)
 {
+    ProcessingChain* processingChain = nullptr;
+
+    if ((nullptr != m_longitudinalControllerCreateFunc) && (nullptr != m_longitudinalSafetyPolicyCreateFunc) &&
+        (nullptr != m_lateralControllerCreateFunc) && (nullptr != m_lateralSafetyPolicyCreateFunc))
+    {
+        ILongitudinalController*   longitudinalController   = m_longitudinalControllerCreateFunc();
+        ILongitudinalSafetyPolicy* longitudinalSafetyPolicy = m_longitudinalSafetyPolicyCreateFunc();
+        ILateralController*        lateralController        = m_lateralControllerCreateFunc();
+        ILateralSafetyPolicy*      lateralSafetyPolicy      = m_lateralSafetyPolicyCreateFunc();
+
+        if ((nullptr != longitudinalController) && (nullptr != longitudinalSafetyPolicy) &&
+            (nullptr != lateralController) && (nullptr != lateralSafetyPolicy))
+        {
+            processingChain = new ProcessingChain(*longitudinalController, *longitudinalSafetyPolicy,
+                                                  *lateralController, *lateralSafetyPolicy);
+        }
+    }
+
+    return processingChain;
+}
+
 void ProcessingChainFactory::registerLongitudinalControllerCreateFunc(ILongitudinalController::CreateFunc createFunc)
 {
     m_longitudinalControllerCreateFunc = createFunc;
