@@ -255,9 +255,8 @@ void App::fatalErrorHandler()
  * Type: Tx MQTT
  * Name: createPackage
  */
-bool App::createPackage()
+void App::createPackage()
 {
-    bool    isSuccess;
     int32_t xCoordinate = 0;
     int32_t yCoordinate = 0;
 
@@ -274,12 +273,7 @@ bool App::createPackage()
     (void)serializeJson(payloadJson, payloadArray);
     String payloadStr(payloadArray);
 
-    if (true == m_mqttClient.publish("TL_0/coordinates", false, payloadStr))
-    {
-        isSuccess = true;
-    }
-
-    return isSuccess;
+    m_mqttClient.publish("TL_0/coordinates", false, payloadStr);
 }
 
 /**
