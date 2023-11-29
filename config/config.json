@@ -1,0 +1,11 @@
+{
+  "robotName": "zumo_0",
+  "WIFI": {
+    "SSID": "",
+    "PSWD": ""
+  },
+  "MQTT": {
+    "HOST": "localhost",
+    "PORT": "1883"
+  }
+}

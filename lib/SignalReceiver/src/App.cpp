@@ -134,6 +134,12 @@ void App::setup()
             robotName.replace(":", "");
 
             settings.setRobotName(robotName);
+
+            if (false == settings.saveConfigurationFile(board.getConfigFilePath()))
+            {
+                /* Error saving settings, but it is not fatal. */
+                LOG_ERROR("Settings file could not be saved.");
+            }
         }
 
         NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
@@ -153,12 +159,6 @@ void App::setup()
             birthDoc["name"] = settings.getRobotName().c_str();
             (void)serializeJson(birthDoc, birthMsgArray);
             birthMessage = birthMsgArray;
-
-            /* Setup SerialMuxProt Channels */
-            m_serialMuxProtChannelIdTrafficLightColors =
-                m_smpServer.createChannel(TRAFFIC_LIGHT_COLORS_CHANNEL_NAME, TRAFFIC_LIGHT_COLORS_CHANNEL_DLC);
-
-            m_smpServer.subscribeToChannel(ODOMETRY_CHANNEL_NAME, App_odometryChannelCallback);
 
             if (false == m_mqttClient.init())
             {
@@ -187,7 +187,20 @@ void App::setup()
                 }
                 else
                 {
-                    isSuccessful = true;
+                    /* Setup SerialMuxProt Channels */
+                    m_serialMuxProtChannelIdTrafficLightColors =
+                        m_smpServer.createChannel(TRAFFIC_LIGHT_COLORS_CHANNEL_NAME, TRAFFIC_LIGHT_COLORS_CHANNEL_DLC);
+
+                    m_smpServer.subscribeToChannel(ODOMETRY_CHANNEL_NAME, App_odometryChannelCallback);
+
+                    if (0U == m_serialMuxProtChannelIdTrafficLightColors)
+                    {
+                        LOG_FATAL("Could not create SerialMuxProt Channel: %s.", TRAFFIC_LIGHT_COLORS_CHANNEL_NAME);
+                    }
+                    else
+                    {
+                        isSuccessful = true;
+                    }
                 }
             }
         }
@@ -218,13 +231,13 @@ void App::loop()
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
 
-    if (true == m_sendPackageTimer.isTimeout())
-    {
-        /* Send current robot coordinates. */
-        createPackage();
+    // if (true == m_sendPackageTimer.isTimeout())
+    // {
+    //     /* Send current robot coordinates. */
+    //     createPackage();
 
-        m_sendPackageTimer.restart();
-    }
+    //     m_sendPackageTimer.restart();
+    // }
 }
 
 void App::odometryCallback(const OdometryData& odometry)
@@ -334,6 +347,7 @@ void App::trafficLightColorsCallback(const String& payload)
  */
 void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
+    (void)userData;
     if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
         const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
