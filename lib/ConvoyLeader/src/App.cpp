@@ -268,8 +268,16 @@ void App::loop()
 
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
 {
-    LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", vehicleData.xPos, vehicleData.yPos, vehicleData.orientation);
-    LOG_DEBUG("SPEED: left: %d right: %d center: %d", vehicleData.left, vehicleData.right, vehicleData.center);
+    Waypoint vehicleDataAsWaypoint;
+
+    vehicleDataAsWaypoint.xPos        = vehicleData.xPos;
+    vehicleDataAsWaypoint.yPos        = vehicleData.yPos;
+    vehicleDataAsWaypoint.orientation = vehicleData.orientation;
+    vehicleDataAsWaypoint.left        = vehicleData.left;
+    vehicleDataAsWaypoint.right       = vehicleData.right;
+    vehicleDataAsWaypoint.center      = vehicleData.center;
+
+    m_platoonController.setLatestVehicleData(vehicleDataAsWaypoint);
 }
 
 void App::inputWaypointCallback(Waypoint& waypoint)
@@ -284,8 +292,14 @@ void App::outputWaypointCallback(const Waypoint& waypoint)
 
 void App::motorSetpointCallback(const int16_t left, const int16_t right)
 {
-    UTIL_NOT_USED(left);
-    UTIL_NOT_USED(right);
+    SpeedData payload;
+    payload.left  = left;
+    payload.right = right;
+
+    if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints, &payload, sizeof(payload)))
+    {
+        LOG_WARNING("Could not send motor speed setpoints.");
+    }
 }
 
 /******************************************************************************
