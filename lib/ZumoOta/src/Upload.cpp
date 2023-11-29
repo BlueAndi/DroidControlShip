@@ -37,6 +37,7 @@
 #include <ESPAsyncWebServer.h>
 #include<Logging.h>
 #include <map> 
+#include <Util.h>
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -44,7 +45,6 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-
 /******************************************************************************
  * Types and classes
  *****************************************************************************/
@@ -72,25 +72,20 @@ Upload::~Upload()
 void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)
 {
     String updatedFilename = filename;
-    
+
 
     if (!filename.startsWith("/"))
     {
         updatedFilename = "/" + filename;
     }
-
-    if (index==0)
+   
+     if (!index)
     {   
-        
         /*Save file in the request object*/
         request->_tempFile = LittleFS.open(updatedFilename, "w");
         LOG_DEBUG("Upload Start: " + String(updatedFilename));
     }
-    else
-    {
-        LOG_ERROR("Problem to save the request object!");
-       
-    }
+
     if(len)
     {
         /* Write data to the file*/
@@ -98,10 +93,16 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
     }
 
     /* If this is the last data block, close the file*/
-    if (final)
+    if(final == true)
     {
+        LOG_DEBUG("Last block received - final: true");
         request->_tempFile.close();
-       /* Check if the file exits in FileSystem */
+    
+        /* Initialize fileSize*/
+        size_t flashfileSize = 0U; 
+        size_t expectedfileSize = 0U;
+
+        /* Check if the file exists in FileSystem */
         if (LittleFS.exists(updatedFilename))
         {
             /* Open the file in read mode */
@@ -109,16 +110,9 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
 
             if (file)
             {
-                /* Move to the end of the file */
-                file.seek(0, SeekEnd);
-
-                /* Get the current position in the file content (the size of the file) */
-                size_t fileSize = file.position();
-
-                /* Move back to the beginning of the file */
-                file.seek(0, SeekSet);
-
-                LOG_DEBUG("Size of " + updatedFilename + ": " + String(fileSize));
+                /* Get the size of the file */
+                flashfileSize = file.size(); // Obtain file size here
+                LOG_DEBUG("Size of " + updatedFilename + ": " + String( flashfileSize));
 
                 /* Close the file */
                 file.close();
@@ -127,23 +121,49 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
             {
                 LOG_ERROR("Failed to open " + updatedFilename);
             }
-        }
+        } 
         else
         {
             LOG_DEBUG(updatedFilename + " is not in FileSystem.");
         }
-            request->redirect("/filelist");
-    
+
+        request->redirect("/filelist");
+        /*Get file size from special header if available*/
+        AsyncWebHeader* headerXFileSizeFilesystem = request->getHeader("X-File-Size-Filesystem");
+
+            /* Firmware file size available? */
+        if (nullptr != headerXFileSizeFilesystem)
+        {
+            /* If conversion fails, it will contain UPDATE_SIZE_UNKNOWN. */
+            (void)Util::strToUInt32(headerXFileSizeFilesystem->value(), expectedfileSize);
         }
-    else
-    {
-        LOG_ERROR("Please keep trying this is not the last datablock!");
+
+        if(0U != expectedfileSize)
+        {
+            if( expectedfileSize != flashfileSize)
+        
+            {
+                LOG_ERROR("Received file size (" + String( flashfileSize) + ") does not match Content-Length header (" + String(expectedfileSize) + ")!");
+            } 
+            else
+            {
+                LOG_DEBUG("Received file size matches Content-Length header (" + String(expectedfileSize) + ")");
+            }
+
+        }
+        else
+        {
+            LOG_DEBUG("Webpage did not provided FileSize!");
+        }
+        
        
     }
+    else
+    {
+        LOG_ERROR("Please keep trying this is not the last data block!");
+   
+    }
 }
-
-
-
 
 
 
