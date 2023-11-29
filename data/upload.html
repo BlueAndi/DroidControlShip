@@ -71,13 +71,12 @@
     <h1>Welcome to the Upload Page!</h1>
     <p>Please follow the instructions below.</p>
     <p>Please submit a document and press upload!</p>
-    <form class="upload-form" method="post" action="/upload" enctype="multipart/form-data">
-            <label for="fileInput">Select a file:</label>
-            <input type="file" name="firmware" id="fileInput">
-            <input id="uploadButton" type="submit" value="Upload">
-     </form>
-
-        <!-- Bereich für die Dateiliste -->
+    
+    <form id="uploadForm" class="upload-form" method="post" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="firmware" id="fileInput">
+        <input id="uploadButton" type="submit" value="Upload">
+    </form>
+      <!-- Bereich für die Dateiliste -->
     <button id="fileListButton">Show File List</button>
     <div id="fileListContainer"></div>
 
@@ -103,50 +102,40 @@
         }
 
        
-
-document.querySelector('.upload-form').addEventListener('submit', function(event)
-{
-    event.preventDefault();
-
-    var fileInput = document.getElementById('fileInput');
-    if (fileInput.files.length > 0)
-    {
-        var uploadedFile = fileInput.files[0];
-        var fileSize = uploadedFile.size;
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/upload', true);
-
-       /*Here, the updateProgress function is used to update the progress*/
-
-        xhr.upload.addEventListener('progress', updateProgress);
-
-        xhr.setRequestHeader('X-File-Size-Filesystem', fileSize);
-        xhr.onreadystatechange = function()
+        document.getElementById('uploadForm').addEventListener('submit', function(event)
         {
-            if (xhr.readyState === XMLHttpRequest.DONE)
+            var file = document.getElementById("fileInput").files[0];
+            var fileSizeFirmware = file.size;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+            xhr.upload.addEventListener('progress', updateProgress);
+            xhr.setRequestHeader('X-File-Size-Firmware', fileSizeFirmware);
+
+            xhr.onreadystatechange = function()
             {
-                if (xhr.status === 200)
+                if (xhr.readyState === XMLHttpRequest.DONE)
                 {
-                   /*This code displays the message "Upload successful" on the web page*/
-                    var fileListContainer = document.getElementById('fileListContainer');
-                    fileListContainer.innerHTML = '<span style="color: red;">Upload successful.</span>';
+                    if (xhr.status === 200)
+                    {
+                        /*This code displays the message "Upload successful" on the web page*/
+                        var fileListContainer = document.getElementById('fileListContainer');
+                        fileListContainer.innerHTML = '<span style="color: red;">Upload successful.</span>';
 
-                    console.log('Upload successful.');
-                } else {
-                    console.error('Error during upload.');
-                }
-            }
-        };
+                        console.log('Upload successful.');
+                    }else
+                    {
+                        console.error('Error during upload.');
+                    }   
 
-        var formData = new FormData();
-        formData.append('firmware', uploadedFile);
-        xhr.send(formData);
-    } else
-    {
-        console.error('Please select a file.');
-    }
-});
+                }       
+            };
+ 
+            var formData = new FormData(document.getElementById('uploadForm'));
+            xhr.send(formData);
+
+            // Prevent the form from submitting the traditional way
+            event.preventDefault();
+        });
 
 /* Wait until the DOM is fully loaded */
     document.addEventListener('DOMContentLoaded', function()

@@ -56,6 +56,8 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+/*Maximale Dateigröße*/
+const size_t MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 /******************************************************************************
  * Public Methods
@@ -72,8 +74,10 @@ Upload::~Upload()
 void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)
 {
     String updatedFilename = filename;
+    size_t flashfileSize = 0U; 
+    size_t expectedfileSize = 0U;
 
-
+    /* Initialize fileSize*/
     if (!filename.startsWith("/"))
     {
         updatedFilename = "/" + filename;
@@ -81,6 +85,29 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
    
      if (!index)
     {   
+        /*Get file size from special header if available*/
+        AsyncWebHeader* headerXFileSizeFirmware = request->getHeader("X-File-Size-Firmware");
+        /* Firmware file size available? */
+        if(nullptr != headerXFileSizeFirmware)
+        {
+            /* If conversion fails, it will contain UPDATE_SIZE_UNKNOWN. */
+            (void)Util::strToUInt32(headerXFileSizeFirmware->value(), expectedfileSize);
+
+           
+            LOG_DEBUG("File size: %d", expectedfileSize);
+            if (expectedfileSize > MAX_FILE_SIZE)
+            {
+                /* If file size is too large, abort upload. */
+                request->send(413, "text/plain", "File size exceeds the limit."); // HTTP-Fehlercode 413 (Payload Too Large)
+                return;
+                LOG_ERROR("File size exceeds the limit.");
+            }
+        }
+        else
+        {
+            LOG_DEBUG("No file size given.");
+        }
+ 
         /*Save file in the request object*/
         request->_tempFile = LittleFS.open(updatedFilename, "w");
         LOG_DEBUG("Upload Start: " + String(updatedFilename));
@@ -97,10 +124,6 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
     {
         LOG_DEBUG("Last block received - final: true");
         request->_tempFile.close();
-    
-        /* Initialize fileSize*/
-        size_t flashfileSize = 0U; 
-        size_t expectedfileSize = 0U;
 
         /* Check if the file exists in FileSystem */
         if (LittleFS.exists(updatedFilename))
@@ -112,7 +135,7 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
             {
                 /* Get the size of the file */
                 flashfileSize = file.size(); // Obtain file size here
-                LOG_DEBUG("Size of " + updatedFilename + ": " + String( flashfileSize));
+                LOG_DEBUG("Size of in FileSystem " + updatedFilename + ": " + String( flashfileSize));
 
                 /* Close the file */
                 file.close();
@@ -128,43 +151,14 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
         }
 
         request->redirect("/filelist");
-        /*Get file size from special header if available*/
-        AsyncWebHeader* headerXFileSizeFilesystem = request->getHeader("X-File-Size-Filesystem");
-
-            /* Firmware file size available? */
-        if (nullptr != headerXFileSizeFilesystem)
-        {
-            /* If conversion fails, it will contain UPDATE_SIZE_UNKNOWN. */
-            (void)Util::strToUInt32(headerXFileSizeFilesystem->value(), expectedfileSize);
-        }
-
-        if(0U != expectedfileSize)
-        {
-            if( expectedfileSize != flashfileSize)
-        
-            {
-                LOG_ERROR("Received file size (" + String( flashfileSize) + ") does not match Content-Length header (" + String(expectedfileSize) + ")!");
-            } 
-            else
-            {
-                LOG_DEBUG("Received file size matches Content-Length header (" + String(expectedfileSize) + ")");
-            }
-
-        }
-        else
-        {
-            LOG_DEBUG("Webpage did not provided FileSize!");
-        }
-        
-       
     }
+    
     else
     {
         LOG_ERROR("Please keep trying this is not the last data block!");
    
     }
 }
-
 
 
 
