@@ -25,99 +25,84 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ZumoOta application
- * @author Decareme Pauline Ngangnou <ngandeca@yahoo.fr>
- *
- * @addtogroup Application
- *
- * {
+ * @brief  FlashManager realization
+ * 
  */
-
-#ifndef APP_H
-#define APP_H
-
-/******************************************************************************
- * Compile Switches
- *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Board.h>
-#include "FileManager.h"
-#include "WebServerCustom.h"
-#include "NetworkConnexion.h"
+#include "FlashManager.h"
+#include <LittleFS.h>
+#include<Logging.h>
+#include <string.h>
+/******************************************************************************
+ * Compiler Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and Classes
+ * Types and classes
  *****************************************************************************/
 
-/** The Remote Control application. */
-class App
+/******************************************************************************
+ * Prototypes
+ *****************************************************************************/
+
+/******************************************************************************
+ * Local Variables
+ *****************************************************************************/
+
+/******************************************************************************
+ * Public Methods
+ *****************************************************************************/
+
+FlashManager::FlashManager()
 {
-public:
-    /**
-     * Construct the app  application.
-     */
-    App();
     
-    /**
-     * Destroy the app  application.
-     */
-    ~App();
+}
+    
+FlashManager::~FlashManager()
+{
+}
 
-    /**
-     * Setup the application.
-     */
-    void setup();
 
-    /**
-     * Process the application periodically.
-     */
-    void loop();
 
-    /**
-     * Start the Application.
-     */
-    void start();
 
-    /**
-     * Initialize the logging
-     */
-    bool loginit();
 
-    /**
-     * Function to stop the application
-     */
-    void halt();
 
-private:
-    /**
-     * Instance of the FileManager class 
-     *responsible for managing the LittleFs file System. 
-     */
-    FileManager m_fileManager;
 
-    /**
-     * Instance of the WebServerCustom class 
-     *representing a custom webserver for the application.
-     */
-    WebServerCustom m_webServer;
 
-    /**
-     * Instance of the Upload class 
-     */
-    Upload m_upload;
 
-    /**
-     * Instance of the NetworkConnexion class 
-     */
-    NetworkConnexion m_network;
-};
 
-#endif /* APP_H */
-/** @} */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
