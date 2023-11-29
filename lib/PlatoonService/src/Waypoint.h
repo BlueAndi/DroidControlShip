@@ -28,7 +28,7 @@
  * @brief  Definition of a Waypoint.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Service
+ * @addtogroup PlatoonService
  *
  * @{
  */

@@ -28,7 +28,7 @@
  * @brief  Processing Chain composed of a longitudinal and a lateral component.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Service
+ * @addtogroup PlatoonService
  *
  * @{
  */

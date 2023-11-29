@@ -28,7 +28,7 @@
  * @brief  Platoon controller class for calculating each step inside a platoon context.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Service
+ * @addtogroup PlatoonService
  *
  * @{
  */

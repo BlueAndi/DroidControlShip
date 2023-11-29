@@ -28,7 +28,7 @@
  * @brief  Interface for a Longitudinal Safety Policy.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Service
+ * @addtogroup PlatoonService
  *
  * @{
  */

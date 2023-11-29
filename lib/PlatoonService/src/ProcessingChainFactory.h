@@ -28,7 +28,7 @@
  * @brief  Factory of ProcessingChain.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Service
+ * @addtogroup PlatoonService
  *
  * @{
  */

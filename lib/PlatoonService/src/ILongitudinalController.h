@@ -28,7 +28,7 @@
  * @brief  Interface for a Longitudinal Controller.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Service
+ * @addtogroup PlatoonService
  *
  * @{
  */
