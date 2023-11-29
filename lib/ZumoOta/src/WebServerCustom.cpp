@@ -66,7 +66,7 @@ MySettings set;
 
 WebServerCustom::WebServerCustom()
 {
-    
+
 }
 
 WebServerCustom::~WebServerCustom()
@@ -81,13 +81,15 @@ String WebServerCustom::listFiles(bool ishtml)
     File foundfile = root.openNextFile();
     if (ishtml)
     {
-        returnText += "<table><tr><th align='left'>Name</th><th align='left'>Size</th></tr>";
+        returnText += "<style>.filename { color: black; }</style>";
+        returnText += "<table style='background-color: yellow;'><tr><th align='left'>Name</th><th align='right'>Size</th></tr>";
     }
     while (foundfile)
     {
         if(ishtml)
         {
-            returnText += "<tr align='left'><td>" + String(foundfile.name()) + "</td><td>" + humanReadableSize(foundfile.size()) + "</td></tr>";
+            returnText += "<tr align='left'><td class='filename'>" + String(foundfile.name()) + "</td></tr>";
+            returnText += "<tr align='right'><td>" + humanReadableSize(foundfile.size()) + "</td></tr>";
         }
         else
         {
@@ -154,11 +156,8 @@ void WebServerCustom::init()
         else
         {
             request->send(LittleFS, "/login.html","text/html");
-        
         }
     });
-
-   
 
     server.begin();
 }
