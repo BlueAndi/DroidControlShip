@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload</title>
     <style>
-        body {
+        body
+        {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -14,14 +15,15 @@
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
             
-            background-image: url('https://www.robot-maker.com/shop/1252-thickbox_default/robot-pololu-zumo-32u4.jpg');
+
             background-position: center;
             background-repeat: no-repeat;
             background-size: cover;
             background-color: rosybrown;
         }
 
-        .upload-form {
+        .upload-form
+        {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -31,93 +33,148 @@
             background-color: white;
         }
 
-        .upload-form input[type="file"] {
+        .upload-form input[type="file"]
+        {
             margin-bottom: 10px;
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #ccc;
         }
 
-        .upload-form input[type="submit"] {
+        .upload-form input[type="submit"]
+        {
             padding: 10px 20px;
             border-radius: 20px;
             border: none;
             background-color: lightblue;
             cursor: pointer;
         }
-        h1,h2, p {
+        h1,h2, p
+        {
             margin-top: 0;
             color: yellow; 
         }
 
-        /* Neuer Stil für das Anzeigen des Bildes */
-        .uploaded-file {
+        .uploaded-file
+        {
             margin-top: 20px;
             max-width: 100%;
             height: auto;
         }
+
+        
         
     </style>
     
 </head>
 <body>
-    <h1>Willkommen zur Upload Seite!</h1>
-    <p>Bitte Anweisungen folgen!</p>
-    <p> Bitte ein Dokument einreichen und auf Upload drücken!</p>
+    <h1>Welcome to the Upload Page!</h1>
+    <p>Please follow the instructions below.</p>
+    <p>Please submit a document and press upload!</p>
     <form class="upload-form" method="post" action="/upload" enctype="multipart/form-data">
-        <input type="file" name="firmware" id="fileInput">
-        <input id="uploadButton" type="submit" value="Upload">
-    </form>
+            <label for="fileInput">Select a file:</label>
+            <input type="file" name="firmware" id="fileInput">
+            <input id="uploadButton" type="submit" value="Upload">
+     </form>
 
-    <!-- Anzeige der hochgeladenen Dateien in einer Tabelle -->
-    <table id="uploadedFilesTable">
-        <thead>
-            <tr>
-                <th>Dateiname</th>
-                <th>Typ</th>
-                <th>Größe</th>
-            </tr>
-        </thead>
-        <tbody id="fileList"></tbody>
-    </table>
-    
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const fileList = document.getElementById('fileList');
-        
-        fileInput.addEventListener('change', function() {
-            fileList.innerHTML = ''; // Leert die Tabelle vor dem Hinzufügen der neuen Dateien
-            
-            const files = fileInput.files;
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const row = fileList.insertRow();
-                
-                const fileNameCell = row.insertCell(0);
-                fileNameCell.textContent = file.name;
-                
-                const fileTypeCell = row.insertCell(1);
-                fileTypeCell.textContent = file.type || 'Unbekannter Typ';
-                
-                const fileSizeCell = row.insertCell(2);
-                const fileSizeKB = (file.size / 1024).toFixed(2);
-                fileSizeCell.textContent = `${fileSizeKB} KB`;
+        <!-- Bereich für die Dateiliste -->
+    <button id="fileListButton">Show File List</button>
+    <div id="fileListContainer"></div>
 
-                // Überprüfung der Dateigröße
-                if (file.size > MAX_FILE_SIZE_IN_BYTES) {
-                    // Datei zu groß, hier kannst du entsprechend handeln
-                    alert('Die Dateigröße überschreitet die maximale Größe.');
-                    // Verhindern des Uploads oder andere Maßnahmen ergreifen
-                    // z.B. fileInput.value = ''; um die Dateiauswahl zu leeren
+    <!-- Hier ist der Bereich für den Fortschrittsbalken -->
+    <div id="progressBarContainer">
+        <div id="progressBar" style="width: 0%; background-color: violet; height: 20px;"></div>
+    </div>
+
+<script>
+
+        function updateProgress(evt)
+        {
+            var progress = 0;
+
+            if (true === evt.lengthComputable)
+            {
+                progress = Math.ceil(evt.loaded * 100 / evt.total);
+            }
+
+            var progressBar = document.getElementById('progressBar');
+            progressBar.style.width = progress + "%";
+            progressBar.textContent = progress + "%";
+        }
+
+       
+
+document.querySelector('.upload-form').addEventListener('submit', function(event)
+{
+    event.preventDefault();
+
+    var fileInput = document.getElementById('fileInput');
+    if (fileInput.files.length > 0)
+    {
+        var uploadedFile = fileInput.files[0];
+        var fileSize = uploadedFile.size;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload', true);
+
+       /*Here, the updateProgress function is used to update the progress*/
+
+        xhr.upload.addEventListener('progress', updateProgress);
+
+        xhr.setRequestHeader('X-File-Size-Filesystem', fileSize);
+        xhr.onreadystatechange = function()
+        {
+            if (xhr.readyState === XMLHttpRequest.DONE)
+            {
+                if (xhr.status === 200)
+                {
+                   /*This code displays the message "Upload successful" on the web page*/
+                    var fileListContainer = document.getElementById('fileListContainer');
+                    fileListContainer.innerHTML = '<span style="color: red;">Upload successful.</span>';
+
+                    console.log('Upload successful.');
+                } else {
+                    console.error('Error during upload.');
                 }
             }
+        };
+
+        var formData = new FormData();
+        formData.append('firmware', uploadedFile);
+        xhr.send(formData);
+    } else
+    {
+        console.error('Please select a file.');
+    }
+});
+
+/* Wait until the DOM is fully loaded */
+    document.addEventListener('DOMContentLoaded', function()
+    {
+        var fileListButton = document.getElementById('fileListButton');
+        var fileListContainer = document.getElementById('fileListContainer');
+
+        fileListButton.addEventListener('click', function()
+        {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/filelist', true);
+            xhr.onreadystatechange = function()
+            {
+                if (xhr.readyState === XMLHttpRequest.DONE) 
+                {
+                    if (xhr.status === 200) 
+                    {
+                        fileListContainer.innerHTML = xhr.responseText;
+                    } 
+                    else
+                    {
+                        fileListContainer.innerHTML = 'Error fetching file list.';
+                    }
+                }
+            };
+            xhr.send();
         });
-    </script>
-   
-
-
-
-    
-    
+    })
+</script>
 </body>
 </html>
