@@ -79,7 +79,7 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
         updatedFilename = "/" + filename;
     }
    
-     if (!index)
+     if (0 == index)
     {   
         /*Save file in the request object*/
         request->_tempFile = LittleFS.open(updatedFilename, "w");
