@@ -4,7 +4,7 @@ title Basic application with PlatoonController
 
 package "Application" as appLayer {
 
-    struct WaypointData {
+    struct Waypoint {
         + xPos : int32_t
         + yPos : int32_t
         + orientation : int32_t
@@ -18,8 +18,8 @@ package "Application" as appLayer {
         - m_v2vClient : V2VClient
         + setup() : void
         + loop() : void
-        + outputWaypointCallback(const WaypointData&) : void
-        + inputWaypointCallback(const WaypointData&) : void
+        + outputWaypointCallback(const Waypoint&) : void
+        + inputWaypointCallback(const Waypoint&) : void
         + motorSetpointCallback(int16_t leftSpeed, int16_t rightSpeed) : void
     }
 
@@ -29,60 +29,71 @@ package "Application" as appLayer {
         - m_rxWaypointQueue : Queue
         + init(MqttConfig) : bool
         + process() : bool
-        + sendWaypoint(const WaypointData&) : bool
-        + getWaypoint(WaypointData&) : bool
+        + sendWaypoint(const Waypoint&) : bool
+        + getWaypoint(Waypoint&) : bool
     }
 
     class PlatoonController {
-        + init(ProcessingChainConfig&, OutputWaypointCallback, InputWaypointCallback, motorSetpointCallback) : bool
-        + setCurrentRobotData(const WaypointData&) : void
-        + setNewWaypoint(const WaypointData&) : void
+        + typedef std::function<void(Waypoint& waypoint)> InputWaypointCallback;
+        + typedef std::function<void(const Waypoint& waypoint)> OutputWaypointCallback;
+        + typedef std::function<void(const int16_t left, const int16_t right)> MotorSetpointCallback;
+        + init(const InputWaypointCallback& inputWaypointCallback, const OutputWaypointCallback& outputWaypointCallback, const MotorSetpointCallback& motorSetpointCallback) : bool
         + process() : void
-
-        - m_waypoint : WaypointData
+        + setLatestVehicleData(const Waypoint& vehicleData): void
+        - targetWaypointReached() : bool
+        - m_inputWaypointCallback : InputWaypointCallback
+        - m_outputWaypointCallback : OutputWaypointCallback
+        - m_motorSetpointCallback : MotorSetpointCallback
+        - m_currentWaypoint : Waypoint
+        - m_currentVehicleData : Waypoint
+        - m_processingChainTimer : SimpleTimer
         - m_processingChain : ProcessingChain*
     }
 
-    class ProcessingChainFactory {
-        + createChain(ProcessingChainConfig) : ProcessingChain*
-    }
-
-    struct ProcessingChainConfig {
-        + LongitudinalControllerId : uint8_t
-        + LongitudinalSafetyPolicyId : uint8_t
-        + LateralControllerId : uint8_t
-        + LateralSafetyPolicyId : uint8_t
+    class ProcessingChainFactory <<Singleton>> {
+        + getInstance() : ProcessingChainFactory&
+        + createChain() : ProcessingChain*
+        + registerLongitudinalControllerCreateFunc(ILongitudinalController::CreateFunc createFunc) : void
+        + registerLongitudinalSafetyPolicyCreateFunc(ILongitudinalSafetyPolicy::CreateFunc createFunc) : void
+        + registerLateralControllerCreateFunc(ILateralController::CreateFunc createFunc) : void
+        + registerLateralSafetyPolicyCreateFunc(ILateralSafetyPolicy::CreateFunc createFunc) : void
+        - m_longitudinalControllerCreateFuncs : ILongitudinalController::CreateFunc
+        - m_longitudinalSafetyPolicyCreateFuncs : ILongitudinalSafetyPolicy::CreateFunc
+        - m_lateralControllerCreateFuncs : ILateralController::CreateFunc
+        - m_lateralSafetyPolicyCreateFuncs : ILateralSafetyPolicy::CreateFunc
     }
 
     class ProcessingChain {
         - m_longitudinalController: ILongitudinalController&
         - m_longitudinalSafetyPolicy: ILongitudinalSafetyPolicy&
+        - m_lateralController: ILateralController&
+        - m_lateralSafetyPolicy: ILateralSafetyPolicy&
         + ProcessingChain(ILongitudinalController&, ILongitudinalSafetyPolicy&, ILateralController&, ILateralSafetyPolicy&)
-        + calculateTargetSpeeds(int16_t& leftSpeed, int16_t& rightSpeed) : bool
+        + calculateMotorSetpoints(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
+                                 int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint) : bool
     }
 
-    interface ILongitudinalController
-    interface ILongitudinalSafetyPolicy
-    interface ILateralController
-    interface ILateralSafetyPolicy
+    interface ILongitudinalController {
+        typedef ILongitudinalController* (*CreateFunc)(void);
+    }
 
+    interface ILongitudinalSafetyPolicy {
+        typedef ILongitudinalSafetyPolicy* (*CreateFunc)(void);
+    }
+
+    interface ILateralController {
+        typedef ILateralController* (*CreateFunc)(void);
+    }
+
+    interface ILateralSafetyPolicy {
+        typedef ILateralSafetyPolicy* (*CreateFunc)(void);
+    }
 
     package "Concrete Components" as concreteComponents {
-        class LongitudinalController0
-        class LongitudinalSafetyPolicy0
-        class LateralController0
-        class LateralSafetyPolicy0
-        class LongitudinalController1
-        class LongitudinalSafetyPolicy1
-        class LateralController1
-        class LateralSafetyPolicy1
-    }
-
-    package "Contrete Component Enumerations" as enumerations {
-        enum LongitudinalControllerIds
-        enum LateralControllerIds
-        enum LongitudinalSafetyPolicyIds
-        enum LateralSafetyPolicyIds
+        class LongitudinalController
+        class LongitudinalSafetyPolicy
+        class LateralController
+        class LateralSafetyPolicy
     }
 }
 
@@ -92,36 +103,24 @@ package "Service" as serviceLayer {
 }
 
 App *--> PlatoonController : <<use>>
-App .right.> Settings : <<use>>
+App ...> Settings : <<use>>
 App *-left-> v2v : <<use>>
+App ...> DiffDrive : <<use>>
 
-PlatoonController ..left.> WaypointData : <<use>>
-PlatoonController ..right.> DiffDrive : <<use>>
 PlatoonController --> ProcessingChainFactory : <<use>>
 PlatoonController o--> ProcessingChain: <<use>>
 
-ProcessingChainConfig ..> enumerations : <<use>>
-
-ProcessingChainFactory ..> ProcessingChainConfig : <<use>>
-ProcessingChainFactory ..> ProcessingChain: <<use>>
-
-enumerations ..> concreteComponents : <<enumerates>>
+ProcessingChainFactory ..> ProcessingChain: <<create>>
 
 ProcessingChain ..> ILongitudinalController : <<use>>
 ProcessingChain ..> ILongitudinalSafetyPolicy : <<use>>
 ProcessingChain ..> ILateralController : <<use>>
 ProcessingChain ..> ILateralSafetyPolicy : <<use>>
+ProcessingChain ..right.> Waypoint : <<use>>
 
-ILongitudinalController <|.. LongitudinalController0 : <<realize>>
-ILongitudinalController <|.. LongitudinalController1 : <<realize>>
-
-ILongitudinalSafetyPolicy <|.. LongitudinalSafetyPolicy0 : <<realize>>
-ILongitudinalSafetyPolicy <|.. LongitudinalSafetyPolicy1 : <<realize>>
-
-ILateralController <|.. LateralController0 : <<realize>>
-ILateralController <|.. LateralController1 : <<realize>>
-
-ILateralSafetyPolicy <|.. LateralSafetyPolicy0 : <<realize>>
-ILateralSafetyPolicy <|.. LateralSafetyPolicy1 : <<realize>>
+ILongitudinalController <|.. LongitudinalController : <<realize>>
+ILongitudinalSafetyPolicy <|.. LongitudinalSafetyPolicy : <<realize>>
+ILateralController <|.. LateralController : <<realize>>
+ILateralSafetyPolicy <|.. LateralSafetyPolicy : <<realize>>
 
 @enduml
