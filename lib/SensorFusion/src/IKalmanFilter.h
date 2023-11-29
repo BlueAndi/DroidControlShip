@@ -27,7 +27,12 @@
 /**
  *  @brief  Interface Class of a Kalman Filter Implementation
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
+ *
+ *  @addtogroup Application
+ * 
+ * @{
  */
+
 #ifndef IKALMANFILTER_H
 #define IKALMANFILTER_H
 
@@ -80,3 +85,4 @@ public:
 };
 
 #endif /* IKALMANFILTER_H */
+/** @} */

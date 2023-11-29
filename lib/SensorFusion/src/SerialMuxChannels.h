@@ -28,6 +28,10 @@
 /**
  *  @brief  Channel structure definition for the SerialMuxProt.
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
+ *
+ *  @addtogroup Application
+ * 
+ * @{
  */
 
 #ifndef SERIAL_MUX_CHANNELS_H_
@@ -117,3 +121,4 @@ typedef struct _EndLineFlag
  *****************************************************************************/
 
 #endif /* SERIAL_MUX_CHANNELS_H_ */
+/** @} */

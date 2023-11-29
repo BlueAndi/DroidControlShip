@@ -28,7 +28,8 @@
  * @brief  Implementation of the Sensor Fusion
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *
- *
+ * @addtogroup Application
+ * 
  * @{
  */
 

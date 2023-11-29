@@ -28,7 +28,8 @@
  * @brief  Implementation of the Linear Kalman Filter
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *
- *
+ * @addtogroup Application
+ * 
  * @{
  */
 

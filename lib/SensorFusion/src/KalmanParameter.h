@@ -27,6 +27,10 @@
 /**
  *  @brief  Struct for Parameter used for a Kalman Filter
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
+ *
+ *  @addtogroup Application
+ * 
+ * @{
  */
 
 #ifndef KALMANPARAMETER_H
@@ -60,3 +64,4 @@ typedef struct _KalmanParameter
  *****************************************************************************/
 
 #endif /* KALMANPARAMETER_H */
+/** @} */
