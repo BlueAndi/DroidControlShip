@@ -107,7 +107,8 @@ void App::start()
     else
     {
         LOG_FATAL("LittleFS initialization failed. The application will not start.");
-        halt(); // Call a function to stop the application
+        /*Call a function to stop the application*/
+        halt(); 
     }
 }
 
@@ -116,7 +117,7 @@ void App::halt()
     LOG_ERROR("Application halted due to critical error.");
     while (true)
     {
-        // Stop the application in an endless loop
+        /*Stop the application in an endless loop*/
     }
 }
 
@@ -128,9 +129,10 @@ void App::setup()
         halt();
     }
 
-    network.connectToWiFi();
+    m_network.connectToWiFi();
     start();
     m_webServer.handleUploadRequest();
+  
 }
 
 void App::loop()
