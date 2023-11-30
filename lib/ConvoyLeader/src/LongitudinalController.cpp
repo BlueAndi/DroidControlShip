@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 #include "LongitudinalController.h"
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -70,7 +71,12 @@ LongitudinalController::~LongitudinalController()
 bool LongitudinalController::calculateLongitudinalMovement(const Waypoint& currentWaypoint,
                                                            const Waypoint& targetWaypoint, int16_t& centerSpeedSetpoint)
 {
-    bool isSuccessful = false;
+    bool isSuccessful = true;
+
+    UTIL_NOT_USED(currentWaypoint);
+    UTIL_NOT_USED(targetWaypoint);
+    UTIL_NOT_USED(centerSpeedSetpoint);
+
     return isSuccessful;
 }
 

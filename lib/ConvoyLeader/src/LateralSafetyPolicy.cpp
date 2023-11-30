@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 #include "LateralSafetyPolicy.h"
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -69,7 +70,11 @@ LateralSafetyPolicy::~LateralSafetyPolicy()
 
 bool LateralSafetyPolicy::check(int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint)
 {
-    bool isSuccessful = false;
+    bool isSuccessful = true;
+
+    UTIL_NOT_USED(leftMotorSpeedSetpoint);
+    UTIL_NOT_USED(rightMotorSpeedSetpoint);
+
     return isSuccessful;
 }
 

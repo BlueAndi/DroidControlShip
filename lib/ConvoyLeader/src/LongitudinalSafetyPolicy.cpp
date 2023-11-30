@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 #include "LongitudinalSafetyPolicy.h"
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -69,7 +70,10 @@ LongitudinalSafetyPolicy::~LongitudinalSafetyPolicy()
 
 bool LongitudinalSafetyPolicy::check(int16_t& centerSpeedSetpoint)
 {
-    bool isSuccessful = false;
+    bool isSuccessful = true;
+
+    UTIL_NOT_USED(centerSpeedSetpoint);
+
     return isSuccessful;
 }
 

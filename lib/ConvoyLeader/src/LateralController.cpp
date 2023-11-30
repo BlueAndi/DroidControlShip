@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 #include "LateralController.h"
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -71,7 +72,14 @@ bool LateralController::calculateLateralMovement(const Waypoint& currentWaypoint
                                                  const int16_t centerSpeedSetpoint, int16_t& leftMotorSpeedSetpoint,
                                                  int16_t& rightMotorSpeedSetpoint)
 {
-    bool isSuccessful = false;
+    bool isSuccessful = true;
+
+    UTIL_NOT_USED(currentWaypoint);
+    UTIL_NOT_USED(targetWaypoint);
+    UTIL_NOT_USED(centerSpeedSetpoint);
+    UTIL_NOT_USED(leftMotorSpeedSetpoint);
+    UTIL_NOT_USED(rightMotorSpeedSetpoint);
+
     return isSuccessful;
 }
 
