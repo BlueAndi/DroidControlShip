@@ -4,6 +4,9 @@
 /**
  * @brief  ZumoOta application
  * @author Decareme Pauline Ngangnou <ngandeca@yahoo.fr>
+ *
+ * @addtogroup Application
+ *
  * @{
  */
 #ifndef FlashManager_H

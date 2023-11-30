@@ -5,7 +5,7 @@
  * @brief  WebServer realization
  * @author Decareme Pauline Ngangnou <ngandeca@yahoo.fr>
  *
- * 
+ * @addtogroup Application
  *
  * @{
  */
