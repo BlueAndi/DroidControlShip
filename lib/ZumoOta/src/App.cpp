@@ -37,6 +37,7 @@
 #include <WiFi.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
+#include <SettingsHandler.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -108,35 +109,97 @@ void App::start()
     {
         LOG_FATAL("LittleFS initialization failed. The application will not start.");
         /* Call a function to stop the application. */
-        halt(); 
+        halt();
     }
 }
 
 void App::halt()
 {
     LOG_ERROR("Application halted due to critical error.");
+    /* Turn on Red LED to signal fatal error. */
+    Board::getInstance().getRedLed().enable(true);
+
     while (true)
     {
-        /* Stop the application in an endless loop. */
+        ;
     }
 }
 
 void App::setup()
 {
+    bool             isSuccessful = false;
+    Board&           board        = Board::getInstance();
+    SettingsHandler& settings     = SettingsHandler::getInstance();
+
     if (false == loginit())
     {
-        /* Halt the application or take appropriate action for failed logging initialization. */
-        halt();
+        LOG_FATAL("Log init failed.");
+    }
+    else if (false == board.init())
+    {
+        LOG_FATAL("HAL init failed.");
+    }
+    /* Settings shall be loaded from configuration file. */
+    else if (false == settings.loadConfigurationFile(board.getConfigFilePath()))
+    {
+        LOG_FATAL("Settings could not be loaded from %s.", board.getConfigFilePath());
+    }
+    else
+    {
+        /* If the robot name is empty, use the wifi MAC address as robot name. */
+        if (true == settings.getRobotName().isEmpty())
+        {
+            String robotName = WiFi.macAddress();
+
+            /* Remove MAC separators from robot name. */
+            robotName.replace(":", "");
+
+            settings.setRobotName(robotName);
+
+            if (false == settings.saveConfigurationFile(board.getConfigFilePath()))
+            {
+                /* Error saving settings, but it is not fatal. */
+                LOG_ERROR("Settings file could not be saved.");
+            }
+        }
+
+        NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getApSSID(),
+                                           settings.getApPassword()};
+
+        if (false == board.getNetwork().setConfig(networkSettings))
+        {
+            LOG_FATAL("Network configuration could not be set.");
+        }
+        else
+        {
+            start();
+            m_webServer.handleUploadRequest();
+            isSuccessful = true;
+        }
     }
 
-    m_network.connectToWiFi();
-    start();
-    m_webServer.handleUploadRequest();
-  
+    if (false == isSuccessful)
+    {
+        halt();
+    }
+    else
+    {
+        /* Blink Green LED to signal all-good. */
+        Board::getInstance().getGreenLed().enable(true);
+        delay(100U);
+        Board::getInstance().getGreenLed().enable(false);
+    }
 }
 
 void App::loop()
 {
+    /* Process Battery, Device and Network. */
+    if (false == Board::getInstance().process())
+    {
+        /* Log and Handle Board processing error */
+        LOG_FATAL("HAL process failed.");
+        halt();
+    }
 }
 
 /******************************************************************************

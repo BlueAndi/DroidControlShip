@@ -46,7 +46,6 @@
 #include <Board.h>
 #include "FileManager.h"
 #include "WebServerCustom.h"
-#include "NetworkConnection.h"
 
 /******************************************************************************
  * Macros
@@ -64,7 +63,7 @@ public:
      * Construct the app  application.
      */
     App();
-    
+
     /**
      * Destroy the app  application.
      */
@@ -97,26 +96,21 @@ public:
 
 private:
     /**
-     * Instance of the FileManager class 
-     *responsible for managing the LittleFs file System. 
+     * Instance of the FileManager class
+     *responsible for managing the LittleFs file System.
      */
     FileManager m_fileManager;
 
     /**
-     * Instance of the WebServerCustom class 
+     * Instance of the WebServerCustom class
      *representing a custom webserver for the application.
      */
     WebServerCustom m_webServer;
 
     /**
-     * Instance of the Upload class 
+     * Instance of the Upload class
      */
     Upload m_upload;
-
-    /**
-     * Instance of the NetworkConnection class 
-     */
-    NetworkConnection m_network;
 };
 
 #endif /* APP_H */
