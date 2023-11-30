@@ -106,7 +106,7 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
             LOG_DEBUG("No file size given.");
         }
  
-        /*Save file in the request object. */
+        /* Save file in the request object. */
         request->_tempFile = LittleFS.open(updatedFilename, "w");
         LOG_DEBUG("Upload Start: " + String(updatedFilename));
     }
