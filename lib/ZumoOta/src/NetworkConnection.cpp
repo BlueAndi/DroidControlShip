@@ -32,7 +32,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "NetworkConnexion.h"
+#include "NetworkConnection.h"
 #include <WiFi.h>
 #include <Logging.h>
 #include "MySettings.h"
@@ -68,18 +68,18 @@ const int RECONNECT_DELAY_MS = 30000;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
-NetworkConnexion::NetworkConnexion()
+NetworkConnection::NetworkConnection()
 {
     m_connected = false;
     m_connectAttempts = 0;
 }
 
-NetworkConnexion::~NetworkConnexion()
+NetworkConnection::~NetworkConnection()
 {
     
 }
 
-void NetworkConnexion::connectToWiFi()
+void NetworkConnection::connectToWiFi()
 {
     int connectAttempts = 0;
     /*Loop to attempt multiple connections with provided credentials*/
@@ -107,7 +107,7 @@ void NetworkConnexion::connectToWiFi()
         switchToAPMode();
     }
 }
-void NetworkConnexion::switchToAPMode()
+void NetworkConnection::switchToAPMode()
 {
     WiFi.mode(WIFI_AP);
     WiFi.softAP(settings.getapSSID(), settings.getapPassword());
@@ -117,7 +117,7 @@ void NetworkConnexion::switchToAPMode()
     
 }
 
-void NetworkConnexion::checkConnection()
+void NetworkConnection::checkConnection()
 {
     while (true)
     {
