@@ -72,7 +72,7 @@ static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
  * Public Methods
  *****************************************************************************/
 
-App::App()
+App::App() : m_isWebServerInitialized(false)
 {
 }
 
@@ -172,8 +172,6 @@ void App::setup()
         }
         else
         {
-            start();
-            m_webServer.handleUploadRequest();
             isSuccessful = true;
         }
     }
@@ -199,6 +197,14 @@ void App::loop()
         /* Log and Handle Board processing error */
         LOG_FATAL("HAL process failed.");
         halt();
+    }
+
+    /* Initialize WebServer. Must be done after the network has been processed at least once. */
+    if ((false == m_isWebServerInitialized))
+    {
+        start();
+        m_webServer.handleUploadRequest();
+        m_isWebServerInitialized = true;
     }
 }
 
