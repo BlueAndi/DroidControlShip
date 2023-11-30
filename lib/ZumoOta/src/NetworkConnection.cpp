@@ -57,13 +57,13 @@
  * Local Variables
  *****************************************************************************/
 MySettings settings;
-/* Maximum number of connection attempts*/
+/* Maximum number of connection attempts. */
 const int MAX_CONNECTION_ATTEMPTS = 3; 
 
-/* Delay between connection retries in milliseconds*/
+/* Delay between connection retries in milliseconds. */
 const int RETRY_DELAY_MS = 10000; 
 
-/* Delay between reconnect attempts in milliseconds*/
+/* Delay between reconnect attempts in milliseconds. */
 const int RECONNECT_DELAY_MS = 30000;  
 /******************************************************************************
  * Public Methods
@@ -82,13 +82,13 @@ NetworkConnection::~NetworkConnection()
 void NetworkConnection::connectToWiFi()
 {
     int connectAttempts = 0;
-    /*Loop to attempt multiple connections with provided credentials*/
+    /* Loop to attempt multiple connections with provided credentials. */
     while(!m_connected && connectAttempts < MAX_CONNECTION_ATTEMPTS)
     {
         WiFi.begin(settings.getWiFiSSID(), settings.getWiFiPassword());
         LOG_DEBUG("Connecting...");
         delay(5000);
-        /*Check if the connection to the Wi-Fi network is successful*/
+        /* Check if the connection to the Wi-Fi network is successful. */
         if(WiFi.status() == WL_CONNECTED)
         {
             m_connected = true;
@@ -101,7 +101,7 @@ void NetworkConnection::connectToWiFi()
             delay(RETRY_DELAY_MS);
         }
     }
-    /* If connection fails after maximum attempts, create a local Wi-Fi network*/
+    /* If connection fails after maximum attempts, create a local Wi-Fi network. */
     if (!m_connected && connectAttempts >= MAX_CONNECTION_ATTEMPTS)
     {
         switchToAPMode();
@@ -126,7 +126,7 @@ void NetworkConnection::checkConnection()
             m_connected = false;
             LOG_ERROR("Connection lost. Reconnecting...");
 
-            /*Attempt to reconnect*/
+            /* Attempt to reconnect. */
             connectToWiFi();  
 
             if (WiFi.status() == WL_CONNECTED)
@@ -139,7 +139,6 @@ void NetworkConnection::checkConnection()
         delay(RECONNECT_DELAY_MS);
     }
 }
-
 
 /******************************************************************************
  * Protected Methods

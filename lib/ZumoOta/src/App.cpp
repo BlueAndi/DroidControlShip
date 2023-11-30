@@ -64,7 +64,7 @@
 /** Serial interface baudrate. */
 static const uint32_t SERIAL_BAUDRATE = 115200U;
 
-/** Serial log sink */
+/** Serial log sink. */
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 
 /******************************************************************************
@@ -81,10 +81,10 @@ App::~App()
 
 bool App::loginit()
 {
-    /* Initialize Serial communication */
+    /* Initialize Serial communication. */
     Serial.begin(SERIAL_BAUDRATE);
 
-    /* Register serial log sink and select it per default.*/
+    /* Register serial log sink and select it per default. */
     if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
     {
         (void)Logging::getInstance().selectSink("Serial");
@@ -107,7 +107,7 @@ void App::start()
     else
     {
         LOG_FATAL("LittleFS initialization failed. The application will not start.");
-        /*Call a function to stop the application*/
+        /* Call a function to stop the application. */
         halt(); 
     }
 }
@@ -117,7 +117,7 @@ void App::halt()
     LOG_ERROR("Application halted due to critical error.");
     while (true)
     {
-        /*Stop the application in an endless loop*/
+        /* Stop the application in an endless loop. */
     }
 }
 
@@ -125,7 +125,7 @@ void App::setup()
 {
     if (false == loginit())
     {
-        /* Halt the application or take appropriate action for failed logging initialization */
+        /* Halt the application or take appropriate action for failed logging initialization. */
         halt();
     }
 

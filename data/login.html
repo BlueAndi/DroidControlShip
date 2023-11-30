@@ -157,15 +157,16 @@
 
         
 
-        /*// The function that submits the form and updates the profile*/
+        /* The function that submits the form and updates the profile. */
         function updateProfile(event)
         {
-            event.preventDefault(); /*Prevents the default behavior of the form (in this case, submission)*/
+            /* Prevents the default behavior of the form (in this case, submission). */
+            event.preventDefault(); 
 
             var newUsername = document.getElementById("newUsername").value;
             var newPassword = document.getElementById("newPassword").value;
 
-           /* AJAX request to send the updated data to the server*/
+           /* AJAX request to send the updated data to the server. */
             var xhr = new XMLHttpRequest();
             xhr.open("POST", "/changeProfile", true);
             xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
@@ -173,7 +174,7 @@
 
             xhr.onload = function ()
             {
-               /*Handle the response here if necessary*/
+               /* Handle the response here if necessary. */
                 if (xhr.status === 200)
                 {
                     alert("Profile successfully updated!");
@@ -184,7 +185,7 @@
             };
         }
 
-        /*The form receives an onsubmit handler that calls updateProfile*/
+        /* The form receives an onsubmit handler that calls updateProfile.*/
         document.getElementById("profileForm").onsubmit = updateProfile;
     </script>
 </body>
