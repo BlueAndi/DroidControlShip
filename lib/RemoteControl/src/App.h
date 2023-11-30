@@ -45,7 +45,9 @@
  *****************************************************************************/
 #include <Arduino.h>
 #include <Board.h>
+#include <MqttClient.h>
 #include <SerialMuxProtServer.hpp>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -65,7 +67,8 @@ public:
     App() :
         m_smpServer(Board::getInstance().getDevice().getStream()),
         m_serialMuxProtChannelIdRemoteCtrl(0U),
-        m_serialMuxProtChannelIdMotorSpeeds(0U)
+        m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_mqttClient()
     {
     }
 
@@ -99,18 +102,6 @@ private:
     /** MQTT topic name for receiving motor speeds. */
     static const char* TOPIC_NAME_MOTOR_SPEEDS;
 
-    /** SerialMuxProt channel name for sending commands. */
-    static const char* CH_NAME_CMD;
-
-    /** SerialMuxProt channel name for receiving command responses. */
-    static const char* CH_NAME_RSP;
-
-    /** SerialMuxProt channel name for sending motor speeds. */
-    static const char* CH_NAME_MOTOR_SPEEDS;
-
-    /** SerialMuxProt channel name for receiving line sensors data. */
-    static const char* CH_NAME_LINE_SENSORS;
-
     /** SerialMuxProt Channel id sending remote control commands. */
     uint8_t m_serialMuxProtChannelIdRemoteCtrl;
 
@@ -120,10 +111,14 @@ private:
     /**
      * SerialMuxProt Server Instance
      *
-     * @tparam tMaxChannels set to 10, as App does not require
-     * more channels for external communication.
+     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
-    SerialMuxProtServer<10U> m_smpServer;
+    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
+
+    /**
+     * MQTTClient Instance
+     */
+    MqttClient m_mqttClient;
 
 private:
     /**
@@ -144,8 +139,9 @@ private:
     void motorSpeedsTopicCallback(const String& payload);
 
 private:
-    App(const App& app);
-    App& operator=(const App& app);
+    /* Not allowed. */
+    App(const App& app);            /**< Copy construction of an instance. */
+    App& operator=(const App& app); /**< Assignment of an instance. */
 };
 
 /******************************************************************************

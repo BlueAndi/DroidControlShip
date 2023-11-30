@@ -45,7 +45,6 @@
  *****************************************************************************/
 #include <stdint.h>
 #include <WString.h>
-#include <functional>
 
 /******************************************************************************
  * Macros
@@ -55,15 +54,19 @@
  * Types and Classes
  *****************************************************************************/
 
+/** Struct encompassing all network settings */
+struct NetworkSettings
+{
+    String ssid;       /**< SSID of the WiFi network. */
+    String password;   /**< Password of the WiFi network. */
+    String apSsid;     /**< SSID in AP mode. */
+    String apPassword; /**< Password in AP mode. */
+};
+
 /** The abstract network interface. */
 class INetwork
 {
 public:
-    /**
-     * Topic callback prototype.
-     */
-    typedef std::function<void(const String& payload)> TopicCallback;
-
     /**
      * Destroys the interface.
      */
@@ -72,84 +75,26 @@ public:
     }
 
     /**
-     * Initialize network driver.
+     * Set network configuration.
+     *
+     * @param[in] settings NetworkSettings struct containing ssid and password.
+     * @return If successfully set, returns true. Otherwise, false.
+     */
+    virtual bool setConfig(const NetworkSettings& settings) = 0;
+
+    /**
+     * Initialize the network connection.
      *
      * @return If successfully initialized, returns true. Otherwise, false.
      */
     virtual bool init() = 0;
 
     /**
-     * Process communication with the network.
+     * Process network tasks according to current state.
      *
-     * @return If communication is successful, returns true. Otherwise, false.
+     * @returns True if tasks successful, otherwise false.
      */
     virtual bool process() = 0;
-
-    /**
-     * Set client configuration.
-     *
-     * @param[in] clientId      Client ID.
-     * @param[in] ssid          SSID of the WiFi network.
-     * @param[in] password      Password of the WiFi network.
-     * @param[in] brokerAddress Broker address to connect to.
-     * @param[in] brokerPort    Broker port to connect to.
-     * @param[in] birthTopic    Birth topic. If empty, no birth message is used.
-     * @param[in] birthMessage  Birth message.
-     * @param[in] willTopic     Last will topic. If empty, no last will is used.
-     * @param[in] willMessage   Last will message.
-     * @param[in] reconnect     If true, the client will try to reconnect to the broker, if the connection is lost.
-     * @return If successfully set, returns true. Otherwise, false.
-     */
-    virtual bool setConfig(const String& clientId, const String& ssid, const String& password,
-                           const String& brokerAddress, uint16_t brokerPort, const String& birthTopic,
-                           const String& birthMessage, const String& willTopic, const String& willMessage,
-                           bool reconnect) = 0;
-
-    /**
-     * Start connection to the network.
-     * This method does not necessarily wait for the connection to be established, it just starts the connection
-     * process. Check `isConnected()` for the current connection status.
-     *
-     * @return If connection has been succesfully started, returns true. Otherwise, false.
-     */
-    virtual bool connect() = 0;
-
-    /**
-     * Disconnect from the network.
-     */
-    virtual void disconnect() = 0;
-
-    /**
-     * Is connected to the network?
-     *
-     * @return If connected, it will return true otherwise false.
-     */
-    virtual bool isConnected() const = 0;
-
-    /**
-     * Publishes a message to the network.
-     *
-     * @param[in] topic                Topic to publish to.
-     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
-     * @param[in] message              Message to publish.
-     */
-    virtual bool publish(const String& topic, const bool useClientBaseTopic, const String& message) = 0;
-
-    /**
-     * Subscribes to a topic.
-     *
-     * @param[in] topic     Topic to subscribe to. The Client ID is used as base topic: `Client ID`/`topic`
-     * @param[in] callback  Callback function, which is called on a new message.
-     * @return If successfully subscribed, returns true. Otherwise, false.
-     */
-    virtual bool subscribe(const String& topic, TopicCallback callback) = 0;
-
-    /**
-     * Unsubscribes from a topic.
-     *
-     * @param[in] topic     Topic to unsubscribe from.  The Client ID is used as base topic: `Client ID`/`topic`
-     */
-    virtual void unsubscribe(const String& topic) = 0;
 
 protected:
     /**

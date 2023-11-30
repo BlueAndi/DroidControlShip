@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "LedRed.h"
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -60,8 +61,7 @@
 
 void LedRed::enable(bool enableIt)
 {
-    /* Not implemented. */
-    (void)enableIt;
+    LOG_DEBUG("Red LED State: %s", enableIt ? "ON" : "OFF");
 }
 
 /******************************************************************************

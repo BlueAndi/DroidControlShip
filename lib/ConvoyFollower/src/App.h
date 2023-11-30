@@ -27,7 +27,7 @@
 /**
  * @brief  ConvoyFollower application
  * @author Andreas Merkle <web@blue-andi.de>
- * 
+ *
  * @addtogroup Application
  *
  * @{
@@ -57,7 +57,6 @@
 class App
 {
 public:
-
     /**
      * Construct the convoy follower application.
      */
@@ -83,9 +82,9 @@ public:
     void loop();
 
 private:
-
-    App(const App& app);
-    App& operator=(const App& app);
+    /* Not allowed. */
+    App(const App& app);            /**< Copy construction of an instance. */
+    App& operator=(const App& app); /**< Assignment of an instance. */
 };
 
 /******************************************************************************

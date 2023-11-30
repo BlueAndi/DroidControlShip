@@ -25,21 +25,25 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Fixpoint math
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
+#include "FPMath.h"
 
-#include "FileReader.h"
-#include <FS.h>
-#include <LittleFS.h>
-#include <Logging.h>
+/******************************************************************************
+ * Compiler Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Macros
+ *****************************************************************************/
+
+/******************************************************************************
+ * Types and classes
  *****************************************************************************/
 
 /******************************************************************************
@@ -54,49 +58,16 @@
  * Public Methods
  *****************************************************************************/
 
-FileReader::FileReader()
-{
-    if (false == LittleFS.begin(true))
-    {
-        LOG_ERROR("Failed to mount file system.");
-    }
-}
-
-FileReader::~FileReader()
-{
-    LittleFS.end();
-}
-
-size_t FileReader::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize)
-{
-    size_t bytesRead = 0;
-    File   file      = LittleFS.open(fileName, "r");
-
-    if ((false == file) || (file.isDirectory()))
-    {
-        LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
-    }
-    else
-    {
-        bytesRead = file.readBytes(outBuffer, maxBufferSize);
-
-        if (true == file.available())
-        {
-            LOG_ERROR("File \"%s\" is too big for the buffer.", fileName.c_str());
-            bytesRead = 0;
-        }
-        else
-        {
-            /* File read successfully. */
-        }
-        file.close();
-    }
-
-    return bytesRead;
-}
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
 
 /******************************************************************************
  * Private Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * External Functions
  *****************************************************************************/
 
 /******************************************************************************

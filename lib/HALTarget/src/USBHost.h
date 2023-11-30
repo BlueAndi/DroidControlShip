@@ -154,10 +154,10 @@ private:
     /** Size of the RX Queue */
     static const uint16_t USB_RX_QUEUE_SIZE = 1024U;
 
-    /* USB core driver instance for USB Host Shield */
+    /** USB core driver instance for USB Host Shield */
     USB m_usb;
 
-    /* Instance of the CDC initialization class */
+    /** Instance of the CDC initialization class */
     ACMAsyncOper m_asyncOper;
 
     /** Instance of ACM */
@@ -176,8 +176,8 @@ private:
 
 private:
     /* Not Allowed. */
-    USBHost(const USBHost& usbhost);
-    USBHost& operator=(const USBHost& usbhost);
+    USBHost(const USBHost& usbhost);            /**< Copy construction of an instance. */
+    USBHost& operator=(const USBHost& usbhost); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
