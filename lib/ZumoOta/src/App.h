@@ -30,7 +30,7 @@
  *
  * @addtogroup Application
  *
- * {
+ * @{
  */
 
 #ifndef APP_H
