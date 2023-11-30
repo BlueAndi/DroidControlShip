@@ -96,6 +96,11 @@ public:
 
 private:
     /**
+     * Flag: Webserver is initialized
+     */
+    bool m_isWebServerInitialized;
+
+    /**
      * Instance of the FileManager class
      *responsible for managing the LittleFs file System.
      */
