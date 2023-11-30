@@ -56,7 +56,7 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-/*Maximale Dateigröße*/
+/* Maximale Dateigröße. */
 const size_t MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 /******************************************************************************
@@ -64,7 +64,8 @@ const size_t MAX_FILE_SIZE = 10 * 1024 * 1024;
  *****************************************************************************/
 
 Upload::Upload()
-{   
+{    
+    expectedfileSize = 0U;
 }
 
 Upload::~Upload()
@@ -75,9 +76,8 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
 {
     String updatedFilename = filename;
     size_t flashfileSize = 0U; 
-    size_t expectedfileSize = 0U;
-
-    /* Initialize fileSize*/
+   
+    /* Initialize fileSize. */
     if (!filename.startsWith("/"))
     {
         updatedFilename = "/" + filename;
@@ -85,15 +85,13 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
    
      if (0 == index)
     {   
-        /*Get file size from special header if available*/
+        /* Get file size from special header if available. */
         AsyncWebHeader* headerXFileSizeFirmware = request->getHeader("X-File-Size-Firmware");
         /* Firmware file size available? */
         if(nullptr != headerXFileSizeFirmware)
         {
             /* If conversion fails, it will contain UPDATE_SIZE_UNKNOWN. */
             (void)Util::strToUInt32(headerXFileSizeFirmware->value(), expectedfileSize);
-
-           
             LOG_DEBUG("File size: %d", expectedfileSize);
             if (expectedfileSize > MAX_FILE_SIZE)
             {
@@ -108,36 +106,36 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
             LOG_DEBUG("No file size given.");
         }
  
-        /*Save file in the request object*/
+        /*Save file in the request object. */
         request->_tempFile = LittleFS.open(updatedFilename, "w");
         LOG_DEBUG("Upload Start: " + String(updatedFilename));
     }
 
     if(len)
     {
-        /* Write data to the file*/
+        /* Write data to the file. */
         request->_tempFile.write(data, len);
     }
 
-    /* If this is the last data block, close the file*/
-    if(final == true)
+    /* If this is the last data block, close the file. */
+    if(true == final)
     {
         LOG_DEBUG("Last block received - final: true");
         request->_tempFile.close();
 
-        /* Check if the file exists in FileSystem */
+        /* Check if the file exists in FileSystem. */
         if (LittleFS.exists(updatedFilename))
         {
-            /* Open the file in read mode */
+            /* Open the file in read mode. */
             File file = LittleFS.open(updatedFilename, "r");
 
             if (file)
             {
-                /* Get the size of the file */
-                flashfileSize = file.size(); // Obtain file size here
-                LOG_DEBUG("Size of in FileSystem " + updatedFilename + ": " + String( flashfileSize));
+                /* Get the size of the file. */
+                flashfileSize = file.size();
+                LOG_DEBUG("Size of " + updatedFilename + " in FileSystem: " + String( flashfileSize));
 
-                /* Close the file */
+                /* Close the file. */
                 file.close();
             }
             else
@@ -149,7 +147,16 @@ void Upload::handleFileUpload(AsyncWebServerRequest *request, const String& file
         {
             LOG_DEBUG(updatedFilename + " is not in FileSystem.");
         }
+        
+        if(expectedfileSize == flashfileSize )
+        {
+            LOG_DEBUG("Received file size matches Content-Length header (" + String(expectedfileSize) + ")");
+        }
+        else
+        {
+            LOG_ERROR("Received file size (" + String( flashfileSize) + ") does not match Content-Length header (" + String(expectedfileSize) + ")!");
 
+        }
         request->redirect("/filelist");
     }
     

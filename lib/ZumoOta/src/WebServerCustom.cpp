@@ -117,7 +117,7 @@ String WebServerCustom::humanReadableSize(const size_t bytes)
         value /= 1024;
         i++;
     }
-    /*Adjust the buffer size as needed"*/
+    /* Adjust the buffer size as needed.*/
     char buffer[16];  
 
     if (i == 0)
@@ -167,7 +167,7 @@ void WebServerCustom::handleUploadRequest()
     server.on("/upload", HTTP_POST, [this](AsyncWebServerRequest *request) {
     }, [this](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
     {
-        /*Process the file upload*/
+        /* Process the file upload.*/
         upload.handleFileUpload(request, filename, index, data, len, final);
     });
 }

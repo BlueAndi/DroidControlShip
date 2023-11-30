@@ -26,7 +26,11 @@
  *****************************************************************************/
 
 class Upload {
-private:   
+private:
+        /**
+        * Expected file size.
+        */
+        size_t expectedfileSize;
         
 public:
     /**
