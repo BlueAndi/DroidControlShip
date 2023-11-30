@@ -146,7 +146,7 @@ private:
     /**
      *  Creates JSON formatted package to send through MQTT.
      */
-    void createPackage();
+    void createPackage(int32_t xCoord, int32_t yCoord);
 
 private:
     /* Not allowed. */

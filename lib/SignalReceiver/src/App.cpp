@@ -234,7 +234,7 @@ void App::loop()
     // if (true == m_sendPackageTimer.isTimeout())
     // {
     //     /* Send current robot coordinates. */
-    //     createPackage();
+    //     odometryCallback();
 
     //     m_sendPackageTimer.restart();
     // }
@@ -243,6 +243,17 @@ void App::loop()
 void App::odometryCallback(const OdometryData& odometry)
 {
     LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", odometry.xPos, odometry.yPos, odometry.orientation);
+
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
+    char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
+
+    payloadJson["x"] = odometry.xPos;
+    payloadJson["y"] = odometry.yPos;
+
+    (void)serializeJson(payloadJson, payloadArray);
+    String payloadStr(payloadArray);
+
+    m_mqttClient.publish("TL_0/coordinates", false, payloadStr);
 }
 
 /******************************************************************************
@@ -268,14 +279,18 @@ void App::fatalErrorHandler()
  * Type: Tx MQTT
  * Name: createPackage
  */
-void App::createPackage()
+void App::createPackage(int32_t xCoord, int32_t yCoord)
 {
-    int32_t xCoordinate = 0;
-    int32_t yCoordinate = 0;
-
+    OdometryData oldCoordinates;
     OdometryData coordinates;
-    coordinates.xPos = xCoordinate;
-    coordinates.yPos = yCoordinate;
+
+    /** First taking old coordinate data. */
+    oldCoordinates.xPos = coordinates.xPos;
+    oldCoordinates.yPos = coordinates.yPos;
+
+    /** Refreshing coordinates. */
+    coordinates.xPos = xCoord;
+    coordinates.yPos = yCoord;
 
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
     char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
@@ -286,7 +301,11 @@ void App::createPackage()
     (void)serializeJson(payloadJson, payloadArray);
     String payloadStr(payloadArray);
 
-    m_mqttClient.publish("TL_0/coordinates", false, payloadStr);
+    /** Publish only once robot sends a different coordinate set. */
+    if ((oldCoordinates.xPos == coordinates.xPos) && (oldCoordinates.yPos == coordinates.yPos))
+    {
+        m_mqttClient.publish("TL_0/coordinates", false, payloadStr);
+    }
 }
 
 /**
