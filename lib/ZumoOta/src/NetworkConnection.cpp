@@ -32,11 +32,10 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "App.h"
-#include <Arduino.h>
+#include "NetworkConnection.h"
 #include <WiFi.h>
 #include <Logging.h>
-#include <LogSinkPrinter.h>
+#include "MySettings.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -45,9 +44,6 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-#ifndef CONFIG_LOG_SEVERITY
-#define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
-#endif /* CONFIG_LOG_SEVERITY */
 
 /******************************************************************************
  * Types and classes
@@ -60,83 +56,88 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+MySettings settings;
+/* Maximum number of connection attempts. */
+const int MAX_CONNECTION_ATTEMPTS = 3; 
 
-/** Serial interface baudrate. */
-static const uint32_t SERIAL_BAUDRATE = 115200U;
+/* Delay between connection retries in milliseconds. */
+const int RETRY_DELAY_MS = 10000; 
 
-/** Serial log sink. */
-static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
-
+/* Delay between reconnect attempts in milliseconds. */
+const int RECONNECT_DELAY_MS = 30000;  
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
-
-App::App()
+NetworkConnection::NetworkConnection()
 {
+    m_connected = false;
+    m_connectAttempts = 0;
 }
 
-App::~App()
+NetworkConnection::~NetworkConnection()
 {
+    
 }
 
-bool App::loginit()
+void NetworkConnection::connectToWiFi()
 {
-    /* Initialize Serial communication. */
-    Serial.begin(SERIAL_BAUDRATE);
-
-    /* Register serial log sink and select it per default. */
-    if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
+    int connectAttempts = 0;
+    /* Loop to attempt multiple connections with provided credentials. */
+    while(!m_connected && connectAttempts < MAX_CONNECTION_ATTEMPTS)
     {
-        (void)Logging::getInstance().selectSink("Serial");
-
-        /* Set severity of logging system. */
-        Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
+        WiFi.begin(settings.getWiFiSSID(), settings.getWiFiPassword());
+        LOG_DEBUG("Connecting...");
+        delay(5000);
+        /* Check if the connection to the Wi-Fi network is successful. */
+        if(WiFi.status() == WL_CONNECTED)
+        {
+            m_connected = true;
+            LOG_DEBUG("Connected to WiFi. IP Address: %s", WiFi.localIP().toString().c_str());
+        } else
+        {
+            m_connected = false;
+            connectAttempts++;
+            LOG_DEBUG("No Wifi available!Retrying....");
+            delay(RETRY_DELAY_MS);
+        }
     }
-    return true;
-}
-
-void App::start()
-{
-    if (m_fileManager.init())
+    /* If connection fails after maximum attempts, create a local Wi-Fi network. */
+    if (!m_connected && connectAttempts >= MAX_CONNECTION_ATTEMPTS)
     {
-        LOG_DEBUG("LittleFS initialization successful");
-        m_webServer.init();
-    }
-    else
-    {
-        LOG_FATAL("LittleFS initialization failed. The application will not start.");
-        /* Call a function to stop the application. */
-        halt(); 
+        switchToAPMode();
     }
 }
-
-void App::halt()
+void NetworkConnection::switchToAPMode()
 {
-    LOG_ERROR("Application halted due to critical error.");
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(settings.getapSSID(), settings.getapPassword());
+    LOG_DEBUG("IP Address: %s", WiFi.softAPIP().toString().c_str());
+    LOG_DEBUG("Local Wifi ready!");
+    m_connected = true;
+    
+}
+
+void NetworkConnection::checkConnection()
+{
     while (true)
     {
-        /* Stop the application in an endless loop. */
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            m_connected = false;
+            LOG_ERROR("Connection lost. Reconnecting...");
+
+            /* Attempt to reconnect. */
+            connectToWiFi();  
+
+            if (WiFi.status() == WL_CONNECTED)
+            {
+                m_connected = true;
+                LOG_DEBUG("Reconnected to WiFi. IP Address: %s", WiFi.localIP().toString().c_str());
+            }
+        }
+
+        delay(RECONNECT_DELAY_MS);
     }
-}
-
-void App::setup()
-{
-    if (false == loginit())
-    {
-        /* Halt the application or take appropriate action for failed logging initialization. */
-        halt();
-    }
-
-    m_network.connectToWiFi();
-    start();
-    m_webServer.handleUploadRequest();
-  
-}
-
-void App::loop()
-{
 }
 
 /******************************************************************************

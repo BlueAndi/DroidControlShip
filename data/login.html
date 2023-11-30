@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ota Update</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-color: rosybrown;
+            color: white;
+        }
+
+        h1
+        {
+            margin: 20px 0;
+            font-size: 2rem;
+        }
+
+        p
+        {
+            margin: 10px 0;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        button
+        {
+            padding: 10px 20px;
+            background-color: blueviolet;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover
+        {
+            background-color: purple;
+        }
+
+        #profileForm
+        {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        label
+        {
+            margin-right: 10px;
+        }
+
+        input
+        {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid blueviolet;
+        }
+
+        input[type="submit"]
+        {
+            margin-top: 10px;
+            background-color: blueviolet;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="submit"]:hover
+        {
+            background-color: purple;
+        }
+
+        ul
+        {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li
+        {
+            margin-right: 20px;
+        }
+
+        .custom-link
+        {
+            padding: 10px 20px;
+            background-color: blueviolet;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-link:hover
+        {
+            background-color: purple;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the homepage!</h1>
+    <p>You have the option here to either upload a file or perform the robot update via OTA.</p>
+    <p>To upload a file, please click on the 'Upload Page' button. This will take you to a new page.</p>
+    <p>To update the firmware on the robot, please click on the 'Perform OTA Update' button.</p>
+    <!-- Button to display the form -->
+<button onclick="toggleForm()">Change Profile Information</button>
+
+<!-- Form for profile changes -->
+
+<form id="profileForm" action="/changeProfile" method="post">
+    <label for="newUsername">New Username:</label>
+    <input type="text" id="newUsername" name="newUsername"><br>
+    <label for="newPassword">New Password:</label>
+    <input type="password" id="newPassword" name="newPassword"><br>
+    <input type="submit" value="Update Profile">
+</form>
+
+
+
+
+
+
+    <ul>
+        <li><a href="/upload" class="custom-link" target="_blank">Upload Page</a></li>
+        <li><a href="/otaUpdate" class="custom-link" target="_blank">Perform OTA Update</a></li>
+
+    </ul>
+    <script>
+        function toggleForm()
+        {
+            var form = document.getElementById("profileForm");
+            if (form.style.display === "none")
+            {
+                form.style.display = "block";
+            } else
+            {
+                form.style.display = "none";
+            }
+        }
+
+        
+
+        /* The function that submits the form and updates the profile. */
+        function updateProfile(event)
+        {
+            /* Prevents the default behavior of the form (in this case, submission). */
+            event.preventDefault(); 
+
+            var newUsername = document.getElementById("newUsername").value;
+            var newPassword = document.getElementById("newPassword").value;
+
+           /* AJAX request to send the updated data to the server. */
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/changeProfile", true);
+            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xhr.send(JSON.stringify({ newUsername: newUsername, newPassword: newPassword }));
+
+            xhr.onload = function ()
+            {
+               /* Handle the response here if necessary. */
+                if (xhr.status === 200)
+                {
+                    alert("Profile successfully updated!");
+                } else
+                {
+                    alert("Error updating the profile. Please try again.");
+                }
+            };
+        }
+
+        /* The form receives an onsubmit handler that calls updateProfile.*/
+        document.getElementById("profileForm").onsubmit = updateProfile;
+    </script>
+</body>
+</html>

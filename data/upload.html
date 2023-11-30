@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload</title>
+    <style>
+        body
+        {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            
+
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-color: rosybrown;
+        }
+
+        .upload-form
+        {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px;
+            border: 8px solid black;
+            border-radius: 10px;
+            background-color: white;
+        }
+
+        .upload-form input[type="file"]
+        {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .upload-form input[type="submit"]
+        {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            background-color: lightblue;
+            cursor: pointer;
+        }
+        h1,h2, p
+        {
+            margin-top: 0;
+            color: yellow; 
+        }
+
+        .uploaded-file
+        {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+
+        
+        
+    </style>
+    
+</head>
+<body>
+    <h1>Welcome to the Upload Page!</h1>
+    <p>Please follow the instructions below.</p>
+    <p>Please submit a document and press upload!</p>
+    
+    <form id="uploadForm" class="upload-form" method="post" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="firmware" id="fileInput">
+        <input id="uploadButton" type="submit" value="Upload">
+    </form>
+      <!-- Bereich für die Dateiliste -->
+    <button id="fileListButton">Show File List</button>
+    <div id="fileListContainer"></div>
+
+    <!-- Hier ist der Bereich für den Fortschrittsbalken -->
+    <div id="progressBarContainer">
+        <div id="progressBar" style="width: 0%; background-color: violet; height: 20px;"></div>
+    </div>
+
+<script>
+
+        function updateProgress(evt)
+        {
+            var progress = 0;
+
+            if (true === evt.lengthComputable)
+            {
+                progress = Math.ceil(evt.loaded * 100 / evt.total);
+            }
+
+            var progressBar = document.getElementById('progressBar');
+            progressBar.style.width = progress + "%";
+            progressBar.textContent = progress + "%";
+        }
+
+       
+        document.getElementById('uploadForm').addEventListener('submit', function(event)
+        {
+            var file = document.getElementById("fileInput").files[0];
+            var fileSizeFirmware = file.size;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+            xhr.upload.addEventListener('progress', updateProgress);
+            xhr.setRequestHeader('X-File-Size-Firmware', fileSizeFirmware);
+
+            xhr.onreadystatechange = function()
+            {
+                if (xhr.readyState === XMLHttpRequest.DONE)
+                {
+                    if (xhr.status === 200)
+                    {
+                        /* This code displays the message "Upload successful" on the web page. */
+                        var fileListContainer = document.getElementById('fileListContainer');
+                        fileListContainer.innerHTML = '<span style="color: red;">Upload successful.</span>';
+
+                        console.log('Upload successful.');
+                    }else
+                    {
+                        console.error('Error during upload.');
+                    }   
+
+                }       
+            };
+ 
+            var formData = new FormData(document.getElementById('uploadForm'));
+            xhr.send(formData);
+
+            /* Prevent the form from submitting the traditional way. */
+            event.preventDefault();
+        });
+
+/* Wait until the DOM is fully loaded. */
+    document.addEventListener('DOMContentLoaded', function()
+    {
+        var fileListButton = document.getElementById('fileListButton');
+        var fileListContainer = document.getElementById('fileListContainer');
+
+        fileListButton.addEventListener('click', function()
+        {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/filelist', true);
+            xhr.onreadystatechange = function()
+            {
+                if (xhr.readyState === XMLHttpRequest.DONE) 
+                {
+                    if (xhr.status === 200) 
+                    {
+                        fileListContainer.innerHTML = xhr.responseText;
+                    } 
+                    else
+                    {
+                        fileListContainer.innerHTML = 'Error fetching file list.';
+                    }
+                }
+            };
+            xhr.send();
+        });
+    })
+</script>
+</body>
+</html>
