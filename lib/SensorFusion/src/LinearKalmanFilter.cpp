@@ -57,7 +57,25 @@
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
+void LinearKalmanFilter::init()
+{
+    /* TODO: Implement Kalman Filter in cpp (TD072)  */
+}
 
+void LinearKalmanFilter::predictionStep()
+{
+    /* TODO: Implement Kalman Filter in cpp (TD072) */
+}
+
+IKalmanFilter::PositionData LinearKalmanFilter::updateStep(KalmanParameter& kalmanParameter)
+{
+    IKalmanFilter::PositionData currentPosition;
+    currentPosition.currentXPos  = kalmanParameter.positionOdometryX;
+    currentPosition.currentYPos  = kalmanParameter.positionOdometryY;
+    currentPosition.currentAngle = kalmanParameter.angleOdometry;
+    return currentPosition;
+    /* TODO: Implement Kalman Filter in cpp (TD072) */
+}
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/

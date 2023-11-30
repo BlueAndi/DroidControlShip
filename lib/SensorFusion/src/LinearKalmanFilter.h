@@ -77,33 +77,19 @@ public:
     /**
      * Initializes the variables of the Linear Kalman Filter.
      */
-    void init()
-    {
-        /* TODO: Implement Kalman Filter in cpp (TD072)  */
-    }
+    void init();
 
     /**
      * Prediction of the covariance and the state of the Linear Kalman Filter.
      */
-    void predictionStep()
-    {
-        /* TODO: Implement Kalman Filter in cpp (TD072) */
-    }
+    void predictionStep();
 
     /**
      * Update of the covariance and the state of the Kalman Filter.
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
      * @return Estimated Position as a PositionData struct.
      */
-    PositionData updateStep(KalmanParameter& kalmanParameter)
-    {
-        PositionData currentPosition;
-        currentPosition.currentXPos    = kalmanParameter.positionOdometryX;
-        currentPosition.currentYPos    = kalmanParameter.positionOdometryY;
-        currentPosition.currentAngle = kalmanParameter.angleOdometry;
-        return currentPosition;
-        /* TODO: Implement Kalman Filter in cpp (TD072) */
-    }
+    PositionData updateStep(KalmanParameter& kalmanParameter);
 
     /** Number of states used in the state vector of the Linear Kalman Filter. */
     static const uint8_t NUMBER_OF_STATES = 3U;
