@@ -46,7 +46,7 @@
 #include <Board.h>
 #include "FileManager.h"
 #include "WebServerCustom.h"
-#include "NetworkConnexion.h"
+#include "NetworkConnection.h"
 
 /******************************************************************************
  * Macros
@@ -114,9 +114,9 @@ private:
     Upload m_upload;
 
     /**
-     * Instance of the NetworkConnexion class 
+     * Instance of the NetworkConnection class 
      */
-    NetworkConnexion m_network;
+    NetworkConnection m_network;
 };
 
 #endif /* APP_H */

@@ -33,8 +33,8 @@
  * {
  */
 
-#ifndef NETWORK_CONNEXION_H
-#define NETWORK_CONNEXION_H
+#ifndef NETWORK_CONNECTION_H
+#define NETWORK_CONNECTION_H
 
 /******************************************************************************
  * Compile Switches
@@ -53,17 +53,17 @@
  * Types and Classes
  *****************************************************************************/
 
-class NetworkConnexion {
+class NetworkConnection {
 public:
     /**
      * Constructor for the NetworkCustome class.
      */
-    NetworkConnexion();
+    NetworkConnection();
 
     /**
      * Destructor for the NetworkCustome class.
      */
-    ~NetworkConnexion();
+    ~NetworkConnection();
 
     /**
      *  Initiates the process of connecting to a WiFi network.
@@ -94,5 +94,5 @@ private:
 
 };
 
-#endif /* NETWORK_CONNEXION_H */
+#endif /* NETWORK_CONNECTION_H */
 /** @} */
