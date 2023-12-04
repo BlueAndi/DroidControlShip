@@ -43,4 +43,4 @@ public:
 };
 
 #endif /* FlashManager_H */
-/** @} */
+       /** @} */

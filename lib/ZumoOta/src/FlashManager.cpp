@@ -25,7 +25,6 @@
     DESCRIPTION
 *******************************************************************************/
 /**
-<<<<<<<< HEAD:lib/ZumoOta/src/FlashManager.cpp
  * @brief  FlashManager realization
  *
  */
@@ -40,27 +39,6 @@
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
-========
- * @brief  FileHandler implementation.
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
- *
- * @addtogroup HALSim
- *
- * @{
- */
-
-#ifndef FILE_HANDLER_H_
-#define FILE_HANDLER_H_
-
-/******************************************************************************
- * Compile Switches
- *****************************************************************************/
-
-/******************************************************************************
- * Includes
- *****************************************************************************/
-#include <IFileHandler.h>
->>>>>>>> main:lib/HALSim/src/FileHandler.h
 
 /******************************************************************************
  * Macros
@@ -70,54 +48,10 @@
  * Types and classes
  *****************************************************************************/
 
-<<<<<<<< HEAD:lib/ZumoOta/src/FlashManager.cpp
-========
-/**
- * File Handler class.
- */
-class FileHandler : public IFileHandler
-{
-public:
-    /**
-     * Constructs the concrete FileHandler.
-     */
-    FileHandler();
-
-    /**
-     * Destroys the concrete FileHandler.
-     */
-    virtual ~FileHandler();
-
-    /**
-     * Read a file from the filesystem.
-     * @param[in] fileName Name of the file to read. Name must be an absolute path.
-     * @param[out] outBuffer Buffer to write file to.
-     * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     * @returns number of bytes read.
-     */
-    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const final;
-
-    /**
-     * Write a file to the filesystem.
-     * @param[in] fileName Name of the file to write. Name must be an absolute path.
-     * @param[in] buffer Buffer to write file from.
-     * @param[in] bufferSize Number of bytes in the buffer.
-     * @returns number of bytes written.
-     */
-    size_t writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize) final;
-
-private:
-    /* Not allowed. */
-    FileHandler(const FileHandler& src);            /**< Copy construction of an instance. */
-    FileHandler& operator=(const FileHandler& rhs); /**< Assignment of an instance. */
-};
-
->>>>>>>> main:lib/HALSim/src/FileHandler.h
 /******************************************************************************
  * Prototypes
  *****************************************************************************/
 
-<<<<<<<< HEAD:lib/ZumoOta/src/FlashManager.cpp
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -133,7 +67,3 @@ FlashManager::FlashManager()
 FlashManager::~FlashManager()
 {
 }
-========
-#endif /* FILE_HANDLER_H_ */
-/** @} */
->>>>>>>> main:lib/HALSim/src/FileHandler.h
