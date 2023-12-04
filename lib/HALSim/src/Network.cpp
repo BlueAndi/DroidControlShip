@@ -133,6 +133,18 @@ bool Network::setConfig(const NetworkSettings& settings)
     return m_configSet;
 }
 
+bool Network::isUp() const
+{
+    /* Simulation link always returns true. */
+    return true;
+}
+
+String Network::getIp() const
+{
+    /* Simulation uses localhost IP. */
+    return "127.0.0.1";
+}
+
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/
