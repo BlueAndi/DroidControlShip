@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Channel structure definition for the SerialMuxProt.
+ * @brief  Definition of a Waypoint.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Application
+ * @addtogroup PlatoonService
  *
  * @{
  */
-#ifndef SERIAL_MUX_CHANNELS_H
-#define SERIAL_MUX_CHANNELS_H
+#ifndef WAYPOINT_H
+#define WAYPOINT_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,33 +43,21 @@
  * Includes
  *****************************************************************************/
 
-#include <Arduino.h>
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
-/** Maximum number of SerialMuxProt Channels. */
-#define MAX_CHANNELS (10U)
-
-/** Name of Channel to send Current Vehicle Data to. */
-#define CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME "CURR_DATA"
-
-/** DLC of Current Vehicle Data Channel */
-#define CURRENT_VEHICLE_DATA_CHANNEL_DLC (sizeof(VehicleData))
-
-/** Name of Channel to send Motor Speed Setpoints to. */
-#define SPEED_SETPOINT_CHANNEL_NAME "SPEED_SET"
-
-/** DLC of Speedometer Channel */
-#define SPEED_SETPOINT_CHANNEL_DLC (sizeof(SpeedData))
-
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-/** Struct of the "Current Vehicle Data" channel payload. */
-typedef struct _VehicleData
+/**
+ * Waypoint structure definition.
+ * Defines the position of a waypoint in the map and the speed at which is to be reached.
+ */
+typedef struct _Waypoint
 {
     int32_t xPos;        /**< X position [mm]. */
     int32_t yPos;        /**< Y position [mm]. */
@@ -77,18 +65,19 @@ typedef struct _VehicleData
     int16_t left;        /**< Left motor speed [steps/s]. */
     int16_t right;       /**< Right motor speed [steps/s]. */
     int16_t center;      /**< Center speed [steps/s]. */
-} __attribute__((packed)) VehicleData;
 
-/** Struct of the "Speed" channel payload. */
-typedef struct _SpeedData
-{
-    int16_t left;  /**< Left motor speed [steps/s]. */
-    int16_t right; /**< Right motor speed [steps/s]. */
-} __attribute__((packed)) SpeedData;
+    /**
+     * Default constructor.
+     */
+    _Waypoint() : xPos(0), yPos(0), orientation(0), left(0), right(0), center(0)
+    {
+    }
+
+} __attribute__((packed)) Waypoint;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* SERIAL_MUX_CHANNELS_H */
+#endif /* WAYPOINT_H */
 /** @} */

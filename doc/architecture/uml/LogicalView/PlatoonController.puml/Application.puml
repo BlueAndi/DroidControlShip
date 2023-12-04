@@ -1,0 +1,126 @@
+@startuml PlatoonControllerApplication
+
+title Basic application with PlatoonController
+
+package "Application" as appLayer {
+
+    struct Waypoint {
+        + xPos : int32_t
+        + yPos : int32_t
+        + orientation : int32_t
+        + leftSpeed : int16_t
+        + rightSpeed : int16_t
+        + centerSpeed : int16_t
+    }
+
+    class App <<main>>{
+        - m_platoonController : PlatoonController
+        - m_v2vClient : V2VClient
+        + setup() : void
+        + loop() : void
+        + outputWaypointCallback(const Waypoint&) : void
+        + inputWaypointCallback(const Waypoint&) : void
+        + motorSetpointCallback(int16_t leftSpeed, int16_t rightSpeed) : void
+    }
+
+    class "V2V Client" as v2v
+    {
+        - m_mqttClient : MqttClient
+        - m_rxWaypointQueue : Queue
+        + init(MqttConfig) : bool
+        + process() : bool
+        + sendWaypoint(const Waypoint&) : bool
+        + getWaypoint(Waypoint&) : bool
+    }
+
+    class PlatoonController {
+        + typedef std::function<void(Waypoint& waypoint)> InputWaypointCallback;
+        + typedef std::function<void(const Waypoint& waypoint)> OutputWaypointCallback;
+        + typedef std::function<void(const int16_t left, const int16_t right)> MotorSetpointCallback;
+        + init(const InputWaypointCallback& inputWaypointCallback, const OutputWaypointCallback& outputWaypointCallback, const MotorSetpointCallback& motorSetpointCallback) : bool
+        + process() : void
+        + setLatestVehicleData(const Waypoint& vehicleData): void
+        - targetWaypointReached() : bool
+        - m_inputWaypointCallback : InputWaypointCallback
+        - m_outputWaypointCallback : OutputWaypointCallback
+        - m_motorSetpointCallback : MotorSetpointCallback
+        - m_currentWaypoint : Waypoint
+        - m_currentVehicleData : Waypoint
+        - m_processingChainTimer : SimpleTimer
+        - m_processingChain : ProcessingChain*
+    }
+
+    class ProcessingChainFactory <<Singleton>> {
+        + getInstance() : ProcessingChainFactory&
+        + createChain() : ProcessingChain*
+        + registerLongitudinalControllerCreateFunc(ILongitudinalController::CreateFunc createFunc) : void
+        + registerLongitudinalSafetyPolicyCreateFunc(ILongitudinalSafetyPolicy::CreateFunc createFunc) : void
+        + registerLateralControllerCreateFunc(ILateralController::CreateFunc createFunc) : void
+        + registerLateralSafetyPolicyCreateFunc(ILateralSafetyPolicy::CreateFunc createFunc) : void
+        - m_longitudinalControllerCreateFuncs : ILongitudinalController::CreateFunc
+        - m_longitudinalSafetyPolicyCreateFuncs : ILongitudinalSafetyPolicy::CreateFunc
+        - m_lateralControllerCreateFuncs : ILateralController::CreateFunc
+        - m_lateralSafetyPolicyCreateFuncs : ILateralSafetyPolicy::CreateFunc
+    }
+
+    class ProcessingChain {
+        - m_longitudinalController: ILongitudinalController&
+        - m_longitudinalSafetyPolicy: ILongitudinalSafetyPolicy&
+        - m_lateralController: ILateralController&
+        - m_lateralSafetyPolicy: ILateralSafetyPolicy&
+        + ProcessingChain(ILongitudinalController&, ILongitudinalSafetyPolicy&, ILateralController&, ILateralSafetyPolicy&)
+        + calculateMotorSetpoints(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
+                                 int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint) : bool
+    }
+
+    interface ILongitudinalController {
+        typedef ILongitudinalController* (*CreateFunc)(void);
+    }
+
+    interface ILongitudinalSafetyPolicy {
+        typedef ILongitudinalSafetyPolicy* (*CreateFunc)(void);
+    }
+
+    interface ILateralController {
+        typedef ILateralController* (*CreateFunc)(void);
+    }
+
+    interface ILateralSafetyPolicy {
+        typedef ILateralSafetyPolicy* (*CreateFunc)(void);
+    }
+
+    package "Concrete Components" as concreteComponents {
+        class LongitudinalController
+        class LongitudinalSafetyPolicy
+        class LateralController
+        class LateralSafetyPolicy
+    }
+}
+
+package "Service" as serviceLayer {
+    class DiffDrive <<Singleton>>
+    class Settings <<Singleton>>
+}
+
+App *--> PlatoonController : <<use>>
+App ...> Settings : <<use>>
+App *-left-> v2v : <<use>>
+App ...> DiffDrive : <<use>>
+
+PlatoonController --> ProcessingChainFactory : <<use>>
+PlatoonController o--> ProcessingChain: <<use>>
+
+ProcessingChainFactory ..> ProcessingChain: <<create>>
+
+ProcessingChain ..> ILongitudinalController : <<use>>
+ProcessingChain ..> ILongitudinalSafetyPolicy : <<use>>
+ProcessingChain ..> ILateralController : <<use>>
+ProcessingChain ..> ILateralSafetyPolicy : <<use>>
+ProcessingChain ..right.> Waypoint : <<use>>
+
+ILongitudinalController <|.. LongitudinalController : <<realize>>
+ILongitudinalSafetyPolicy <|.. LongitudinalSafetyPolicy : <<realize>>
+ILateralController <|.. LateralController : <<realize>>
+ILateralSafetyPolicy <|.. LateralSafetyPolicy : <<realize>>
+
+@enduml

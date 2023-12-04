@@ -48,6 +48,7 @@
 #include <MqttClient.h>
 #include <SerialMuxProtServer.hpp>
 #include "SerialMuxChannels.h"
+#include <PlatoonController.h>
 
 /******************************************************************************
  * Macros
@@ -65,9 +66,10 @@ public:
      * Construct the convoy leader application.
      */
     App() :
-        m_smpServer(Board::getInstance().getDevice().getStream()),
+        m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_serialMuxProtChannelIdMotorSpeedSetpoints(0U),
-        m_mqttClient()
+        m_mqttClient(),
+        m_platoonController()
     {
     }
 
@@ -87,6 +89,38 @@ public:
      * Process the application periodically.
      */
     void loop();
+
+    /**
+     * Callback for the current vehicle data.
+     *
+     * @param[in] vehicleData Current vehicle data.
+     */
+    void currentVehicleChannelCallback(const VehicleData& vehicleData);
+
+    /**
+     * Input waypoint callback.
+     * Called in order to get the next waypoint into the platoon controller.
+     *
+     * @param[out] waypoint   Next waypoint.
+     */
+    void inputWaypointCallback(Waypoint& waypoint);
+
+    /**
+     * Output waypoint callback.
+     * Called in order to send the last waypoint to the next platoon participant.
+     *
+     * @param[in] waypoint    Last waypoint.
+     */
+    void outputWaypointCallback(const Waypoint& waypoint);
+
+    /**
+     * Motor setpoint callback.
+     * Called in order to set the motor speeds.
+     *
+     * @param[in] left      Left motor speed [steps/s].
+     * @param[in] right     Right motor speed [steps/s].
+     */
+    void motorSetpointCallback(const int16_t left, const int16_t right);
 
 private:
     /** Minimum battery level in percent. */
@@ -115,6 +149,11 @@ private:
      * MQTTClient Instance
      */
     MqttClient m_mqttClient;
+
+    /**
+     * Platoon controller instance.
+     */
+    PlatoonController m_platoonController;
 
 private:
     /**
