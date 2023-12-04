@@ -210,6 +210,13 @@ void App::setup()
     {
         fatalErrorHandler();
     }
+    else
+    {
+        /* Blink Green LED to signal all-good. */
+        Board::getInstance().getGreenLed().enable(true);
+        delay(100U);
+        Board::getInstance().getGreenLed().enable(false);
+    }
 
     /* Sending coordinates every 250ms. */
     m_sendPackageTimer.start(250U);
@@ -225,19 +232,11 @@ void App::loop()
         fatalErrorHandler();
     }
 
-    /* Process MQTT Communication */
-    m_mqttClient.process();
-
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
 
-    // if (true == m_sendPackageTimer.isTimeout())
-    // {
-    //     /* Send current robot coordinates. */
-    //     odometryCallback();
-
-    //     m_sendPackageTimer.restart();
-    // }
+    /* Process MQTT Communication */
+    m_mqttClient.process();
 }
 
 void App::odometryCallback(const OdometryData& odometry)
