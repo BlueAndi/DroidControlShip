@@ -117,6 +117,12 @@ private:
      * Not allowed to use.
      */
     ProcessingChain(const ProcessingChain& chain);
+
+    /**
+     * Assignment operator.
+     * Not allowed to use.
+     */
+    ProcessingChain& operator=(const ProcessingChain& chain);
 };
 
 /******************************************************************************
