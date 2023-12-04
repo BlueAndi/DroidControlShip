@@ -25,6 +25,9 @@
  * Types and Classes
  *****************************************************************************/
 
+/**
+ * Upload class for handling file uploads.
+ */
 class Upload
 {
 private:
