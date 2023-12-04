@@ -28,9 +28,15 @@
  * Types and Classes
  *****************************************************************************/
 
+/**
+ * Custom implementation of WebServer.
+ */
 class WebServerCustom
 {
 private:
+    /**
+     * The web server instance.
+     */
     AsyncWebServer server{80};
 
 public:

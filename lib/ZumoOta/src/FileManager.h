@@ -24,6 +24,9 @@
  * Types and Classes
  *****************************************************************************/
 
+/**
+ * File Manager Class.
+ */
 class FileManager
 {
 private:

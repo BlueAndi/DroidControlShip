@@ -24,6 +24,9 @@
  * Types and Classes
  *****************************************************************************/
 
+/**
+ * Flash Manager Class.
+ */
 class FlashManager
 {
 private:
