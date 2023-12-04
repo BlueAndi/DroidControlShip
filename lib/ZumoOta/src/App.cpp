@@ -200,7 +200,7 @@ void App::loop()
     }
 
     /* Initialize WebServer. Must be done after the network has been processed at least once. */
-    if ((false == m_isWebServerInitialized))
+    if ((false == m_isWebServerInitialized) && (Board::getInstance().getNetwork().isUp()))
     {
         start();
         m_webServer.handleUploadRequest();
