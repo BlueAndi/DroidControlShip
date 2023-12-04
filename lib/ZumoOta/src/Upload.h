@@ -25,13 +25,17 @@
  * Types and Classes
  *****************************************************************************/
 
-class Upload {
+/**
+ * Upload class for handling file uploads.
+ */
+class Upload
+{
 private:
-        /**
-        * Expected file size.
-        */
-        size_t expectedfileSize;
-        
+    /**
+     * Expected file size.
+     */
+    size_t expectedfileSize;
+
 public:
     /**
      * Construct the Upload class.
@@ -44,17 +48,18 @@ public:
     ~Upload();
 
     /**
-    * Handles file uploads via the web server.
-    * 
-    * @param request   The web server request pointer
-    * @param filename  The name of the uploaded file
-    * @param index     The index of the file block being uploaded
-    * @param data      Pointer to the data buffer being uploaded
-    * @param len       The length of data being uploaded
-    * @param final     Indicates if it's the final block of the file
-    */
-    void handleFileUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
+     * Handles file uploads via the web server.
+     *
+     * @param request   The web server request pointer
+     * @param filename  The name of the uploaded file
+     * @param index     The index of the file block being uploaded
+     * @param data      Pointer to the data buffer being uploaded
+     * @param len       The length of data being uploaded
+     * @param final     Indicates if it's the final block of the file
+     */
+    void handleFileUpload(AsyncWebServerRequest* request, const String& filename, size_t index, uint8_t* data,
+                          size_t len, bool final);
 };
 
-#endif/* Upload_H */
+#endif /* Upload_H */
 /** @} */

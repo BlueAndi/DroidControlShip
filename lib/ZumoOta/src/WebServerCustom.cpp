@@ -26,7 +26,7 @@
 *******************************************************************************/
 /**
  * @brief  WebServer realization
- * 
+ *
  */
 
 /******************************************************************************
@@ -37,7 +37,7 @@
 #include <FS.h>
 #include <Arduino.h>
 #include <Logging.h>
-#include "MySettings.h"
+#include <SettingsHandler.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -59,14 +59,13 @@
  * Local Variables
  *****************************************************************************/
 Upload upload;
-MySettings set;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
 WebServerCustom::WebServerCustom()
 {
-
 }
 
 WebServerCustom::~WebServerCustom()
@@ -77,16 +76,17 @@ String WebServerCustom::listFiles(bool ishtml)
 {
     String returnText = "";
     LOG_DEBUG("Listing files stored on LittleFS");
-    File root = LittleFS.open("/");
+    File root      = LittleFS.open("/");
     File foundfile = root.openNextFile();
     if (ishtml)
     {
         returnText += "<style>.filename { color: black; }</style>";
-        returnText += "<table style='background-color: yellow;'><tr><th align='left'>Name</th><th align='right'>Size</th></tr>";
+        returnText +=
+            "<table style='background-color: yellow;'><tr><th align='left'>Name</th><th align='right'>Size</th></tr>";
     }
     while (foundfile)
     {
-        if(ishtml)
+        if (ishtml)
         {
             returnText += "<tr align='left'><td class='filename'>" + String(foundfile.name()) + "</td></tr>";
             returnText += "<tr align='right'><td>" + humanReadableSize(foundfile.size()) + "</td></tr>";
@@ -97,7 +97,7 @@ String WebServerCustom::listFiles(bool ishtml)
         }
         foundfile = root.openNextFile();
     }
-    if(ishtml)
+    if (ishtml)
     {
         returnText += "</table>";
     }
@@ -108,9 +108,9 @@ String WebServerCustom::listFiles(bool ishtml)
 
 String WebServerCustom::humanReadableSize(const size_t bytes)
 {
-    const char* sizes[] = { "B", "KB", "MB", "GB" };
-    int i = 0;
-    double value = static_cast<double>(bytes);
+    const char* sizes[] = {"B", "KB", "MB", "GB"};
+    int         i       = 0;
+    double      value   = static_cast<double>(bytes);
 
     while (value >= 1024 && i < 3)
     {
@@ -118,7 +118,7 @@ String WebServerCustom::humanReadableSize(const size_t bytes)
         i++;
     }
     /* Adjust the buffer size as needed.*/
-    char buffer[16];  
+    char buffer[16];
 
     if (i == 0)
     {
@@ -134,42 +134,45 @@ String WebServerCustom::humanReadableSize(const size_t bytes)
 
 void WebServerCustom::init()
 {
-    server.on("/filelist", HTTP_GET, [this](AsyncWebServerRequest *request)
-    {
-        String fileList = listFiles(true);
-        request->send(200,"text/html", fileList);
-    });
+    server.on("/filelist", HTTP_GET,
+              [this](AsyncWebServerRequest* request)
+              {
+                  String fileList = listFiles(true);
+                  request->send(200, "text/html", fileList);
+              });
 
-    /*...  Additional routes and configurations ...*/ 
-   
-    server.on("/upload", HTTP_GET, [](AsyncWebServerRequest *request)
-    {
-        request->send(LittleFS, "/upload.html","text/html");
-    });
+    /*...  Additional routes and configurations ...*/
 
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-    {
-        if (!request->authenticate(set.getAuthUsername(), set.getAuthPassword()))
+    server.on("/upload", HTTP_GET,
+              [](AsyncWebServerRequest* request) { request->send(LittleFS, "/upload.html", "text/html"); });
+
+    server.on(
+        "/", HTTP_GET,
+        [](AsyncWebServerRequest* request)
         {
-            return request->requestAuthentication();
-        }
-        else
-        {
-            request->send(LittleFS, "/login.html","text/html");
-        }
-    });
+            SettingsHandler& settings = SettingsHandler::getInstance();
+            if (!request->authenticate(settings.getWebServerUser().c_str(), settings.getWebServerPassword().c_str()))
+            {
+                return request->requestAuthentication();
+            }
+            else
+            {
+                request->send(LittleFS, "/login.html", "text/html");
+            }
+        });
 
     server.begin();
 }
 
 void WebServerCustom::handleUploadRequest()
 {
-    server.on("/upload", HTTP_POST, [this](AsyncWebServerRequest *request) {
-    }, [this](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
-    {
-        /* Process the file upload.*/
-        upload.handleFileUpload(request, filename, index, data, len, final);
-    });
+    server.on(
+        "/upload", HTTP_POST, [this](AsyncWebServerRequest* request) {},
+        [this](AsyncWebServerRequest* request, String filename, size_t index, uint8_t* data, size_t len, bool final)
+        {
+            /* Process the file upload.*/
+            upload.handleFileUpload(request, filename, index, data, len, final);
+        });
 }
 
 /******************************************************************************
@@ -179,5 +182,3 @@ void WebServerCustom::handleUploadRequest()
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
-
-

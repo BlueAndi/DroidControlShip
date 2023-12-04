@@ -4,6 +4,9 @@
 /**
  * @brief  ZumoOta application
  * @author Decareme Pauline Ngangnou <ngandeca@yahoo.fr>
+ *
+ * @addtogroup Application
+ *
  * @{
  */
 #ifndef FlashManager_H
@@ -16,14 +19,17 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
- 
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-class FlashManager{
+/**
+ * Flash Manager Class.
+ */
+class FlashManager
+{
 private:
-        
 public:
     /**
      * Constructor of  MySettings.
@@ -34,10 +40,7 @@ public:
      * Destructor of  MySettings.
      */
     ~FlashManager();
-
 };
 
 #endif /* FlashManager_H */
 /** @} */
-
-
