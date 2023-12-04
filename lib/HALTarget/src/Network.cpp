@@ -155,7 +155,7 @@ bool Network::isUp() const
 
 String Network::getIp() const
 {
-    String ipAddress = "";
+    String ipAddress;
 
     if (STATE_CONNECTED == m_state)
     {

@@ -96,14 +96,14 @@ public:
      *
      * @return If network interface is initialized, returns true. Otherwise, false.
      */
-    virtual bool isUp() const final;
+    bool isUp() const final;
 
     /**
      * Get the IP address.
      *
      * @return IP address if available, otherwise an empty string.
      */
-    virtual String getIp() const final;
+    String getIp() const final;
 
 private:
     /** Network Service States. */

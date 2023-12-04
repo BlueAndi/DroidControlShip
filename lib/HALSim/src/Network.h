@@ -87,21 +87,21 @@ public:
      * @param[in] settings NetworkSettings struct containing ssid and password.
      * @return If successfully set, returns true. Otherwise, false.
      */
-    virtual bool setConfig(const NetworkSettings& settings) final;
+    bool setConfig(const NetworkSettings& settings) final;
 
     /**
      * Is the network interface initialized?
      *
      * @return If network interface is initialized, returns true. Otherwise, false.
      */
-    virtual bool isUp() const final;
+    bool isUp() const final;
 
     /**
      * Get the IP address.
      *
      * @return IP address if available, otherwise an empty string.
      */
-    virtual String getIp() const final;
+    String getIp() const final;
 
 private:
     /** Network Service States. */
