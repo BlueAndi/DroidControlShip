@@ -97,9 +97,9 @@ public:
     virtual bool process() = 0;
 
     /**
-     * Is the network link up?
+     * Is the network interface initialized?
      *
-     * @return If network link is up, returns true. Otherwise, false.
+     * @return If network interface is initialized, returns true. Otherwise, false.
      */
     virtual bool isUp() const = 0;
 
