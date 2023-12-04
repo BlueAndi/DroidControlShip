@@ -91,6 +91,20 @@ public:
      */
     bool setConfig(const NetworkSettings& settings) final;
 
+    /**
+     * Is the network interface initialized?
+     *
+     * @return If network interface is initialized, returns true. Otherwise, false.
+     */
+    bool isUp() const final;
+
+    /**
+     * Get the IP address.
+     *
+     * @return IP address if available, otherwise an empty string.
+     */
+    String getIp() const final;
+
 private:
     /** Network Service States. */
     enum State
