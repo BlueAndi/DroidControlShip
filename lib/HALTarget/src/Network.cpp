@@ -95,7 +95,7 @@ bool Network::process()
         /* Nothing to do. */
         isSuccess = true;
         break;
-    
+
     case STATE_SETUP:
         isSuccess = handleStationSetup();
         break;
@@ -145,6 +145,32 @@ bool Network::setConfig(const NetworkSettings& settings)
     }
 
     return m_configSet;
+}
+
+bool Network::isUp() const
+{
+    /* Network is not in a setup or initialized state. */
+    return ((STATE_UNINITIALIZED != m_state) && (STATE_SETUP != m_state) && (STATE_AP_SETUP != m_state));
+}
+
+String Network::getIp() const
+{
+    String ipAddress = "";
+
+    if (STATE_CONNECTED == m_state)
+    {
+        ipAddress = WiFi.localIP().toString();
+    }
+    else if (STATE_AP_UP == m_state)
+    {
+        ipAddress = WiFi.softAPIP().toString();
+    }
+    else
+    {
+        /* Do nothing. */
+    }
+
+    return ipAddress;
 }
 
 /******************************************************************************
@@ -240,7 +266,7 @@ bool Network::switchToAPMode()
     {
         m_state = STATE_AP_SETUP;
     }
-    
+
     return true;
 }
 

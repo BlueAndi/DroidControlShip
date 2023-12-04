@@ -96,6 +96,20 @@ public:
      */
     virtual bool process() = 0;
 
+    /**
+     * Is the network link up?
+     *
+     * @return If network link is up, returns true. Otherwise, false.
+     */
+    virtual bool isUp() const = 0;
+
+    /**
+     * Get the IP address.
+     *
+     * @return IP address if available, otherwise an empty string.
+     */
+    virtual String getIp() const = 0;
+
 protected:
     /**
      * Constructs the interface.

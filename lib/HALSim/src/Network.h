@@ -89,6 +89,20 @@ public:
      */
     virtual bool setConfig(const NetworkSettings& settings) final;
 
+    /**
+     * Is the network link up?
+     *
+     * @return If network link is up, returns true. Otherwise, false.
+     */
+    virtual bool isUp() const final;
+
+    /**
+     * Get the IP address.
+     *
+     * @return IP address if available, otherwise an empty string.
+     */
+    virtual String getIp() const final;
+
 private:
     /** Network Service States. */
     enum State
