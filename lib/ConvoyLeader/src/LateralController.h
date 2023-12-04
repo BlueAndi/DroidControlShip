@@ -43,6 +43,7 @@
  * Includes
  *****************************************************************************/
 #include <ILateralController.h>
+#include <new>
 
 /******************************************************************************
  * Macros
@@ -64,7 +65,7 @@ public:
     /**
      * Lateral Controller destructor.
      */
-    ~LateralController();
+    virtual ~LateralController();
 
     /**
      * Creates a LateralController instance, for registering in the ProcessingChainFactory.
@@ -73,7 +74,7 @@ public:
      */
     static ILateralController* create()
     {
-        return new LateralController();
+        return new (std::nothrow) LateralController();
     }
 
     /**

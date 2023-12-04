@@ -43,6 +43,7 @@
  * Includes
  *****************************************************************************/
 #include <ILongitudinalSafetyPolicy.h>
+#include <new>
 
 /******************************************************************************
  * Macros
@@ -64,7 +65,7 @@ public:
     /**
      * Longitudinal Safety Policy destructor.
      */
-    ~LongitudinalSafetyPolicy();
+    virtual ~LongitudinalSafetyPolicy();
 
     /**
      * Creates a LongitudinalSafetyPolicy instance, for registering in the ProcessingChainFactory.
@@ -73,7 +74,7 @@ public:
      */
     static ILongitudinalSafetyPolicy* create()
     {
-        return new LongitudinalSafetyPolicy();
+        return new (std::nothrow) LongitudinalSafetyPolicy();
     }
 
     /**

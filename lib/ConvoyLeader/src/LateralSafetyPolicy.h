@@ -43,6 +43,7 @@
  * Includes
  *****************************************************************************/
 #include <ILateralSafetyPolicy.h>
+#include <new>
 
 /******************************************************************************
  * Macros
@@ -64,7 +65,7 @@ public:
     /**
      * Lateral Safety Policy destructor.
      */
-    ~LateralSafetyPolicy();
+    virtual ~LateralSafetyPolicy();
 
     /**
      * Creates a LateralSafetyPolicy instance, for registering in the ProcessingChainFactory.
@@ -73,7 +74,7 @@ public:
      */
     static ILateralSafetyPolicy* create()
     {
-        return new LateralSafetyPolicy();
+        return new (std::nothrow) LateralSafetyPolicy();
     }
 
     /**

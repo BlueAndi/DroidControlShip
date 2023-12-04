@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 #include "ProcessingChainFactory.h"
+#include <new>
 
 /******************************************************************************
  * Compiler Switches
@@ -81,8 +82,18 @@ ProcessingChain* ProcessingChainFactory::create()
         if ((nullptr != longitudinalController) && (nullptr != longitudinalSafetyPolicy) &&
             (nullptr != lateralController) && (nullptr != lateralSafetyPolicy))
         {
-            processingChain = new ProcessingChain(*longitudinalController, *longitudinalSafetyPolicy,
-                                                  *lateralController, *lateralSafetyPolicy);
+            processingChain = new (std::nothrow) ProcessingChain(*longitudinalController, *longitudinalSafetyPolicy,
+                                                                 *lateralController, *lateralSafetyPolicy);
+        }
+
+        /* One or more instances failed to be instanced. */
+        if (nullptr == processingChain)
+        {
+            /* Prevent zombies. */
+            delete longitudinalController;
+            delete longitudinalSafetyPolicy;
+            delete lateralController;
+            delete lateralSafetyPolicy;
         }
     }
 

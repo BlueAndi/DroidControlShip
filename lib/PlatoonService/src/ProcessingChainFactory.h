@@ -123,7 +123,6 @@ private:
      */
     ILateralSafetyPolicy::CreateFunc m_lateralSafetyPolicyCreateFunc;
 
-private:
     /**
      * Default Constructor.
      */

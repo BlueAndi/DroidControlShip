@@ -43,6 +43,7 @@
  * Includes
  *****************************************************************************/
 #include <ILongitudinalController.h>
+#include <new>
 
 /******************************************************************************
  * Macros
@@ -64,7 +65,7 @@ public:
     /**
      * Longitudinal Controller destructor.
      */
-    ~LongitudinalController();
+    virtual ~LongitudinalController();
 
     /**
      * Creates a LongitudinalController instance, for registering in the ProcessingChainFactory.
@@ -73,7 +74,7 @@ public:
      */
     static ILongitudinalController* create()
     {
-        return new LongitudinalController();
+        return new (std::nothrow) LongitudinalController();
     }
 
     /**

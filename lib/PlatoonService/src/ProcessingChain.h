@@ -111,6 +111,12 @@ private:
      * Not allowed to use.
      */
     ProcessingChain();
+
+    /**
+     * Copy constructor.
+     * Not allowed to use.
+     */
+    ProcessingChain(const ProcessingChain& chain);
 };
 
 /******************************************************************************

@@ -59,24 +59,18 @@
  */
 typedef struct _Waypoint
 {
-    int32_t xPos        = 0; /**< X position [mm]. */
-    int32_t yPos        = 0; /**< Y position [mm]. */
-    int32_t orientation = 0; /**< Orientation [mrad]. */
-    int16_t left        = 0; /**< Left motor speed [steps/s]. */
-    int16_t right       = 0; /**< Right motor speed [steps/s]. */
-    int16_t center      = 0; /**< Center speed [steps/s]. */
+    int32_t xPos;        /**< X position [mm]. */
+    int32_t yPos;        /**< Y position [mm]. */
+    int32_t orientation; /**< Orientation [mrad]. */
+    int16_t left;        /**< Left motor speed [steps/s]. */
+    int16_t right;       /**< Right motor speed [steps/s]. */
+    int16_t center;      /**< Center speed [steps/s]. */
 
     /**
-     * Waypoint assignment operator.
+     * Default constructor.
      */
-    void operator=(const _Waypoint& other)
+    _Waypoint() : xPos(0), yPos(0), orientation(0), left(0), right(0), center(0)
     {
-        xPos        = other.xPos;
-        yPos        = other.yPos;
-        orientation = other.orientation;
-        left        = other.left;
-        right       = other.right;
-        center      = other.center;
     }
 
 } __attribute__((packed)) Waypoint;

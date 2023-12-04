@@ -58,30 +58,30 @@
  *****************************************************************************/
 
 /**
- * Input waypoint callback.
- * Called in order to get the next waypoint into the platoon controller.
- */
-typedef std::function<void(Waypoint& waypoint)> InputWaypointCallback;
-
-/**
- * Output waypoint callback.
- * Called in order to send the last waypoint to the next platoon participant.
- */
-typedef std::function<void(const Waypoint& waypoint)> OutputWaypointCallback;
-
-/**
- * Motor setpoint callback.
- * Called in order to set the motor speeds.
- */
-typedef std::function<void(const int16_t left, const int16_t right)> MotorSetpointCallback;
-
-/**
  * Platoon controller class for calculating each step inside a platoon context.
  * Follows a waypoint by calculating the speed setpoints for each motor.
  */
 class PlatoonController
 {
 public:
+    /**
+     * Input waypoint callback.
+     * Called in order to get the next waypoint into the platoon controller.
+     */
+    typedef std::function<void(Waypoint& waypoint)> InputWaypointCallback;
+
+    /**
+     * Output waypoint callback.
+     * Called in order to send the last waypoint to the next platoon participant.
+     */
+    typedef std::function<void(const Waypoint& waypoint)> OutputWaypointCallback;
+
+    /**
+     * Motor setpoint callback.
+     * Called in order to set the motor speeds.
+     */
+    typedef std::function<void(const int16_t left, const int16_t right)> MotorSetpointCallback;
+
     /**
      * PlatoonController default constructor.
      */
@@ -126,7 +126,7 @@ private:
      * Error margin in mm for target waypoint.
      * Used to determine if target waypoint has been reached.
      */
-    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 5U;
+    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 5;
 
     /**
      * Input waypoint callback.
