@@ -68,7 +68,8 @@ typedef struct
     const char* radonUlzerPort;    /**< Radon Ulzer (socket) port */
     const char* cfgFilePath;       /**< Configuration file path */
     bool        verbose;           /**< Show verbose information */
-
+    const char* platoonId;         /**< Platoon ID */
+    const char* vehicleId;         /**< Vehicle ID */
 } PrgArguments;
 
 #endif
@@ -110,6 +111,8 @@ static const struct option LONG_OPTIONS[] = {{"help", no_argument, nullptr, 0},
                                              {"mqttPort", required_argument, nullptr, 0},
                                              {"radonUlzerAddr", required_argument, nullptr, 0},
                                              {"radonUlzerPort", required_argument, nullptr, 0},
+                                             {"platoonId", required_argument, nullptr, 0},
+                                             {"vehicleId", required_argument, nullptr, 0},
                                              {nullptr, no_argument, nullptr, 0}}; /* Marks the end. */
 
 /** Program argument default value of the robot name. */
@@ -129,6 +132,12 @@ static const char* PRG_ARG_RADON_ULZER_PORT_DEFAULT = "65432";
 
 /** Program argument default value of the configuration file. */
 static const char* PRG_ARG_CFG_FILE_DEFAULT = "config/config.json";
+
+/** Program argument default value of the Platoon ID. */
+static const char* PRG_ARG_PLATOON_ID_DEFAULT = "0";
+
+/** Program argument default value of the Vehicle ID. */
+static const char* PRG_ARG_VEHICLE_ID_DEFAULT = "0";
 
 /** Program argument default value of the verbose flag. */
 static bool PRG_ARG_VERBOSE_DEFAULT = false;
@@ -150,12 +159,6 @@ static const char* WEBSERVER_USER_DEFAULT = "admin";
 
 /** Default value of the webserver passphrase. */
 static const char* WEBSERVER_PASSPHRASE_DEFAULT = "admin";
-
-/** Default value of the Platoon ID. */
-static const char* PLATOON_ID_DEFAULT = "0";
-
-/** Default value of the Vehicle ID. */
-static const char* VEHICLE_ID_DEFAULT = "0";
 
 #endif
 
@@ -302,6 +305,8 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
     prgArguments.radonUlzerPort    = PRG_ARG_RADON_ULZER_PORT_DEFAULT;
     prgArguments.robotName         = PRG_ARG_ROBOT_NAME_DEFAULT;
     prgArguments.verbose           = PRG_ARG_VERBOSE_DEFAULT;
+    prgArguments.platoonId         = PRG_ARG_PLATOON_ID_DEFAULT;
+    prgArguments.vehicleId         = PRG_ARG_VEHICLE_ID_DEFAULT;
 
     while ((-1 != option) && (0 == status))
     {
@@ -332,6 +337,14 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "radonUlzerPort"))
             {
                 prgArguments.radonUlzerPort = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "platoonId"))
+            {
+                prgArguments.platoonId = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "vehicleId"))
+            {
+                prgArguments.vehicleId = optarg;
             }
             else
             {
@@ -379,6 +392,10 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
         printf(" Default: %s\n", PRG_ARG_RADON_ULZER_ADDR_DEFAULT); /* Radon Ulzer server address default value*/
         printf("\t--radonUlzerPort <RU-PORT>\tSet Radon Ulzer server port."); /* Radon Ulzer server port */
         printf(" Default: %s\n", PRG_ARG_RADON_ULZER_PORT_DEFAULT);           /* Radon Ulzer server port default value*/
+        printf("\t--platoonId <PLATOON-ID>\tSet platoon ID.");                /* Platoon ID */
+        printf(" Default: %s\n", PRG_ARG_PLATOON_ID_DEFAULT);                 /* Platoon ID default value */
+        printf("\t--vehicleId <VEHICLE-ID>\tSet vehicle ID.");                /* Vehicle ID */
+        printf(" Default: %s\n", PRG_ARG_VEHICLE_ID_DEFAULT);                 /* Vehicle ID default value */
     }
 
     return status;
@@ -397,6 +414,8 @@ static void showPrgArguments(const PrgArguments& prgArgs)
     printf("MQTT broker port       : %s\n", prgArgs.mqttPort);
     printf("Radon Ulzer address    : %s\n", prgArgs.radonUlzerAddress);
     printf("Radon Ulzer port       : %s\n", prgArgs.radonUlzerPort);
+    printf("Platoon ID             : %s\n", prgArgs.platoonId);
+    printf("Vehicle ID             : %s\n", prgArgs.vehicleId);
     /* Skip verbose flag. */
 }
 
@@ -473,8 +492,8 @@ static int createConfigFile(const PrgArguments& prgArgs)
                 jsonDoc["AP"]["PSWD"]            = AP_PASSPHRASE_DEFAULT;
                 jsonDoc["WEBSERVER"]["USER"]     = WEBSERVER_USER_DEFAULT;
                 jsonDoc["WEBSERVER"]["PSWD"]     = WEBSERVER_PASSPHRASE_DEFAULT;
-                jsonDoc["PLATOON"]["PLATOON_ID"] = PLATOON_ID_DEFAULT;
-                jsonDoc["PLATOON"]["VEHICLE_ID"] = VEHICLE_ID_DEFAULT;
+                jsonDoc["PLATOON"]["PLATOON_ID"] = prgArgs.platoonId;
+                jsonDoc["PLATOON"]["VEHICLE_ID"] = prgArgs.vehicleId;
 
                 {
                     size_t jsonBufferSize = measureJsonPretty(jsonDoc) + 1U;
