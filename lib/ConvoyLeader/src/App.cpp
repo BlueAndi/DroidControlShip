@@ -203,11 +203,16 @@ void App::setup()
                         processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
                         processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
 
-                        if (false == m_platoonController.init(
-                                         [this](Waypoint& waypoint) { return inputWaypointCallback(waypoint); },
-                                         [this](const Waypoint& waypoint) { return outputWaypointCallback(waypoint); },
-                                         [this](const int16_t left, const int16_t right)
-                                         { return motorSetpointCallback(left, right); }))
+                        PlatoonController::InputWaypointCallback lambdaInputWaypointCallback =
+                            [this](Waypoint& waypoint) { return this->inputWaypointCallback(waypoint); };
+                        PlatoonController::OutputWaypointCallback lambdaOutputWaypointCallback =
+                            [this](const Waypoint& waypoint) { return this->outputWaypointCallback(waypoint); };
+                        PlatoonController::MotorSetpointCallback lambdaMotorSetpointCallback =
+                            [this](const int16_t left, const int16_t right)
+                        { return this->motorSetpointCallback(left, right); };
+
+                        if (false == m_platoonController.init(lambdaInputWaypointCallback, lambdaOutputWaypointCallback,
+                                                              lambdaMotorSetpointCallback))
                         {
                             LOG_FATAL("Could not initialize Platoon Controller.");
                         }
