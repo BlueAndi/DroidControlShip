@@ -84,12 +84,6 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
 
-/* MQTT topic name for receiving position setpoint coordinates. */
-const char* App::TOPIC_NAME_POSITION_SETPOINT = "positionSetpoint";
-
-/** Default size of the JSON Document for parsing. */
-static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
-
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
@@ -186,12 +180,6 @@ void App::setup()
                 {
                     LOG_FATAL("MQTT configuration could not be set.");
                 }
-                /* Subscribe to Position Setpoint Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_POSITION_SETPOINT, [this](const String& payload)
-                                                         { positionTopicCallback(payload); }))
-                {
-                    LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_POSITION_SETPOINT);
-                }
                 else
                 {
                     /* Setup SerialMuxProt Channels */
@@ -215,11 +203,16 @@ void App::setup()
                         processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
                         processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
 
-                        if (false == m_platoonController.init(
-                                         [this](Waypoint& waypoint) { inputWaypointCallback(waypoint); },
-                                         [this](const Waypoint& waypoint) { outputWaypointCallback(waypoint); },
-                                         [this](const int16_t left, const int16_t right)
-                                         { motorSetpointCallback(left, right); }))
+                        PlatoonController::InputWaypointCallback lambdaInputWaypointCallback =
+                            [this](Waypoint& waypoint) { return this->inputWaypointCallback(waypoint); };
+                        PlatoonController::OutputWaypointCallback lambdaOutputWaypointCallback =
+                            [this](const Waypoint& waypoint) { return this->outputWaypointCallback(waypoint); };
+                        PlatoonController::MotorSetpointCallback lambdaMotorSetpointCallback =
+                            [this](const int16_t left, const int16_t right)
+                        { return this->motorSetpointCallback(left, right); };
+
+                        if (false == m_platoonController.init(lambdaInputWaypointCallback, lambdaOutputWaypointCallback,
+                                                              lambdaMotorSetpointCallback))
                         {
                             LOG_FATAL("Could not initialize Platoon Controller.");
                         }
@@ -280,26 +273,25 @@ void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
     m_platoonController.setLatestVehicleData(vehicleDataAsWaypoint);
 }
 
-void App::inputWaypointCallback(Waypoint& waypoint)
+bool App::inputWaypointCallback(Waypoint& waypoint)
 {
     UTIL_NOT_USED(waypoint);
+    return false;
 }
 
-void App::outputWaypointCallback(const Waypoint& waypoint)
+bool App::outputWaypointCallback(const Waypoint& waypoint)
 {
     UTIL_NOT_USED(waypoint);
+    return false;
 }
 
-void App::motorSetpointCallback(const int16_t left, const int16_t right)
+bool App::motorSetpointCallback(const int16_t left, const int16_t right)
 {
     SpeedData payload;
     payload.left  = left;
     payload.right = right;
 
-    if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints, &payload, sizeof(payload)))
-    {
-        LOG_WARNING("Could not send motor speed setpoints.");
-    }
+    return m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints, &payload, sizeof(payload));
 }
 
 /******************************************************************************
@@ -309,34 +301,6 @@ void App::motorSetpointCallback(const int16_t left, const int16_t right)
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-void App::positionTopicCallback(const String& payload)
-{
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
-
-    if (error != DeserializationError::Ok)
-    {
-        LOG_ERROR("JSON Deserialization Error %d.", error);
-    }
-    else
-    {
-        JsonVariant jsonXPos = jsonPayload["X"];
-        JsonVariant jsonYPos = jsonPayload["Y"];
-
-        if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()))
-        {
-            int32_t positionX = jsonXPos.as<int32_t>();
-            int32_t positionY = jsonYPos.as<int32_t>();
-
-            LOG_DEBUG("Received position setpoint: x: %d y: %d", positionX, positionY);
-        }
-        else
-        {
-            LOG_WARNING("Received invalid position.");
-        }
-    }
-}
 
 void App::fatalErrorHandler()
 {
