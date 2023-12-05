@@ -38,6 +38,7 @@
 #include <SettingsHandler.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -59,7 +60,7 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+// static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -191,7 +192,7 @@ void App::setup()
                     m_serialMuxProtChannelIdTrafficLightColors =
                         m_smpServer.createChannel(TRAFFIC_LIGHT_COLORS_CHANNEL_NAME, TRAFFIC_LIGHT_COLORS_CHANNEL_DLC);
 
-                    m_smpServer.subscribeToChannel(ODOMETRY_CHANNEL_NAME, App_odometryChannelCallback);
+                    // m_smpServer.subscribeToChannel(ODOMETRY_CHANNEL_NAME, App_odometryChannelCallback);
 
                     if (0U == m_serialMuxProtChannelIdTrafficLightColors)
                     {
@@ -236,24 +237,27 @@ void App::loop()
     m_smpServer.process(millis());
 
     /* Process MQTT Communication */
-    m_mqttClient.process();
+    if (false == m_mqttClient.process())
+    {
+        LOG_DEBUG("Could not process MQTT services.");
+    }
 }
 
-void App::odometryCallback(const OdometryData& odometry)
-{
-    LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", odometry.xPos, odometry.yPos, odometry.orientation);
+// void App::odometryCallback(const OdometryData& odometry)
+// {
+//     // LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", odometry.xPos, odometry.yPos, odometry.orientation);
 
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
-    char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
+//     // StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
+//     // char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
 
-    payloadJson["x"] = odometry.xPos;
-    payloadJson["y"] = odometry.yPos;
+//     // payloadJson["x"] = odometry.xPos;
+//     // payloadJson["y"] = odometry.yPos;
 
-    (void)serializeJson(payloadJson, payloadArray);
-    String payloadStr(payloadArray);
+//     // (void)serializeJson(payloadJson, payloadArray);
+//     // String payloadStr(payloadArray);
 
-    m_mqttClient.publish("TL_0/coordinates", false, payloadStr);
-}
+//     // m_mqttClient.publish("TL_0/coordinates", false, payloadStr);
+// }
 
 /******************************************************************************
  * Protected Methods
@@ -271,39 +275,6 @@ void App::fatalErrorHandler()
     while (true)
     {
         ;
-    }
-}
-
-/**
- * Type: Tx MQTT
- * Name: createPackage
- */
-void App::createPackage(int32_t xCoord, int32_t yCoord)
-{
-    OdometryData oldCoordinates;
-    OdometryData coordinates;
-
-    /** First taking old coordinate data. */
-    oldCoordinates.xPos = coordinates.xPos;
-    oldCoordinates.yPos = coordinates.yPos;
-
-    /** Refreshing coordinates. */
-    coordinates.xPos = xCoord;
-    coordinates.yPos = yCoord;
-
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
-    char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
-
-    payloadJson["x"] = coordinates.xPos;
-    payloadJson["y"] = coordinates.yPos;
-
-    (void)serializeJson(payloadJson, payloadArray);
-    String payloadStr(payloadArray);
-
-    /** Publish only once robot sends a different coordinate set. */
-    if ((oldCoordinates.xPos == coordinates.xPos) && (oldCoordinates.yPos == coordinates.yPos))
-    {
-        m_mqttClient.publish("TL_0/coordinates", false, payloadStr);
     }
 }
 
@@ -334,10 +305,6 @@ void App::trafficLightColorsCallback(const String& payload)
             {
                 LOG_DEBUG("Color %d sent.", clr.colorId);
             }
-            else
-            {
-                LOG_WARNING("Failed to send color %d.", clr.colorId);
-            }
         }
         else
         {
@@ -353,28 +320,28 @@ void App::trafficLightColorsCallback(const String& payload)
  * Local Functions
  *****************************************************************************/
 
-/**
- * Type: Rx SMP
- * Name: odometryChannelCallback
- *
- * Receives current position and heading of the robot over SerialMuxProt channel.
- *
- * @param[in] payload       Odometry data. Two coordinates and one orientation.
- * @param[in] payloadSize   Size of two coordinates and one orientation.
- * @param[in] userData      Instance of App class.
- */
-void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
-{
-    (void)userData;
-    if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize) && (nullptr != userData))
-    {
-        const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
-        App*                application  = reinterpret_cast<App*>(userData);
+// /**
+//  * Type: Rx SMP
+//  * Name: odometryChannelCallback
+//  *
+//  * Receives current position and heading of the robot over SerialMuxProt channel.
+//  *
+//  * @param[in] payload       Odometry data. Two coordinates and one orientation.
+//  * @param[in] payloadSize   Size of two coordinates and one orientation.
+//  * @param[in] userData      Instance of App class.
+//  */
+// void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+// {
+//     (void)userData;
+//     if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize) && (nullptr != userData))
+//     {
+//         const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
+//         App*                application  = reinterpret_cast<App*>(userData);
 
-        application->odometryCallback(*odometryData);
-    }
-    else
-    {
-        LOG_WARNING("ODOMETRY: Invalid payload size. Expected: %u Received: %u", ODOMETRY_CHANNEL_DLC, payloadSize);
-    }
-}
+//         application->odometryCallback(*odometryData);
+//     }
+//     else
+//     {
+//         LOG_WARNING("ODOMETRY: Invalid payload size. Expected: %u Received: %u", ODOMETRY_CHANNEL_DLC, payloadSize);
+//     }
+// }

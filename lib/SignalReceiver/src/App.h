@@ -90,12 +90,12 @@ public:
      */
     void loop();
 
-    /**
-     * Odometry Callback
-     *
-     * @param[in] odometry  Odometry data.
-     */
-    void odometryCallback(const OdometryData& odometry);
+    // /**
+    //  * Odometry Callback
+    //  *
+    //  * @param[in] odometry  Odometry data.
+    //  */
+    // void odometryCallback(const OdometryData& odometry);
 
 private:
     /** Minimum battery level in percent. */
@@ -143,10 +143,10 @@ private:
      */
     void trafficLightColorsCallback(const String& payload);
 
-    /**
-     *  Creates JSON formatted package to send through MQTT.
-     */
-    void createPackage(int32_t xCoord, int32_t yCoord);
+    // /**
+    //  *  Creates JSON formatted package to send through MQTT.
+    //  */
+    // void createPackage(int32_t xCoord, int32_t yCoord);
 
 private:
     /* Not allowed. */
