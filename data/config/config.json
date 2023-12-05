@@ -15,5 +15,9 @@
     "WEBSERVER": {
         "USER": "admin",
         "PSWD": "admin"
+    },
+    "PLATOON": {
+        "PLATOON_ID": 0,
+        "VEHICLE_ID": 0
     }
 }

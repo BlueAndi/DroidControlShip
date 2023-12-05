@@ -87,12 +87,6 @@ const char* App::TOPIC_NAME_WILL = "will";
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
-/** Platoon ID */
-static const uint8_t PLATOON_ID = 0U;
-
-/** Vehicle ID */
-static const uint8_t VEHICLE_ID = 0U;
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -186,7 +180,12 @@ void App::setup()
                 {
                     LOG_FATAL("MQTT configuration could not be set.");
                 }
-                else if (false == m_v2vClient.init(PLATOON_ID, VEHICLE_ID))
+                else if (0U != settings.getPlatoonVehicleId())
+                {
+                    /* Correct config.json file loaded? */
+                    LOG_FATAL("Platoon Vehicle ID must be 0 for the leader.");
+                }
+                else if (false == m_v2vClient.init(settings.getPlatoonPlatoonId(), settings.getPlatoonVehicleId()))
                 {
                     LOG_FATAL("Failed to initialize V2V client.");
                 }

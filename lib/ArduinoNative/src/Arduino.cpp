@@ -139,6 +139,24 @@ static const char* WIFI_SSID_DEFAULT = "";
 /** Default value of the wifi passphrase. */
 static const char* WIFI_PASSPHRASE_DEFAULT = "";
 
+/** Default value of the access point SSID. */
+static const char* AP_SSID_DEFAULT = "DCS_AP";
+
+/** Default value of the access point passphrase. */
+static const char* AP_PASSPHRASE_DEFAULT = "hanshotfirst";
+
+/** Default value of the webserver user. */
+static const char* WEBSERVER_USER_DEFAULT = "admin";
+
+/** Default value of the webserver passphrase. */
+static const char* WEBSERVER_PASSPHRASE_DEFAULT = "admin";
+
+/** Default value of the Platoon ID. */
+static const char* PLATOON_ID_DEFAULT = "0";
+
+/** Default value of the Vehicle ID. */
+static const char* VEHICLE_ID_DEFAULT = "0";
+
 #endif
 
 /******************************************************************************
@@ -446,11 +464,17 @@ static int createConfigFile(const PrgArguments& prgArgs)
                 const size_t        JSON_DOC_SIZE = 2048U;
                 DynamicJsonDocument jsonDoc(JSON_DOC_SIZE);
 
-                jsonDoc["robotName"]    = prgArgs.robotName;
-                jsonDoc["WIFI"]["SSID"] = WIFI_SSID_DEFAULT;
-                jsonDoc["WIFI"]["PSWD"] = WIFI_PASSPHRASE_DEFAULT;
-                jsonDoc["MQTT"]["HOST"] = prgArgs.mqttHost;
-                jsonDoc["MQTT"]["PORT"] = prgArgs.mqttPort;
+                jsonDoc["robotName"]             = prgArgs.robotName;
+                jsonDoc["WIFI"]["SSID"]          = WIFI_SSID_DEFAULT;
+                jsonDoc["WIFI"]["PSWD"]          = WIFI_PASSPHRASE_DEFAULT;
+                jsonDoc["MQTT"]["HOST"]          = prgArgs.mqttHost;
+                jsonDoc["MQTT"]["PORT"]          = prgArgs.mqttPort;
+                jsonDoc["AP"]["SSID"]            = AP_SSID_DEFAULT;
+                jsonDoc["AP"]["PSWD"]            = AP_PASSPHRASE_DEFAULT;
+                jsonDoc["WEBSERVER"]["USER"]     = WEBSERVER_USER_DEFAULT;
+                jsonDoc["WEBSERVER"]["PSWD"]     = WEBSERVER_PASSPHRASE_DEFAULT;
+                jsonDoc["PLATOON"]["PLATOON_ID"] = PLATOON_ID_DEFAULT;
+                jsonDoc["PLATOON"]["VEHICLE_ID"] = VEHICLE_ID_DEFAULT;
 
                 {
                     size_t jsonBufferSize = measureJsonPretty(jsonDoc) + 1U;

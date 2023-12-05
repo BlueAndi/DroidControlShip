@@ -209,6 +209,26 @@ public:
         return m_webServerPassword;
     }
 
+    /**
+     * Get Platoon ID.
+     *
+     * @returns Platoon ID.
+     */
+    const uint8_t getPlatoonPlatoonId()
+    {
+        return m_platoonPlatoonId;
+    }
+
+    /**
+     * Get Vehicle ID.
+     *
+     * @returns Vehicle ID.
+     */
+    const uint8_t getPlatoonVehicleId()
+    {
+        return m_platoonVehicleId;
+    }
+
 private:
     /**
      * Instance Name.
@@ -254,6 +274,16 @@ private:
      * Web Server Password.
      */
     String m_webServerPassword;
+
+    /**
+     * Platoon: Platoon ID.
+     */
+    uint8_t m_platoonPlatoonId;
+
+    /**
+     * Platoon: Vehicle ID.
+     */
+    uint8_t m_platoonVehicleId;
 
     /**
      * FileHandler instance.

@@ -82,15 +82,17 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
         }
         else
         {
-            JsonVariantConst jsonRobotName     = doc["robotName"];
-            JsonVariantConst jsonWifiSsid      = doc["WIFI"]["SSID"];
-            JsonVariantConst jsonWifiPswd      = doc["WIFI"]["PSWD"];
-            JsonVariantConst jsonMqttHost      = doc["MQTT"]["HOST"];
-            JsonVariantConst jsonMqttPort      = doc["MQTT"]["PORT"];
-            JsonVariantConst jsonApSSID        = doc["AP"]["SSID"];
-            JsonVariantConst jsonApPswd        = doc["AP"]["PSWD"];
-            JsonVariantConst jsonWebServerUser = doc["WEBSERVER"]["USER"];
-            JsonVariantConst jsonWebServerPswd = doc["WEBSERVER"]["PSWD"];
+            JsonVariantConst jsonRobotName        = doc["robotName"];
+            JsonVariantConst jsonWifiSsid         = doc["WIFI"]["SSID"];
+            JsonVariantConst jsonWifiPswd         = doc["WIFI"]["PSWD"];
+            JsonVariantConst jsonMqttHost         = doc["MQTT"]["HOST"];
+            JsonVariantConst jsonMqttPort         = doc["MQTT"]["PORT"];
+            JsonVariantConst jsonApSSID           = doc["AP"]["SSID"];
+            JsonVariantConst jsonApPswd           = doc["AP"]["PSWD"];
+            JsonVariantConst jsonWebServerUser    = doc["WEBSERVER"]["USER"];
+            JsonVariantConst jsonWebServerPswd    = doc["WEBSERVER"]["PSWD"];
+            JsonVariantConst jsonPlatoonPlatoonId = doc["PLATOON"]["PLATOON_ID"];
+            JsonVariantConst jsonPlatoonVehicleId = doc["PLATOON"]["VEHICLE_ID"];
 
             if (false == jsonRobotName.isNull())
             {
@@ -137,6 +139,16 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
                 m_webServerPassword = jsonWebServerPswd.as<const char*>();
             }
 
+            if (false == jsonPlatoonPlatoonId.isNull())
+            {
+                m_platoonPlatoonId = jsonPlatoonPlatoonId.as<uint8_t>();
+            }
+
+            if (false == jsonPlatoonVehicleId.isNull())
+            {
+                m_platoonVehicleId = jsonPlatoonVehicleId.as<uint8_t>();
+            }
+
             isSuccessful = true;
         }
     }
@@ -152,15 +164,17 @@ bool SettingsHandler::saveConfigurationFile(const String& filename)
     size_t                         jsonBufferSize = 0U;
     size_t                         bytesToWrite   = 0U;
 
-    doc["robotName"]         = m_robotName.c_str();
-    doc["WIFI"]["SSID"]      = m_wifiSSID.c_str();
-    doc["WIFI"]["PSWD"]      = m_wifiPassword.c_str();
-    doc["MQTT"]["HOST"]      = m_mqttBrokerAddress.c_str();
-    doc["MQTT"]["PORT"]      = m_mqttPort;
-    doc["AP"]["SSID"]        = m_apSSID.c_str();
-    doc["AP"]["PSWD"]        = m_apPassword.c_str();
-    doc["WEBSERVER"]["USER"] = m_webServerUser.c_str();
-    doc["WEBSERVER"]["PSWD"] = m_webServerPassword.c_str();
+    doc["robotName"]             = m_robotName.c_str();
+    doc["WIFI"]["SSID"]          = m_wifiSSID.c_str();
+    doc["WIFI"]["PSWD"]          = m_wifiPassword.c_str();
+    doc["MQTT"]["HOST"]          = m_mqttBrokerAddress.c_str();
+    doc["MQTT"]["PORT"]          = m_mqttPort;
+    doc["AP"]["SSID"]            = m_apSSID.c_str();
+    doc["AP"]["PSWD"]            = m_apPassword.c_str();
+    doc["WEBSERVER"]["USER"]     = m_webServerUser.c_str();
+    doc["WEBSERVER"]["PSWD"]     = m_webServerPassword.c_str();
+    doc["PLATOON"]["PLATOON_ID"] = m_platoonPlatoonId;
+    doc["PLATOON"]["VEHICLE_ID"] = m_platoonVehicleId;
 
     jsonBufferSize = measureJsonPretty(doc) + 1U;
     char jsonBuffer[jsonBufferSize];
@@ -199,6 +213,12 @@ SettingsHandler::SettingsHandler() :
     m_wifiPassword(),
     m_mqttBrokerAddress(),
     m_mqttPort(0U),
+    m_apSSID(),
+    m_apPassword(),
+    m_webServerUser(),
+    m_webServerPassword(),
+    m_platoonPlatoonId(0U),
+    m_platoonVehicleId(0U),
     m_fileHandler()
 {
 }
