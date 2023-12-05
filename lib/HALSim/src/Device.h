@@ -106,6 +106,11 @@ public:
     void reset() final;
 
     /**
+     * Enter Bootloader mode.
+     */
+    void enterBootloader() final;
+
+    /**
      * Set the server address and port of the device.
      *
      * @param[in] address   Server address. Set nullptr to use the default address.
