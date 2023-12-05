@@ -219,8 +219,8 @@ void App::setup()
         Board::getInstance().getGreenLed().enable(false);
     }
 
-    /* Sending coordinates every 250ms. */
-    m_sendPackageTimer.start(250U);
+    // /* Sending coordinates every 250ms. */
+    // m_sendPackageTimer.start(250U);
 }
 
 void App::loop()
