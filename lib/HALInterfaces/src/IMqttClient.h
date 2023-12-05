@@ -139,18 +139,20 @@ public:
     /**
      * Subscribes to a topic.
      *
-     * @param[in] topic     Topic to subscribe to. The Client ID is used as base topic: `Client ID`/`topic`
+     * @param[in] topic     Topic to subscribe to.
+     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
      * @param[in] callback  Callback function, which is called on a new message.
      * @return If successfully subscribed, returns true. Otherwise, false.
      */
-    virtual bool subscribe(const String& topic, TopicCallback callback) = 0;
+    virtual bool subscribe(const String& topic, const bool useClientBaseTopic, TopicCallback callback) = 0;
 
     /**
      * Unsubscribes from a topic.
      *
-     * @param[in] topic     Topic to unsubscribe from.  The Client ID is used as base topic: `Client ID`/`topic`
+     * @param[in] topic     Topic to unsubscribe from.
+     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
      */
-    virtual void unsubscribe(const String& topic) = 0;
+    virtual void unsubscribe(const String& topic, const bool useClientBaseTopic) = 0;
 
 protected:
     /**

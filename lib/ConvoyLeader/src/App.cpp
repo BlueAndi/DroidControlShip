@@ -187,7 +187,8 @@ void App::setup()
                     LOG_FATAL("MQTT configuration could not be set.");
                 }
                 /* Subscribe to Position Setpoint Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_POSITION_SETPOINT, [this](const String& payload)
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_POSITION_SETPOINT, true,
+                                                         [this](const String& payload)
                                                          { positionTopicCallback(payload); }))
                 {
                     LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_POSITION_SETPOINT);

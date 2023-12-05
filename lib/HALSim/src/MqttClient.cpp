@@ -240,14 +240,23 @@ bool MqttClient::publish(const String& topic, const bool useClientBaseTopic, con
     return isSuccess;
 }
 
-bool MqttClient::subscribe(const String& topic, TopicCallback callback)
+bool MqttClient::subscribe(const String& topic, const bool useClientBaseTopic, TopicCallback callback)
 {
     bool isSuccess = false;
 
     if ((false == topic.isEmpty()) && (false == m_clientId.isEmpty()))
     {
         SubscriberList::const_iterator it;
-        String                         fullTopic = m_clientId + "/" + topic;
+        String                         fullTopic = "";
+
+        if ((true == useClientBaseTopic) && (false == m_clientId.isEmpty()))
+        {
+            fullTopic = m_clientId + "/" + topic;
+        }
+        else
+        {
+            fullTopic = topic;
+        }
 
         /* Register a topic only once! */
         for (it = m_subscriberList.begin(); it != m_subscriberList.end(); ++it)
@@ -300,12 +309,21 @@ bool MqttClient::subscribe(const String& topic, TopicCallback callback)
     return isSuccess;
 }
 
-void MqttClient::unsubscribe(const String& topic)
+void MqttClient::unsubscribe(const String& topic, const bool useClientBaseTopic)
 {
     if ((false == topic.isEmpty()) && (false == m_clientId.isEmpty()))
     {
-        String                   fullTopic = m_clientId + "/" + topic;
         SubscriberList::iterator it        = m_subscriberList.begin();
+        String                   fullTopic = "";
+
+        if ((true == useClientBaseTopic) && (false == m_clientId.isEmpty()))
+        {
+            fullTopic = m_clientId + "/" + topic;
+        }
+        else
+        {
+            fullTopic = topic;
+        }
 
         while (m_subscriberList.end() != it)
         {

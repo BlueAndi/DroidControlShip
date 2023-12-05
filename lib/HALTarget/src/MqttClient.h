@@ -126,18 +126,20 @@ public:
     /**
      * Subscribes to a topic.
      *
-     * @param[in] topic     Topic to subscribe to. The Client ID is used as base topic: `Client ID`/`topic`
+     * @param[in] topic     Topic to subscribe to.
+     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
      * @param[in] callback  Callback function, which is called on a new message.
      * @return If successfully subscribed, returns true. Otherwise, false.
      */
-    bool subscribe(const String& topic, TopicCallback callback) final;
+    bool subscribe(const String& topic, const bool useClientBaseTopic, TopicCallback callback) final;
 
     /**
      * Unsubscribes from a topic.
      *
-     * @param[in] topic     Topic to unsubscribe from. The Client ID is used as base topic: `Client ID`/`topic`
+     * @param[in] topic     Topic to unsubscribe from.
+     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
      */
-    void unsubscribe(const String& topic) final;
+    void unsubscribe(const String& topic, const bool useClientBaseTopic) final;
 
 private:
     /** MQTT Service States. */
