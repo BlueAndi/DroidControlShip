@@ -207,7 +207,7 @@ bool MqttClient::isConnected() const
     return (STATE_CONNECTED == m_state);
 }
 
-bool MqttClient::publish(const String& topic, const bool useClientBaseTopic, const String& message)
+bool MqttClient::publish(const String& topic, const bool useClientIdAsBaseTopic, const String& message)
 {
     bool isSuccess = false;
 
@@ -215,7 +215,7 @@ bool MqttClient::publish(const String& topic, const bool useClientBaseTopic, con
     {
         String fullTopic = "";
 
-        if ((true == useClientBaseTopic) && (false == m_clientId.isEmpty()))
+        if ((true == useClientIdAsBaseTopic) && (false == m_clientId.isEmpty()))
         {
             fullTopic = m_clientId + "/" + topic;
         }
@@ -240,7 +240,7 @@ bool MqttClient::publish(const String& topic, const bool useClientBaseTopic, con
     return isSuccess;
 }
 
-bool MqttClient::subscribe(const String& topic, const bool useClientBaseTopic, TopicCallback callback)
+bool MqttClient::subscribe(const String& topic, const bool useClientIdAsBaseTopic, TopicCallback callback)
 {
     bool isSuccess = false;
 
@@ -249,7 +249,7 @@ bool MqttClient::subscribe(const String& topic, const bool useClientBaseTopic, T
         SubscriberList::const_iterator it;
         String                         fullTopic = "";
 
-        if ((true == useClientBaseTopic) && (false == m_clientId.isEmpty()))
+        if ((true == useClientIdAsBaseTopic) && (false == m_clientId.isEmpty()))
         {
             fullTopic = m_clientId + "/" + topic;
         }
@@ -309,14 +309,14 @@ bool MqttClient::subscribe(const String& topic, const bool useClientBaseTopic, T
     return isSuccess;
 }
 
-void MqttClient::unsubscribe(const String& topic, const bool useClientBaseTopic)
+void MqttClient::unsubscribe(const String& topic, const bool useClientIdAsBaseTopic)
 {
     if ((false == topic.isEmpty()) && (false == m_clientId.isEmpty()))
     {
         SubscriberList::iterator it        = m_subscriberList.begin();
         String                   fullTopic = "";
 
-        if ((true == useClientBaseTopic) && (false == m_clientId.isEmpty()))
+        if ((true == useClientIdAsBaseTopic) && (false == m_clientId.isEmpty()))
         {
             fullTopic = m_clientId + "/" + topic;
         }

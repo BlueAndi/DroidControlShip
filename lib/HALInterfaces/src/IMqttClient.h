@@ -130,29 +130,32 @@ public:
     /**
      * Publishes a message to the broker.
      *
-     * @param[in] topic                Topic to publish to.
-     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
-     * @param[in] message              Message to publish.
+     * @param[in] topic                     Topic to publish to.
+     * @param[in] useClientIdAsBaseTopic    If true, the client ID is used as the base (prefix) of the topic.
+     * @param[in] message                   Message to publish.
+     *
+     * @return If successfully published, returns true. Otherwise, false.
      */
-    virtual bool publish(const String& topic, const bool useClientBaseTopic, const String& message) = 0;
+    virtual bool publish(const String& topic, const bool useClientIdAsBaseTopic, const String& message) = 0;
 
     /**
      * Subscribes to a topic.
      *
-     * @param[in] topic     Topic to subscribe to.
-     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
-     * @param[in] callback  Callback function, which is called on a new message.
+     * @param[in] topic                     Topic to subscribe to.
+     * @param[in] useClientIdAsBaseTopic    If true, the client ID is used as the base (prefix) of the topic.
+     * @param[in] callback                  Callback function, which is called on a new message.
+     *
      * @return If successfully subscribed, returns true. Otherwise, false.
      */
-    virtual bool subscribe(const String& topic, const bool useClientBaseTopic, TopicCallback callback) = 0;
+    virtual bool subscribe(const String& topic, const bool useClientIdAsBaseTopic, TopicCallback callback) = 0;
 
     /**
      * Unsubscribes from a topic.
      *
-     * @param[in] topic     Topic to unsubscribe from.
-     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
+     * @param[in] topic                     Topic to unsubscribe from.
+     * @param[in] useClientIdAsBaseTopic    If true, the client ID is used as the base (prefix) of the topic.
      */
-    virtual void unsubscribe(const String& topic, const bool useClientBaseTopic) = 0;
+    virtual void unsubscribe(const String& topic, const bool useClientIdAsBaseTopic) = 0;
 
 protected:
     /**
