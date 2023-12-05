@@ -84,12 +84,6 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
 
-/* MQTT topic name for receiving position setpoint coordinates. */
-const char* App::TOPIC_NAME_POSITION_SETPOINT = "positionSetpoint";
-
-/** Default size of the JSON Document for parsing. */
-static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
-
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
@@ -185,13 +179,6 @@ void App::setup()
                 if (false == m_mqttClient.setConfig(mqttSettings))
                 {
                     LOG_FATAL("MQTT configuration could not be set.");
-                }
-                /* Subscribe to Position Setpoint Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_POSITION_SETPOINT, true,
-                                                         [this](const String& payload)
-                                                         { positionTopicCallback(payload); }))
-                {
-                    LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_POSITION_SETPOINT);
                 }
                 else
                 {
@@ -309,34 +296,6 @@ bool App::motorSetpointCallback(const int16_t left, const int16_t right)
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-void App::positionTopicCallback(const String& payload)
-{
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
-
-    if (error != DeserializationError::Ok)
-    {
-        LOG_ERROR("JSON Deserialization Error %d.", error);
-    }
-    else
-    {
-        JsonVariant jsonXPos = jsonPayload["X"];
-        JsonVariant jsonYPos = jsonPayload["Y"];
-
-        if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()))
-        {
-            int32_t positionX = jsonXPos.as<int32_t>();
-            int32_t positionY = jsonYPos.as<int32_t>();
-
-            LOG_DEBUG("Received position setpoint: x: %d y: %d", positionX, positionY);
-        }
-        else
-        {
-            LOG_WARNING("Received invalid position.");
-        }
-    }
-}
 
 void App::fatalErrorHandler()
 {

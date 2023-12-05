@@ -138,9 +138,6 @@ private:
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
 
-    /** MQTT topic name for receiving position setpoint coordinates. */
-    static const char* TOPIC_NAME_POSITION_SETPOINT;
-
     /** SerialMuxProt Channel id sending sending motor speed setpoints. */
     uint8_t m_serialMuxProtChannelIdMotorSpeedSetpoints;
 
@@ -162,12 +159,6 @@ private:
     PlatoonController m_platoonController;
 
 private:
-    /**
-     * Callback for Position Setpoint MQTT Topic.
-     * @param[in] payload   Payload of the MQTT message.
-     */
-    void positionTopicCallback(const String& payload);
-
     /**
      * Handler of fatal errors in the Application.
      */
