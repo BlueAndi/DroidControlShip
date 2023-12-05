@@ -49,6 +49,7 @@
 #include <SerialMuxProtServer.hpp>
 #include "SerialMuxChannels.h"
 #include <PlatoonController.h>
+#include <V2VClient.h>
 
 /******************************************************************************
  * Macros
@@ -69,7 +70,8 @@ public:
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_serialMuxProtChannelIdMotorSpeedSetpoints(0U),
         m_mqttClient(),
-        m_platoonController()
+        m_platoonController(),
+        m_v2vClient(m_mqttClient)
     {
     }
 
@@ -152,6 +154,11 @@ private:
      * MQTTClient Instance
      */
     MqttClient m_mqttClient;
+
+    /**
+     * V2V client instance.
+     */
+    V2VClient m_v2vClient;
 
     /**
      * Platoon controller instance.
