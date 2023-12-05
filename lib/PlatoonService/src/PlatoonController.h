@@ -68,19 +68,19 @@ public:
      * Input waypoint callback.
      * Called in order to get the next waypoint into the platoon controller.
      */
-    typedef std::function<void(Waypoint& waypoint)> InputWaypointCallback;
+    typedef std::function<bool(Waypoint& waypoint)> InputWaypointCallback;
 
     /**
      * Output waypoint callback.
      * Called in order to send the last waypoint to the next platoon participant.
      */
-    typedef std::function<void(const Waypoint& waypoint)> OutputWaypointCallback;
+    typedef std::function<bool(const Waypoint& waypoint)> OutputWaypointCallback;
 
     /**
      * Motor setpoint callback.
      * Called in order to set the motor speeds.
      */
-    typedef std::function<void(const int16_t left, const int16_t right)> MotorSetpointCallback;
+    typedef std::function<bool(const int16_t left, const int16_t right)> MotorSetpointCallback;
 
     /**
      * PlatoonController default constructor.
@@ -147,6 +147,11 @@ private:
      * Current waypoint to follow.
      */
     Waypoint m_currentWaypoint;
+
+    /**
+     * Next waypoint to follow.
+     */
+    Waypoint m_nextWaypoint;
 
     /**
      * Current vehicle data in the form of a waypoint.

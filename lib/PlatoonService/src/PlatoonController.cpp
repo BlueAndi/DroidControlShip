@@ -116,11 +116,20 @@ void PlatoonController::process()
     if ((true == targetWaypointReached()) && (nullptr != m_inputWaypointCallback) &&
         (nullptr != m_outputWaypointCallback))
     {
-        /* Send current waypoint to the next vehicle. */
-        m_outputWaypointCallback(m_currentWaypoint);
-
         /* Get next waypoint. */
-        m_inputWaypointCallback(m_currentWaypoint);
+        if (false == m_inputWaypointCallback(m_nextWaypoint))
+        {
+            ; /* Nothing to do here. Have to wait for a waypoint. */
+        }
+        /* Send current waypoint to the next vehicle only when a new one has been received. */
+        else if (false == m_outputWaypointCallback(m_currentWaypoint))
+        {
+            LOG_ERROR("Failed to send waypoint to next vehicle.");
+        }
+        else
+        {
+            m_currentWaypoint = m_nextWaypoint;
+        }
     }
 
     /* Process chain on timeout. */

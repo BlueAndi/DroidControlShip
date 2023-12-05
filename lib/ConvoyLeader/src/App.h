@@ -102,25 +102,31 @@ public:
      * Called in order to get the next waypoint into the platoon controller.
      *
      * @param[out] waypoint   Next waypoint.
+     *
+     * @return If a waypoint is available, it returns true. Otherwise, false.
      */
-    void inputWaypointCallback(Waypoint& waypoint);
+    bool inputWaypointCallback(Waypoint& waypoint);
 
     /**
      * Output waypoint callback.
      * Called in order to send the last waypoint to the next platoon participant.
      *
      * @param[in] waypoint    Last waypoint.
+     *
+     * @return If the waypoint was sent successfully, returns true. Otherwise, false.
      */
-    void outputWaypointCallback(const Waypoint& waypoint);
+    bool outputWaypointCallback(const Waypoint& waypoint);
 
     /**
      * Motor setpoint callback.
-     * Called in order to set the motor speeds.
+     * Called in order to send the motor speeds using SerialMuxProt to the robot.
      *
      * @param[in] left      Left motor speed [steps/s].
      * @param[in] right     Right motor speed [steps/s].
+     *
+     * @return If the motor speeds were sent successfully, returns true. Otherwise, false.
      */
-    void motorSetpointCallback(const int16_t left, const int16_t right);
+    bool motorSetpointCallback(const int16_t left, const int16_t right);
 
 private:
     /** Minimum battery level in percent. */

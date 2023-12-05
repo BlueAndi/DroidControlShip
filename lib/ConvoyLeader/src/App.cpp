@@ -217,10 +217,10 @@ void App::setup()
                         processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
 
                         if (false == m_platoonController.init(
-                                         [this](Waypoint& waypoint) { inputWaypointCallback(waypoint); },
-                                         [this](const Waypoint& waypoint) { outputWaypointCallback(waypoint); },
+                                         [this](Waypoint& waypoint) { return inputWaypointCallback(waypoint); },
+                                         [this](const Waypoint& waypoint) { return outputWaypointCallback(waypoint); },
                                          [this](const int16_t left, const int16_t right)
-                                         { motorSetpointCallback(left, right); }))
+                                         { return motorSetpointCallback(left, right); }))
                         {
                             LOG_FATAL("Could not initialize Platoon Controller.");
                         }
@@ -281,26 +281,25 @@ void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
     m_platoonController.setLatestVehicleData(vehicleDataAsWaypoint);
 }
 
-void App::inputWaypointCallback(Waypoint& waypoint)
+bool App::inputWaypointCallback(Waypoint& waypoint)
 {
     UTIL_NOT_USED(waypoint);
+    return false;
 }
 
-void App::outputWaypointCallback(const Waypoint& waypoint)
+bool App::outputWaypointCallback(const Waypoint& waypoint)
 {
     UTIL_NOT_USED(waypoint);
+    return false;
 }
 
-void App::motorSetpointCallback(const int16_t left, const int16_t right)
+bool App::motorSetpointCallback(const int16_t left, const int16_t right)
 {
     SpeedData payload;
     payload.left  = left;
     payload.right = right;
 
-    if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints, &payload, sizeof(payload)))
-    {
-        LOG_WARNING("Could not send motor speed setpoints.");
-    }
+    return m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints, &payload, sizeof(payload));
 }
 
 /******************************************************************************
