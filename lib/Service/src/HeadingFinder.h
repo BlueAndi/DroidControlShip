@@ -28,7 +28,7 @@
  * @brief  Heading Finder Module.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Application
+ * @addtogroup Service
  *
  * @{
  */

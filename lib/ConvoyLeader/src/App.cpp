@@ -33,7 +33,6 @@
  * Includes
  *****************************************************************************/
 #include "App.h"
-#include "HeadingFinder.h"
 #include <Board.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
@@ -41,6 +40,11 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <Util.h>
+#include <ProcessingChainFactory.h>
+#include "LongitudinalController.h"
+#include "LongitudinalSafetyPolicy.h"
+#include "LateralController.h"
+#include "LateralSafetyPolicy.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -62,8 +66,7 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
-static void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -89,9 +92,6 @@ static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
-
-/** HeadingFinder Instance. */
-static HeadingFinder gHeadingFinder;
 
 /******************************************************************************
  * Public Methods
@@ -195,8 +195,8 @@ void App::setup()
                 else
                 {
                     /* Setup SerialMuxProt Channels */
-                    m_smpServer.subscribeToChannel(ODOMETRY_CHANNEL_NAME, App_odometryChannelCallback);
-                    m_smpServer.subscribeToChannel(SPEED_CHANNEL_NAME, App_speedChannelCallback);
+                    m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME,
+                                                   App_currentVehicleChannelCallback);
                     m_serialMuxProtChannelIdMotorSpeedSetpoints =
                         m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
 
@@ -206,9 +206,27 @@ void App::setup()
                     }
                     else
                     {
-                        /* Initialize HeadingFinder. */
-                        gHeadingFinder.init();
-                        isSuccessful = true;
+
+                        ProcessingChainFactory& processingChainFactory = ProcessingChainFactory::getInstance();
+
+                        processingChainFactory.registerLongitudinalControllerCreateFunc(LongitudinalController::create);
+                        processingChainFactory.registerLongitudinalSafetyPolicyCreateFunc(
+                            LongitudinalSafetyPolicy::create);
+                        processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
+                        processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
+
+                        if (false == m_platoonController.init(
+                                         [this](Waypoint& waypoint) { inputWaypointCallback(waypoint); },
+                                         [this](const Waypoint& waypoint) { outputWaypointCallback(waypoint); },
+                                         [this](const int16_t left, const int16_t right)
+                                         { motorSetpointCallback(left, right); }))
+                        {
+                            LOG_FATAL("Could not initialize Platoon Controller.");
+                        }
+                        else
+                        {
+                            isSuccessful = true;
+                        }
                     }
                 }
             }
@@ -244,8 +262,44 @@ void App::loop()
     /* Process MQTT Communication */
     m_mqttClient.process();
 
-    /* Set new target speeds. */
-    sendSpeedSetpoints();
+    /* Process Platoon Controller */
+    m_platoonController.process();
+}
+
+void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
+{
+    Waypoint vehicleDataAsWaypoint;
+
+    vehicleDataAsWaypoint.xPos        = vehicleData.xPos;
+    vehicleDataAsWaypoint.yPos        = vehicleData.yPos;
+    vehicleDataAsWaypoint.orientation = vehicleData.orientation;
+    vehicleDataAsWaypoint.left        = vehicleData.left;
+    vehicleDataAsWaypoint.right       = vehicleData.right;
+    vehicleDataAsWaypoint.center      = vehicleData.center;
+
+    m_platoonController.setLatestVehicleData(vehicleDataAsWaypoint);
+}
+
+void App::inputWaypointCallback(Waypoint& waypoint)
+{
+    UTIL_NOT_USED(waypoint);
+}
+
+void App::outputWaypointCallback(const Waypoint& waypoint)
+{
+    UTIL_NOT_USED(waypoint);
+}
+
+void App::motorSetpointCallback(const int16_t left, const int16_t right)
+{
+    SpeedData payload;
+    payload.left  = left;
+    payload.right = right;
+
+    if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints, &payload, sizeof(payload)))
+    {
+        LOG_WARNING("Could not send motor speed setpoints.");
+    }
 }
 
 /******************************************************************************
@@ -276,7 +330,6 @@ void App::positionTopicCallback(const String& payload)
             int32_t positionY = jsonYPos.as<int32_t>();
 
             LOG_DEBUG("Received position setpoint: x: %d y: %d", positionX, positionY);
-            gHeadingFinder.setTargetHeading(positionX, positionY);
         }
         else
         {
@@ -296,41 +349,6 @@ void App::fatalErrorHandler()
     }
 }
 
-void App::sendSpeedSetpoints()
-{
-    int16_t targetSpeedLeft  = 0;
-    int16_t targetSpeedRight = 0;
-
-    if (0 != gHeadingFinder.process(targetSpeedLeft, targetSpeedRight))
-    {
-        SpeedData payload;
-        payload.left  = targetSpeedLeft;
-        payload.right = targetSpeedRight;
-
-        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints,
-                                          reinterpret_cast<uint8_t*>(&payload), sizeof(payload)))
-        {
-            LOG_DEBUG("Could not send speed setpoints.");
-        }
-        else
-        {
-            StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
-            HeadingFinder::HeadingFinderData          data = gHeadingFinder.getLatestData();
-            char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
-
-            payloadJson["targetSpeedLeft"]  = targetSpeedLeft;
-            payloadJson["targetSpeedRight"] = targetSpeedRight;
-            payloadJson["targetHeading"]    = data.targetHeading;
-            payloadJson["currentHeading"]   = data.currentHeading;
-
-            (void)serializeJson(payloadJson, payloadArray);
-            String payloadStr(payloadArray);
-
-            m_mqttClient.publish("pid", true, payloadStr);
-        }
-    }
-}
-
 /******************************************************************************
  * External Functions
  *****************************************************************************/
@@ -342,45 +360,21 @@ void App::sendSpeedSetpoints()
 /**
  * Receives current position and heading of the robot over SerialMuxProt channel.
  *
- * @param[in] payload       Odometry data. Two coordinates and one orientation.
- * @param[in] payloadSize   Size of two coordinates and one orientation.
- * @param[in] userData      User data
+ * @param[in] payload       Current vehicle data. Two coordinates, one orientation and two motor speeds.
+ * @param[in] payloadSize   Size of two coordinates, one orientation and two motor speeds.
+ * @param[in] userData      Instance of App class.
  */
-void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
-    UTIL_NOT_USED(userData);
-    if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize))
+    if ((nullptr != payload) && (CURRENT_VEHICLE_DATA_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
-        const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
-        LOG_DEBUG("ODOMETRY: x: %d y: %d orientation: %d", odometryData->xPos, odometryData->yPos,
-                  odometryData->orientation);
-        gHeadingFinder.setOdometryData(odometryData->xPos, odometryData->yPos, odometryData->orientation);
+        const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
+        App*               application        = reinterpret_cast<App*>(userData);
+        application->currentVehicleChannelCallback(*currentVehicleData);
     }
     else
     {
-        LOG_WARNING("ODOMETRY: Invalid payload size. Expected: %u Received: %u", ODOMETRY_CHANNEL_DLC, payloadSize);
-    }
-}
-
-/**
- * Receives current motor speeds of the robot over SerialMuxProt channel.
- *
- * @param[in] payload       Motor speeds.
- * @param[in] payloadSize   Size of two motor speeds.
- * @param[in] userData      User data
- */
-void App_speedChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
-{
-    UTIL_NOT_USED(userData);
-
-    if ((nullptr != payload) && (SPEED_CHANNEL_DLC == payloadSize))
-    {
-        const SpeedData* motorSpeedData = reinterpret_cast<const SpeedData*>(payload);
-        LOG_DEBUG("SPEED: left: %d right: %d", motorSpeedData->left, motorSpeedData->right);
-        gHeadingFinder.setMotorSpeedData(motorSpeedData->left, motorSpeedData->right);
-    }
-    else
-    {
-        LOG_WARNING("SPEED: Invalid payload size. Expected: %u Received: %u", SPEED_CHANNEL_DLC, payloadSize);
+        LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u",
+                    CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME, CURRENT_VEHICLE_DATA_CHANNEL_DLC, payloadSize);
     }
 }

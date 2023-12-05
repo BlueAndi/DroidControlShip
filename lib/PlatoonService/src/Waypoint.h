@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Device realization
+ * @brief  Definition of a Waypoint.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALSim
+ * @addtogroup PlatoonService
  *
  * @{
  */
-
-#ifndef DEVICE_H
-#define DEVICE_H
+#ifndef WAYPOINT_H
+#define WAYPOINT_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,9 +42,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "IDevice.h"
-#include "IDeviceNative.h"
-#include "SocketClient.h"
+
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -55,97 +53,31 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the simulation device. */
-class Device : public IDevice, public IDeviceNative
+/**
+ * Waypoint structure definition.
+ * Defines the position of a waypoint in the map and the speed at which is to be reached.
+ */
+typedef struct _Waypoint
 {
-public:
+    int32_t xPos;        /**< X position [mm]. */
+    int32_t yPos;        /**< Y position [mm]. */
+    int32_t orientation; /**< Orientation [mrad]. */
+    int16_t left;        /**< Left motor speed [steps/s]. */
+    int16_t right;       /**< Right motor speed [steps/s]. */
+    int16_t center;      /**< Center speed [steps/s]. */
+
     /**
-     * Constructs the device adapter.
+     * Default constructor.
      */
-    Device() :
-        IDevice(),
-        IDeviceNative(),
-        m_retryConnectionCounter(0U),
-        m_socket(),
-        m_address(DEFAULT_SERVER_ADDRESS),
-        m_port(DEFAULT_SERVER_PORT)
+    _Waypoint() : xPos(0), yPos(0), orientation(0), left(0), right(0), center(0)
     {
     }
 
-    /**
-     * Destroys the device adapter.
-     */
-    virtual ~Device()
-    {
-    }
-
-    /**
-     * Initialize device driver.
-     *
-     * @return If successfully initialized, returns true. Otherwise, false.
-     */
-    bool init() final;
-
-    /**
-     * Process communication with the device.
-     *
-     * @return If communication is successful, returns true. Otherwise, false.
-     */
-    bool process() final;
-
-    /**
-     * Get comunication Stream.
-     *
-     * @return Device data Stream.
-     */
-    Stream& getStream() final;
-
-    /**
-     * Reset the device.
-     */
-    void reset() final;
-
-    /**
-     * Enter Bootloader mode.
-     */
-    void enterBootloader() final;
-
-    /**
-     * Set the server address and port of the device.
-     *
-     * @param[in] address   Server address. Set nullptr to use the default address.
-     * @param[in] port      Server port number. Set nullptr to use the default port.
-     */
-    void setServer(const char* address, const char* port) final;
-
-private:
-    /** Default server address of the device. */
-    static const char* DEFAULT_SERVER_ADDRESS;
-
-    /** Default server port of the device. */
-    static const char* DEFAULT_SERVER_PORT;
-
-    /** Maximum number of connection retries. */
-    static const uint8_t MAX_CONN_RETRY_COUNT;
-
-    /** Retry connection counter. */
-    uint8_t m_retryConnectionCounter;
-
-    /**
-     * Socket stream for communication with the device.
-     */
-    SocketClient m_socket;
-
-    /** Server Address. */
-    const char* m_address;
-
-    /** Server Port Number. */
-    const char* m_port;
-};
+} __attribute__((packed)) Waypoint;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* DEVICE_H */
+#endif /* WAYPOINT_H */
 /** @} */
