@@ -160,6 +160,52 @@ static const char WEBSERVER_USER_DEFAULT[] = "admin";
 /** Default value of the webserver passphrase. */
 static const char WEBSERVER_PASSPHRASE_DEFAULT[] = "admin";
 
+/**
+ * Configuration keys found in the config file.
+ */
+namespace configKeys
+{
+    /** Robot name */
+    static const char ROBOT_NAME[] = "robotName";
+
+    /** WiFi */
+    static const char WIFI[] = "wifi";
+
+    /** MQTT */
+    static const char MQTT[] = "mqtt";
+
+    /** Access point */
+    static const char AP[] = "ap";
+
+    /** WebServer */
+    static const char WEBSERVER[] = "webServer";
+
+    /** Platoon */
+    static const char PLATOON[] = "platoon";
+
+    /** SSID */
+    static const char SSID[] = "ssid";
+
+    /** Passphrase */
+    static const char PASSWORD[] = "pswd";
+
+    /** Host */
+    static const char HOST[] = "host";
+
+    /** Port */
+    static const char PORT[] = "port";
+
+    /** User */
+    static const char USER[] = "user";
+
+    /** Platoon ID */
+    static const char PLATOON_ID[] = "platoonId";
+
+    /** Vehicle ID */
+    static const char VEHICLE_ID[] = "vehicleId";
+
+} // namespace configKeys
+
 #endif
 
 /******************************************************************************
@@ -483,17 +529,17 @@ static int createConfigFile(const PrgArguments& prgArgs)
                 const size_t        JSON_DOC_SIZE = 2048U;
                 DynamicJsonDocument jsonDoc(JSON_DOC_SIZE);
 
-                jsonDoc["robotName"]            = prgArgs.robotName;
-                jsonDoc["wifi"]["ssid"]         = WIFI_SSID_DEFAULT;
-                jsonDoc["wifi"]["pswd"]         = WIFI_PASSPHRASE_DEFAULT;
-                jsonDoc["mqtt"]["host"]         = prgArgs.mqttHost;
-                jsonDoc["mqtt"]["port"]         = prgArgs.mqttPort;
-                jsonDoc["ap"]["ssid"]           = AP_SSID_DEFAULT;
-                jsonDoc["ap"]["pswd"]           = AP_PASSPHRASE_DEFAULT;
-                jsonDoc["webServer"]["user"]    = WEBSERVER_USER_DEFAULT;
-                jsonDoc["webServer"]["pswd"]    = WEBSERVER_PASSPHRASE_DEFAULT;
-                jsonDoc["platoon"]["platoonId"] = prgArgs.platoonId;
-                jsonDoc["platoon"]["vehicleId"] = prgArgs.vehicleId;
+                jsonDoc[configKeys::ROBOT_NAME]                      = prgArgs.robotName;
+                jsonDoc[configKeys::WIFI][configKeys::SSID]          = WIFI_SSID_DEFAULT;
+                jsonDoc[configKeys::WIFI][configKeys::PASSWORD]      = WIFI_PASSPHRASE_DEFAULT;
+                jsonDoc[configKeys::MQTT][configKeys::HOST]          = prgArgs.mqttHost;
+                jsonDoc[configKeys::MQTT][configKeys::PORT]          = prgArgs.mqttPort;
+                jsonDoc[configKeys::AP][configKeys::SSID]            = AP_SSID_DEFAULT;
+                jsonDoc[configKeys::AP][configKeys::PASSWORD]        = AP_PASSPHRASE_DEFAULT;
+                jsonDoc[configKeys::WEBSERVER][configKeys::USER]     = WEBSERVER_USER_DEFAULT;
+                jsonDoc[configKeys::WEBSERVER][configKeys::PASSWORD] = WEBSERVER_PASSPHRASE_DEFAULT;
+                jsonDoc[configKeys::PLATOON][configKeys::PLATOON_ID] = prgArgs.platoonId;
+                jsonDoc[configKeys::PLATOON][configKeys::VEHICLE_ID] = prgArgs.vehicleId;
 
                 {
                     size_t jsonBufferSize = measureJsonPretty(jsonDoc) + 1U;

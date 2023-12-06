@@ -57,6 +57,52 @@
  * Local Variables
  *****************************************************************************/
 
+/**
+ * Configuration keys found in the config file.
+ */
+namespace configKeys
+{
+    /** Robot name */
+    static const char ROBOT_NAME[] = "robotName";
+
+    /** WiFi */
+    static const char WIFI[] = "wifi";
+
+    /** MQTT */
+    static const char MQTT[] = "mqtt";
+
+    /** Access point */
+    static const char AP[] = "ap";
+
+    /** WebServer */
+    static const char WEBSERVER[] = "webServer";
+
+    /** Platoon */
+    static const char PLATOON[] = "platoon";
+
+    /** SSID */
+    static const char SSID[] = "ssid";
+
+    /** Passphrase */
+    static const char PASSWORD[] = "pswd";
+
+    /** Host */
+    static const char HOST[] = "host";
+
+    /** Port */
+    static const char PORT[] = "port";
+
+    /** User */
+    static const char USER[] = "user";
+
+    /** Platoon ID */
+    static const char PLATOON_ID[] = "platoonId";
+
+    /** Vehicle ID */
+    static const char VEHICLE_ID[] = "vehicleId";
+
+} // namespace configKeys
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -82,17 +128,17 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
         }
         else
         {
-            JsonVariantConst jsonRobotName        = doc["robotName"];
-            JsonVariantConst jsonWifiSsid         = doc["wifi"]["ssid"];
-            JsonVariantConst jsonWifiPswd         = doc["wifi"]["pswd"];
-            JsonVariantConst jsonMqttHost         = doc["mqtt"]["host"];
-            JsonVariantConst jsonMqttPort         = doc["mqtt"]["port"];
-            JsonVariantConst jsonApSSID           = doc["ap"]["ssid"];
-            JsonVariantConst jsonApPswd           = doc["ap"]["pswd"];
-            JsonVariantConst jsonWebServerUser    = doc["webServer"]["user"];
-            JsonVariantConst jsonWebServerPswd    = doc["webServer"]["pswd"];
-            JsonVariantConst jsonPlatoonPlatoonId = doc["platoon"]["platoonId"];
-            JsonVariantConst jsonPlatoonVehicleId = doc["platoon"]["vehicleId"];
+            JsonVariantConst jsonRobotName        = doc[configKeys::ROBOT_NAME];
+            JsonVariantConst jsonWifiSsid         = doc[configKeys::WIFI][configKeys::SSID];
+            JsonVariantConst jsonWifiPswd         = doc[configKeys::WIFI][configKeys::PASSWORD];
+            JsonVariantConst jsonMqttHost         = doc[configKeys::MQTT][configKeys::HOST];
+            JsonVariantConst jsonMqttPort         = doc[configKeys::MQTT][configKeys::PORT];
+            JsonVariantConst jsonApSSID           = doc[configKeys::AP][configKeys::SSID];
+            JsonVariantConst jsonApPswd           = doc[configKeys::AP][configKeys::PASSWORD];
+            JsonVariantConst jsonWebServerUser    = doc[configKeys::WEBSERVER][configKeys::USER];
+            JsonVariantConst jsonWebServerPswd    = doc[configKeys::WEBSERVER][configKeys::PASSWORD];
+            JsonVariantConst jsonPlatoonPlatoonId = doc[configKeys::PLATOON][configKeys::PLATOON_ID];
+            JsonVariantConst jsonPlatoonVehicleId = doc[configKeys::PLATOON][configKeys::VEHICLE_ID];
 
             if (false == jsonRobotName.isNull())
             {
@@ -164,17 +210,17 @@ bool SettingsHandler::saveConfigurationFile(const String& filename)
     size_t                         jsonBufferSize = 0U;
     size_t                         bytesToWrite   = 0U;
 
-    doc["robotName"]            = m_robotName.c_str();
-    doc["wifi"]["ssid"]         = m_wifiSSID.c_str();
-    doc["wifi"]["pswd"]         = m_wifiPassword.c_str();
-    doc["mqtt"]["host"]         = m_mqttBrokerAddress.c_str();
-    doc["mqtt"]["port"]         = m_mqttPort;
-    doc["ap"]["ssid"]           = m_apSSID.c_str();
-    doc["ap"]["pswd"]           = m_apPassword.c_str();
-    doc["webServer"]["user"]    = m_webServerUser.c_str();
-    doc["webServer"]["pswd"]    = m_webServerPassword.c_str();
-    doc["platoon"]["platoonId"] = m_platoonPlatoonId;
-    doc["platoon"]["vehicleId"] = m_platoonVehicleId;
+    doc[configKeys::ROBOT_NAME]                      = m_robotName.c_str();
+    doc[configKeys::WIFI][configKeys::SSID]          = m_wifiSSID.c_str();
+    doc[configKeys::WIFI][configKeys::PASSWORD]      = m_wifiPassword.c_str();
+    doc[configKeys::MQTT][configKeys::HOST]          = m_mqttBrokerAddress.c_str();
+    doc[configKeys::MQTT][configKeys::PORT]          = m_mqttPort;
+    doc[configKeys::AP][configKeys::SSID]            = m_apSSID.c_str();
+    doc[configKeys::AP][configKeys::PASSWORD]        = m_apPassword.c_str();
+    doc[configKeys::WEBSERVER][configKeys::USER]     = m_webServerUser.c_str();
+    doc[configKeys::WEBSERVER][configKeys::PASSWORD] = m_webServerPassword.c_str();
+    doc[configKeys::PLATOON][configKeys::PLATOON_ID] = m_platoonPlatoonId;
+    doc[configKeys::PLATOON][configKeys::VEHICLE_ID] = m_platoonVehicleId;
 
     jsonBufferSize = measureJsonPretty(doc) + 1U;
     char jsonBuffer[jsonBufferSize];
