@@ -53,6 +53,8 @@
  * Prototypes
  *****************************************************************************/
 
+static bool convertToJson(const String& str, JsonVariant variant);
+
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -210,15 +212,15 @@ bool SettingsHandler::saveConfigurationFile(const String& filename)
     size_t                         jsonBufferSize = 0U;
     size_t                         bytesToWrite   = 0U;
 
-    doc[configKeys::ROBOT_NAME]                      = m_robotName.c_str();
-    doc[configKeys::WIFI][configKeys::SSID]          = m_wifiSSID.c_str();
-    doc[configKeys::WIFI][configKeys::PASSWORD]      = m_wifiPassword.c_str();
-    doc[configKeys::MQTT][configKeys::HOST]          = m_mqttBrokerAddress.c_str();
+    doc[configKeys::ROBOT_NAME]                      = m_robotName;
+    doc[configKeys::WIFI][configKeys::SSID]          = m_wifiSSID;
+    doc[configKeys::WIFI][configKeys::PASSWORD]      = m_wifiPassword;
+    doc[configKeys::MQTT][configKeys::HOST]          = m_mqttBrokerAddress;
     doc[configKeys::MQTT][configKeys::PORT]          = m_mqttPort;
-    doc[configKeys::AP][configKeys::SSID]            = m_apSSID.c_str();
-    doc[configKeys::AP][configKeys::PASSWORD]        = m_apPassword.c_str();
-    doc[configKeys::WEBSERVER][configKeys::USER]     = m_webServerUser.c_str();
-    doc[configKeys::WEBSERVER][configKeys::PASSWORD] = m_webServerPassword.c_str();
+    doc[configKeys::AP][configKeys::SSID]            = m_apSSID;
+    doc[configKeys::AP][configKeys::PASSWORD]        = m_apPassword;
+    doc[configKeys::WEBSERVER][configKeys::USER]     = m_webServerUser;
+    doc[configKeys::WEBSERVER][configKeys::PASSWORD] = m_webServerPassword;
     doc[configKeys::PLATOON][configKeys::PLATOON_ID] = m_platoonPlatoonId;
     doc[configKeys::PLATOON][configKeys::VEHICLE_ID] = m_platoonVehicleId;
 
@@ -280,3 +282,16 @@ SettingsHandler::~SettingsHandler()
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
+
+/**
+ * Convert a string to a json variant.
+ *
+ * @param[in]   str     String to convert.
+ * @param[out]  variant Json variant.
+ *
+ * @return If successful, it will return true otherwise false.
+ */
+bool convertToJson(const String& str, JsonVariant variant)
+{
+    return variant.set(str.c_str());
+}
