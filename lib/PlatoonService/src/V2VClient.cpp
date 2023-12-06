@@ -66,8 +66,8 @@ const char* V2VClient::TOPIC_NAME_WILL = "will";
 /** Default size of the JSON Document for parsing. */
 static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
-/** Buffer size for JSON serialization of birth / will message */
-static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
+/** Platoon leader vehicle ID. */
+static const uint8_t PLATOON_LEADER_ID = 0U;
 
 /******************************************************************************
  * Public Methods
@@ -76,8 +76,8 @@ static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 V2VClient::V2VClient(MqttClient& mqttClient) :
     m_mqttClient(mqttClient),
     m_waypointQueue(),
-    m_inputTopic(""),
-    m_outputTopic(""),
+    m_inputTopic(),
+    m_outputTopic(),
     m_isLeader(false)
 {
 }
@@ -91,9 +91,9 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
     bool    isSuccessful = false;
     char    inputTopicBuffer[MAX_TOPIC_LENGTH];
     char    outputTopicBuffer[MAX_TOPIC_LENGTH];
-    uint8_t outputTopicId = vehicleId + 1U;
+    uint8_t followerVehicleId = vehicleId + 1U; /* Output is published to next vehicle. */
 
-    if (0U == vehicleId)
+    if (PLATOON_LEADER_ID == vehicleId)
     {
         /* Its the leader. */
         m_isLeader = true;
@@ -101,7 +101,7 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
     else if (MAX_FOLLOWERS == vehicleId)
     {
         /* Last follower. Sends data to the leader. */
-        outputTopicId = 0U;
+        followerVehicleId = 0U;
     }
     else
     {
@@ -119,7 +119,7 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
         LOG_ERROR("Failed to create input topic.");
     }
     else if (0 >= snprintf(outputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/targetWaypoint", platoonId,
-                           outputTopicId))
+                           followerVehicleId))
     {
         LOG_ERROR("Failed to create output topic.");
     }
@@ -132,16 +132,17 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
         LOG_DEBUG("Input Topic: %s", m_inputTopic.c_str());
         LOG_DEBUG("Output Topic: %s", m_outputTopic.c_str());
 
+        IMqttClient::TopicCallback lambdaTargetWaypointTopicCallback = [this](const String& payload)
+        { targetWaypointTopicCallback(payload); };
+
         if ((true == m_inputTopic.isEmpty()) || (true == m_outputTopic.isEmpty()))
         {
-            LOG_FATAL("Failed to create Platoon MQTT topics.");
+            LOG_ERROR("Failed to create Platoon MQTT topics.");
         }
         /* Subscribe to Input Topic. */
-        else if (false == m_mqttClient.subscribe(m_inputTopic, false,
-                                                 [this](const String& payload)
-                                                 { targetWaypointTopicCallback(payload); }))
+        else if (false == m_mqttClient.subscribe(m_inputTopic, false, lambdaTargetWaypointTopicCallback))
         {
-            LOG_FATAL("Could not subcribe to MQTT Topic: %s.", m_inputTopic.c_str());
+            LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_inputTopic.c_str());
         }
         else
         {
@@ -173,7 +174,7 @@ bool V2VClient::sendWaypoint(const Waypoint& waypoint)
     size_t jsonBufferSize = measureJson(jsonPayload) + 1U;
     char   jsonBuffer[jsonBufferSize];
 
-    if (0U == serializeJson(jsonPayload, jsonBuffer, jsonBufferSize))
+    if (jsonBufferSize != serializeJson(jsonPayload, jsonBuffer, jsonBufferSize))
     {
         LOG_ERROR("JSON serialization failed.");
     }
@@ -240,16 +241,23 @@ void V2VClient::targetWaypointTopicCallback(const String& payload)
         if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()) && (false == jsonOrientation.isNull()) &&
             (false == jsonLeft.isNull()) && (false == jsonRight.isNull()) && (false == jsonCenter.isNull()))
         {
-            Waypoint* waypoint = new Waypoint();
+            Waypoint* waypoint = new (std::nothrow) Waypoint();
 
-            waypoint->xPos        = jsonXPos.as<int32_t>();
-            waypoint->yPos        = jsonYPos.as<int32_t>();
-            waypoint->orientation = jsonOrientation.as<int32_t>();
-            waypoint->left        = jsonLeft.as<int16_t>();
-            waypoint->right       = jsonRight.as<int16_t>();
-            waypoint->center      = jsonCenter.as<int16_t>();
+            if (nullptr != waypoint)
+            {
+                waypoint->xPos        = jsonXPos.as<int32_t>();
+                waypoint->yPos        = jsonYPos.as<int32_t>();
+                waypoint->orientation = jsonOrientation.as<int32_t>();
+                waypoint->left        = jsonLeft.as<int16_t>();
+                waypoint->right       = jsonRight.as<int16_t>();
+                waypoint->center      = jsonCenter.as<int16_t>();
 
-            m_waypointQueue.push(waypoint);
+                m_waypointQueue.push(waypoint);
+            }
+            else
+            {
+                LOG_ERROR("Failed to allocate memory for received waypoint.");
+            }
         }
         else
         {

@@ -1,23 +1,23 @@
 {
     "robotName": "",
-    "WIFI": {
-        "SSID": "TheForce",
-        "PSWD": "hanshotfirst"
+    "wifi": {
+        "ssid": "TheForce",
+        "pswd": "hanshotfirst"
     },
-    "MQTT": {
-        "HOST": "192.168.137.1",
-        "PORT": 1883
+    "mqtt": {
+        "host": "192.168.137.1",
+        "port": 1883
     },
-    "AP": {
-        "SSID": "DCS_AP",
-        "PSWD": "hanshotfirst"
+    "ap": {
+        "ssid": "DCS_AP",
+        "pswd": "hanshotfirst"
     },
-    "WEBSERVER": {
-        "USER": "admin",
-        "PSWD": "admin"
+    "webServer": {
+        "user": "admin",
+        "pswd": "admin"
     },
-    "PLATOON": {
-        "PLATOON_ID": 0,
-        "VEHICLE_ID": 0
+    "platoon": {
+        "platoonId": 0,
+        "vehicleId": 0
     }
 }

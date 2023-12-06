@@ -87,6 +87,9 @@ const char* App::TOPIC_NAME_WILL = "will";
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
+/** Platoon leader vehicle ID. */
+static const uint8_t PLATOON_LEADER_ID = 0U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -180,7 +183,7 @@ void App::setup()
                 {
                     LOG_FATAL("MQTT configuration could not be set.");
                 }
-                else if (0U != settings.getPlatoonVehicleId())
+                else if (PLATOON_LEADER_ID != settings.getPlatoonVehicleId())
                 {
                     /* Correct config.json file loaded? */
                     LOG_FATAL("Platoon Vehicle ID must be 0 for the leader.");

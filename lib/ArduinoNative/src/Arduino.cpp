@@ -116,49 +116,49 @@ static const struct option LONG_OPTIONS[] = {{"help", no_argument, nullptr, 0},
                                              {nullptr, no_argument, nullptr, 0}}; /* Marks the end. */
 
 /** Program argument default value of the robot name. */
-static const char* PRG_ARG_ROBOT_NAME_DEFAULT = "";
+static const char PRG_ARG_ROBOT_NAME_DEFAULT[] = "";
 
 /** Program argument default value of the MQTT broker address. */
-static const char* PRG_ARG_MQTT_ADDR_DEFAULT = "localhost";
+static const char PRG_ARG_MQTT_ADDR_DEFAULT[] = "localhost";
 
 /** Program argument default value of the MQTT broker port. */
-static const char* PRG_ARG_MQTT_PORT_DEFAULT = "1883";
+static const char PRG_ARG_MQTT_PORT_DEFAULT[] = "1883";
 
 /** Program argument default value of the Radon Ulzer address. */
-static const char* PRG_ARG_RADON_ULZER_ADDR_DEFAULT = "localhost";
+static const char PRG_ARG_RADON_ULZER_ADDR_DEFAULT[] = "localhost";
 
 /** Program argument default value of the Radon Ulzer port. */
-static const char* PRG_ARG_RADON_ULZER_PORT_DEFAULT = "65432";
+static const char PRG_ARG_RADON_ULZER_PORT_DEFAULT[] = "65432";
 
 /** Program argument default value of the configuration file. */
-static const char* PRG_ARG_CFG_FILE_DEFAULT = "config/config.json";
+static const char PRG_ARG_CFG_FILE_DEFAULT[] = "config/config.json";
 
 /** Program argument default value of the Platoon ID. */
-static const char* PRG_ARG_PLATOON_ID_DEFAULT = "0";
+static const char PRG_ARG_PLATOON_ID_DEFAULT[] = "0";
 
 /** Program argument default value of the Vehicle ID. */
-static const char* PRG_ARG_VEHICLE_ID_DEFAULT = "0";
+static const char PRG_ARG_VEHICLE_ID_DEFAULT[] = "0";
 
 /** Program argument default value of the verbose flag. */
 static bool PRG_ARG_VERBOSE_DEFAULT = false;
 
 /** Default value of the wifi SSID. */
-static const char* WIFI_SSID_DEFAULT = "";
+static const char WIFI_SSID_DEFAULT[] = "";
 
 /** Default value of the wifi passphrase. */
-static const char* WIFI_PASSPHRASE_DEFAULT = "";
+static const char WIFI_PASSPHRASE_DEFAULT[] = "";
 
 /** Default value of the access point SSID. */
-static const char* AP_SSID_DEFAULT = "DCS_AP";
+static const char AP_SSID_DEFAULT[] = "DCS_AP";
 
 /** Default value of the access point passphrase. */
-static const char* AP_PASSPHRASE_DEFAULT = "hanshotfirst";
+static const char AP_PASSPHRASE_DEFAULT[] = "hanshotfirst";
 
 /** Default value of the webserver user. */
-static const char* WEBSERVER_USER_DEFAULT = "admin";
+static const char WEBSERVER_USER_DEFAULT[] = "admin";
 
 /** Default value of the webserver passphrase. */
-static const char* WEBSERVER_PASSPHRASE_DEFAULT = "admin";
+static const char WEBSERVER_PASSPHRASE_DEFAULT[] = "admin";
 
 #endif
 
@@ -483,17 +483,17 @@ static int createConfigFile(const PrgArguments& prgArgs)
                 const size_t        JSON_DOC_SIZE = 2048U;
                 DynamicJsonDocument jsonDoc(JSON_DOC_SIZE);
 
-                jsonDoc["robotName"]             = prgArgs.robotName;
-                jsonDoc["WIFI"]["SSID"]          = WIFI_SSID_DEFAULT;
-                jsonDoc["WIFI"]["PSWD"]          = WIFI_PASSPHRASE_DEFAULT;
-                jsonDoc["MQTT"]["HOST"]          = prgArgs.mqttHost;
-                jsonDoc["MQTT"]["PORT"]          = prgArgs.mqttPort;
-                jsonDoc["AP"]["SSID"]            = AP_SSID_DEFAULT;
-                jsonDoc["AP"]["PSWD"]            = AP_PASSPHRASE_DEFAULT;
-                jsonDoc["WEBSERVER"]["USER"]     = WEBSERVER_USER_DEFAULT;
-                jsonDoc["WEBSERVER"]["PSWD"]     = WEBSERVER_PASSPHRASE_DEFAULT;
-                jsonDoc["PLATOON"]["PLATOON_ID"] = prgArgs.platoonId;
-                jsonDoc["PLATOON"]["VEHICLE_ID"] = prgArgs.vehicleId;
+                jsonDoc["robotName"]            = prgArgs.robotName;
+                jsonDoc["wifi"]["ssid"]         = WIFI_SSID_DEFAULT;
+                jsonDoc["wifi"]["pswd"]         = WIFI_PASSPHRASE_DEFAULT;
+                jsonDoc["mqtt"]["host"]         = prgArgs.mqttHost;
+                jsonDoc["mqtt"]["port"]         = prgArgs.mqttPort;
+                jsonDoc["ap"]["ssid"]           = AP_SSID_DEFAULT;
+                jsonDoc["ap"]["pswd"]           = AP_PASSPHRASE_DEFAULT;
+                jsonDoc["webServer"]["user"]    = WEBSERVER_USER_DEFAULT;
+                jsonDoc["webServer"]["pswd"]    = WEBSERVER_PASSPHRASE_DEFAULT;
+                jsonDoc["platoon"]["platoonId"] = prgArgs.platoonId;
+                jsonDoc["platoon"]["vehicleId"] = prgArgs.vehicleId;
 
                 {
                     size_t jsonBufferSize = measureJsonPretty(jsonDoc) + 1U;
