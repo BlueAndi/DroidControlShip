@@ -318,10 +318,13 @@ extern void delay(unsigned long ms)
     }
 }
 
+#ifndef UNIT_TEST
+
 extern bool convertToJson(const String& str, JsonVariant variant)
 {
     return variant.set(str.c_str());
 }
+#endif
 
 /******************************************************************************
  * Local Functions
