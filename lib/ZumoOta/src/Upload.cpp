@@ -79,7 +79,7 @@ void Upload::handleFileUpload(AsyncWebServerRequest* request, const String& file
     size_t flashfileSize   = 0U;
 
     /* Initialize fileSize. */
-    if (!filename.startsWith("/"))
+    if (false == filename.startsWith("/"))
     {
         updatedFilename = "/" + filename;
     }
