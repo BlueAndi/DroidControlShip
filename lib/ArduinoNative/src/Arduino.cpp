@@ -41,7 +41,6 @@
 #include <Device.h>
 #include <getopt.h>
 #include <direct.h>
-#include <ArduinoJson.h>
 #endif
 
 /******************************************************************************
@@ -317,6 +316,11 @@ extern void delay(unsigned long ms)
     {
         ;
     }
+}
+
+extern bool convertToJson(const String& str, JsonVariant variant)
+{
+    return variant.set(str.c_str());
 }
 
 /******************************************************************************

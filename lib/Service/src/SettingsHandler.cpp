@@ -53,8 +53,6 @@
  * Prototypes
  *****************************************************************************/
 
-static bool convertToJson(const String& str, JsonVariant variant);
-
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -282,16 +280,3 @@ SettingsHandler::~SettingsHandler()
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
-
-/**
- * Convert a string to a json variant.
- *
- * @param[in]   str     String to convert.
- * @param[out]  variant Json variant.
- *
- * @return If successful, it will return true otherwise false.
- */
-bool convertToJson(const String& str, JsonVariant variant)
-{
-    return variant.set(str.c_str());
-}
