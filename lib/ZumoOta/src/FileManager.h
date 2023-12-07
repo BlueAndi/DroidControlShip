@@ -4,6 +4,9 @@
 /**
  * @brief  ZumoOta application
  * @author Decareme Pauline Ngangnou <ngandeca@yahoo.fr>
+ *
+ * @addtogroup Application
+ *
  * @{
  */
 #ifndef FILEMANAGER_H
@@ -16,14 +19,17 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
- 
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-class FileManager {
+/**
+ * File Manager Class.
+ */
+class FileManager
+{
 private:
-  
 public:
     /**
      * Construct the FileManager.
@@ -43,5 +49,3 @@ public:
 
 #endif /* FileManager_H */
 /** @} */
-
-

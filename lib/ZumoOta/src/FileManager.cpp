@@ -26,7 +26,7 @@
 *******************************************************************************/
 /**
  * @brief  FileManager realization
- * 
+ *
  */
 
 /******************************************************************************
@@ -66,12 +66,11 @@
 FileManager::FileManager()
 {
 }
-    
 
 FileManager::~FileManager()
 {
 }
-   
+
 bool FileManager::init()
 {
     if (!LittleFS.begin(true))
@@ -81,9 +80,3 @@ bool FileManager::init()
     }
     return true;
 }
-
-
-
-
-
-
