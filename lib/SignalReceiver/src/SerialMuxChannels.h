@@ -27,6 +27,10 @@
 /**
  *  @brief  Channel structure definition for the SerialMuxProt.
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup Application
+ *
+ * @{
  */
 
 #ifndef SERIAL_MUX_CHANNELS_H_
@@ -50,9 +54,6 @@
 
 /** DLC of Odometry Channel */
 #define ODOMETRY_CHANNEL_DLC (sizeof(OdometryData))
-
-/** DLC of Line Sensor Channel */
-#define LINE_SENSOR_CHANNEL_DLC (sizeof(LineSensorData))
 
 /** Name of Channel to send Traffic Light Color IDs to. */
 #define TRAFFIC_LIGHT_COLORS_CHANNEL_NAME "TL_COLORS"
@@ -82,4 +83,5 @@ typedef struct _Color
  * Functions
  *****************************************************************************/
 
-#endif /* SERIAL_MUX_CHANNELS_H_ */
+#endif /* SERIAL_MUX_CHANNELS_H */
+/** @} */
