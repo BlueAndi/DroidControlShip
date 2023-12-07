@@ -25,99 +25,96 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ZumoOta application
- * @author Decareme Pauline Ngangnou <ngandeca@yahoo.fr>
- *
- * @addtogroup Application
- *
- * {
+ * @brief  FileManager realization
+ * 
  */
-
-#ifndef APP_H
-#define APP_H
-
-/******************************************************************************
- * Compile Switches
- *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Board.h>
-#include "FileManager.h"
-#include "WebServerCustom.h"
-#include "NetworkConnection.h"
+#include "MySettings.h"
+/******************************************************************************
+ * Compiler Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and Classes
+ * Types and classes
  *****************************************************************************/
 
-/** The Remote Control application. */
-class App
+/******************************************************************************
+ * Prototypes
+ *****************************************************************************/
+
+/******************************************************************************
+ * Local Variables
+ *****************************************************************************/
+
+/******************************************************************************
+ * Public Methods
+ *****************************************************************************/
+
+MySettings::MySettings() :
+    m_wifiSSID("your_ssid"),
+    m_wifiPassword("your_password"),
+    m_authUsername("defaultusername"),
+    m_authPassword("defaultpassword"),
+    m_apSSID("your_apssid"),
+    m_apPassword("your_appassword")
 {
-public:
-    /**
-     * Construct the app  application.
-     */
-    App();
     
-    /**
-     * Destroy the app  application.
-     */
-    ~App();
+}
+    
+MySettings::~MySettings()
+{
+}
 
-    /**
-     * Setup the application.
-     */
-    void setup();
+const char* MySettings::getWiFiSSID()
+{
+    return m_wifiSSID;
+}
 
-    /**
-     * Process the application periodically.
-     */
-    void loop();
+const char* MySettings::getWiFiPassword()
+{
+    return m_wifiPassword;
+}
 
-    /**
-     * Start the Application.
-     */
-    void start();
+const char* MySettings::getapSSID()
+{
+    return m_apSSID;
+}
 
-    /**
-     * Initialize the logging
-     */
-    bool loginit();
+const char* MySettings::getapPassword()
+{
+    return m_apPassword;
+}
 
-    /**
-     * Function to stop the application
-     */
-    void halt();
+void MySettings::setWiFiCredentials(const char* ssid, const char* password)
+{
+    m_wifiSSID = ssid;
+    m_wifiPassword = password;
+}
 
-private:
-    /**
-     * Instance of the FileManager class 
-     *responsible for managing the LittleFs file System. 
-     */
-    FileManager m_fileManager;
+const char* MySettings::getAuthUsername()
+{
+    return m_authUsername;
+}
 
-    /**
-     * Instance of the WebServerCustom class 
-     *representing a custom webserver for the application.
-     */
-    WebServerCustom m_webServer;
+const char* MySettings::getAuthPassword()
+{
+    return m_authPassword;
+}
 
-    /**
-     * Instance of the Upload class 
-     */
-    Upload m_upload;
+void MySettings::setAuthCredentials(const char* username, const char* password)
+{
+    m_authUsername = username;
+    m_authPassword = password;
+}
 
-    /**
-     * Instance of the NetworkConnection class 
-     */
-    NetworkConnection m_network;
-};
 
-#endif /* APP_H */
-/** @} */
+
+
+

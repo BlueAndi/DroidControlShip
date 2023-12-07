@@ -37,6 +37,7 @@
 #include <FS.h>
 #include <Arduino.h>
 #include <Logging.h>
+#include "MySettings.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -58,14 +59,14 @@
  * Local Variables
  *****************************************************************************/
 Upload upload;
-
+MySettings set;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
 WebServerCustom::WebServerCustom()
 {
-    
+
 }
 
 WebServerCustom::~WebServerCustom()
@@ -80,13 +81,15 @@ String WebServerCustom::listFiles(bool ishtml)
     File foundfile = root.openNextFile();
     if (ishtml)
     {
-        returnText += "<table><tr><th align='left'>Name</th><th align='left'>Size</th></tr>";
+        returnText += "<style>.filename { color: black; }</style>";
+        returnText += "<table style='background-color: yellow;'><tr><th align='left'>Name</th><th align='right'>Size</th></tr>";
     }
     while (foundfile)
     {
         if(ishtml)
         {
-            returnText += "<tr align='left'><td>" + String(foundfile.name()) + "</td><td>" + humanReadableSize(foundfile.size()) + "</td></tr>";
+            returnText += "<tr align='left'><td class='filename'>" + String(foundfile.name()) + "</td></tr>";
+            returnText += "<tr align='right'><td>" + humanReadableSize(foundfile.size()) + "</td></tr>";
         }
         else
         {
@@ -114,7 +117,7 @@ String WebServerCustom::humanReadableSize(const size_t bytes)
         value /= 1024;
         i++;
     }
-    /*Adjust the buffer size as needed"*/
+    /* Adjust the buffer size as needed.*/
     char buffer[16];  
 
     if (i == 0)
@@ -139,9 +142,21 @@ void WebServerCustom::init()
 
     /*...  Additional routes and configurations ...*/ 
    
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+    server.on("/upload", HTTP_GET, [](AsyncWebServerRequest *request)
     {
         request->send(LittleFS, "/upload.html","text/html");
+    });
+
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+    {
+        if (!request->authenticate(set.getAuthUsername(), set.getAuthPassword()))
+        {
+            return request->requestAuthentication();
+        }
+        else
+        {
+            request->send(LittleFS, "/login.html","text/html");
+        }
     });
 
     server.begin();
@@ -152,11 +167,10 @@ void WebServerCustom::handleUploadRequest()
     server.on("/upload", HTTP_POST, [this](AsyncWebServerRequest *request) {
     }, [this](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
     {
-        /*Process the file upload*/
+        /* Process the file upload.*/
         upload.handleFileUpload(request, filename, index, data, len, final);
     });
 }
-
 
 /******************************************************************************
  * External Functions

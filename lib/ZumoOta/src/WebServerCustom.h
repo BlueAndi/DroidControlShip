@@ -85,10 +85,6 @@ public:
     * @return A string containing the list of files in the specified format
     */
     String listFiles(bool ishtml);
-
-    void handleLoginPage(AsyncWebServerRequest *request);
-
-
 };
 
 #endif/* WEBSERVER_H */
