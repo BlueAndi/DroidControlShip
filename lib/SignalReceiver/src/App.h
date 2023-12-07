@@ -90,12 +90,12 @@ public:
      */
     void loop();
 
-    // /**
-    //  * Odometry Callback
-    //  *
-    //  * @param[in] odometry  Odometry data.
-    //  */
-    // void odometryCallback(const OdometryData& odometry);
+    /**
+     * Odometry Callback
+     *
+     * @param[in] odometry  Odometry data.
+     */
+    void odometryCallback(const OdometryData& odometry);
 
 private:
     /** Minimum battery level in percent. */
