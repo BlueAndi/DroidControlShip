@@ -25,17 +25,17 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Settings Service
+ *  @brief  File Handler
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Settings.h"
-#include <ArduinoJson.h>
+
+#include "FileHandler.h"
+#include <stdio.h>
 #include <Logging.h>
-#include <WiFi.h>
 
 /******************************************************************************
  * Macros
@@ -53,99 +53,79 @@
  * Public Methods
  *****************************************************************************/
 
-bool Settings::isConfigLoaded() const
+FileHandler::FileHandler()
 {
-    return m_configLoaded;
 }
 
-bool Settings::loadConfigurationFile(const String& filename)
+FileHandler::~FileHandler()
 {
-    const uint32_t                    maxBufferSize = 1024;
-    StaticJsonDocument<maxBufferSize> doc;
-    char                              buffer[maxBufferSize];
+}
 
-    /* Ignore previously saved configuration. */
-    m_configLoaded = false;
+size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const
+{
+    size_t readBytes = 0U;
+    FILE*  file      = fopen(fileName.c_str(), "r");
 
-    /* Generate name based on MAC Address. */
-    String macAddress = WiFi.macAddress();
-
-    if (true == macAddress.isEmpty())
+    if (nullptr == file)
     {
-        LOG_ERROR("Unable to get device MAC Address");
-    }
-    else if (0U == m_fileReader.readFile(filename, buffer, maxBufferSize))
-    {
-        LOG_ERROR("Unable to load configuration file \"%s\".", filename.c_str());
+        LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
     }
     else
     {
-        DeserializationError error = deserializeJson(doc, buffer);
+        readBytes = fread(outBuffer, sizeof(char), maxBufferSize, file);
 
-        if (error != DeserializationError::Ok)
+        if (0 != ferror(file))
         {
-            LOG_ERROR("Unable to deserialize configuration file.");
+            LOG_ERROR("Error ocurred while reading file \"%s\".", fileName.c_str());
+            readBytes = 0U;
+        }
+        else if (0 == feof(file))
+        {
+            LOG_ERROR("File \"%s\" is too big for the buffer.", fileName.c_str());
+            readBytes = 0U;
         }
         else
         {
-            /* Remove separators. */
-            macAddress.remove(14, 1);
-            macAddress.remove(11, 1);
-            macAddress.remove(8, 1);
-            macAddress.remove(5, 1);
-            macAddress.remove(2, 1);
-
-            /* Set name. */
-            m_robotName         = macAddress;
-            m_wifiSSID          = doc["WIFI"]["SSID"].as<const char*>();
-            m_wifiPassword      = doc["WIFI"]["PSWD"].as<const char*>();
-            m_mqttBrokerAddress = doc["MQTT"]["HOST"].as<const char*>();
-            m_mqttPort          = doc["MQTT"]["PORT"].as<uint16_t>();
-            m_configLoaded      = true;
+            /* File read successfully. */
         }
+        fclose(file);
     }
 
-    return m_configLoaded;
+    return readBytes;
 }
 
-bool Settings::setConfiguration(const String& instanceName, const String& networkSSID, const String& networkPassword,
-                                const String& mqttBrokerAddress, uint16_t mqttPort)
+size_t FileHandler::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
 {
-    if (true == instanceName.isEmpty())
+    size_t writtenBytes = 0U;
+    FILE*  file         = fopen(fileName.c_str(), "w");
+
+    if (nullptr == file)
     {
-        LOG_ERROR("Instance name is not allowed to be empty.");
+        LOG_ERROR("Failed to open file \"%s\".", fileName.c_str());
     }
     else
     {
-        m_robotName         = instanceName;
-        m_wifiSSID          = networkSSID;
-        m_wifiPassword      = networkPassword;
-        m_mqttBrokerAddress = mqttBrokerAddress;
-        m_mqttPort          = mqttPort;
-        m_configLoaded      = true;
+        writtenBytes = fwrite(buffer, sizeof(char), bufferSize, file);
+
+        if (0 != ferror(file))
+        {
+            LOG_ERROR("Error ocurred while writing file \"%s\".", fileName.c_str());
+            writtenBytes = 0U;
+        }
+        else
+        {
+            /* File written successfully. */
+            LOG_DEBUG("File \"%s\" written successfully.", fileName.c_str());
+        }
+        fclose(file);
     }
 
-    return m_configLoaded;
+    return writtenBytes;
 }
 
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-Settings::Settings() :
-    m_configLoaded(false),
-    m_robotName(""),
-    m_wifiSSID(""),
-    m_wifiPassword(""),
-    m_mqttBrokerAddress(""),
-    m_mqttPort(0U),
-    m_fileReader()
-{
-}
-
-Settings::~Settings()
-{
-}
 
 /******************************************************************************
  * Local Functions

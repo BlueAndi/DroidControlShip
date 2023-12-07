@@ -137,7 +137,7 @@ public:
     static const uint32_t LOG_LEVEL_LEN = 7U;
 
     /** Maximum filename string length. */
-    static const uint32_t FILENAME_LEN = 22U;
+    static const uint32_t FILENAME_LEN = 30U;
 
     /** Maximum line number string length. */
     static const uint32_t LINE_LEN = 5U;
@@ -150,8 +150,9 @@ private:
     String m_name;   /**< Name of the sink */
     Print* m_output; /**< Log sink output */
 
-    LogSinkPrinter(const LogSinkPrinter& sink);
-    LogSinkPrinter& operator=(const LogSinkPrinter& sink);
+    /* Not allowed. */
+    LogSinkPrinter(const LogSinkPrinter& sink);            /**< Copy construction of an instance. */
+    LogSinkPrinter& operator=(const LogSinkPrinter& sink); /**< Assignment of an instance. */
 
     /**
      * Get a string representation of the given logLevel.
@@ -160,7 +161,7 @@ private:
      *
      * @return The severity of the given logLevel as string.
      */
-    const char* logLevelToString(const Logging::LogLevel LogLevel) const;
+    const char* logLevelToString(const Logging::LogLevel logLevel) const;
 };
 
 /******************************************************************************

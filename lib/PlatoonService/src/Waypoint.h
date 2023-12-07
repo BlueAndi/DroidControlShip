@@ -25,18 +25,25 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Definition of a Waypoint.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup PlatoonService
+ *
+ * @{
  */
+#ifndef WAYPOINT_H
+#define WAYPOINT_H
 
-#ifndef FILE_READER_H_
-#define FILE_READER_H_
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
 
-#include <IFileReader.h>
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -47,37 +54,30 @@
  *****************************************************************************/
 
 /**
- * File Reader class.
+ * Waypoint structure definition.
+ * Defines the position of a waypoint in the map and the speed at which is to be reached.
  */
-class FileReader : public IFileReader
+typedef struct _Waypoint
 {
-public:
-    /**
-     * Constructs the concrete FileReader.
-     */
-    FileReader();
+    int32_t xPos;        /**< X position [mm]. */
+    int32_t yPos;        /**< Y position [mm]. */
+    int32_t orientation; /**< Orientation [mrad]. */
+    int16_t left;        /**< Left motor speed [steps/s]. */
+    int16_t right;       /**< Right motor speed [steps/s]. */
+    int16_t center;      /**< Center speed [steps/s]. */
 
     /**
-     * Destroys the concrete FileReader.
+     * Default constructor.
      */
-    virtual ~FileReader();
+    _Waypoint() : xPos(0), yPos(0), orientation(0), left(0), right(0), center(0)
+    {
+    }
 
-    /**
-     * Read a file from the filesystem.
-     * @param[in] fileName Name of the file to read. Name must be an absolute path.
-     * @param[out] outBuffer Buffer to write file to.
-     * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     * @returns number of bytes read.
-     */
-    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) final;
-
-private:
-    FileReader(const FileReader& src);
-    FileReader& operator=(const FileReader& rhs);
-};
+} __attribute__((packed)) Waypoint;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* FILE_READER_H_ */
+#endif /* WAYPOINT_H */
+/** @} */

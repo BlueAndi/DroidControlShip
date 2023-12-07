@@ -36,8 +36,9 @@
 #include <Logging.h>
 #include <LogSinkPrinter.h>
 #include <Util.h>
-#include <Settings.h>
+#include <SettingsHandler.h>
 #include <ArduinoJson.h>
+#include <WiFi.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -59,8 +60,8 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
-static void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize);
+static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -84,20 +85,11 @@ const char* App::TOPIC_NAME_CMD = "cmd";
 /* MQTT topic name for receiving motor speeds. */
 const char* App::TOPIC_NAME_MOTOR_SPEEDS = "motorSpeeds";
 
-/* Initialize channel name for sending commands. */
-const char* App::CH_NAME_CMD = "REMOTE_CMD";
-
-/* Initialize channel name for receiving command responses. */
-const char* App::CH_NAME_RSP = "REMOTE_RSP";
-
-/* YAP channel name for sending motor speeds. */
-const char* App::CH_NAME_MOTOR_SPEEDS = "MOT_SPEEDS";
-
-/* Initialize channel name for receiving line sensors data. */
-const char* App::CH_NAME_LINE_SENSORS = "LINE_SENS";
-
 /** Default size of the JSON Document for parsing. */
 static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
+
+/** Buffer size for JSON serialization of birth / will message */
+static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
 /******************************************************************************
  * Public Methods
@@ -105,6 +97,10 @@ static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
 void App::setup()
 {
+    bool             isSuccessful = false;
+    SettingsHandler& settings     = SettingsHandler::getInstance();
+    Board&           board        = Board::getInstance();
+
     Serial.begin(SERIAL_BAUDRATE);
 
     /* Register serial log sink and select it per default. */
@@ -119,72 +115,96 @@ void App::setup()
     }
 
     /* Initialize HAL. */
-    if (false == Board::getInstance().init())
+    if (false == board.init())
     {
-        /* Log and Handle Board initialization error */
         LOG_FATAL("HAL init failed.");
-        fatalErrorHandler();
+    }
+    /* Settings shall be loaded from configuration file. */
+    else if (false == settings.loadConfigurationFile(board.getConfigFilePath()))
+    {
+        LOG_FATAL("Settings could not be loaded from %s.", board.getConfigFilePath());
     }
     else
     {
-        if (false == Settings::getInstance().isConfigLoaded())
+        /* If the robot name is empty, use the wifi MAC address as robot name. */
+        if (true == settings.getRobotName().isEmpty())
         {
-            /* Settings shall be loaded from configuration file. */
-            if (false == Settings::getInstance().loadConfigurationFile(CONFIG_FILE_PATH))
-            {
-                /* Log Settings error */
-                LOG_ERROR("Settings could not be loaded from file. ");
-                fatalErrorHandler();
-            }
-            else
-            {
-                /* Log Settings loaded */
-                LOG_DEBUG("Settings loaded from file.");
-            }
+            String robotName = WiFi.macAddress();
+
+            /* Remove MAC separators from robot name. */
+            robotName.replace(":", "");
+
+            settings.setRobotName(robotName);
+        }
+
+        NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
+                                           ""};
+
+        if (false == board.getNetwork().setConfig(networkSettings))
+        {
+            LOG_FATAL("Network configuration could not be set.");
         }
         else
         {
-            LOG_DEBUG("Settings set externally.");
+            /* Setup MQTT Server, Birth and Will messages. */
+            StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
+            char                                           birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+            String                                         birthMessage;
+
+            birthDoc["name"] = settings.getRobotName().c_str();
+            (void)serializeJson(birthDoc, birthMsgArray);
+            birthMessage = birthMsgArray;
+
+            /* Setup SerialMuxProt Channels */
+            m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
+            m_serialMuxProtChannelIdMotorSpeeds =
+                m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+            m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
+            m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
+
+            if (false == m_mqttClient.init())
+            {
+                LOG_FATAL("Failed to initialize MQTT client.");
+            }
+            else
+            {
+                MqttSettings mqttSettings = {settings.getRobotName(),
+                                             settings.getMqttBrokerAddress(),
+                                             settings.getMqttPort(),
+                                             TOPIC_NAME_BIRTH,
+                                             birthMessage,
+                                             TOPIC_NAME_WILL,
+                                             birthMessage,
+                                             true};
+
+                if (false == m_mqttClient.setConfig(mqttSettings))
+                {
+                    LOG_FATAL("MQTT configuration could not be set.");
+                }
+                /* Subscribe to Command Topic. */
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_CMD, true,
+                                                         [this](const String& payload) { cmdTopicCallback(payload); }))
+                {
+                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_CMD);
+                }
+                /* Subscribe to Motor Speeds Topic. */
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, true,
+                                                         [this](const String& payload)
+                                                         { motorSpeedsTopicCallback(payload); }))
+                {
+                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
+                }
+                else
+                {
+                    isSuccessful = true;
+                }
+            }
         }
+    }
 
-        /* Setup SerialMuxProt Channels */
-        m_serialMuxProtChannelIdRemoteCtrl  = m_smpServer.createChannel(CH_NAME_CMD, 1U);
-        m_serialMuxProtChannelIdMotorSpeeds = m_smpServer.createChannel(CH_NAME_MOTOR_SPEEDS, 4U);
-        m_smpServer.subscribeToChannel(CH_NAME_RSP, App_cmdRspChannelCallback);
-        m_smpServer.subscribeToChannel(CH_NAME_LINE_SENSORS, App_lineSensorChannelCallback);
-
-        /* Setup Network. Get saved configuration.*/
-        String   clientId = Settings::getInstance().getRobotName();
-        String   ssid     = Settings::getInstance().getWiFiSSID();
-        String   password = Settings::getInstance().getWiFiPassword();
-        String   mqttAddr = Settings::getInstance().getMqttBrokerAddress();
-        uint16_t mqttPort = Settings::getInstance().getMqttPort();
-
-        /* Setup MQTT Server, Birth and Will messages. */
-        if (false ==
-            Board::getInstance().getNetwork().setConfig(clientId, ssid, password, mqttAddr, mqttPort, TOPIC_NAME_BIRTH,
-                                                        String(clientId + String(" Connected!")), TOPIC_NAME_WILL,
-                                                        String(clientId + String(" Disconnected!")), true))
-        {
-            LOG_ERROR("Network Configuration could not be set.");
-            fatalErrorHandler();
-        }
-
-        /* Subscribe to Command Topic. */
-        if (false == Board::getInstance().getNetwork().subscribe(TOPIC_NAME_CMD, [this](const String& payload)
-                                                                 { cmdTopicCallback(payload); }))
-        {
-            LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_CMD);
-            fatalErrorHandler();
-        }
-
-        /* Subscribe to Motor Speeds Topic. */
-        if (false == Board::getInstance().getNetwork().subscribe(TOPIC_NAME_MOTOR_SPEEDS, [this](const String& payload)
-                                                                 { motorSpeedsTopicCallback(payload); }))
-        {
-            LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
-            fatalErrorHandler();
-        }
+    if (false == isSuccessful)
+    {
+        fatalErrorHandler();
     }
 }
 
@@ -197,6 +217,9 @@ void App::loop()
         LOG_FATAL("HAL process failed.");
         fatalErrorHandler();
     }
+
+    /* Process MQTT Communication */
+    m_mqttClient.process();
 
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
@@ -232,23 +255,21 @@ void App::cmdTopicCallback(const String& payload)
     }
     else
     {
-        uint8_t payloadSize = sizeof(uint8_t);
-
         JsonVariant command = jsonPayload["CMD_ID"];
 
         if (false == command.isNull())
         {
-            uint8_t buffer[payloadSize];
+            Command cmd;
+            cmd.commandId = command.as<uint8_t>();
 
-            buffer[0U] = command.as<uint8_t>();
-
-            if (true == m_smpServer.sendData(CH_NAME_CMD, buffer, 1U))
+            if (true ==
+                m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, reinterpret_cast<uint8_t*>(&cmd), sizeof(cmd)))
             {
-                LOG_DEBUG("Command %d sent.", buffer[0U]);
+                LOG_DEBUG("Command %d sent.", cmd.commandId);
             }
             else
             {
-                LOG_WARNING("Failed to send command %d.", buffer[0U]);
+                LOG_WARNING("Failed to send command %d.", cmd.commandId);
             }
         }
         else
@@ -265,21 +286,21 @@ void App::motorSpeedsTopicCallback(const String& payload)
 
     if (error != DeserializationError::Ok)
     {
-        LOG_ERROR("JSON Deserialization Error %d.", error);
+        LOG_ERROR("JSON deserialization error %d.", error);
     }
     else
     {
-        uint8_t     payloadSize = (2U * sizeof(int16_t));
-        uint8_t     buffer[payloadSize];
         JsonVariant leftSpeed  = jsonPayload["LEFT"];
         JsonVariant rightSpeed = jsonPayload["RIGHT"];
 
         if ((false == leftSpeed.isNull()) && (false == rightSpeed.isNull()))
         {
-            Util::int16ToByteArray(&buffer[0U * sizeof(int16_t)], sizeof(int16_t), leftSpeed.as<int16_t>());
-            Util::int16ToByteArray(&buffer[1U * sizeof(int16_t)], sizeof(int16_t), rightSpeed.as<int16_t>());
+            SpeedData motorSetpoints;
+            motorSetpoints.left  = leftSpeed.as<int16_t>();
+            motorSetpoints.right = rightSpeed.as<int16_t>();
 
-            if (true == m_smpServer.sendData(CH_NAME_MOTOR_SPEEDS, buffer, payloadSize))
+            if (true == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds,
+                                             reinterpret_cast<uint8_t*>(&motorSetpoints), sizeof(motorSetpoints)))
             {
                 LOG_DEBUG("Motor speeds sent");
             }
@@ -308,17 +329,20 @@ void App::motorSpeedsTopicCallback(const String& payload)
  *
  * @param[in] payload       Command id
  * @param[in] payloadSize   Size of command id
+ * @param[in] userData      User data
  */
-void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
-    uint8_t expectedPayloadSize = 1U;
-    if (expectedPayloadSize == payloadSize)
+    UTIL_NOT_USED(userData);
+    if ((nullptr != payload) && (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize))
     {
-        LOG_DEBUG("CMD_RSP: 0x%02X", payload[0U]);
+        const CommandResponse* cmdRsp = reinterpret_cast<const CommandResponse*>(payload);
+        LOG_DEBUG("CMD_RSP: 0x%02X", cmdRsp->response);
     }
     else
     {
-        LOG_WARNING("CMD_RSP: Invalid payload size. Expected: %u Received: %u", expectedPayloadSize, payloadSize);
+        LOG_WARNING("CMD_RSP: Invalid payload size. Expected: %u Received: %u", COMMAND_RESPONSE_CHANNEL_DLC,
+                    payloadSize);
     }
 }
 
@@ -326,9 +350,11 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
  * Receives line sensor data over SerialMuxProt channel.
  * @param[in]   payload         Line sensor data
  * @param[in]   payloadSize     Size of 5 line sensor data
+ * @param[in]   userData        User data
  */
-void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize)
+void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
     UTIL_NOT_USED(payload);
     UTIL_NOT_USED(payloadSize);
+    UTIL_NOT_USED(userData);
 }

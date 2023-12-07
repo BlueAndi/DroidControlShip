@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "LedGreen.h"
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -60,8 +61,7 @@
 
 void LedGreen::enable(bool enableIt)
 {
-    /* Not implemented. */
-    (void)enableIt;
+    LOG_DEBUG("Green LED State: %s", enableIt ? "ON" : "OFF");
 }
 
 /******************************************************************************

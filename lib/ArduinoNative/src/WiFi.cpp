@@ -33,6 +33,9 @@
  * Includes
  *****************************************************************************/
 #include "WiFi.h"
+#include <stdint.h>
+#include <unistd.h>
+#include <stdio.h>
 
 /******************************************************************************
  * Macros
@@ -63,7 +66,24 @@ WiFi_::~WiFi_()
 
 String WiFi_::macAddress()
 {
-    return "";
+    char           simMAC[18U];
+    uint32_t       processId                = static_cast<uint32_t>(getpid());
+    const uint32_t OUI_UNICAST              = 0U << 16U;
+    const uint32_t OUI_LOCALLY_ADMINISTERED = 1U << 17U;
+    uint32_t       oui = OUI_UNICAST | OUI_LOCALLY_ADMINISTERED; /* Organisationally unique identifier */
+    uint32_t       nic = 0U;                                     /* Network interface controller specific */
+
+    /* The wifi MAC address is derived from the process id to ensure that
+     * DCS can be started several times with different MAC addresses.
+     */
+
+    oui |= (processId >> 24U) & 0xFFU;
+    nic |= processId & 0x00FFFFFFU;
+
+    snprintf(simMAC, sizeof(simMAC), "%02X:%02X:%02X:%02X:%02X:%02X", (oui >> 16U) & 0xFFU, (oui >> 8U) & 0xFFU,
+             (oui >> 0U) & 0xFFU, (nic >> 16U) & 0xFFU, (nic >> 8U) & 0xFFU, (nic >> 0U) & 0xFFU);
+
+    return String(simMAC);
 }
 
 /******************************************************************************

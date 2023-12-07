@@ -91,6 +91,11 @@ public:
      */
     virtual void reset() = 0;
 
+    /**
+     * Enter Bootloader mode.
+     */
+    virtual void enterBootloader() = 0;
+
 protected:
     /**
      * Constructs the interface.

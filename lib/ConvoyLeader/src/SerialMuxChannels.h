@@ -25,61 +25,70 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Reader Interface
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Channel structure definition for the SerialMuxProt.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup Application
+ *
+ * @{
  */
+#ifndef SERIAL_MUX_CHANNELS_H
+#define SERIAL_MUX_CHANNELS_H
 
-#ifndef IFILE_READER_H_
-#define IFILE_READER_H_
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
 
-#include <stdint.h>
-#include <WString.h>
+#include <Arduino.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
+/** Maximum number of SerialMuxProt Channels. */
+#define MAX_CHANNELS (10U)
+
+/** Name of Channel to send Current Vehicle Data to. */
+#define CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME "CURR_DATA"
+
+/** DLC of Current Vehicle Data Channel */
+#define CURRENT_VEHICLE_DATA_CHANNEL_DLC (sizeof(VehicleData))
+
+/** Name of Channel to send Motor Speed Setpoints to. */
+#define SPEED_SETPOINT_CHANNEL_NAME "SPEED_SET"
+
+/** DLC of Speedometer Channel */
+#define SPEED_SETPOINT_CHANNEL_DLC (sizeof(SpeedData))
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Abstracts the File Reader interface.
- */
-class IFileReader
+/** Struct of the "Current Vehicle Data" channel payload. */
+typedef struct _VehicleData
 {
-public:
-    /**
-     * Destructs the File Reader Interface.
-     */
-    virtual ~IFileReader()
-    {
-    }
+    int32_t xPos;        /**< X position [mm]. */
+    int32_t yPos;        /**< Y position [mm]. */
+    int32_t orientation; /**< Orientation [mrad]. */
+    int16_t left;        /**< Left motor speed [steps/s]. */
+    int16_t right;       /**< Right motor speed [steps/s]. */
+    int16_t center;      /**< Center speed [steps/s]. */
+} __attribute__((packed)) VehicleData;
 
-    /**
-     * Read a file from the filesystem.
-     * @param[in] fileName Name of the file to read. Name must be an absolute path.
-     * @param[out] outBuffer Buffer to write file to.
-     * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     * @returns number of bytes read.
-     */
-    virtual size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) = 0;
-
-protected:
-    /**
-     * Contructs the File Reader Interface.
-     */
-    IFileReader()
-    {
-    }
-};
+/** Struct of the "Speed" channel payload. */
+typedef struct _SpeedData
+{
+    int16_t left;  /**< Left motor speed [steps/s]. */
+    int16_t right; /**< Right motor speed [steps/s]. */
+} __attribute__((packed)) SpeedData;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IFILE_READER_H_ */
+#endif /* SERIAL_MUX_CHANNELS_H */
+/** @} */
