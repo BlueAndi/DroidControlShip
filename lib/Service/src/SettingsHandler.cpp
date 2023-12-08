@@ -36,6 +36,7 @@
 #include "SettingsHandler.h"
 #include <ArduinoJson.h>
 #include <Logging.h>
+#include <ConfigurationKeys.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -56,52 +57,6 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
-/**
- * Configuration keys found in the config file.
- */
-namespace configKeys
-{
-    /** Robot name */
-    static const char ROBOT_NAME[] = "robotName";
-
-    /** WiFi */
-    static const char WIFI[] = "wifi";
-
-    /** MQTT */
-    static const char MQTT[] = "mqtt";
-
-    /** Access point */
-    static const char AP[] = "ap";
-
-    /** WebServer */
-    static const char WEBSERVER[] = "webServer";
-
-    /** Platoon */
-    static const char PLATOON[] = "platoon";
-
-    /** SSID */
-    static const char SSID[] = "ssid";
-
-    /** Passphrase */
-    static const char PASSWORD[] = "pswd";
-
-    /** Host */
-    static const char HOST[] = "host";
-
-    /** Port */
-    static const char PORT[] = "port";
-
-    /** User */
-    static const char USER[] = "user";
-
-    /** Platoon ID */
-    static const char PLATOON_ID[] = "platoonId";
-
-    /** Vehicle ID */
-    static const char VEHICLE_ID[] = "vehicleId";
-
-} // namespace configKeys
 
 /******************************************************************************
  * Public Methods
@@ -128,17 +83,17 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
         }
         else
         {
-            JsonVariantConst jsonRobotName        = doc[configKeys::ROBOT_NAME];
-            JsonVariantConst jsonWifiSsid         = doc[configKeys::WIFI][configKeys::SSID];
-            JsonVariantConst jsonWifiPswd         = doc[configKeys::WIFI][configKeys::PASSWORD];
-            JsonVariantConst jsonMqttHost         = doc[configKeys::MQTT][configKeys::HOST];
-            JsonVariantConst jsonMqttPort         = doc[configKeys::MQTT][configKeys::PORT];
-            JsonVariantConst jsonApSSID           = doc[configKeys::AP][configKeys::SSID];
-            JsonVariantConst jsonApPswd           = doc[configKeys::AP][configKeys::PASSWORD];
-            JsonVariantConst jsonWebServerUser    = doc[configKeys::WEBSERVER][configKeys::USER];
-            JsonVariantConst jsonWebServerPswd    = doc[configKeys::WEBSERVER][configKeys::PASSWORD];
-            JsonVariantConst jsonPlatoonPlatoonId = doc[configKeys::PLATOON][configKeys::PLATOON_ID];
-            JsonVariantConst jsonPlatoonVehicleId = doc[configKeys::PLATOON][configKeys::VEHICLE_ID];
+            JsonVariantConst jsonRobotName        = doc[ConfigurationKeys::ROBOT_NAME];
+            JsonVariantConst jsonWifiSsid         = doc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID];
+            JsonVariantConst jsonWifiPswd         = doc[ConfigurationKeys::WIFI][ConfigurationKeys::PASSWORD];
+            JsonVariantConst jsonMqttHost         = doc[ConfigurationKeys::MQTT][ConfigurationKeys::HOST];
+            JsonVariantConst jsonMqttPort         = doc[ConfigurationKeys::MQTT][ConfigurationKeys::PORT];
+            JsonVariantConst jsonApSSID           = doc[ConfigurationKeys::AP][ConfigurationKeys::SSID];
+            JsonVariantConst jsonApPswd           = doc[ConfigurationKeys::AP][ConfigurationKeys::PASSWORD];
+            JsonVariantConst jsonWebServerUser    = doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::USER];
+            JsonVariantConst jsonWebServerPswd    = doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::PASSWORD];
+            JsonVariantConst jsonPlatoonPlatoonId = doc[ConfigurationKeys::PLATOON][ConfigurationKeys::PLATOON_ID];
+            JsonVariantConst jsonPlatoonVehicleId = doc[ConfigurationKeys::PLATOON][ConfigurationKeys::VEHICLE_ID];
 
             if (false == jsonRobotName.isNull())
             {
@@ -210,17 +165,17 @@ bool SettingsHandler::saveConfigurationFile(const String& filename)
     size_t                         jsonBufferSize = 0U;
     size_t                         bytesToWrite   = 0U;
 
-    doc[configKeys::ROBOT_NAME]                      = m_robotName;
-    doc[configKeys::WIFI][configKeys::SSID]          = m_wifiSSID;
-    doc[configKeys::WIFI][configKeys::PASSWORD]      = m_wifiPassword;
-    doc[configKeys::MQTT][configKeys::HOST]          = m_mqttBrokerAddress;
-    doc[configKeys::MQTT][configKeys::PORT]          = m_mqttPort;
-    doc[configKeys::AP][configKeys::SSID]            = m_apSSID;
-    doc[configKeys::AP][configKeys::PASSWORD]        = m_apPassword;
-    doc[configKeys::WEBSERVER][configKeys::USER]     = m_webServerUser;
-    doc[configKeys::WEBSERVER][configKeys::PASSWORD] = m_webServerPassword;
-    doc[configKeys::PLATOON][configKeys::PLATOON_ID] = m_platoonPlatoonId;
-    doc[configKeys::PLATOON][configKeys::VEHICLE_ID] = m_platoonVehicleId;
+    doc[ConfigurationKeys::ROBOT_NAME]                             = m_robotName;
+    doc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID]          = m_wifiSSID;
+    doc[ConfigurationKeys::WIFI][ConfigurationKeys::PASSWORD]      = m_wifiPassword;
+    doc[ConfigurationKeys::MQTT][ConfigurationKeys::HOST]          = m_mqttBrokerAddress;
+    doc[ConfigurationKeys::MQTT][ConfigurationKeys::PORT]          = m_mqttPort;
+    doc[ConfigurationKeys::AP][ConfigurationKeys::SSID]            = m_apSSID;
+    doc[ConfigurationKeys::AP][ConfigurationKeys::PASSWORD]        = m_apPassword;
+    doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::USER]     = m_webServerUser;
+    doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::PASSWORD] = m_webServerPassword;
+    doc[ConfigurationKeys::PLATOON][ConfigurationKeys::PLATOON_ID] = m_platoonPlatoonId;
+    doc[ConfigurationKeys::PLATOON][ConfigurationKeys::VEHICLE_ID] = m_platoonVehicleId;
 
     jsonBufferSize = measureJsonPretty(doc) + 1U;
     char jsonBuffer[jsonBufferSize];

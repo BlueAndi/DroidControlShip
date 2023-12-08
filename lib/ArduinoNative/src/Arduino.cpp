@@ -41,6 +41,7 @@
 #include <Device.h>
 #include <getopt.h>
 #include <direct.h>
+#include <ConfigurationKeys.h>
 #endif
 
 /******************************************************************************
@@ -158,52 +159,6 @@ static const char WEBSERVER_USER_DEFAULT[] = "admin";
 
 /** Default value of the webserver passphrase. */
 static const char WEBSERVER_PASSPHRASE_DEFAULT[] = "admin";
-
-/**
- * Configuration keys found in the config file.
- */
-namespace configKeys
-{
-    /** Robot name */
-    static const char ROBOT_NAME[] = "robotName";
-
-    /** WiFi */
-    static const char WIFI[] = "wifi";
-
-    /** MQTT */
-    static const char MQTT[] = "mqtt";
-
-    /** Access point */
-    static const char AP[] = "ap";
-
-    /** WebServer */
-    static const char WEBSERVER[] = "webServer";
-
-    /** Platoon */
-    static const char PLATOON[] = "platoon";
-
-    /** SSID */
-    static const char SSID[] = "ssid";
-
-    /** Passphrase */
-    static const char PASSWORD[] = "pswd";
-
-    /** Host */
-    static const char HOST[] = "host";
-
-    /** Port */
-    static const char PORT[] = "port";
-
-    /** User */
-    static const char USER[] = "user";
-
-    /** Platoon ID */
-    static const char PLATOON_ID[] = "platoonId";
-
-    /** Vehicle ID */
-    static const char VEHICLE_ID[] = "vehicleId";
-
-} // namespace configKeys
 
 #endif
 
@@ -533,17 +488,17 @@ static int createConfigFile(const PrgArguments& prgArgs)
                 const size_t        JSON_DOC_SIZE = 2048U;
                 DynamicJsonDocument jsonDoc(JSON_DOC_SIZE);
 
-                jsonDoc[configKeys::ROBOT_NAME]                      = prgArgs.robotName;
-                jsonDoc[configKeys::WIFI][configKeys::SSID]          = WIFI_SSID_DEFAULT;
-                jsonDoc[configKeys::WIFI][configKeys::PASSWORD]      = WIFI_PASSPHRASE_DEFAULT;
-                jsonDoc[configKeys::MQTT][configKeys::HOST]          = prgArgs.mqttHost;
-                jsonDoc[configKeys::MQTT][configKeys::PORT]          = prgArgs.mqttPort;
-                jsonDoc[configKeys::AP][configKeys::SSID]            = AP_SSID_DEFAULT;
-                jsonDoc[configKeys::AP][configKeys::PASSWORD]        = AP_PASSPHRASE_DEFAULT;
-                jsonDoc[configKeys::WEBSERVER][configKeys::USER]     = WEBSERVER_USER_DEFAULT;
-                jsonDoc[configKeys::WEBSERVER][configKeys::PASSWORD] = WEBSERVER_PASSPHRASE_DEFAULT;
-                jsonDoc[configKeys::PLATOON][configKeys::PLATOON_ID] = prgArgs.platoonId;
-                jsonDoc[configKeys::PLATOON][configKeys::VEHICLE_ID] = prgArgs.vehicleId;
+                jsonDoc[ConfigurationKeys::ROBOT_NAME]                             = prgArgs.robotName;
+                jsonDoc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID]          = WIFI_SSID_DEFAULT;
+                jsonDoc[ConfigurationKeys::WIFI][ConfigurationKeys::PASSWORD]      = WIFI_PASSPHRASE_DEFAULT;
+                jsonDoc[ConfigurationKeys::MQTT][ConfigurationKeys::HOST]          = prgArgs.mqttHost;
+                jsonDoc[ConfigurationKeys::MQTT][ConfigurationKeys::PORT]          = prgArgs.mqttPort;
+                jsonDoc[ConfigurationKeys::AP][ConfigurationKeys::SSID]            = AP_SSID_DEFAULT;
+                jsonDoc[ConfigurationKeys::AP][ConfigurationKeys::PASSWORD]        = AP_PASSPHRASE_DEFAULT;
+                jsonDoc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::USER]     = WEBSERVER_USER_DEFAULT;
+                jsonDoc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::PASSWORD] = WEBSERVER_PASSPHRASE_DEFAULT;
+                jsonDoc[ConfigurationKeys::PLATOON][ConfigurationKeys::PLATOON_ID] = prgArgs.platoonId;
+                jsonDoc[ConfigurationKeys::PLATOON][ConfigurationKeys::VEHICLE_ID] = prgArgs.vehicleId;
 
                 {
                     size_t jsonBufferSize = measureJsonPretty(jsonDoc) + 1U;
