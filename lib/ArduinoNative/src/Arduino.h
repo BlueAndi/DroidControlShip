@@ -49,10 +49,7 @@
 #include "Stream.h"
 #include "WString.h"
 #include "Serial.h"
-
-#ifndef UNIT_TEST
 #include <ArduinoJson.h>
-#endif
 
 /******************************************************************************
  * Macros
@@ -85,7 +82,6 @@ extern unsigned long millis();
  */
 extern void delay(unsigned long ms);
 
-#ifndef UNIT_TEST
 /**
  * Convert a string to a json variant.
  *
@@ -95,7 +91,6 @@ extern void delay(unsigned long ms);
  * @return If successful, it will return true otherwise false.
  */
 extern bool convertToJson(const String& str, JsonVariant variant);
-#endif
 
 #endif /* ARDUINO_H */
 /** @} */

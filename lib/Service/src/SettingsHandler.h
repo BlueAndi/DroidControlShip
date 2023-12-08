@@ -214,7 +214,7 @@ public:
      *
      * @returns Platoon ID.
      */
-    const uint8_t getPlatoonPlatoonId()
+    uint8_t getPlatoonPlatoonId()
     {
         return m_platoonPlatoonId;
     }
@@ -224,7 +224,7 @@ public:
      *
      * @returns Vehicle ID.
      */
-    const uint8_t getPlatoonVehicleId()
+    uint8_t getPlatoonVehicleId()
     {
         return m_platoonVehicleId;
     }
