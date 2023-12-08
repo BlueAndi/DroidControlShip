@@ -174,7 +174,7 @@ bool V2VClient::sendWaypoint(const Waypoint& waypoint)
     size_t jsonBufferSize = measureJson(jsonPayload) + 1U;
     char   jsonBuffer[jsonBufferSize];
 
-    if (jsonBufferSize != serializeJson(jsonPayload, jsonBuffer, jsonBufferSize))
+    if ((jsonBufferSize - 1U) != serializeJson(jsonPayload, jsonBuffer, jsonBufferSize))
     {
         LOG_ERROR("JSON serialization failed.");
     }
