@@ -131,7 +131,7 @@ static const char PRG_ARG_RADON_ULZER_ADDR_DEFAULT[] = "localhost";
 static const char PRG_ARG_RADON_ULZER_PORT_DEFAULT[] = "65432";
 
 /** Program argument default value of the configuration file. */
-static const char PRG_ARG_CFG_FILE_DEFAULT[] = "data/config/config.json";
+static const char PRG_ARG_CFG_FILE_DEFAULT[] = "./data/config/config.json";
 
 /** Program argument default value of the Platoon ID. */
 static const char PRG_ARG_PLATOON_ID_DEFAULT[] = "0";
