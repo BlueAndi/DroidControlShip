@@ -171,7 +171,7 @@ bool V2VClient::sendWaypoint(const Waypoint& waypoint)
     jsonPayload["Right"]       = waypoint.right;       /**< Right motor speed [steps/s]. */
     jsonPayload["Center"]      = waypoint.center;      /**< Center speed [steps/s]. */
 
-    size_t jsonBufferSize = measureJson(jsonPayload);
+    size_t jsonBufferSize = measureJson(jsonPayload) + 1U;
     char   jsonBuffer[jsonBufferSize];
 
     if (jsonBufferSize != serializeJson(jsonPayload, jsonBuffer, jsonBufferSize))
