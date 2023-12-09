@@ -87,6 +87,9 @@ const char* App::TOPIC_NAME_WILL = "will";
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
+/** Platoon leader vehicle ID. */
+static const uint8_t PLATOON_LEADER_ID = 0U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -180,6 +183,15 @@ void App::setup()
                 {
                     LOG_FATAL("MQTT configuration could not be set.");
                 }
+                else if (PLATOON_LEADER_ID != settings.getPlatoonVehicleId())
+                {
+                    /* Correct config.json file loaded? */
+                    LOG_FATAL("Platoon Vehicle ID must be 0 for the leader.");
+                }
+                else if (false == m_v2vClient.init(settings.getPlatoonPlatoonId(), settings.getPlatoonVehicleId()))
+                {
+                    LOG_FATAL("Failed to initialize V2V client.");
+                }
                 else
                 {
                     /* Setup SerialMuxProt Channels */
@@ -255,6 +267,9 @@ void App::loop()
     /* Process MQTT Communication */
     m_mqttClient.process();
 
+    /* Process V2V Communication */
+    m_v2vClient.process();
+
     /* Process Platoon Controller */
     m_platoonController.process();
 }
@@ -275,14 +290,12 @@ void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
 
 bool App::inputWaypointCallback(Waypoint& waypoint)
 {
-    UTIL_NOT_USED(waypoint);
-    return false;
+    return m_v2vClient.getNextWaypoint(waypoint);
 }
 
 bool App::outputWaypointCallback(const Waypoint& waypoint)
 {
-    UTIL_NOT_USED(waypoint);
-    return false;
+    return m_v2vClient.sendWaypoint(waypoint);
 }
 
 bool App::motorSetpointCallback(const int16_t left, const int16_t right)
