@@ -220,7 +220,7 @@ private:
         m_ledGreen(),
         m_ledRed(),
         m_network(),
-        m_configFilePath(CONFIG_FILE_PATH)
+        m_configFilePath()
     {
     }
 
