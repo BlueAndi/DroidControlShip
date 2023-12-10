@@ -1,0 +1,137 @@
+@startuml Pololu_A-Star_32U4_Upload_Sequence
+
+Title Pololu A-Star 32U4 Upload Sequence
+
+autoactivate on
+
+participant Host as host
+participant ESP32 as esp
+participant Pololu_Zumo_32U4 as zumo
+
+
+==Upload to ESP32==
+
+host -> esp : Upload .hex \nto ESP32 Filesystem
+return
+
+==Upload to Pololu Zumo==
+
+group nReset twice under 750ms
+    esp -> zumo : Set Reset = LOW
+    return Set Reset = HIGH
+    esp -> zumo : Set Reset = LOW
+    return Set Reset = HIGH
+    note left
+        Pololu's Bootloader
+        should be running now
+    end note
+end
+
+esp -> zumo : S [53] (Return Software Identifier)
+return s[7] = "CATERIN" (Programmer ID)
+
+esp -> zumo : V [56] (Return Software Version)
+return 1 [31] 0 [30] (Software Version = 1.0)
+
+esp -> zumo : v [76] (Return Hardware Version)
+return ? [3f] (Unknown command)
+
+esp -> zumo : p [70] (Return Programmer Type)
+return S [53] (Programmer Type = S)
+
+esp -> zumo : a [61] (Auto Increment Address)
+return Y [59] (Programmer supports auto addr increment.)
+
+esp -> zumo : b [62] (Check Block Support)
+return Y [59] . [00] . [80] (Programmer supports \nbuffered memory access with buffersize=128 bytes.)
+
+esp -> zumo : t [74] (Return Supported Device Codes)
+return D [44] (Device code: 0x44)
+
+esp -> zumo : T [64] D [44] (Select Device Type = 0x44)
+return . [0d] (devcode selected: 0x44)
+
+esp -> zumo : P [50] (Enter Programming Mode)
+return . [0d] (AVR device initialized and ready \nto accept instructions)
+
+esp -> zumo : s [73] (Read Signature Bytes)
+return . [87] . [95] . [1e] (Device signature \n = 0x1e9587 (probably m32u4))
+
+group Read Fuses
+    esp -> zumo : F [46] (Read Fuse Bits)
+    return . [ff] (lfuse value: ff)
+
+    esp -> zumo : N [4e] (Read High Fuse Bits)
+    return . [d0] (hfuse value: d0)
+
+    esp -> zumo :  Q [51] (Read Extended Fuse Bits)
+    return . [c8] (efuse value: c8)
+end
+
+==Write Input File (firmware.hex)==
+
+group Write File
+    esp -> zumo : A [41] . [00] . [00] (Set Address 0x0000)
+    return . [0d] (OK)
+
+    esp -> zumo : B [42] . [00] . [80] F [46] + 128 Bytes (Start Block Flash Load)
+    return . [0d] (OK)
+
+    esp -> zumo : A [41] . [00] . [40] (Set Address 0x0040)
+    return . [0d] (OK)
+
+    esp -> zumo : B [42] . [00] . [80] F [46] + 128 Bytes (Start Block Flash Load)
+    return . [0d] (OK)
+
+    esp -> zumo : A [41] . [ab] . [cd] (Set Address 0xabcd)
+    return . [0d] (OK)
+
+    esp -> zumo : B [42] . [00] . [80] F [46] + 128 Bytes (Start Block Flash Load)
+    return . [0d] (OK)
+end
+
+==Verify written File==
+
+group Read on-chip flash data
+    esp -> zumo : A [41] . [00] . [00] (Set Address 0x0000)
+    return . [0d] (OK)
+
+    esp -> zumo : g [67] . [00] . [80] F [46] (Start Block Flash Read)
+    return  128 Bytes (Flash Data)
+
+    esp -> zumo : A [41] . [00] . [40] (Set Address 0x0040)
+    return . [0d] (OK)
+
+    esp -> zumo : g [67] . [00] . [80] F [46] (Start Block Flash Read)
+    return  128 Bytes (Flash Data)
+
+    esp -> zumo : A [41] . [ab] . [cd] (Set Address 0xabcd)
+    return . [0d] (OK)
+
+    esp -> zumo : g [67] . [00] . [80] F [46] (Start Block Flash Read)
+    return  128 Bytes (Flash Data)
+end
+
+esp -> esp : Verify Input File with read Flash Data
+return File and Data are the same
+
+==Finishing==
+
+group Read Fuses
+    esp -> zumo : F [46] (Read Fuse Bits)
+    return . [ff] (lfuse value: ff)
+
+    esp -> zumo : N [4e] (Read High Fuse Bits)
+    return . [d0] (hfuse value: d0)
+
+    esp -> zumo :  Q [51] (Read Extended Fuse Bits)
+    return . [c8] (efuse value: c8)
+end
+
+esp -> zumo : L [4c] (Leave Programming Mode)
+return . [0d] (OK)
+
+esp -> zumo : E [45] (Exit Bootloader)
+return . [0d] (OK)
+ 
+@enduml
