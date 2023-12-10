@@ -96,6 +96,13 @@ public:
      */
     virtual void enterBootloader() = 0;
 
+    /**
+     * Is the device in bootloader mode?
+     *
+     * @return If device is in bootloader mode, it will return true. Otherwise false.
+     */
+    virtual bool isInBootloaderMode() const = 0;
+
 protected:
     /**
      * Constructs the interface.

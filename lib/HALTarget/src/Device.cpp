@@ -105,7 +105,13 @@ void Device::reset()
 void Device::enterBootloader()
 {
     m_bootloaderModeRequest = true;
+    m_usbHost.requestBootloaderMode();
     reset();
+}
+
+bool Device::isInBootloaderMode() const
+{
+    return m_usbHost.isBootloaderModeActive();
 }
 
 /******************************************************************************
