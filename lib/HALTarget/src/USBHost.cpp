@@ -61,9 +61,14 @@
 
 uint8_t ACMAsyncOper::OnInit(ACM* pacm)
 {
-    uint8_t ret;
+    uint8_t ret = hrSUCCESS;
 
-    ret = pacm->SetControlLineState(CONTROL_LINE_STATE);
+    /* SetControlLineState only on normal mode. */
+    if (false == m_isBootloaderRequested)
+    {
+        ret = pacm->SetControlLineState(CONTROL_LINE_STATE);
+    }
+
     if (hrSUCCESS != ret)
     {
         LOG_ERROR("Control Line State failed with error code: %d", ret);
@@ -71,10 +76,15 @@ uint8_t ACMAsyncOper::OnInit(ACM* pacm)
     else
     {
         LINE_CODING lineCoding;
-        lineCoding.dwDTERate   = BAUD_RATE;
+        lineCoding.dwDTERate   = BAUD_RATE_NORMAL_MODE;
         lineCoding.bCharFormat = CHAR_FORMAT;
         lineCoding.bParityType = PARITY_TYPE;
         lineCoding.bDataBits   = NUMBER_OF_DATA_BITS;
+
+        if (true == m_isBootloaderRequested)
+        {
+            lineCoding.dwDTERate = BAUD_RATE_BOOTLOADER_MODE;
+        }
 
         ret = pacm->SetLineCoding(&lineCoding);
         if (hrSUCCESS != ret)
@@ -84,13 +94,24 @@ uint8_t ACMAsyncOper::OnInit(ACM* pacm)
         else
         {
             LOG_DEBUG("Device Ready.");
+            m_isBootloaderRequested = false;
         }
     }
 
     return ret;
 }
 
-USBHost::USBHost() : m_usb(), m_asyncOper(), m_acm(&m_usb, &m_asyncOper), m_rxQueue(nullptr)
+void ACMAsyncOper::requestBootloaderMode()
+{
+    m_isBootloaderRequested = true;
+}
+
+USBHost::USBHost() :
+    m_usb(),
+    m_asyncOper(),
+    m_acm(&m_usb, &m_asyncOper),
+    m_rxQueue(nullptr),
+    m_isBootloaderModeActive(false)
 {
 }
 
@@ -142,8 +163,16 @@ bool USBHost::process()
         /* Check for errors. NAK can be safely ignored. */
         if ((hrSUCCESS != ret) && (hrNAK != ret))
         {
-            LOG_ERROR("Failed to receive from USB Device with error code: %d", ret);
-            isSuccess = false;
+            if ((true == m_isBootloaderModeActive) && (hrTIMEOUT == ret))
+            {
+                /* Bootloader has timed-out. */
+                reset();
+            }
+            else
+            {
+                LOG_ERROR("Failed to receive from USB Device with error code: %d", ret);
+                isSuccess = false;
+            }
         }
         else if ((0U < receivedBytes) && (nullptr != m_rxQueue))
         {
@@ -231,6 +260,32 @@ size_t USBHost::readBytes(uint8_t* buffer, size_t length)
     }
 
     return count;
+}
+
+void USBHost::requestBootloaderMode()
+{
+    /* Reset flags, ACM and data queue. */
+    reset();
+
+    /* Request bootloader mode. */
+    m_isBootloaderModeActive = true;
+    m_asyncOper.requestBootloaderMode();
+}
+
+void USBHost::reset()
+{
+    m_isBootloaderModeActive = false;
+    m_acm.Release();
+
+    if (nullptr != m_rxQueue)
+    {
+        (void)xQueueReset(m_rxQueue);
+    }
+}
+
+bool USBHost::isBootloaderModeActive() const
+{
+    return m_isBootloaderModeActive;
 }
 
 /******************************************************************************

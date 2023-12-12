@@ -104,6 +104,13 @@ public:
      */
     void enterBootloader() final;
 
+    /**
+     * Is the device in bootloader mode?
+     *
+     * @return If device is in bootloader mode, it will return true. Otherwise false.
+     */
+    bool isInBootloaderMode() const final;
+
 private:
     /** Time to hold the reset line active in milliseconds. */
     static const uint32_t RESET_TIME_MS = 50U;
