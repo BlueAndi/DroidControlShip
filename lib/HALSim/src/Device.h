@@ -115,7 +115,7 @@ public:
      *
      * @return If device is in bootloader mode, it will return true. Otherwise false.
      */
-    bool isInBootloaderMode() const;
+    bool isInBootloaderMode() const final;
 
     /**
      * Set the server address and port of the device.
