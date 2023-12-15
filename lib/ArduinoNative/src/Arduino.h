@@ -49,7 +49,6 @@
 #include "Stream.h"
 #include "WString.h"
 #include "Serial.h"
-#include <ArduinoJson.h>
 
 /******************************************************************************
  * Macros
@@ -81,16 +80,6 @@ extern unsigned long millis();
  * @param[in] ms The amount of milliseconds that the program should be delayed by.
  */
 extern void delay(unsigned long ms);
-
-/**
- * Convert a string to a json variant.
- *
- * @param[in]   str     String to convert.
- * @param[out]  variant Json variant.
- *
- * @return If successful, it will return true otherwise false.
- */
-extern bool convertToJson(const String& str, JsonVariant variant);
 
 #endif /* ARDUINO_H */
 /** @} */
