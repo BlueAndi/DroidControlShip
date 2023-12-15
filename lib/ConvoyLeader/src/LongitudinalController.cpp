@@ -36,7 +36,6 @@
 #include "LongitudinalController.h"
 #include "PlatoonUtils.h"
 #include <Arduino.h>
-#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches

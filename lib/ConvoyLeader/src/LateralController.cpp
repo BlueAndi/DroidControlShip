@@ -35,7 +35,6 @@
 
 #include "LateralController.h"
 #include <Util.h>
-#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -63,7 +62,6 @@
 
 LateralController::LateralController() : ILateralController(), m_headingFinder()
 {
-
     m_headingFinder.init();
 }
 
