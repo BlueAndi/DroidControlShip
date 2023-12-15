@@ -34,7 +34,9 @@
  *****************************************************************************/
 
 #include "LongitudinalController.h"
-#include <Util.h>
+#include "PlatoonUtils.h"
+#include <Arduino.h>
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -71,11 +73,19 @@ LongitudinalController::~LongitudinalController()
 bool LongitudinalController::calculateLongitudinalMovement(const Waypoint& currentWaypoint,
                                                            const Waypoint& targetWaypoint, int16_t& centerSpeedSetpoint)
 {
-    bool isSuccessful = true;
+    bool    isSuccessful = true;
+    int32_t distance     = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentWaypoint);
 
-    UTIL_NOT_USED(currentWaypoint);
-    UTIL_NOT_USED(targetWaypoint);
-    UTIL_NOT_USED(centerSpeedSetpoint);
+    if (0 == distance)
+    {
+        /* Target reached. */
+        centerSpeedSetpoint = 0;
+    }
+    else
+    {
+        /* Calculate speed using ramp factor. */
+        centerSpeedSetpoint = constrain(((distance * RAMP_FACTOR) + OFFSET_SPEED), -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    }
 
     return isSuccessful;
 }

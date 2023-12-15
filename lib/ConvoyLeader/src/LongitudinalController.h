@@ -90,6 +90,17 @@ public:
                                        int16_t& centerSpeedSetpoint) final;
 
 private:
+    /** Maximum motor speed in encoder steps/s */
+    static const int16_t MAX_MOTOR_SPEED = 2400;
+
+    /** Minimum distance to drive with max motor speed to in mm.*/
+    static const int16_t MIN_DISTANCE_TO_MAX_SPEED = 400;
+
+    /** Offset speed in encoder steps/s */
+    static const int16_t OFFSET_SPEED = 500;
+
+    /** Ramp factor. */
+    static const int16_t RAMP_FACTOR = MAX_MOTOR_SPEED / MIN_DISTANCE_TO_MAX_SPEED;
 };
 
 /******************************************************************************
