@@ -369,7 +369,7 @@ public:
      *
      * @return String length
      */
-    unsigned int length() const
+    size_t length() const
     {
         unsigned int length = 0;
         const char*  ptr    = m_buffer;
