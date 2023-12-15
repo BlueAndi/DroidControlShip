@@ -35,6 +35,7 @@
 
 #include "LateralController.h"
 #include <Util.h>
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -60,8 +61,10 @@
  * Public Methods
  *****************************************************************************/
 
-LateralController::LateralController()
+LateralController::LateralController() : ILateralController(), m_headingFinder()
 {
+
+    m_headingFinder.init();
 }
 
 LateralController::~LateralController()
@@ -74,11 +77,11 @@ bool LateralController::calculateLateralMovement(const Waypoint& currentWaypoint
 {
     bool isSuccessful = true;
 
-    UTIL_NOT_USED(currentWaypoint);
-    UTIL_NOT_USED(targetWaypoint);
-    UTIL_NOT_USED(centerSpeedSetpoint);
-    UTIL_NOT_USED(leftMotorSpeedSetpoint);
-    UTIL_NOT_USED(rightMotorSpeedSetpoint);
+    m_headingFinder.setOdometryData(currentWaypoint.xPos, currentWaypoint.yPos, currentWaypoint.orientation);
+    m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
+    m_headingFinder.setTargetHeading(targetWaypoint.xPos, targetWaypoint.yPos);
+
+    m_headingFinder.process(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
 
     return isSuccessful;
 }
