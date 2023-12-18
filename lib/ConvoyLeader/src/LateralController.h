@@ -44,6 +44,7 @@
  *****************************************************************************/
 #include <ILateralController.h>
 #include <new>
+#include <HeadingFinder.h>
 
 /******************************************************************************
  * Macros
@@ -93,6 +94,8 @@ public:
                                   int16_t& rightMotorSpeedSetpoint) final;
 
 private:
+    /** Heading finder. */
+    HeadingFinder m_headingFinder;
 };
 
 /******************************************************************************
