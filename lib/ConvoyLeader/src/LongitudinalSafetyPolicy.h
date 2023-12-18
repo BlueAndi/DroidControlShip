@@ -88,7 +88,10 @@ public:
     bool check(int16_t& centerSpeedSetpoint) final;
 
 private:
-    /** Maximum motor speed in encoder steps/s */
+    /**
+     * Maximum motor speed in encoder steps/s
+     * Speed determined experimentally using the motor calibration of the RadonUlzer.
+     */
     static const int16_t MAX_MOTOR_SPEED = 2400;
 
     /** Minimum motor speed in encoder steps/s */
