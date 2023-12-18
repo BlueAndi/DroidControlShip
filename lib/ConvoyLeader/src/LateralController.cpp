@@ -62,7 +62,6 @@
 
 LateralController::LateralController() : ILateralController(), m_headingFinder()
 {
-    m_headingFinder.init();
 }
 
 LateralController::~LateralController()

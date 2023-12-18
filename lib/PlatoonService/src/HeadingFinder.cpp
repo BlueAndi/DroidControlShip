@@ -70,14 +70,6 @@ HeadingFinder::HeadingFinder() :
     m_pidCtrl(),
     m_pidProcessTime()
 {
-}
-
-HeadingFinder::~HeadingFinder()
-{
-}
-
-void HeadingFinder::init()
-{
     /* Configure PID. */
     m_pidCtrl.clear();
     setPIDFactors(PID_P_NUMERATOR, PID_P_DENOMINATOR, PID_I_NUMERATOR, PID_I_DENOMINATOR, PID_D_NUMERATOR,
@@ -87,6 +79,10 @@ void HeadingFinder::init()
     m_pidCtrl.setDerivativeOnMeasurement(true);
 
     m_pidProcessTime.start(0); /* Immediate */
+}
+
+HeadingFinder::~HeadingFinder()
+{
 }
 
 void HeadingFinder::setPIDFactors(int32_t pNumerator, int32_t pDenominator, int32_t iNumerator, int32_t iDenominator,

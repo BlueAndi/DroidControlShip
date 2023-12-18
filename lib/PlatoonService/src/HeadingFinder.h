@@ -84,11 +84,6 @@ public:
     ~HeadingFinder();
 
     /**
-     * Initialize the HeadingFinder.
-     */
-    void init();
-
-    /**
      * Set the factors for the PID controller.
      *
      * @param[in] pNumerator Numerator of the proportional factor.
