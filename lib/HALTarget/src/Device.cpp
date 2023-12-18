@@ -71,6 +71,18 @@ bool Device::process()
     {
         GpioPins::resetDevicePin.write(LOW);
         m_resetTimer.stop();
+
+        if (true == m_bootloaderModeRequest)
+        {
+            m_bootloaderModeRequest = false;
+            m_waitTimer.start(WAIT_TIME_BOOTLOADER_MODE_MS);
+        }
+    }
+
+    if (true == m_waitTimer.isTimeout())
+    {
+        reset();
+        m_waitTimer.stop();
     }
 
     return m_usbHost.process();
@@ -88,6 +100,18 @@ void Device::reset()
         GpioPins::resetDevicePin.write(HIGH);
         m_resetTimer.start(RESET_TIME_MS);
     }
+}
+
+void Device::enterBootloader()
+{
+    m_bootloaderModeRequest = true;
+    m_usbHost.requestBootloaderMode();
+    reset();
+}
+
+bool Device::isInBootloaderMode() const
+{
+    return m_usbHost.isBootloaderModeActive();
 }
 
 /******************************************************************************

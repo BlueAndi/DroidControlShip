@@ -62,7 +62,7 @@ public:
     /**
      * Constructs the device adapter.
      */
-    Device() : IDevice(), m_usbHost(), m_resetTimer()
+    Device() : IDevice(), m_usbHost(), m_resetTimer(), m_waitTimer(), m_bootloaderModeRequest(false)
     {
     }
 
@@ -99,10 +99,24 @@ public:
      */
     void reset() final;
 
-private:
+    /**
+     * Enter Bootloader mode.
+     */
+    void enterBootloader() final;
 
+    /**
+     * Is the device in bootloader mode?
+     *
+     * @return If device is in bootloader mode, it will return true. Otherwise false.
+     */
+    bool isInBootloaderMode() const final;
+
+private:
     /** Time to hold the reset line active in milliseconds. */
-    static const uint8_t RESET_TIME_MS = 50;
+    static const uint32_t RESET_TIME_MS = 50U;
+
+    /** Time to wait between resets to enter bootloader mode in milliseconds. */
+    static const uint32_t WAIT_TIME_BOOTLOADER_MODE_MS = 100U;
 
     /**
      * USB Host driver.
@@ -113,6 +127,16 @@ private:
      * Simple Timer for reset of device.
      */
     SimpleTimer m_resetTimer;
+
+    /**
+     * Simple Timer for waiting to enter bootloader mode.
+     */
+    SimpleTimer m_waitTimer;
+
+    /**
+     * Bootloader mode request flag.
+     */
+    bool m_bootloaderModeRequest;
 };
 
 /******************************************************************************

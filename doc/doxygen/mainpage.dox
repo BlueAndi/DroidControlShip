@@ -5,6 +5,11 @@ The main application.
 @{
 @}
 
+@defgroup PlatoonService Platoon Services
+Services and components specific to the Platoon applications.
+@{
+@}
+
 @defgroup HALInterfaces Hardware abstraction interfaces
 The HAL interface abstraction, which every kind of HAL needs to provide.
 @{

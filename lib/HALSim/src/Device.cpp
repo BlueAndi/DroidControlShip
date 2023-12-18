@@ -109,6 +109,16 @@ void Device::reset()
     /* Not Implemented. */
 }
 
+void Device::enterBootloader()
+{
+    /* Not Implemented. */
+}
+
+bool Device::isInBootloaderMode() const
+{
+    return false;
+}
+
 void Device::setServer(const char* address, const char* port)
 {
     if (nullptr == address)

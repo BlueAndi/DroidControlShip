@@ -106,6 +106,18 @@ public:
     void reset() final;
 
     /**
+     * Enter Bootloader mode.
+     */
+    void enterBootloader() final;
+
+    /**
+     * Is the device in bootloader mode?
+     *
+     * @return If device is in bootloader mode, it will return true. Otherwise false.
+     */
+    bool isInBootloaderMode() const final;
+
+    /**
      * Set the server address and port of the device.
      *
      * @param[in] address   Server address. Set nullptr to use the default address.

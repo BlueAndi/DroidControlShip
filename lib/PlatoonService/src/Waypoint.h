@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Abstract device interface
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Definition of a Waypoint.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALInterfaces
+ * @addtogroup PlatoonService
  *
  * @{
  */
-
-#ifndef IDEVICE_H
-#define IDEVICE_H
+#ifndef WAYPOINT_H
+#define WAYPOINT_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,8 +42,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdbool.h>
-#include <Stream.h>
+
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -54,69 +53,31 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The abstract device interface. */
-class IDevice
+/**
+ * Waypoint structure definition.
+ * Defines the position of a waypoint in the map and the speed at which is to be reached.
+ */
+typedef struct _Waypoint
 {
-public:
+    int32_t xPos;        /**< X position [mm]. */
+    int32_t yPos;        /**< Y position [mm]. */
+    int32_t orientation; /**< Orientation [mrad]. */
+    int16_t left;        /**< Left motor speed [steps/s]. */
+    int16_t right;       /**< Right motor speed [steps/s]. */
+    int16_t center;      /**< Center speed [steps/s]. */
+
     /**
-     * Destroys the interface.
+     * Default constructor.
      */
-    virtual ~IDevice()
+    _Waypoint() : xPos(0), yPos(0), orientation(0), left(0), right(0), center(0)
     {
     }
 
-    /**
-     * Initialize device driver.
-     *
-     * @return If successfully initialized, returns true. Otherwise, false.
-     */
-    virtual bool init() = 0;
-
-    /**
-     * Process communication with the device.
-     *
-     * @return If communication is successful, returns true. Otherwise, false.
-     */
-    virtual bool process() = 0;
-
-    /**
-     * Get comunication Stream.
-     *
-     * @return Device data Stream.
-     */
-    virtual Stream& getStream() = 0;
-
-    /**
-     * Reset the device.
-     */
-    virtual void reset() = 0;
-
-    /**
-     * Enter Bootloader mode.
-     */
-    virtual void enterBootloader() = 0;
-
-    /**
-     * Is the device in bootloader mode?
-     *
-     * @return If device is in bootloader mode, it will return true. Otherwise false.
-     */
-    virtual bool isInBootloaderMode() const = 0;
-
-protected:
-    /**
-     * Constructs the interface.
-     */
-    IDevice()
-    {
-    }
-
-private:
-};
+} __attribute__((packed)) Waypoint;
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IDEVICE_H */
+#endif /* WAYPOINT_H */
 /** @} */

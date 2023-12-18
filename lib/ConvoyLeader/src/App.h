@@ -48,6 +48,8 @@
 #include <MqttClient.h>
 #include <SerialMuxProtServer.hpp>
 #include "SerialMuxChannels.h"
+#include <PlatoonController.h>
+#include <V2VClient.h>
 
 /******************************************************************************
  * Macros
@@ -65,9 +67,11 @@ public:
      * Construct the convoy leader application.
      */
     App() :
-        m_smpServer(Board::getInstance().getDevice().getStream()),
+        m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_serialMuxProtChannelIdMotorSpeedSetpoints(0U),
-        m_mqttClient()
+        m_mqttClient(),
+        m_platoonController(),
+        m_v2vClient(m_mqttClient)
     {
     }
 
@@ -88,6 +92,44 @@ public:
      */
     void loop();
 
+    /**
+     * Callback for the current vehicle data.
+     *
+     * @param[in] vehicleData Current vehicle data.
+     */
+    void currentVehicleChannelCallback(const VehicleData& vehicleData);
+
+    /**
+     * Input waypoint callback.
+     * Called in order to get the next waypoint into the platoon controller.
+     *
+     * @param[out] waypoint   Next waypoint.
+     *
+     * @return If a waypoint is available, it returns true. Otherwise, false.
+     */
+    bool inputWaypointCallback(Waypoint& waypoint);
+
+    /**
+     * Output waypoint callback.
+     * Called in order to send the last waypoint to the next platoon participant.
+     *
+     * @param[in] waypoint    Last waypoint.
+     *
+     * @return If the waypoint was sent successfully, returns true. Otherwise, false.
+     */
+    bool outputWaypointCallback(const Waypoint& waypoint);
+
+    /**
+     * Motor setpoint callback.
+     * Called in order to send the motor speeds using SerialMuxProt to the robot.
+     *
+     * @param[in] left      Left motor speed [steps/s].
+     * @param[in] right     Right motor speed [steps/s].
+     *
+     * @return If the motor speeds were sent successfully, returns true. Otherwise, false.
+     */
+    bool motorSetpointCallback(const int16_t left, const int16_t right);
+
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
@@ -97,9 +139,6 @@ private:
 
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
-
-    /** MQTT topic name for receiving position setpoint coordinates. */
-    static const char* TOPIC_NAME_POSITION_SETPOINT;
 
     /** SerialMuxProt Channel id sending sending motor speed setpoints. */
     uint8_t m_serialMuxProtChannelIdMotorSpeedSetpoints;
@@ -116,13 +155,17 @@ private:
      */
     MqttClient m_mqttClient;
 
-private:
     /**
-     * Callback for Position Setpoint MQTT Topic.
-     * @param[in] payload   Payload of the MQTT message.
+     * V2V client instance.
      */
-    void positionTopicCallback(const String& payload);
+    V2VClient m_v2vClient;
 
+    /**
+     * Platoon controller instance.
+     */
+    PlatoonController m_platoonController;
+
+private:
     /**
      * Handler of fatal errors in the Application.
      */
