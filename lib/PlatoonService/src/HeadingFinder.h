@@ -84,11 +84,6 @@ public:
     ~HeadingFinder();
 
     /**
-     * Initialize the HeadingFinder.
-     */
-    void init();
-
-    /**
      * Set the factors for the PID controller.
      *
      * @param[in] pNumerator Numerator of the proportional factor.
@@ -148,19 +143,19 @@ private:
     static const int16_t MAX_MOTOR_SPEED = 2400;
 
     /** The PID proportional factor numerator for the heading controller. */
-    static const int32_t PID_P_NUMERATOR = 3;
+    static const int32_t PID_P_NUMERATOR = 8;
 
     /** The PID proportional factor denominator for the heading controller.*/
     static const int32_t PID_P_DENOMINATOR = 4;
 
     /** The PID integral factor numerator for the heading controller. */
-    static const int32_t PID_I_NUMERATOR = 1;
+    static const int32_t PID_I_NUMERATOR = 0;
 
     /** The PID integral factor denominator for the heading controller. */
     static const int32_t PID_I_DENOMINATOR = 25;
 
     /** The PID derivative factor numerator for the heading controller. */
-    static const int32_t PID_D_NUMERATOR = 175;
+    static const int32_t PID_D_NUMERATOR = 0;
 
     /** The PID derivative factor denominator for the heading controller. */
     static const int32_t PID_D_DENOMINATOR = 1;

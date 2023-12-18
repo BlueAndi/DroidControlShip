@@ -126,7 +126,12 @@ private:
      * Error margin in mm for target waypoint.
      * Used to determine if target waypoint has been reached.
      */
-    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 5;
+    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 10;
+
+    /**
+     * Aperture angle of the forward cone in mrad.
+     */
+    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 1/3 * pi */
 
     /**
      * Input waypoint callback.
@@ -167,6 +172,12 @@ private:
      * Processing chain.
      */
     ProcessingChain* m_processingChain;
+
+    /**
+     * Flag to indicate that the first vehicle data has been received.
+     * This means, that the position of the vehicle is known.
+     */
+    bool m_isPositionKnown;
 
 private:
     /**
