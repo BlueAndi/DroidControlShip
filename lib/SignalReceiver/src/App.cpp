@@ -40,6 +40,7 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <Util.h>
+#include <CoordinateHandler.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -82,11 +83,17 @@ const char* App::TOPIC_NAME_WILL = "will";
 /* MQTT topic name for receiving traffic light color IDs. */
 const char* App::TOPIC_NAME_TRAFFIC_LIGHT_COLORS = "trafficLightColors";
 
+/* MQTT topic name for receiving settings. */
+const char* App::TOPIC_NAME_SETTINGS = "settings";
+
 /** Default size of the JSON Document for parsing. */
 static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
+
+/** Sending coordinate Id only once in trigger area. */
+bool gIsListening = false;
 
 /******************************************************************************
  * Public Methods
@@ -187,6 +194,11 @@ void App::setup()
                 {
                     LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_TRAFFIC_LIGHT_COLORS);
                 }
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_SETTINGS,
+                                                         [this](const String& payload) { settingsCallback(payload); }))
+                {
+                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_TRAFFIC_LIGHT_COLORS);
+                }
                 else
                 {
                     /** Setup SMP channels. */
@@ -240,23 +252,58 @@ void App::loop()
     {
         LOG_DEBUG("Could not process MQTT services.");
     }
+
+    if ((true == gIsListening) && (oldColorId.colorId != clr.colorId))
+    {
+        oldColorId.colorId = clr.colorId;
+
+        sendCurrentColor();
+    }
 }
 
 void App::odometryCallback(const OdometryData& odometry)
 {
-
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
     char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
 
-    payloadJson["x"] = odometry.xPos;
-    payloadJson["y"] = odometry.yPos;
+    // payloadJson["x"] = odometry.xPos;
+    // payloadJson["y"] = odometry.yPos;
 
-    (void)serializeJson(payloadJson, payloadArray);
-    String payloadStr(payloadArray);
+    // (void)serializeJson(payloadJson, payloadArray);
+    // String payloadStr(payloadArray);
 
-    if (true == m_mqttClient.publish("TL_0/coordinates", false, payloadStr))
+    // if (true == m_mqttClient.publish("TL_0/coordinates", false, payloadStr))
+    // {
+    //     LOG_DEBUG("PUBLISHED ODOMETRY: x: %d y: %d ", odometry.xPos, odometry.yPos);
+    // }
+
+    LOG_DEBUG("RECEIVED ODOMETRY: x: %d y: %d ORIENTATION:  %d", odometry.xPos, odometry.yPos, odometry.orientation);
+
+    CoordinateHandler::getInstance().setCurrentCoordinates(odometry.xPos, odometry.yPos);
+
+    if (true == CoordinateHandler::getInstance().CheckEntryCoordinates())
     {
-        LOG_DEBUG("PUBLISHED ODOMETRY: x: %d y: %d ", odometry.xPos, odometry.yPos);
+        LOG_DEBUG("Robot entered trigger area.");
+
+        if (true == CoordinateHandler::getInstance().isNearExit())
+        {
+            gIsListening = true;
+            LOG_DEBUG("Robot is in the exit area.");
+        }
+    }
+    else
+    {
+        gIsListening = false;
+        LOG_DEBUG("Robot is outside the trigger area.");
+    }
+}
+
+void App::sendCurrentColor()
+{
+    if (true ==
+        m_smpServer.sendData(m_serialMuxProtChannelIdTrafficLightColors, reinterpret_cast<uint8_t*>(&clr), sizeof(clr)))
+    {
+        LOG_DEBUG("Color %d sent.", clr.colorId);
     }
 }
 
@@ -285,6 +332,8 @@ void App::fatalErrorHandler()
  */
 void App::trafficLightColorsCallback(const String& payload)
 {
+    /** Save deserialized JSON value somewhere. */
+    /** call TxSMP function later in loop() once gIsListening is true. */
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
     DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
 
@@ -298,18 +347,62 @@ void App::trafficLightColorsCallback(const String& payload)
 
         if (false == color.isNull())
         {
-            Color clr;
             clr.colorId = color.as<uint8_t>();
-
-            if (true == m_smpServer.sendData(m_serialMuxProtChannelIdTrafficLightColors,
-                                             reinterpret_cast<uint8_t*>(&clr), sizeof(clr)))
-            {
-                LOG_DEBUG("Color %d sent.", clr.colorId);
-            }
+            LOG_DEBUG("COLOR_ID %d", clr.colorId);
         }
         else
         {
             LOG_WARNING("Received invalid color.");
+        }
+    }
+}
+
+/**
+ * Type: Rx MQTT
+ * Name: settingsCallback
+ */
+void App::settingsCallback(const String& payload)
+{
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
+
+    const char* transmitter;
+    int32_t     intervX;
+    int32_t     intervY;
+    int32_t     entryX;
+    int32_t     entryY;
+
+    if (error != DeserializationError::Ok)
+    {
+        LOG_ERROR("JSON deserialization error %d.", error);
+    }
+    else
+    {
+        JsonVariant robotName      = jsonPayload["FROM"];
+        JsonVariant xIntervalValue = jsonPayload["IX"];
+        JsonVariant yIntervalValue = jsonPayload["IY"];
+        JsonVariant xEntryValue    = jsonPayload["EX"];
+        JsonVariant yEntryValue    = jsonPayload["EY"];
+
+        if ((false == xIntervalValue.isNull()) && (false == yIntervalValue.isNull()) &&
+            (false == xEntryValue.isNull()) && (false == yEntryValue.isNull()))
+        {
+            transmitter = static_cast<const char*>(robotName);
+            intervX     = xIntervalValue.as<int32_t>();
+            intervY     = yIntervalValue.as<int32_t>();
+            entryX      = xEntryValue.as<int32_t>();
+            entryY      = yEntryValue.as<int32_t>();
+
+            CoordinateHandler::getInstance().setIntervalValues(intervX, intervY);
+            CoordinateHandler::getInstance().setEntryValues(entryX, entryY);
+
+            LOG_DEBUG("SENT BY %s", transmitter);
+            LOG_DEBUG("INTERVAL VALUES x:%d y:%d", intervX, intervY);
+            LOG_DEBUG("ENTRY VALUES    x:%d y:%d", entryX, entryY);
+        }
+        else
+        {
+            LOG_WARNING("Received invalid coordinate set.");
         }
     }
 }

@@ -97,6 +97,11 @@ public:
      */
     void odometryCallback(const OdometryData& odometry);
 
+    /**
+     * Sends colorId through SMP.
+     */
+    void sendCurrentColor();
+
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
@@ -110,6 +115,9 @@ private:
     /** MQTT topic name for receiving traffic light color IDs. */
     static const char* TOPIC_NAME_TRAFFIC_LIGHT_COLORS;
 
+    /** MQTT topic name for receiving settings. */
+    static const char* TOPIC_NAME_SETTINGS;
+
     /** SerialMuxProt Channel id receiving coordinates. */
     uint8_t m_serialMuxProtChannelIdCoordinates;
 
@@ -122,6 +130,12 @@ private:
      * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
     SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
+
+    /** Save current deserialized value of COLOR ID. */
+    Color clr;
+
+    /** Making decisions only on change. */
+    Color oldColorId;
 
     /**
      * MQTTClient Instance
@@ -143,10 +157,12 @@ private:
      */
     void trafficLightColorsCallback(const String& payload);
 
-    // /**
-    //  *  Creates JSON formatted package to send through MQTT.
-    //  */
-    // void createPackage(int32_t xCoord, int32_t yCoord);
+    /**
+     * Settings Callback
+     *
+     * @param[in] payload Payload of the MQTT message.
+     */
+    void settingsCallback(const String& paylaod);
 
 private:
     /* Not allowed. */
