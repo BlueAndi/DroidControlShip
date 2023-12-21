@@ -42,6 +42,9 @@
 #include <Util.h>
 #include <CoordinateHandler.h>
 
+#include <Participants.h>
+#include <Queuer.h>
+
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -279,16 +282,27 @@ void App::odometryCallback(const OdometryData& odometry)
 
     LOG_DEBUG("RECEIVED ODOMETRY: x: %d y: %d ORIENTATION:  %d", odometry.xPos, odometry.yPos, odometry.orientation);
 
+    CoordinateHandler::getInstance().setCurrentOrientation(odometry.orientation);
     CoordinateHandler::getInstance().setCurrentCoordinates(odometry.xPos, odometry.yPos);
 
     if (true == CoordinateHandler::getInstance().CheckEntryCoordinates())
     {
         LOG_DEBUG("Robot entered trigger area.");
 
-        if (true == CoordinateHandler::getInstance().isNearExit())
+        if (true == CoordinateHandler::getInstance().checkOrientation())
         {
-            gIsListening = true;
-            LOG_DEBUG("Robot is in the exit area.");
+            LOG_DEBUG("Robot pointing towards IE.");
+
+            if (true == CoordinateHandler::getInstance().isNearExit())
+            {
+                gIsListening = true;
+                LOG_DEBUG("Robot is in the exit area.");
+            }
+        }
+        else
+        {
+            gIsListening = false;
+            LOG_DEBUG("Robot isn't pointing towards IE.");
         }
     }
     else
@@ -366,39 +380,41 @@ void App::settingsCallback(const String& payload)
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
     DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
 
-    const char* transmitter;
-    int32_t     intervX;
-    int32_t     intervY;
-    int32_t     entryX;
-    int32_t     entryY;
-
     if (error != DeserializationError::Ok)
     {
         LOG_ERROR("JSON deserialization error %d.", error);
     }
     else
     {
-        JsonVariant robotName      = jsonPayload["FROM"];
-        JsonVariant xIntervalValue = jsonPayload["IX"];
-        JsonVariant yIntervalValue = jsonPayload["IY"];
-        JsonVariant xEntryValue    = jsonPayload["EX"];
-        JsonVariant yEntryValue    = jsonPayload["EY"];
+        JsonVariant robotName        = jsonPayload["FROM"];
+        JsonVariant orientationValue = jsonPayload["TOWARDS"];
+        JsonVariant xIntervalValue   = jsonPayload["IX"];
+        JsonVariant yIntervalValue   = jsonPayload["IY"];
+        JsonVariant xEntryValue      = jsonPayload["EX"];
+        JsonVariant yEntryValue      = jsonPayload["EY"];
 
         if ((false == xIntervalValue.isNull()) && (false == yIntervalValue.isNull()) &&
             (false == xEntryValue.isNull()) && (false == yEntryValue.isNull()))
         {
-            transmitter = static_cast<const char*>(robotName);
-            intervX     = xIntervalValue.as<int32_t>();
-            intervY     = yIntervalValue.as<int32_t>();
-            entryX      = xEntryValue.as<int32_t>();
-            entryY      = yEntryValue.as<int32_t>();
+            InfrastructureElement* trafficParticipant = new (std::nothrow) InfrastructureElement();
 
-            CoordinateHandler::getInstance().setIntervalValues(intervX, intervY);
-            CoordinateHandler::getInstance().setEntryValues(entryX, entryY);
+            if (nullptr != trafficParticipant)
+            {
+                trafficParticipant->name        = robotName.as<const char*>();
+                trafficParticipant->orientation = orientationValue.as<int32_t>();
+                trafficParticipant->intervX     = xIntervalValue.as<int32_t>();
+                trafficParticipant->intervY     = yIntervalValue.as<int32_t>();
+                trafficParticipant->entryX      = xEntryValue.as<int32_t>();
+                trafficParticipant->entryY      = yEntryValue.as<int32_t>();
 
-            LOG_DEBUG("SENT BY %s", transmitter);
-            LOG_DEBUG("INTERVAL VALUES x:%d y:%d", intervX, intervY);
-            LOG_DEBUG("ENTRY VALUES    x:%d y:%d", entryX, entryY);
+                if (true == Queuer::getInstance().enqueueParticipant(trafficParticipant))
+                {
+                    LOG_DEBUG("IE %s pointing towards %d with Trigger Area:", trafficParticipant->name,
+                              trafficParticipant->orientation);
+                    LOG_DEBUG("INTERVAL VALUES x:%d y:%d", trafficParticipant->intervX, trafficParticipant->intervY);
+                    LOG_DEBUG("ENTRY VALUES    x:%d y:%d", trafficParticipant->entryX, trafficParticipant->entryY);
+                }
+            }
         }
         else
         {
