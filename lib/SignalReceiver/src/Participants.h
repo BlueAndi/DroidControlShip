@@ -60,12 +60,12 @@
 /** the InfrastructureElement struct */
 struct InfrastructureElement
 {
-    String  name;        /** Name of Infrastructure Element */
-    int32_t orientation; /** Orientation of the infrastructure element. */
-    int32_t intervX;     /** Interval values on the x axis. */
-    int32_t intervY;     /** Interval values on the y axis. */
-    int32_t entryX;      /** Entry value of x. */
-    int32_t entryY;      /** Entry value of y. */
+    String  name;        /**< Name of Infrastructure Element */
+    int32_t orientation; /**< Orientation of the infrastructure element. */
+    int32_t intervX;     /**< Interval values on the x axis. */
+    int32_t intervY;     /**< Interval values on the y axis. */
+    int32_t entryX;      /**< Entry value of x. */
+    int32_t entryY;      /**< Entry value of y. */
 };
 
 /**
