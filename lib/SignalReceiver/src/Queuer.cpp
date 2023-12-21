@@ -75,7 +75,7 @@ bool Queuer::enqueueParticipant(InfrastructureElement* enqueuedParticipant)
 {
     bool isSuccessful;
 
-    if ((enqueuedParticipant != nullptr) || (enqueuedParticipant->name != ""))
+    if (enqueuedParticipant->name != "")
     {
         m_IEQueue.push(enqueuedParticipant);
         LOG_DEBUG("Added %s to the list.", enqueuedParticipant->name);

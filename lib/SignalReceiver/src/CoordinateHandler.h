@@ -65,6 +65,7 @@
 class CoordinateHandler
 {
 public:
+    /** The CoordinateHandler instance. */
     static CoordinateHandler& getInstance()
     {
         static CoordinateHandler instance;
@@ -273,8 +274,8 @@ private:
     {
     }
 
-    CoordinateHandler(const CoordinateHandler& state);
-    CoordinateHandler& operator=(const CoordinateHandler& state);
+    CoordinateHandler(const CoordinateHandler& state);            /**< Copy construction of an instance. */
+    CoordinateHandler& operator=(const CoordinateHandler& state); /**< Assignment of an instance. */
 };
 
 #endif /*COORDINATE_HANDLER_H*/

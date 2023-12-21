@@ -131,12 +131,6 @@ private:
      */
     SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
 
-    /** Save current deserialized value of COLOR ID. */
-    Color clr;
-
-    /** Making decisions only on change. */
-    Color oldColorId;
-
     /**
      * MQTTClient Instance
      */

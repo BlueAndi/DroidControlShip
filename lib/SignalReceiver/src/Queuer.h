@@ -69,6 +69,7 @@ public:
     /** Queue of infrastructure elements. */
     std::queue<InfrastructureElement*> m_IEQueue;
 
+    /** The instance of Queuer */
     static Queuer& getInstance()
     {
         static Queuer instance;
@@ -77,13 +78,6 @@ public:
     }
 
     void process();
-
-    /***
-     * Check if queue is full
-     *
-     * @returns true if full
-     */
-    bool isFull();
 
     /**
      * Enqueue infrastructure element.
@@ -119,8 +113,8 @@ private:
     {
     }
 
-    Queuer(const Queuer& state);
-    Queuer& operator=(const Queuer& state);
+    Queuer(const Queuer& state);            /**< Copy construction of an instance. */
+    Queuer& operator=(const Queuer& state); /**< Assignment of an instance. */
 };
 
 #endif /*QUEUER_H*/
