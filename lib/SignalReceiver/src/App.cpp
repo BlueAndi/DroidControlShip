@@ -98,6 +98,12 @@ static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 /** Sending coordinate Id only once in trigger area. */
 bool gIsListening = false;
 
+/** Save current deserialized value of COLOR ID. */
+Color clr;
+
+/** Making decisions only on change. */
+Color oldColorId;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/

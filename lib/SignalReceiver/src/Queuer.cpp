@@ -63,21 +63,11 @@
  * Public Methods
  *****************************************************************************/
 
-bool Queuer::isFull()
-{
-    bool isTrue;
-
-    return isTrue;
-}
-
 void Queuer::process()
 {
     if (true == m_IEQueue.empty())
     {
         InfrastructureElement* selectedIE = m_IEQueue.front();
-
-        CoordinateHandler::getInstance().process(selectedIE->orientation, selectedIE->intervX, selectedIE->intervY,
-                                                 selectedIE->entryX, selectedIE->entryY);
     }
 }
 

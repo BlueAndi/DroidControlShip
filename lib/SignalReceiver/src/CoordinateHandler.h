@@ -120,13 +120,13 @@ public:
         return m_currentOrientation;
     }
 
-    bool process(int32_t orientationValue, int32_t intervalValueX, int32_t intervalValueY, int32_t entryValueX,
-                 int32_t entryValueY)
-    {
-        bool isTrue;
+    // bool process(int32_t orientationValue, int32_t intervalValueX, int32_t intervalValueY, int32_t entryValueX,
+    //              int32_t entryValueY)
+    // {
+    //     bool isTrue;
 
-        return isTrue;
-    }
+    //     return isTrue;
+    // }
 
     /**
      * Check if robot has entered the trigger area.
@@ -264,7 +264,7 @@ private:
     int32_t m_currentOrientation;
 
     /** Green state constructor. */
-    CoordinateHandler()
+    CoordinateHandler() : m_currentOrientation(0U), m_currentX(0U), m_currentY(0U)
     {
     }
 
