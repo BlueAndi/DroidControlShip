@@ -49,6 +49,8 @@
 #include <Logging.h>
 #include <Board.h>
 
+#include <Participants.h>
+
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -68,6 +70,16 @@ public:
         static CoordinateHandler instance;
 
         return instance;
+    }
+
+    /**
+     * Set current coordinates received from robots
+     * into values to be processed in the program.
+     */
+    void setCurrentCoordinates(int32_t xPos, int32_t yPos)
+    {
+        m_currentX = xPos;
+        m_currentY = yPos;
     }
 
     /**
@@ -91,81 +103,29 @@ public:
     }
 
     /**
-     * Set current coordinates received from robots
-     * into values to be processed in the program.
+     * Set orientation of infrastructure element.
      */
-    void setCurrentCoordinates(int32_t xPos, int32_t yPos)
+    void setCurrentOrientation(int32_t currentOrientation)
     {
-        m_currentX = xPos;
-        m_currentY = yPos;
+        m_currentOrientation = currentOrientation;
     }
 
     /**
-     * Set interval values for the trigger area.
-     * This in combination with setting the required entry
-     * coordinate setup an area.
+     * Get orientation.
      *
-     * The TL shall send relevant signals only once the robot
-     * is in this area.
-     *
-     * @param[in] intervValueX value of x that shall be used to form a line on the x-Axis.
-     * @param[in] intervValueY value of y that shall be used to form a line on the y-Axis.
+     * @returns the orientation value
      */
-    void setIntervalValues(int32_t intervValueX, int32_t intervValueY)
+    int32_t getCurrentOrientation()
     {
-        m_intervalValueX = intervValueX;
-        m_intervalValueY = intervValueY;
+        return m_currentOrientation;
     }
 
-    /**
-     * Get interval x value.
-     *
-     * @return interval x value
-     */
-    int32_t getIntervalValueX()
+    bool process(int32_t orientationValue, int32_t intervalValueX, int32_t intervalValueY, int32_t entryValueX,
+                 int32_t entryValueY)
     {
-        return m_intervalValueX;
-    }
+        bool isTrue;
 
-    /**
-     * Get interval y value.
-     *
-     * @return interval y value
-     */
-    int32_t getIntervalValueY()
-    {
-        return m_intervalValueY;
-    }
-
-    /**
-     * Set entry requirement for the trigger area.
-     *
-     * Coordinate settings can be found in documentation.
-     */
-    void setEntryValues(int32_t entryX, int32_t entryY)
-    {
-        m_entryX = entryX;
-        m_entryY = entryY;
-    }
-
-    /**
-     * Get entry x value.
-     *
-     * @return entry x value
-     */
-    int32_t getEntryX() const
-    {
-        return m_entryX;
-    }
-
-    /**
-     * Get entry y value.
-     *
-     * @return entry y value
-     */
-    int32_t getEntryY() const
-    {
-        return m_entryY;
+        return isTrue;
     }
 
     /**
@@ -187,10 +147,14 @@ public:
         // m_intervalValueX); LOG_DEBUG("Comparing y %d < %d < %d", getEntryY() - m_intervalValueY, getCurrentYCoord(),
         // getEntryY() + m_intervalValueY);
 
-        if (((getEntryX() - m_intervalValueX <= getCurrentXCoord()) &&
-             (getCurrentXCoord() <= getEntryX() + m_intervalValueX)) &&
-            ((getEntryY() - m_intervalValueY <= getCurrentYCoord()) &&
-             (getCurrentYCoord() <= getEntryY() + m_intervalValueY)))
+        if (((Participant::getInstance().getEntryX() - Participant::getInstance().getIntervalValueX() <=
+              getCurrentXCoord()) &&
+             (getCurrentXCoord() <=
+              Participant::getInstance().getEntryX() + Participant::getInstance().getIntervalValueX())) &&
+            ((Participant::getInstance().getEntryY() - Participant::getInstance().getIntervalValueY() <=
+              getCurrentYCoord()) &&
+             (getCurrentYCoord() <=
+              Participant::getInstance().getEntryY() + Participant::getInstance().getIntervalValueY())))
         {
             /* Robot is now in the entry area, toggle flag. */
             isTrue = true;
@@ -212,10 +176,12 @@ public:
     {
         bool isTrue = false;
 
-        if (true == (getEntryY() < 0))
+        if (true == (Participant::getInstance().getEntryY() < 0))
         {
-            if ((((getEntryY() + m_intervalValueY) - 200) <= getCurrentYCoord()) &&
-                (getCurrentYCoord() <= (getEntryY() + m_intervalValueY)))
+            if ((((Participant::getInstance().getEntryY() + Participant::getInstance().getIntervalValueY()) - 200) <=
+                 getCurrentYCoord()) &&
+                (getCurrentYCoord() <=
+                 (Participant::getInstance().getEntryY() + Participant::getInstance().getIntervalValueY())))
             {
                 /** Robot is near exit, toggle flag. */
                 isTrue = true;
@@ -229,10 +195,12 @@ public:
                 LOG_DEBUG("Robot has more driving to do.");
             }
         }
-        else if (true == (getEntryY() >= 0))
+        else if (true == (Participant::getInstance().getEntryY() >= 0))
         {
-            if ((((getEntryY() - m_intervalValueY) + 40) <= getCurrentYCoord()) &&
-                (getCurrentYCoord() <= (getEntryY() - m_intervalValueY)))
+            if ((((Participant::getInstance().getEntryY() - Participant::getInstance().getIntervalValueX()) + 40) <=
+                 getCurrentYCoord()) &&
+                (getCurrentYCoord() <=
+                 (Participant::getInstance().getEntryY() - Participant::getInstance().getIntervalValueY())))
             {
                 /** Robot is near exit, toggle flag. */
                 isTrue = true;
@@ -254,18 +222,46 @@ public:
         return isTrue;
     }
 
+    /**
+     * Check if orientation matches the one given by the infrastructure element.
+     *
+     * @returns true if orientations match.
+     */
+    bool checkOrientation()
+    {
+        bool isTrue = false;
+
+        if (Participant::getInstance().getRequiredOrientation() != 0)
+        {
+            // LOG_DEBUG("Comparing %d < %d < %d", Participant::getInstance().getRequiredOrientation() - 500,
+            //           getCurrentOrientation(), Participant::getInstance().getRequiredOrientation() + 500);
+
+            if (((Participant::getInstance().getRequiredOrientation() - 500) <= getCurrentOrientation()) &&
+                (getCurrentOrientation() <= (Participant::getInstance().getRequiredOrientation() + 500)))
+            {
+                isTrue = true;
+            }
+            else
+            {
+                isTrue = false;
+            }
+        }
+        else
+        {
+            /** If no there is no orientation set, set it to always be true. */
+            isTrue = true;
+        }
+
+        return isTrue;
+    }
+
 private:
     /** Current coordinates */
     int32_t m_currentX;
     int32_t m_currentY;
 
-    /** Interval values to be used for the trigger area. */
-    int32_t m_intervalValueX;
-    int32_t m_intervalValueY;
-
-    /** Required entry values used for the trigger area. */
-    int32_t m_entryX;
-    int32_t m_entryY;
+    /** Current orientation */
+    int32_t m_currentOrientation;
 
     /** Green state constructor. */
     CoordinateHandler()
