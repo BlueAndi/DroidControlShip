@@ -57,10 +57,10 @@
  * Types and Classes
  *****************************************************************************/
 
-/** infrastructureElement struct */
+/** the InfrastructureElement struct */
 struct InfrastructureElement
 {
-    String  name;        /** Infrastructure element's name */
+    String  name;        /** Name of Infrastructure Element */
     int32_t orientation; /** Orientation of the infrastructure element. */
     int32_t intervX;     /** Interval values on the x axis. */
     int32_t intervY;     /** Interval values on the y axis. */
@@ -176,12 +176,16 @@ private:
     /** Orientation of the infrastructure element. */
     int32_t m_orientation;
 
-    /** Interval values on the x and y axis. */
+    /** Interval values on the x axis. */
     int32_t m_intervX;
+
+    /** Interval value on the y axis. */
     int32_t m_intervY;
 
-    /** Entry values of x and y. */
+    /** Entry value of x. */
     int32_t m_entryX;
+
+    /** Entry value of y. */
     int32_t m_entryY;
 
     /** Participant constructor. */
@@ -194,8 +198,8 @@ private:
     {
     }
 
-    Participant(const Participant& state);
-    Participant& operator=(const Participant& state);
+    Participant(const Participant& state);            /**< Copy construction of an instance. */
+    Participant& operator=(const Participant& state); /**< Assignment of an instance. */
 };
 
 #endif /*PARTICIPANTS_H*/
