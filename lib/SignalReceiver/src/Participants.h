@@ -74,6 +74,7 @@ struct InfrastructureElement
 class Participant
 {
 public:
+    /** The Participant instance. */
     static Participant& getInstance()
     {
         static Participant instance;
@@ -170,8 +171,8 @@ public:
     }
 
 private:
-    /** Infrastructure element's name */
-    String m_participantName;
+    /** Name of Infrastructure Element. */
+    String m_name;
 
     /** Orientation of the infrastructure element. */
     int32_t m_orientation;
@@ -189,7 +190,7 @@ private:
     int32_t m_entryY;
 
     /** Participant constructor. */
-    Participant() : m_participantName(""), m_orientation(0U), m_intervX(0U), m_intervY(0U), m_entryX(0U), m_entryY(0U)
+    Participant() : m_name(""), m_orientation(0U), m_intervX(0U), m_intervY(0U), m_entryX(0U), m_entryY(0U)
     {
     }
 

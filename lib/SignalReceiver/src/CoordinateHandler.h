@@ -257,8 +257,10 @@ public:
     }
 
 private:
-    /** Current coordinates */
+    /** Current coordinate of robot on the x Axis*/
     int32_t m_currentX;
+
+    /** Current coordinate of robot on the x Axis*/
     int32_t m_currentY;
 
     /** Current orientation */
