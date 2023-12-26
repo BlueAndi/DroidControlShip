@@ -472,7 +472,7 @@ static int createConfigFile(const PrgArguments& prgArgs)
         }
         else
         {
-            FILE* fd = fopen(prgArgs.cfgFilePath, "w");
+            FILE* fd = fopen(prgArgs.cfgFilePath, "wb");
 
             if (nullptr == fd)
             {
@@ -502,10 +502,10 @@ static int createConfigFile(const PrgArguments& prgArgs)
 
                     (void)serializeJsonPretty(jsonDoc, jsonBuffer, jsonBufferSize);
 
-                    fprintf(fd, "%s", jsonBuffer);
+                    (void)fprintf(fd, "%s", jsonBuffer);
                 }
 
-                fclose(fd);
+                (void)fclose(fd);
             }
         }
     }
