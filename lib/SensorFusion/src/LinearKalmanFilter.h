@@ -103,9 +103,6 @@ public:
      */
     PositionData updateStep(KalmanParameter& kalmanParameter) final;
 
-    /** Number of states used in the state vector of the Linear Kalman Filter. */
-    static const uint8_t NUMBER_OF_STATES = 3U;
-
 private:
     /** Estimated state vector x=[p_x, p_y, v_x, v_y]^T */
     Eigen::Vector<float, NUMBER_OF_STATES_N> m_stateVector;
