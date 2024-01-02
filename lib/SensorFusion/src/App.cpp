@@ -233,9 +233,9 @@ void App::publishSensorFusionPosition()
 
     /* Write newest Sensor Fusion Data in JSON String */
     IKalmanFilter::PositionData currentPosition = m_sensorFusion.getLatestPosition();
-    payloadJson["positionX"]                    = currentPosition.currentXPos;
-    payloadJson["positionY"]                    = currentPosition.currentYPos;
-    payloadJson["angle"]                        = currentPosition.currentAngle;
+    payloadJson["positionX"]                    = currentPosition.positionX;
+    payloadJson["positionY"]                    = currentPosition.positionY;
+    payloadJson["angle"]                        = currentPosition.angle;
     (void)serializeJson(payloadJson, payloadArray);
     String payloadStr(payloadArray);
     bool   wasPublishingSucessful = m_mqttClient.publish(TOPIC_NAME_POSITION, false, payloadStr);

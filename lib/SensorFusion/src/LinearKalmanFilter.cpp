@@ -70,9 +70,9 @@ void LinearKalmanFilter::predictionStep()
 IKalmanFilter::PositionData LinearKalmanFilter::updateStep(KalmanParameter& kalmanParameter)
 {
     IKalmanFilter::PositionData currentPosition;
-    currentPosition.currentXPos  = kalmanParameter.positionOdometryX;
-    currentPosition.currentYPos  = kalmanParameter.positionOdometryY;
-    currentPosition.currentAngle = kalmanParameter.angleOdometry;
+    currentPosition.positionX = kalmanParameter.positionOdometryX;
+    currentPosition.positionY = kalmanParameter.positionOdometryY;
+    currentPosition.angle     = kalmanParameter.angleOdometry;
     return currentPosition;
     /* TODO: Implement Kalman Filter in cpp (TD072) */
 }
