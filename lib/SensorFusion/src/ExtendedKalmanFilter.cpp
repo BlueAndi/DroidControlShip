@@ -84,7 +84,25 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& ka
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+Eigen::VectorXf ExtendedKalmanFilter::generateMeasurementVector(KalmanParameter& kalmanParameter)
+{
+    Eigen::Vector<float, NUMBER_OF_MEASUREMENTS_M> measurementVector =
+        Eigen::Vector<float, NUMBER_OF_MEASUREMENTS_M>::Zero(NUMBER_OF_MEASUREMENTS_M);
+    measurementVector(IDX_ODOMETRY_X_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryX);
+    measurementVector(IDX_ODOMETRY_Y_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryY);
+    measurementVector(IDX_ODOMETRY_ORIENTATION_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.angleOdometry);
+    return measurementVector;
+}
 
+Eigen::VectorXf ExtendedKalmanFilter::generateControlInputVector(KalmanParameter& kalmanParameter)
+{
+    Eigen::Vector<float, NUMBER_OF_CONTROL_INPUTS_L> controlInputVector =
+        Eigen::Vector<float, NUMBER_OF_CONTROL_INPUTS_L>::Zero(NUMBER_OF_CONTROL_INPUTS_L);
+    controlInputVector(IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationX);
+    controlInputVector(IDX_ACCELERATION_Y_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationY);
+    controlInputVector(IDX_TURNRATE_CONTROL_INPUT_VECTOR)       = static_cast<float>(kalmanParameter.turnRate);
+    return controlInputVector;
+}
 /******************************************************************************
  * External Functions
  *****************************************************************************/

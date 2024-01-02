@@ -83,6 +83,21 @@ public:
      *
      */
     virtual PositionData updateStep(KalmanParameter& kalmanParameter) = 0;
+
+private:
+    /**
+     * Writes data from a KalmanParameter Struct into a measurement vector
+     * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
+     * @return Measurement Vector z_k
+     */
+    virtual Eigen::VectorXf generateMeasurementVector(KalmanParameter& kalmanParameter) = 0;
+
+    /**
+     * Writes data from a KalmanParameter Struct into a control Input Vector
+     * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
+     * @return Control Input Vector u_k
+     */
+    virtual Eigen::VectorXf generateControlInputVector(KalmanParameter& kalmanParameter) = 0;
 };
 
 #endif /* IKALMANFILTER_H */
