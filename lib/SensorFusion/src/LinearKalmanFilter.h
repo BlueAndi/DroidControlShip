@@ -71,8 +71,10 @@ public:
      * Constructs the Linear Kalman Filter
      */
     LinearKalmanFilter() :
-        m_state(Eigen::VectorXf::Constant(NUMBER_OF_STATES_N, 0.0F)),
-        m_covariance(Eigen::MatrixXf::Constant(NUMBER_OF_STATES_N, NUMBER_OF_STATES_N, 0.0F))
+        m_stateVector(Eigen::Vector<float, NUMBER_OF_STATES_N>::Zero(NUMBER_OF_STATES_N)),
+        m_covarianceMatrix(
+            Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N>::Zero(NUMBER_OF_STATES_N, NUMBER_OF_STATES_N)),
+        m_controlInputVector(Eigen::Vector<float, NUMBER_OF_CONTROL_INPUTS_L>::Zero(NUMBER_OF_CONTROL_INPUTS_L))
     {
     }
 
@@ -105,8 +107,14 @@ public:
     static const uint8_t NUMBER_OF_STATES = 3U;
 
 private:
-    Eigen::VectorXf m_state;      /**< Estimated state vector [p_x, p_y, v_x, v_y, a_x, a_y]*/
-    Eigen::MatrixXf m_covariance; /**< Covariance Matrix of the state */
+    /** Estimated state vector x=[p_x, p_y, v_x, v_y]^T */
+    Eigen::Vector<float, NUMBER_OF_STATES_N> m_stateVector;
+
+    /** Covariance Matrix of the state */
+    Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> m_covarianceMatrix;
+
+    /** Control Input Vector u=[a_x, a_y]^T */
+    Eigen::Vector<float, NUMBER_OF_CONTROL_INPUTS_L> m_controlInputVector;
 
     /** Index of Position in x-direction in the state vector x. */
     static const uint8_t IDX_POSITION_X_STATE_VECTOR = 0U;
