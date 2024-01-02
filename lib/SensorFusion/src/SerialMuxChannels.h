@@ -30,7 +30,7 @@
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
  *
  *  @addtogroup Application
- * 
+ *
  * @{
  */
 
@@ -107,6 +107,9 @@ typedef struct _SensorData
      * with a sensitivity factor in mrad/s/digit.
      */
     int16_t turnRate;
+
+    /** Time passed since the last sensor value in milliseconds. */
+    uint16_t timePeriod;
 } __attribute__((packed)) SensorData;
 
 /** Struct of the End Line Detection payload. */
