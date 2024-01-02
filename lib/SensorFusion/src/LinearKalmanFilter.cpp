@@ -53,6 +53,27 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+/* TODO: TD124 Determine the right Parameters for LKF and EKF. */
+
+/** The covariance matrix of the process noise Matrix. */
+const Eigen::Matrix<float, NUMBER_OF_CONTROL_INPUTS_L, NUMBER_OF_CONTROL_INPUTS_L>
+    LinearKalmanFilter::PROCESS_COVARIANCE_MATRIX_Q{{0.0F, 0.0F}, {0.0F, 0.0F}};
+
+/** The observation model Matrix. */
+const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> LinearKalmanFilter::OBSERVATION_MATRIX_H{
+    {1.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 1.0F, 0.0F, 0.0F}};
+
+/** The covariance of the observation noise Matrix. */
+const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M>
+    LinearKalmanFilter::OBSERVATION_NOISE_MATRIX_R{{0.0F * 0.0F, 0.0F}, {0.0F, 0.0F * 0.0F}};
+
+/** Initial covariance matrix P. */
+const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> LinearKalmanFilter::INITIAL_COVARIANCE_MATRIX_P{
+    {1.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 1.0F, 0.0F, 0.0F},
+    {0.0F, 0.0F, 1.0F, 0.0F},
+    {0.0F, 0.0F, 0.0F, 1.0F}};
 
 /******************************************************************************
  * Public Methods

@@ -140,6 +140,18 @@ private:
     /** Index of Acceleration in y-direction in the control input vector u. */
     static const uint8_t IDX_ACCELERATION_Y_CONTROL_INPUT_VECTOR = 1U;
 
+    /** The covariance matrix of the process noise Matrix. */
+    static const Eigen::Matrix<float, NUMBER_OF_CONTROL_INPUTS_L, NUMBER_OF_CONTROL_INPUTS_L>
+        PROCESS_COVARIANCE_MATRIX_Q;
+
+    /** The observation model Matrix. */
+    static const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> OBSERVATION_MATRIX_H;
+
+    /** The covariance of the observation noise Matrix. */
+    static const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M> OBSERVATION_NOISE_MATRIX_R;
+
+    /** Initial covariance matrix P. */
+    static const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> INITIAL_COVARIANCE_MATRIX_P;
     /**
      * Writes data from a KalmanParameter Struct into a measurement vector
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.

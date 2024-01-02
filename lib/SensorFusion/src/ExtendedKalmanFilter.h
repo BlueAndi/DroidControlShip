@@ -144,6 +144,18 @@ private:
     /** Index of Turn Rate in the control input vector u. */
     static const uint8_t IDX_TURNRATE_CONTROL_INPUT_VECTOR = 2U;
 
+    /** Initial covariance matrix P. */
+    static const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> INITIAL_COVARIANCE_MATRIX_P;
+
+    /** The covariance matrix of the process noise Matrix. */
+    static const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> PROCESS_COVARIANCE_MATRIX_Q;
+
+    /** The observation model Matrix. */
+    static const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> OBSERVATION_MATRIX_H;
+
+    /** The covariance of the observation noise Matrix. */
+    static const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M> OBSERVATION_NOISE_MATRIX_R;
+
     /**
      * Writes data from a KalmanParameter Struct into a measurement vector
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
