@@ -79,20 +79,20 @@ public:
     /**
      * Initializes the variables of the Extended Kalman Filter.
      */
-    void init();
+    void init() final;
 
     /**
      * Prediction of the covariance and the state of the Extended Kalman Filter.
      * @param[in] timeStep Measured Time Step in ms.
      */
-    void predictionStep(const uint16_t timeStep);
+    void predictionStep(const uint16_t timeStep) final;
 
     /**
      * Update of the covariance and the state of the Kalman Filter.
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
      * @return Estimated Position as a PositionData struct.
      */
-    PositionData updateStep(KalmanParameter& kalmanParameter);
+    PositionData updateStep(KalmanParameter& kalmanParameter) final;
 
 private:
     Eigen::VectorXf m_state;      /**< Estimated state vector [p_x, p_y, v_x, v_y, a_x, a_y]*/
