@@ -63,7 +63,7 @@ void SensorFusion::init(void)
     m_linearKalmanFilter.init();
 }
 
-void SensorFusion::estimateNewState(SensorData newSensorData)
+void SensorFusion::estimateNewState(const SensorData& newSensorData)
 {
     /* Calculate the physical Values via the Sensitivity Factors. */
     int16_t physicalAccelerationX = newSensorData.accelerationX * SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
@@ -73,7 +73,8 @@ void SensorFusion::estimateNewState(SensorData newSensorData)
     /* Transform the acceleration values from the robot coordinate system into the world coordinate system */
     int16_t accelerationInRobotCoordinateSystem[2] = {physicalAccelerationX, physicalAccelerationY};
     int16_t accelerationInGlobalCoordinateSystem[2];
-    transformLocalToGlobal(accelerationInGlobalCoordinateSystem, accelerationInRobotCoordinateSystem, m_currentPosition.angle);
+    transformLocalToGlobal(accelerationInGlobalCoordinateSystem, accelerationInRobotCoordinateSystem,
+                           m_estimatedPosition.angle);
 
     /* Perform the Kalman Filter Prediction and Update Steps */
     KalmanParameter kalmanParameter;
@@ -85,7 +86,7 @@ void SensorFusion::estimateNewState(SensorData newSensorData)
     kalmanParameter.turnRate          = physicalTurnRate;
 
     m_linearKalmanFilter.predictionStep(newSensorData.timePeriod);
-    m_currentPosition = m_linearKalmanFilter.updateStep(kalmanParameter);
+    m_estimatedPosition = m_linearKalmanFilter.updateStep(kalmanParameter);
 }
 
 /******************************************************************************

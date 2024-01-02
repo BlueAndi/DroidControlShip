@@ -63,7 +63,7 @@ public:
     /**
      * Constructs the SensorFusion Algorithm.
      */
-    SensorFusion() : m_linearKalmanFilter(), m_currentPosition{0, 0, 0}
+    SensorFusion() : m_linearKalmanFilter(), m_estimatedPosition{0, 0, 0}
     {
     }
 
@@ -84,7 +84,7 @@ public:
      *
      * @param[in] newSensorData New Sensor Data.
      */
-    void estimateNewState(SensorData newSensorData);
+    void estimateNewState(const SensorData& newSensorData);
 
     /**
      * Get the Latest calculated State
@@ -93,13 +93,13 @@ public:
      */
     IKalmanFilter::PositionData getLatestPosition()
     {
-        return m_currentPosition;
+        return m_estimatedPosition;
     }
 
 private:
     LinearKalmanFilter m_linearKalmanFilter; /**< An Instance of the Kalman Filter algorithm class. */
 
-    IKalmanFilter::PositionData m_currentPosition; /**< Variable where the current estimated Position is saved in. */
+    IKalmanFilter::PositionData m_estimatedPosition; /**< Variable where the current estimated Position is saved in. */
 
     /**
      * Transform the local acceleration vector [acc_x, acc_y] into a global vector using the provided angle.
