@@ -65,11 +65,6 @@ void SensorFusion::init(void)
 
 void SensorFusion::estimateNewState(SensorData newSensorData)
 {
-    /* Estimate the current angle. */
-    int16_t estimatedAngle = 0;
-    estimateAngle(estimatedAngle, newSensorData.orientationOdometry, newSensorData.magnetometerValueX,
-                  newSensorData.magnetometerValueY);
-
     /* Calculate the physical Values via the Sensitivity Factors. */
     int16_t physicalAccelerationX = newSensorData.accelerationX * SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
     int16_t physicalAccelerationY = newSensorData.accelerationY * SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
@@ -78,7 +73,7 @@ void SensorFusion::estimateNewState(SensorData newSensorData)
     /* Transform the acceleration values from the robot coordinate system into the world coordinate system */
     int16_t accelerationInRobotCoordinateSystem[2] = {physicalAccelerationX, physicalAccelerationY};
     int16_t accelerationInGlobalCoordinateSystem[2];
-    transformLocalToGlobal(accelerationInGlobalCoordinateSystem, accelerationInRobotCoordinateSystem, estimatedAngle);
+    transformLocalToGlobal(accelerationInGlobalCoordinateSystem, accelerationInRobotCoordinateSystem, m_currentPosition.angle);
 
     /* Perform the Kalman Filter Prediction and Update Steps */
     KalmanParameter kalmanParameter;
@@ -89,7 +84,7 @@ void SensorFusion::estimateNewState(SensorData newSensorData)
     kalmanParameter.angleOdometry     = newSensorData.orientationOdometry;
     kalmanParameter.turnRate          = physicalTurnRate;
 
-    m_linearKalmanFilter.predictionStep();
+    m_linearKalmanFilter.predictionStep(newSensorData.timePeriod);
     m_currentPosition = m_linearKalmanFilter.updateStep(kalmanParameter);
 }
 
@@ -110,13 +105,6 @@ void SensorFusion::transformLocalToGlobal(int16_t* globalResult, const int16_t* 
 
     globalResult[0] = cosValue * localVectorToTransform[0] - sinValue * localVectorToTransform[1];
     globalResult[1] = sinValue * localVectorToTransform[0] + cosValue * localVectorToTransform[1];
-}
-
-void SensorFusion::estimateAngle(int16_t& estimatedAngle, const int32_t& encoderAngle,
-                                 const int16_t& magnetometerValueX, const int16_t& magnetometerValueY)
-{
-    /* TODO: TD077	Implement Angle Estimation */
-    estimatedAngle = encoderAngle;
 }
 
 /******************************************************************************

@@ -110,19 +110,6 @@ private:
      */
     void transformLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
                                 const int16_t& rotationAngle);
-
-    /**
-     * This function combines encoder and magnetometer data to estimate the current angle.
-     *
-     * @param[in] estimatedAngle   Reference to the variable storing the estimated angle.
-     * @param[in] encoderAngle     The angle value obtained from an encoder.
-     * @param[in] magnetometerValueX  The X-axis value from a magnetometer.
-     * @param[in] magnetometerValueY  The Y-axis value from a magnetometer.
-     *
-     * @note The function updates the estimatedAngle parameter with the combined angle estimation.
-     */
-    void estimateAngle(int16_t& estimatedAngle, const int32_t& encoderAngle, const int16_t& magnetometerValueX,
-                       const int16_t& magnetometerValueY);
 };
 
 /******************************************************************************
