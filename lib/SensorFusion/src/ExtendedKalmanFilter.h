@@ -45,7 +45,7 @@
  *****************************************************************************/
 #include <ArduinoEigen.h>
 #include <stdint.h>
-#include "LinearKalmanFilter.h"
+#include "IKalmanFilter.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -57,7 +57,7 @@
 static const uint8_t NUMBER_OF_STATES = 3U;
 
 /** This class provides a Extended Kalman filter. */
-class ExtendedKalmanFilter : public LinearKalmanFilter
+class ExtendedKalmanFilter : public IKalmanFilter
 {
 public:
     /**
