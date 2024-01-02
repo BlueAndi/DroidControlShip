@@ -72,8 +72,9 @@ public:
 
     /**
      * Prediction of the covariance and the state of the Kalman Filter.
+     * @param[in] timeStep Measured Time Step in ms.
      */
-    virtual void predictionStep() = 0;
+    virtual void predictionStep(const uint16_t timeStep) = 0;
 
     /**
      * Update of the covariance and the state of the Kalman Filter.

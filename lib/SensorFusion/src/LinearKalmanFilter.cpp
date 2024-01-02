@@ -62,7 +62,7 @@ void LinearKalmanFilter::init()
     /* TODO: Implement Kalman Filter in cpp (TD072)  */
 }
 
-void LinearKalmanFilter::predictionStep()
+void LinearKalmanFilter::predictionStep(const uint16_t timeStep)
 {
     /* TODO: Implement Kalman Filter in cpp (TD072) */
 }
