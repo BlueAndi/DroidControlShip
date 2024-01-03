@@ -55,27 +55,27 @@
  * Local Variables
  *****************************************************************************/
 /* TODO: TD124 Determine the right Parameters for LKF and EKF. */
-/** Initial covariance matrix P. */
+/** Initial covariance matrix (notation in literature: P). */
 const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> ExtendedKalmanFilter::INITIAL_COVARIANCE_MATRIX_P{
     {0.0F, 0.0F, 0.0F, 0.0F},
     {0.0F, 0.0F, 0.0F, 0.0F},
     {0.0F, 0.0F, 0.0F, 0.0F},
     {0.0F, 0.0F, 0.0F, 0.0F}};
 
-/** The covariance matrix of the process noise Matrix. */
+/** The covariance matrix of the process noise Matrix (notation in literature: Q). */
 const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> ExtendedKalmanFilter::PROCESS_COVARIANCE_MATRIX_Q{
     {5.0F, 0.0F, 0.0F, 0.0F},
     {0.0F, 5.0F, 0.0F, 0.0F},
     {0.0F, 0.0F, 5.0F, 0.0F},
     {0.0F, 0.0F, 0.0F, 5.0F}};
 
-/** The observation model Matrix. */
+/** The observation model Matrix (notation in literature: H). */
 const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> ExtendedKalmanFilter::OBSERVATION_MATRIX_H{
     {1.0F, 0.0F, 0.0F, 0.0F},
     {0.0F, 1.0F, 0.0F, 0.0F},
     {0.0F, 0.0F, 0.0F, 1.0F}};
 
-/** The covariance of the observation noise Matrix. */
+/** The covariance of the observation noise Matrix (notation in literature: R). */
 const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M>
     ExtendedKalmanFilter::OBSERVATION_NOISE_MATRIX_R{{0.0F, 0.0F, 0.0F}, {0.0F, 0.0F, 0.0F}, {0.0F, 0.0F, 0.0F}};
 /******************************************************************************

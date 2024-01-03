@@ -55,13 +55,13 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Number of states used in the state vector x. */
+/** Number of states used in the state vector x (notation in literature: N). */
 static const uint8_t NUMBER_OF_STATES_N = 4U;
 
-/** Number of measurements in the measurement vector z. */
+/** Number of measurements in the measurement vector z (notation in literature: M). */
 static const uint8_t NUMBER_OF_MEASUREMENTS_M = 3U;
 
-/** Number of control inputs in the control input vector u. */
+/** Number of control inputs in the control input vector u (notation in literature: L). */
 static const uint8_t NUMBER_OF_CONTROL_INPUTS_L = 3U;
 
 /** This class provides an Extended Kalman filter. */
@@ -144,16 +144,16 @@ private:
     /** Index of Turn Rate in the control input vector u. */
     static const uint8_t IDX_TURNRATE_CONTROL_INPUT_VECTOR = 2U;
 
-    /** Initial covariance matrix P. */
+    /** Initial covariance matrix (notation in literature: P). */
     static const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> INITIAL_COVARIANCE_MATRIX_P;
 
-    /** The covariance matrix of the process noise Matrix. */
+    /** The covariance matrix of the process noise Matrix (notation in literature: Q). */
     static const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> PROCESS_COVARIANCE_MATRIX_Q;
 
-    /** The observation model Matrix. */
+    /** The observation model Matrix (notation in literature: H). */
     static const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> OBSERVATION_MATRIX_H;
 
-    /** The covariance of the observation noise Matrix. */
+    /** The covariance of the observation noise Matrix (notation in literature: R). */
     static const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M> OBSERVATION_NOISE_MATRIX_R;
 
     /**
