@@ -104,22 +104,16 @@ IKalmanFilter::PositionData LinearKalmanFilter::updateStep(KalmanParameter& kalm
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-Eigen::VectorXf LinearKalmanFilter::generateMeasurementVector(KalmanParameter& kalmanParameter)
+void LinearKalmanFilter::generateMeasurementVector(KalmanParameter& kalmanParameter)
 {
-    Eigen::Vector<float, NUMBER_OF_MEASUREMENTS_M> measurementVector =
-        Eigen::Vector<float, NUMBER_OF_MEASUREMENTS_M>::Zero(NUMBER_OF_MEASUREMENTS_M);
-    measurementVector(IDX_ODOMETRY_X_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryX);
-    measurementVector(IDX_ODOMETRY_Y_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryY);
-    return measurementVector;
+    m_measurementVector(IDX_ODOMETRY_X_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryX);
+    m_measurementVector(IDX_ODOMETRY_Y_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryY);
 }
 
-Eigen::VectorXf LinearKalmanFilter::generateControlInputVector(KalmanParameter& kalmanParameter)
+void LinearKalmanFilter::generateControlInputVector(KalmanParameter& kalmanParameter)
 {
-    Eigen::Vector<float, NUMBER_OF_CONTROL_INPUTS_L> controlInputVector =
-        Eigen::Vector<float, NUMBER_OF_CONTROL_INPUTS_L>::Zero(NUMBER_OF_CONTROL_INPUTS_L);
-    controlInputVector(IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationX);
-    controlInputVector(IDX_ACCELERATION_Y_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationY);
-    return controlInputVector;
+    m_controlInputVector(IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationX);
+    m_controlInputVector(IDX_ACCELERATION_Y_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationY);
 }
 /******************************************************************************
  * External Functions

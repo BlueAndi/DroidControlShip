@@ -75,7 +75,8 @@ public:
         m_stateVector(Eigen::Vector<float, NUMBER_OF_STATES_N>::Zero(NUMBER_OF_STATES_N)),
         m_covarianceMatrix(
             Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N>::Zero(NUMBER_OF_STATES_N, NUMBER_OF_STATES_N)),
-        m_controlInputVector(Eigen::Vector<float, NUMBER_OF_CONTROL_INPUTS_L>::Zero(NUMBER_OF_CONTROL_INPUTS_L))
+        m_controlInputVector(Eigen::Vector<float, NUMBER_OF_CONTROL_INPUTS_L>::Zero(NUMBER_OF_CONTROL_INPUTS_L)),
+        m_measurementVector(Eigen::Vector<float, NUMBER_OF_MEASUREMENTS_M>::Zero(NUMBER_OF_MEASUREMENTS_M))
     {
     }
 
@@ -113,6 +114,9 @@ private:
 
     /** Control Input Vector u=[accelerationX, accelerationY, turnRate]^T */
     Eigen::Vector<float, NUMBER_OF_CONTROL_INPUTS_L> m_controlInputVector;
+
+    /** Measurement Vector z=[positionOdometryX, positionOdometryY, orientationOdometry]^T */
+    Eigen::Vector<float, NUMBER_OF_MEASUREMENTS_M> m_measurementVector;
 
     /** Index of Position in x-direction in the state vector x. */
     static const uint8_t IDX_POSITION_X_STATE_VECTOR = 0U;
@@ -157,18 +161,20 @@ private:
     static const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M> OBSERVATION_NOISE_MATRIX_R;
 
     /**
-     * Writes data from a KalmanParameter Struct into a measurement vector
+     * Writes data from a KalmanParameter Struct into the Measurement Vector as a member variable m_measurementVector
+     * with structure: [positionOdometryX, positionOdometryY, orientationOdometry]^T
+     *
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
-     * @return Measurement Vector z_k with structure: [positionOdometryX, positionOdometryY, orientationOdometry]^T
      */
-    Eigen::VectorXf generateMeasurementVector(KalmanParameter& kalmanParameter);
+    void generateMeasurementVector(KalmanParameter& kalmanParameter);
 
     /**
-     * Writes data from a KalmanParameter Struct into a control Input Vector
+     * Writes data from a KalmanParameter Struct into the Control Input Vector as a member variable m_controlInputVector
+     * with structure: [accelerationX, accelerationY, turnRate]^T
+     *
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
-     * @return Control Input Vector u_k with structure: [accelerationX, accelerationY, turnRate]^T
      */
-    Eigen::VectorXf generateControlInputVector(KalmanParameter& kalmanParameter);
+    void generateControlInputVector(KalmanParameter& kalmanParameter);
 };
 
 /******************************************************************************
