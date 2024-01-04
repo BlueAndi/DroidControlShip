@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,8 @@
  *****************************************************************************/
 
 #include "LongitudinalSafetyPolicy.h"
-#include <Util.h>
+#include <Logging.h>
+#include <Arduino.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -70,9 +71,14 @@ LongitudinalSafetyPolicy::~LongitudinalSafetyPolicy()
 
 bool LongitudinalSafetyPolicy::check(int16_t& centerSpeedSetpoint)
 {
-    bool isSuccessful = true;
+    bool    isSuccessful    = true;
+    int16_t constraintSpeed = constrain(centerSpeedSetpoint, MIN_MOTOR_SPEED, MAX_MOTOR_SPEED);
 
-    UTIL_NOT_USED(centerSpeedSetpoint);
+    if (constraintSpeed != centerSpeedSetpoint)
+    {
+        centerSpeedSetpoint = constraintSpeed;
+        LOG_WARNING("Speed setpoint constrained to %d", centerSpeedSetpoint);
+    }
 
     return isSuccessful;
 }

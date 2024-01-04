@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,19 +68,19 @@ public:
      * Input waypoint callback.
      * Called in order to get the next waypoint into the platoon controller.
      */
-    typedef std::function<void(Waypoint& waypoint)> InputWaypointCallback;
+    typedef std::function<bool(Waypoint& waypoint)> InputWaypointCallback;
 
     /**
      * Output waypoint callback.
      * Called in order to send the last waypoint to the next platoon participant.
      */
-    typedef std::function<void(const Waypoint& waypoint)> OutputWaypointCallback;
+    typedef std::function<bool(const Waypoint& waypoint)> OutputWaypointCallback;
 
     /**
      * Motor setpoint callback.
      * Called in order to set the motor speeds.
      */
-    typedef std::function<void(const int16_t left, const int16_t right)> MotorSetpointCallback;
+    typedef std::function<bool(const int16_t left, const int16_t right)> MotorSetpointCallback;
 
     /**
      * PlatoonController default constructor.
@@ -126,7 +126,12 @@ private:
      * Error margin in mm for target waypoint.
      * Used to determine if target waypoint has been reached.
      */
-    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 5;
+    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 10;
+
+    /**
+     * Aperture angle of the forward cone in mrad.
+     */
+    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 1/3 * pi */
 
     /**
      * Input waypoint callback.
@@ -149,6 +154,11 @@ private:
     Waypoint m_currentWaypoint;
 
     /**
+     * Next waypoint to follow.
+     */
+    Waypoint m_nextWaypoint;
+
+    /**
      * Current vehicle data in the form of a waypoint.
      */
     Waypoint m_currentVehicleData;
@@ -162,6 +172,12 @@ private:
      * Processing chain.
      */
     ProcessingChain* m_processingChain;
+
+    /**
+     * Flag to indicate that the first vehicle data has been received.
+     * This means, that the position of the vehicle is known.
+     */
+    bool m_isPositionKnown;
 
 private:
     /**

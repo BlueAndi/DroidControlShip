@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -88,6 +88,14 @@ public:
     bool check(int16_t& centerSpeedSetpoint) final;
 
 private:
+    /**
+     * Maximum motor speed in encoder steps/s
+     * Speed determined experimentally using the motor calibration of the RadonUlzer.
+     */
+    static const int16_t MAX_MOTOR_SPEED = 2400;
+
+    /** Minimum motor speed in encoder steps/s */
+    static const int16_t MIN_MOTOR_SPEED = 0;
 };
 
 /******************************************************************************

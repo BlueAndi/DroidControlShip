@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -116,27 +116,32 @@ public:
     /**
      * Publishes a message to the broker.
      *
-     * @param[in] topic     Topic to publish to.
-     * @param[in] useClientBaseTopic   If true, the client ID is used as the base (prefix) of the topic.
-     * @param[in] message   Message to publish.
+     * @param[in] topic                     Topic to publish to.
+     * @param[in] useClientIdAsBaseTopic    If true, the client ID is used as the base (prefix) of the topic.
+     * @param[in] message                   Message to publish.
+     *
+     * @return If successfully published, returns true. Otherwise, false.
      */
-    bool publish(const String& topic, const bool useClientBaseTopic, const String& message) final;
+    bool publish(const String& topic, const bool useClientIdAsBaseTopic, const String& message) final;
 
     /**
      * Subscribes to a topic.
      *
-     * @param[in] topic     Topic to subscribe to. The Client ID is used as base topic: `Client ID`/`topic`
-     * @param[in] callback  Callback function, which is called on a new message.
+     * @param[in] topic                     Topic to subscribe to.
+     * @param[in] useClientIdAsBaseTopic    If true, the client ID is used as the base (prefix) of the topic.
+     * @param[in] callback                  Callback function, which is called on a new message.
+     *
      * @return If successfully subscribed, returns true. Otherwise, false.
      */
-    bool subscribe(const String& topic, TopicCallback callback) final;
+    bool subscribe(const String& topic, const bool useClientIdAsBaseTopic, TopicCallback callback) final;
 
     /**
      * Unsubscribes from a topic.
      *
-     * @param[in] topic     Topic to unsubscribe from. The Client ID is used as base topic: `Client ID`/`topic`
+     * @param[in] topic                     Topic to unsubscribe from.
+     * @param[in] useClientIdAsBaseTopic    If true, the client ID is used as the base (prefix) of the topic.
      */
-    void unsubscribe(const String& topic) final;
+    void unsubscribe(const String& topic, const bool useClientIdAsBaseTopic) final;
 
 public:
     /**

@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Factory of ProcessingChain.
+ * @brief  Vehicle to Vehicle (V2V) communication client.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup PlatoonService
  *
  * @{
  */
-#ifndef PROCESSING_CHAIN_FACTORY_H
-#define PROCESSING_CHAIN_FACTORY_H
+#ifndef V2V_CLIENT_H
+#define V2V_CLIENT_H
 
 /******************************************************************************
  * Compile Switches
@@ -42,9 +42,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include <stdint.h>
-#include "ProcessingChain.h"
+#include <MqttClient.h>
+#include <Waypoint.h>
+#include <queue>
 
 /******************************************************************************
  * Macros
@@ -54,99 +54,117 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Factory of ProcessingChain.
- */
-class ProcessingChainFactory
+/** V2V Client for external communication in the platooning context. */
+class V2VClient
 {
 public:
     /**
-     * Get the factory instance.
+     * Constructs a V2V client.
      *
-     * @return Factory instance.
+     * @param[in] mqttClient    MQTT client instance.
      */
-    static ProcessingChainFactory& getInstance();
-
-    /**
-     * Create a processing chain. The factory creates the instance, but the user is responsible for deleting it.
-     *
-     * @return Pointer to a ProcessingChain instance or nullptr if creation failed.
-     */
-    ProcessingChain* create();
-
-    /**
-     * Register ILongitudinalController create function.
-     *
-     * @param[in] createFunc    Create function.
-     */
-    void registerLongitudinalControllerCreateFunc(ILongitudinalController::CreateFunc createFunc);
-
-    /**
-     * Register ILongitudinalSafetyPolicy create function.
-     *
-     * @param[in] createFunc    Create function.
-     */
-    void registerLongitudinalSafetyPolicyCreateFunc(ILongitudinalSafetyPolicy::CreateFunc createFunc);
-
-    /**
-     * Register ILateralController create function.
-     *
-     * @param[in] createFunc    Create function.
-     */
-    void registerLateralControllerCreateFunc(ILateralController::CreateFunc createFunc);
-
-    /**
-     * Register ILateralSafetyPolicy create function.
-     *
-     * @param[in] createFunc    Create function.
-     */
-    void registerLateralSafetyPolicyCreateFunc(ILateralSafetyPolicy::CreateFunc createFunc);
-
-private:
-    /**
-     * Longitudinal controller create function.
-     */
-    ILongitudinalController::CreateFunc m_longitudinalControllerCreateFunc;
-
-    /**
-     * Longitudinal safety policy create function.
-     */
-    ILongitudinalSafetyPolicy::CreateFunc m_longitudinalSafetyPolicyCreateFunc;
-
-    /**
-     * Lateral controller create function.
-     */
-    ILateralController::CreateFunc m_lateralControllerCreateFunc;
-
-    /**
-     * Lateral safety policy create function.
-     */
-    ILateralSafetyPolicy::CreateFunc m_lateralSafetyPolicyCreateFunc;
-
-    /**
-     * Default Constructor.
-     */
-    ProcessingChainFactory();
+    V2VClient(MqttClient&);
 
     /**
      * Default destructor.
      */
-    ~ProcessingChainFactory();
+    ~V2VClient();
+
+    /**
+     * Initialize the V2V client.
+     *
+     * @param[in] platoonId     ID of the platoon.
+     * @param[in] vehicleId     ID of the vehicle inside the platoon.
+     *
+     * @return If the V2V client was initialized successfully, returns true. Otherwise, false.
+     */
+    bool init(uint8_t platoonId, uint8_t vehicleId);
+
+    /**
+     * Process the V2V client.
+     */
+    void process();
+
+    /**
+     * Send a Waypoint to the next vehicle in the platoon.
+     *
+     * @param[in] waypoint  Waypoint to send.
+     *
+     * @return If the waypoint was sent successfully, returns true. Otherwise, false.
+     */
+    bool sendWaypoint(const Waypoint& waypoint);
+
+    /**
+     * Get the next recevied Waypoint from the V2V client.
+     *
+     * @param[out] waypoint  Next waypoint to receive.
+     *
+     * @return If a waypoint was successfully received, returns true. Otherwise, false.
+     */
+    bool getNextWaypoint(Waypoint& waypoint);
+
+private:
+    /** MQTT topic name for birth messages. */
+    static const char* TOPIC_NAME_BIRTH;
+
+    /** MQTT topic name for will messages. */
+    static const char* TOPIC_NAME_WILL;
+
+    /** Max topic length */
+    static const uint8_t MAX_TOPIC_LENGTH = 64U;
+
+    /** Maximum number of followers. */
+    static const uint8_t MAX_FOLLOWERS = 1U;
+
+    /** MQTTClient Instance. */
+    MqttClient& m_mqttClient;
+
+    /**
+     * Queue for the received waypoints.
+     * Stores pointers to the waypoints in the queue when received in the callback.
+     * The queue is emptied by the getNextWaypoint() method.
+     * The queue is filled by the targetWaypointTopicCallback() method.
+     *
+     * @tparam Waypoint*    Pointer to a Waypoint.
+     */
+    std::queue<Waypoint*> m_waypointQueue;
+
+    /** Topic to receive target Waypoints. */
+    String m_inputTopic;
+
+    /** Topic to send target Waypoints. */
+    String m_outputTopic;
+
+    /** Leader flag. */
+    bool m_isLeader;
+
+private:
+    /**
+     * Callback for Position Setpoint MQTT Topic.
+     *
+     * @param[in] payload   Payload of the MQTT message.
+     */
+    void targetWaypointTopicCallback(const String& payload);
+
+    /**
+     * Default constructor.
+     */
+    V2VClient();
 
     /**
      * Copy constructor.
      */
-    ProcessingChainFactory(const ProcessingChainFactory& factory);
+    V2VClient(const V2VClient&);
 
     /**
      * Assignment operator.
      */
-    ProcessingChainFactory& operator=(const ProcessingChainFactory& factory);
+    V2VClient& operator=(const V2VClient&);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* PROCESSING_CHAIN_FACTORY_H */
+#endif /* V2V_CLIENT_H */
 /** @} */

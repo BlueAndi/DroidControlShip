@@ -198,12 +198,13 @@ void App::setup()
                     LOG_FATAL("MQTT configuration could not be set.");
                 }
                 /* Subscribe to Traffic Light Colors Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_TRAFFIC_LIGHT_COLORS, [this](const String& payload)
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_TRAFFIC_LIGHT_COLORS, true,
+                                                         [this](const String& payload)
                                                          { trafficLightColorsCallback(payload); }))
                 {
                     LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_TRAFFIC_LIGHT_COLORS);
                 }
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_SETTINGS,
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_SETTINGS, true,
                                                          [this](const String& payload) { settingsCallback(payload); }))
                 {
                     LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_TRAFFIC_LIGHT_COLORS);

@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -90,6 +90,23 @@ public:
                                        int16_t& centerSpeedSetpoint) final;
 
 private:
+    /**
+     * Maximum motor speed in encoder steps/s
+     * Speed determined experimentally using the motor calibration of the RadonUlzer.
+     */
+    static const int16_t MAX_MOTOR_SPEED = 2400;
+
+    /** Minimum distance to drive with max motor speed to in mm.*/
+    static const int16_t MIN_DISTANCE_TO_MAX_SPEED = 400;
+
+    /**
+     * Offset speed in encoder steps/s
+     * Used to being too slow when approaching the target waypoint.
+     */
+    static const int16_t OFFSET_SPEED = 500;
+
+    /** Ramp factor. */
+    static const int16_t RAMP_FACTOR = MAX_MOTOR_SPEED / MIN_DISTANCE_TO_MAX_SPEED;
 };
 
 /******************************************************************************

@@ -65,9 +65,41 @@
 
 void Queuer::process()
 {
-    if (true == m_IEQueue.empty())
+    if (false == m_IEQueue.empty())
     {
         InfrastructureElement* selectedIE = m_IEQueue.front();
+
+        Participant::getInstance().setRequiredOrientation(selectedIE->orientation);
+        Participant::getInstance().setIntervalValues(selectedIE->intervX, selectedIE->intervY);
+        Participant::getInstance().setIntervalValues(selectedIE->entryX, selectedIE->entryY);
+
+        if (true == CoordinateHandler::getInstance().isMovingTowards())
+        {
+            if (true == CoordinateHandler::getInstance().checkOrientation())
+            {
+                LOG_DEBUG("Robot pointing towards IE.");
+
+                if (CoordinateHandler::getInstance().getCurrentDistance() < 250)
+                {
+                    LOG_DEBUG("Robot is near IE, listening for signals.");
+                    // gIsListening = true;
+                }
+                else
+                {
+                    // gIsListening = false;
+                    LOG_DEBUG("Robot has some more driving to do.");
+                }
+            }
+            else
+            {
+                // gIsListening = false;
+                LOG_DEBUG("Robot isn't pointing towards IE.");
+            }
+        }
+        else
+        {
+            // gIsListening = false;
+        }
     }
 }
 
