@@ -50,6 +50,7 @@
 #include <Board.h>
 
 #include <Participants.h>
+#include <math.h>
 
 /******************************************************************************
  * Macros
@@ -121,104 +122,41 @@ public:
         return m_currentOrientation;
     }
 
-    // bool process(int32_t orientationValue, int32_t intervalValueX, int32_t intervalValueY, int32_t entryValueX,
-    //              int32_t entryValueY)
-    // {
-    //     bool isTrue;
-
-    //     return isTrue;
-    // }
+    /**
+     * Get current distance between robot and infrastructure element.
+     *
+     * @returns the current distance.
+     */
+    int32_t getCurrentDistance()
+    {
+        return m_distance;
+    }
 
     /**
-     * Check if robot has entered the trigger area.
-     * Using intervals because of slight odometry imprecisions.
+     * Check if robot is near the infrastructure element.
      *
-     * A bigger interval is needed the faster the PID algorithm is.
-     *
-     * Current interval and coordinate map-outs have been done
-     * using the first parameter set of the PID controller on the robot.
-     *
-     * @return true if entered trigger area
+     * @returns true if near the infrastructure element.
      */
-    bool CheckEntryCoordinates()
+    bool isMovingTowards()
     {
-        bool isTrue = false;
+        bool isTrue;
 
-        // LOG_DEBUG("Comparing x %d < %d < %d", getEntryX() - m_intervalValueX, getCurrentXCoord(), getEntryX() +
-        // m_intervalValueX); LOG_DEBUG("Comparing y %d < %d < %d", getEntryY() - m_intervalValueY, getCurrentYCoord(),
-        // getEntryY() + m_intervalValueY);
+        /** Recalculate current distance. */
+        checkDistance();
 
-        if (((Participant::getInstance().getEntryX() - Participant::getInstance().getIntervalValueX() <=
-              getCurrentXCoord()) &&
-             (getCurrentXCoord() <=
-              Participant::getInstance().getEntryX() + Participant::getInstance().getIntervalValueX())) &&
-            ((Participant::getInstance().getEntryY() - Participant::getInstance().getIntervalValueY() <=
-              getCurrentYCoord()) &&
-             (getCurrentYCoord() <=
-              Participant::getInstance().getEntryY() + Participant::getInstance().getIntervalValueY())))
+        if (m_distance < m_oldDistance)
         {
-            /* Robot is now in the entry area, toggle flag. */
+            LOG_DEBUG("Robot is moving towards IE.");
             isTrue = true;
         }
         else
         {
+            LOG_DEBUG("Robot is moving away from IE.");
             isTrue = false;
         }
 
-        return isTrue;
-    }
-
-    /**
-     * Check if robot is near exit.
-     *
-     * @return true if near exit
-     */
-    bool isNearExit()
-    {
-        bool isTrue = false;
-
-        if (true == (Participant::getInstance().getEntryY() < 0))
-        {
-            if ((((Participant::getInstance().getEntryY() + Participant::getInstance().getIntervalValueY()) - 200) <=
-                 getCurrentYCoord()) &&
-                (getCurrentYCoord() <=
-                 (Participant::getInstance().getEntryY() + Participant::getInstance().getIntervalValueY())))
-            {
-                /** Robot is near exit, toggle flag. */
-                isTrue = true;
-
-                LOG_DEBUG("Robot is near exit");
-            }
-            else
-            {
-                isTrue = false;
-
-                LOG_DEBUG("Robot has more driving to do.");
-            }
-        }
-        else if (true == (Participant::getInstance().getEntryY() >= 0))
-        {
-            if ((((Participant::getInstance().getEntryY() - Participant::getInstance().getIntervalValueX()) + 40) <=
-                 getCurrentYCoord()) &&
-                (getCurrentYCoord() <=
-                 (Participant::getInstance().getEntryY() - Participant::getInstance().getIntervalValueY())))
-            {
-                /** Robot is near exit, toggle flag. */
-                isTrue = true;
-
-                LOG_DEBUG("Robot is near exit");
-            }
-            else
-            {
-                isTrue = false;
-
-                LOG_DEBUG("Robot has more driving to do.");
-            }
-        }
-        else
-        {
-            /** Do nothing */
-        }
+        /** Refresh previous distance. */
+        m_oldDistance = m_distance;
 
         return isTrue;
     }
@@ -257,6 +195,12 @@ public:
     }
 
 private:
+    /** Current distance between robot and infrastructure element. */
+    int32_t m_distance;
+
+    /** Previous value of distance. */
+    int32_t m_oldDistance;
+
     /** Current coordinate of robot on the x Axis*/
     int32_t m_currentX;
 
@@ -265,6 +209,21 @@ private:
 
     /** Current orientation */
     int32_t m_currentOrientation;
+
+    /**
+     * Checks distance of robot to IE using vector absolute value logic:
+     * dist = sqrt ((x1 - x2)^2 + (y1 - y2)^2)
+     *
+     * @returns the calculated distance.
+     */
+    int32_t checkDistance()
+    {
+        m_distance = pow(pow((Participant::getInstance().getEntryX() - getCurrentXCoord()), 2) +
+                             pow((Participant::getInstance().getEntryY() - getCurrentYCoord()), 2),
+                         0.5);
+
+        return m_distance;
+    }
 
     /** Green state constructor. */
     CoordinateHandler() : m_currentOrientation(0U), m_currentX(0U), m_currentY(0U)
