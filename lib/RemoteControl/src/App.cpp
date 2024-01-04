@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -182,13 +182,14 @@ void App::setup()
                     LOG_FATAL("MQTT configuration could not be set.");
                 }
                 /* Subscribe to Command Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_CMD,
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_CMD, true,
                                                          [this](const String& payload) { cmdTopicCallback(payload); }))
                 {
                     LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_CMD);
                 }
                 /* Subscribe to Motor Speeds Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, [this](const String& payload)
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, true,
+                                                         [this](const String& payload)
                                                          { motorSpeedsTopicCallback(payload); }))
                 {
                     LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);

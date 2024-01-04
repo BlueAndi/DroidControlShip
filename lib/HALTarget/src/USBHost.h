@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,6 +59,20 @@ class ACMAsyncOper : public CDCAsyncOper
 {
 public:
     /**
+     * Default constructor
+     */
+    ACMAsyncOper() : CDCAsyncOper(), m_isBootloaderRequested(false)
+    {
+    }
+
+    /**
+     * Default destructor
+     */
+    ~ACMAsyncOper()
+    {
+    }
+
+    /**
      * Initializes the CDC device when connected
      *
      * @param[in] pacm The ACM pointer/instance
@@ -66,12 +80,20 @@ public:
      */
     uint8_t OnInit(ACM* pacm);
 
+    /**
+     * Activate the bootloader mode.
+     */
+    void requestBootloaderMode();
+
 private:
     /** Specifies the Control Line State. */
     static const uint8_t CONTROL_LINE_STATE = 1U; /* DTR = 1, RST = 0 */
 
     /** Specifies the baud rate used for the serial communication */
-    static const uint32_t BAUD_RATE = 115200U;
+    static const uint32_t BAUD_RATE_NORMAL_MODE = 115200U;
+
+    /** Specifies the baud rate used for the serial communication */
+    static const uint32_t BAUD_RATE_BOOTLOADER_MODE = 57600U;
 
     /** Specifies the character format */
     static const uint8_t CHAR_FORMAT = 0U;
@@ -81,6 +103,9 @@ private:
 
     /** Specifies how many bits are transferred per packet */
     static const uint8_t NUMBER_OF_DATA_BITS = 8U;
+
+    /** Bootloader mode request flag. */
+    bool m_isBootloaderRequested;
 };
 
 /** Class for configuring and managing the USB Host */
@@ -150,6 +175,23 @@ public:
      */
     size_t readBytes(uint8_t* buffer, size_t length) final;
 
+    /**
+     * Request to enter the bootloader mode.
+     */
+    void requestBootloaderMode();
+
+    /**
+     * Reset the flags, ACM and data queue.
+     */
+    void reset();
+
+    /**
+     * Check if the bootloader mode is active.
+     *
+     * @return If the bootloader mode is active, returns true. Otherwise, false.
+     */
+    bool isBootloaderModeActive() const;
+
 private:
     /** Size of the RX Queue */
     static const uint16_t USB_RX_QUEUE_SIZE = 1024U;
@@ -165,6 +207,9 @@ private:
 
     /** RX Queue */
     QueueHandle_t m_rxQueue;
+
+    /** Bootloader Mode Flag. */
+    bool m_isBootloaderModeActive;
 
 private:
     /**

@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,7 @@
  * Public Methods
  *****************************************************************************/
 
-LateralController::LateralController()
+LateralController::LateralController() : ILateralController(), m_headingFinder()
 {
 }
 
@@ -74,11 +74,11 @@ bool LateralController::calculateLateralMovement(const Waypoint& currentWaypoint
 {
     bool isSuccessful = true;
 
-    UTIL_NOT_USED(currentWaypoint);
-    UTIL_NOT_USED(targetWaypoint);
-    UTIL_NOT_USED(centerSpeedSetpoint);
-    UTIL_NOT_USED(leftMotorSpeedSetpoint);
-    UTIL_NOT_USED(rightMotorSpeedSetpoint);
+    m_headingFinder.setOdometryData(currentWaypoint.xPos, currentWaypoint.yPos, currentWaypoint.orientation);
+    m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
+    m_headingFinder.setTargetHeading(targetWaypoint.xPos, targetWaypoint.yPos);
+
+    m_headingFinder.process(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
 
     return isSuccessful;
 }

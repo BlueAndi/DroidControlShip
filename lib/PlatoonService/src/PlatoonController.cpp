@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 #include "PlatoonController.h"
+#include "PlatoonUtils.h"
 #include <Logging.h>
 
 /******************************************************************************
@@ -67,7 +68,8 @@ PlatoonController::PlatoonController() :
     m_currentWaypoint(),
     m_currentVehicleData(),
     m_processingChainTimer(),
-    m_processingChain(nullptr)
+    m_processingChain(nullptr),
+    m_isPositionKnown(false)
 {
 }
 
@@ -112,15 +114,47 @@ bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback
 
 void PlatoonController::process()
 {
+    if (false == m_isPositionKnown)
+    {
+        /* Do nothing if the current vehicle position is not known. */
+        return;
+    }
+
     /* Check if target waypoint has been reached. */
     if ((true == targetWaypointReached()) && (nullptr != m_inputWaypointCallback) &&
         (nullptr != m_outputWaypointCallback))
     {
-        /* Send current waypoint to the next vehicle. */
-        m_outputWaypointCallback(m_currentWaypoint);
-
         /* Get next waypoint. */
-        m_inputWaypointCallback(m_currentWaypoint);
+        if (false == m_inputWaypointCallback(m_nextWaypoint))
+        {
+            ; /* Nothing to do here. Have to wait for a waypoint. */
+        }
+        /* Send current waypoint to the next vehicle only when a new one has been received. */
+        else if (false == m_outputWaypointCallback(m_currentWaypoint))
+        {
+            LOG_ERROR("Failed to send waypoint to next vehicle.");
+        }
+        else
+        {
+            /* Sanitize the Waypoint. */
+            int32_t headingDelta = 0;
+            if (false == PlatoonUtils::calculateRelativeHeading(m_nextWaypoint, m_currentVehicleData, headingDelta))
+            {
+                LOG_ERROR("Failed to calculate relative heading for (%d, %d)", m_nextWaypoint.xPos,
+                          m_nextWaypoint.yPos);
+            }
+            /* Target is in the forward cone. */
+            else if ((headingDelta > -FORWARD_CONE_APERTURE) && (headingDelta < FORWARD_CONE_APERTURE))
+            {
+                /* Update current waypoint. */
+                m_currentWaypoint = m_nextWaypoint;
+                LOG_DEBUG("New Waypoint: (%d, %d)", m_currentWaypoint.xPos, m_currentWaypoint.yPos);
+            }
+            else
+            {
+                LOG_ERROR("Invalid target waypoint (%d, %d)", m_nextWaypoint.xPos, m_nextWaypoint.yPos);
+            }
+        }
     }
 
     /* Process chain on timeout. */
@@ -130,14 +164,23 @@ void PlatoonController::process()
         {
             int16_t leftMotorSpeedSetpoint  = 0;
             int16_t rightMotorSpeedSetpoint = 0;
+            bool    calculationSuccessful   = true;
 
             if (false == m_processingChain->calculateMotorSetpoints(m_currentVehicleData, m_currentWaypoint,
                                                                     leftMotorSpeedSetpoint, rightMotorSpeedSetpoint))
             {
                 LOG_ERROR("Failed to calculate motor setpoints.");
+                calculationSuccessful = false;
             }
-            else
+            else if (true == targetWaypointReached())
             {
+                leftMotorSpeedSetpoint  = 0;
+                rightMotorSpeedSetpoint = 0;
+            }
+
+            if (true == calculationSuccessful)
+            {
+                /* Send motor setpoints. */
                 m_motorSetpointCallback(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
             }
         }
@@ -153,6 +196,7 @@ void PlatoonController::process()
 void PlatoonController::setLatestVehicleData(const Waypoint& vehicleData)
 {
     m_currentVehicleData = vehicleData;
+    m_isPositionKnown    = true;
 }
 
 /******************************************************************************
@@ -165,17 +209,7 @@ void PlatoonController::setLatestVehicleData(const Waypoint& vehicleData)
 
 bool PlatoonController::targetWaypointReached() const
 {
-    bool isReached = false;
-
-    int32_t differenceX = abs(m_currentWaypoint.xPos - m_currentVehicleData.xPos);
-    int32_t differenceY = abs(m_currentWaypoint.yPos - m_currentVehicleData.yPos);
-
-    if ((TARGET_WAYPOINT_ERROR_MARGIN >= differenceX) && (TARGET_WAYPOINT_ERROR_MARGIN >= differenceY))
-    {
-        isReached = true;
-    }
-
-    return isReached;
+    return PlatoonUtils::areWaypointsEqual(m_currentWaypoint, m_currentVehicleData, TARGET_WAYPOINT_ERROR_MARGIN);
 }
 
 /******************************************************************************
