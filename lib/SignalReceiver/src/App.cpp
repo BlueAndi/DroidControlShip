@@ -291,31 +291,35 @@ void App::odometryCallback(const OdometryData& odometry)
     CoordinateHandler::getInstance().setCurrentOrientation(odometry.orientation);
     CoordinateHandler::getInstance().setCurrentCoordinates(odometry.xPos, odometry.yPos);
 
-    if (true == CoordinateHandler::getInstance().CheckEntryCoordinates())
-    {
-        LOG_DEBUG("Robot entered trigger area.");
+    Queuer::getInstance().process();
 
-        if (true == CoordinateHandler::getInstance().checkOrientation())
-        {
-            LOG_DEBUG("Robot pointing towards IE.");
+    // if (true == CoordinateHandler::getInstance().isMovingTowards())
+    // {
+    //     if (true == CoordinateHandler::getInstance().checkOrientation())
+    //     {
+    //         LOG_DEBUG("Robot pointing towards IE.");
 
-            if (true == CoordinateHandler::getInstance().isNearExit())
-            {
-                gIsListening = true;
-                LOG_DEBUG("Robot is in the exit area.");
-            }
-        }
-        else
-        {
-            gIsListening = false;
-            LOG_DEBUG("Robot isn't pointing towards IE.");
-        }
-    }
-    else
-    {
-        gIsListening = false;
-        LOG_DEBUG("Robot is outside the trigger area.");
-    }
+    //         if (CoordinateHandler::getInstance().getCurrentDistance() < 250)
+    //         {
+    //             LOG_DEBUG("Robot is near IE, listening for signals.");
+    //             gIsListening = true;
+    //         }
+    //         else
+    //         {
+    //             gIsListening = false;
+    //             LOG_DEBUG("Robot has some more driving to do.");
+    //         }
+    //     }
+    //     else
+    //     {
+    //         gIsListening = false;
+    //         LOG_DEBUG("Robot isn't pointing towards IE.");
+    //     }
+    // }
+    // else
+    // {
+    //     gIsListening = false;
+    // }
 }
 
 void App::sendCurrentColor()
@@ -421,6 +425,10 @@ void App::settingsCallback(const String& payload)
                     LOG_DEBUG("ENTRY VALUES    x:%d y:%d", trafficParticipant->entryX, trafficParticipant->entryY);
                 }
             }
+
+            Participant::getInstance().setEntryValues(xEntryValue.as<int32_t>(), yEntryValue.as<int32_t>());
+            Participant::getInstance().setIntervalValues(xIntervalValue.as<int32_t>(), yIntervalValue.as<int32_t>());
+            Participant::getInstance().setRequiredOrientation(orientationValue.as<int32_t>());
         }
         else
         {
