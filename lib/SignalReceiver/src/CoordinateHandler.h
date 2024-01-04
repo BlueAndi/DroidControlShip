@@ -226,7 +226,7 @@ private:
     }
 
     /** Green state constructor. */
-    CoordinateHandler() : m_currentOrientation(0U), m_currentX(0U), m_currentY(0U)
+    CoordinateHandler() : m_distance(0U), m_oldDistance(0U), m_currentOrientation(0U), m_currentX(0U), m_currentY(0U)
     {
     }
 
