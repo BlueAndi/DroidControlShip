@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,6 @@
 #include <SerialMuxProtServer.hpp>
 #include "SerialMuxChannels.h"
 #include <PlatoonController.h>
-#include <V2VClient.h>
 
 /******************************************************************************
  * Macros
@@ -70,8 +69,7 @@ public:
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_serialMuxProtChannelIdMotorSpeedSetpoints(0U),
         m_mqttClient(),
-        m_platoonController(),
-        m_v2vClient(m_mqttClient)
+        m_platoonController()
     {
     }
 
@@ -104,31 +102,25 @@ public:
      * Called in order to get the next waypoint into the platoon controller.
      *
      * @param[out] waypoint   Next waypoint.
-     *
-     * @return If a waypoint is available, it returns true. Otherwise, false.
      */
-    bool inputWaypointCallback(Waypoint& waypoint);
+    void inputWaypointCallback(Waypoint& waypoint);
 
     /**
      * Output waypoint callback.
      * Called in order to send the last waypoint to the next platoon participant.
      *
      * @param[in] waypoint    Last waypoint.
-     *
-     * @return If the waypoint was sent successfully, returns true. Otherwise, false.
      */
-    bool outputWaypointCallback(const Waypoint& waypoint);
+    void outputWaypointCallback(const Waypoint& waypoint);
 
     /**
      * Motor setpoint callback.
-     * Called in order to send the motor speeds using SerialMuxProt to the robot.
+     * Called in order to set the motor speeds.
      *
      * @param[in] left      Left motor speed [steps/s].
      * @param[in] right     Right motor speed [steps/s].
-     *
-     * @return If the motor speeds were sent successfully, returns true. Otherwise, false.
      */
-    bool motorSetpointCallback(const int16_t left, const int16_t right);
+    void motorSetpointCallback(const int16_t left, const int16_t right);
 
 private:
     /** Minimum battery level in percent. */
@@ -139,6 +131,9 @@ private:
 
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
+
+    /** MQTT topic name for receiving position setpoint coordinates. */
+    static const char* TOPIC_NAME_POSITION_SETPOINT;
 
     /** SerialMuxProt Channel id sending sending motor speed setpoints. */
     uint8_t m_serialMuxProtChannelIdMotorSpeedSetpoints;
@@ -156,16 +151,17 @@ private:
     MqttClient m_mqttClient;
 
     /**
-     * V2V client instance.
-     */
-    V2VClient m_v2vClient;
-
-    /**
      * Platoon controller instance.
      */
     PlatoonController m_platoonController;
 
 private:
+    /**
+     * Callback for Position Setpoint MQTT Topic.
+     * @param[in] payload   Payload of the MQTT message.
+     */
+    void positionTopicCallback(const String& payload);
+
     /**
      * Handler of fatal errors in the Application.
      */

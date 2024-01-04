@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,7 @@
  *****************************************************************************/
 
 #include "LongitudinalController.h"
-#include "PlatoonUtils.h"
-#include <Arduino.h>
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -72,19 +71,11 @@ LongitudinalController::~LongitudinalController()
 bool LongitudinalController::calculateLongitudinalMovement(const Waypoint& currentWaypoint,
                                                            const Waypoint& targetWaypoint, int16_t& centerSpeedSetpoint)
 {
-    bool    isSuccessful = true;
-    int32_t distance     = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentWaypoint);
+    bool isSuccessful = true;
 
-    if (0 == distance)
-    {
-        /* Target reached. */
-        centerSpeedSetpoint = 0;
-    }
-    else
-    {
-        /* Calculate speed using ramp factor. */
-        centerSpeedSetpoint = constrain(((distance * RAMP_FACTOR) + OFFSET_SPEED), -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-    }
+    UTIL_NOT_USED(currentWaypoint);
+    UTIL_NOT_USED(targetWaypoint);
+    UTIL_NOT_USED(centerSpeedSetpoint);
 
     return isSuccessful;
 }

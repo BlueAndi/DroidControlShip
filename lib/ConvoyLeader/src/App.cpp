@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -84,11 +84,14 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
 
+/* MQTT topic name for receiving position setpoint coordinates. */
+const char* App::TOPIC_NAME_POSITION_SETPOINT = "positionSetpoint";
+
+/** Default size of the JSON Document for parsing. */
+static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
+
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
-
-/** Platoon leader vehicle ID. */
-static const uint8_t PLATOON_LEADER_ID = 0U;
 
 /******************************************************************************
  * Public Methods
@@ -183,14 +186,11 @@ void App::setup()
                 {
                     LOG_FATAL("MQTT configuration could not be set.");
                 }
-                else if (PLATOON_LEADER_ID != settings.getPlatoonVehicleId())
+                /* Subscribe to Position Setpoint Topic. */
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_POSITION_SETPOINT, [this](const String& payload)
+                                                         { positionTopicCallback(payload); }))
                 {
-                    /* Correct config.json file loaded? */
-                    LOG_FATAL("Platoon Vehicle ID must be 0 for the leader.");
-                }
-                else if (false == m_v2vClient.init(settings.getPlatoonPlatoonId(), settings.getPlatoonVehicleId()))
-                {
-                    LOG_FATAL("Failed to initialize V2V client.");
+                    LOG_FATAL("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_POSITION_SETPOINT);
                 }
                 else
                 {
@@ -215,16 +215,11 @@ void App::setup()
                         processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
                         processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
 
-                        PlatoonController::InputWaypointCallback lambdaInputWaypointCallback =
-                            [this](Waypoint& waypoint) { return this->inputWaypointCallback(waypoint); };
-                        PlatoonController::OutputWaypointCallback lambdaOutputWaypointCallback =
-                            [this](const Waypoint& waypoint) { return this->outputWaypointCallback(waypoint); };
-                        PlatoonController::MotorSetpointCallback lambdaMotorSetpointCallback =
-                            [this](const int16_t left, const int16_t right)
-                        { return this->motorSetpointCallback(left, right); };
-
-                        if (false == m_platoonController.init(lambdaInputWaypointCallback, lambdaOutputWaypointCallback,
-                                                              lambdaMotorSetpointCallback))
+                        if (false == m_platoonController.init(
+                                         [this](Waypoint& waypoint) { inputWaypointCallback(waypoint); },
+                                         [this](const Waypoint& waypoint) { outputWaypointCallback(waypoint); },
+                                         [this](const int16_t left, const int16_t right)
+                                         { motorSetpointCallback(left, right); }))
                         {
                             LOG_FATAL("Could not initialize Platoon Controller.");
                         }
@@ -267,9 +262,6 @@ void App::loop()
     /* Process MQTT Communication */
     m_mqttClient.process();
 
-    /* Process V2V Communication */
-    m_v2vClient.process();
-
     /* Process Platoon Controller */
     m_platoonController.process();
 }
@@ -288,23 +280,26 @@ void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
     m_platoonController.setLatestVehicleData(vehicleDataAsWaypoint);
 }
 
-bool App::inputWaypointCallback(Waypoint& waypoint)
+void App::inputWaypointCallback(Waypoint& waypoint)
 {
-    return m_v2vClient.getNextWaypoint(waypoint);
+    UTIL_NOT_USED(waypoint);
 }
 
-bool App::outputWaypointCallback(const Waypoint& waypoint)
+void App::outputWaypointCallback(const Waypoint& waypoint)
 {
-    return m_v2vClient.sendWaypoint(waypoint);
+    UTIL_NOT_USED(waypoint);
 }
 
-bool App::motorSetpointCallback(const int16_t left, const int16_t right)
+void App::motorSetpointCallback(const int16_t left, const int16_t right)
 {
     SpeedData payload;
     payload.left  = left;
     payload.right = right;
 
-    return m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints, &payload, sizeof(payload));
+    if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints, &payload, sizeof(payload)))
+    {
+        LOG_WARNING("Could not send motor speed setpoints.");
+    }
 }
 
 /******************************************************************************
@@ -314,6 +309,34 @@ bool App::motorSetpointCallback(const int16_t left, const int16_t right)
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+void App::positionTopicCallback(const String& payload)
+{
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
+
+    if (error != DeserializationError::Ok)
+    {
+        LOG_ERROR("JSON Deserialization Error %d.", error);
+    }
+    else
+    {
+        JsonVariant jsonXPos = jsonPayload["X"];
+        JsonVariant jsonYPos = jsonPayload["Y"];
+
+        if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()))
+        {
+            int32_t positionX = jsonXPos.as<int32_t>();
+            int32_t positionY = jsonYPos.as<int32_t>();
+
+            LOG_DEBUG("Received position setpoint: x: %d y: %d", positionX, positionY);
+        }
+        else
+        {
+            LOG_WARNING("Received invalid position.");
+        }
+    }
+}
 
 void App::fatalErrorHandler()
 {
