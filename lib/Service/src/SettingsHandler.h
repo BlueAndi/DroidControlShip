@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -209,6 +209,26 @@ public:
         return m_webServerPassword;
     }
 
+    /**
+     * Get Platoon ID.
+     *
+     * @returns Platoon ID.
+     */
+    uint8_t getPlatoonPlatoonId()
+    {
+        return m_platoonPlatoonId;
+    }
+
+    /**
+     * Get Vehicle ID.
+     *
+     * @returns Vehicle ID.
+     */
+    uint8_t getPlatoonVehicleId()
+    {
+        return m_platoonVehicleId;
+    }
+
 private:
     /**
      * Instance Name.
@@ -254,6 +274,16 @@ private:
      * Web Server Password.
      */
     String m_webServerPassword;
+
+    /**
+     * Platoon: Platoon ID.
+     */
+    uint8_t m_platoonPlatoonId;
+
+    /**
+     * Platoon: Vehicle ID.
+     */
+    uint8_t m_platoonVehicleId;
 
     /**
      * FileHandler instance.

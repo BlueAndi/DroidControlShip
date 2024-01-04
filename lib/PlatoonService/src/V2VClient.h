@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  RemoteControl application
+ * @brief  Vehicle to Vehicle (V2V) communication client.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Application
+ * @addtogroup PlatoonService
  *
  * @{
  */
-
-#ifndef APP_H
-#define APP_H
+#ifndef V2V_CLIENT_H
+#define V2V_CLIENT_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,11 +42,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
 #include <MqttClient.h>
-#include <SerialMuxProtServer.hpp>
-#include "SerialMuxChannels.h"
+#include <Waypoint.h>
+#include <queue>
 
 /******************************************************************************
  * Macros
@@ -57,37 +54,54 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Remote Control application. */
-class App
+/** V2V Client for external communication in the platooning context. */
+class V2VClient
 {
 public:
     /**
-     * Construct the Remote Control application.
+     * Constructs a V2V client.
+     *
+     * @param[in] mqttClient    MQTT client instance.
      */
-    App() :
-        m_smpServer(Board::getInstance().getDevice().getStream()),
-        m_serialMuxProtChannelIdRemoteCtrl(0U),
-        m_serialMuxProtChannelIdMotorSpeeds(0U),
-        m_mqttClient()
-    {
-    }
+    V2VClient(MqttClient&);
 
     /**
-     * Destroy the Remote Control application.
+     * Default destructor.
      */
-    ~App()
-    {
-    }
+    ~V2VClient();
 
     /**
-     * Setup the application.
+     * Initialize the V2V client.
+     *
+     * @param[in] platoonId     ID of the platoon.
+     * @param[in] vehicleId     ID of the vehicle inside the platoon.
+     *
+     * @return If the V2V client was initialized successfully, returns true. Otherwise, false.
      */
-    void setup();
+    bool init(uint8_t platoonId, uint8_t vehicleId);
 
     /**
-     * Process the application periodically.
+     * Process the V2V client.
      */
-    void loop();
+    void process();
+
+    /**
+     * Send a Waypoint to the next vehicle in the platoon.
+     *
+     * @param[in] waypoint  Waypoint to send.
+     *
+     * @return If the waypoint was sent successfully, returns true. Otherwise, false.
+     */
+    bool sendWaypoint(const Waypoint& waypoint);
+
+    /**
+     * Get the next recevied Waypoint from the V2V client.
+     *
+     * @param[out] waypoint  Next waypoint to receive.
+     *
+     * @return If a waypoint was successfully received, returns true. Otherwise, false.
+     */
+    bool getNextWaypoint(Waypoint& waypoint);
 
 private:
     /** MQTT topic name for birth messages. */
@@ -96,57 +110,61 @@ private:
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
 
-    /** MQTT topic name for receiving commands. */
-    static const char* TOPIC_NAME_CMD;
+    /** Max topic length */
+    static const uint8_t MAX_TOPIC_LENGTH = 64U;
 
-    /** MQTT topic name for receiving motor speeds. */
-    static const char* TOPIC_NAME_MOTOR_SPEEDS;
+    /** Maximum number of followers. */
+    static const uint8_t MAX_FOLLOWERS = 1U;
 
-    /** SerialMuxProt Channel id sending remote control commands. */
-    uint8_t m_serialMuxProtChannelIdRemoteCtrl;
-
-    /** SerialMuxProt Channel id sending sending motor speeds. */
-    uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+    /** MQTTClient Instance. */
+    MqttClient& m_mqttClient;
 
     /**
-     * SerialMuxProt Server Instance
+     * Queue for the received waypoints.
+     * Stores pointers to the waypoints in the queue when received in the callback.
+     * The queue is emptied by the getNextWaypoint() method.
+     * The queue is filled by the targetWaypointTopicCallback() method.
      *
-     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
+     * @tparam Waypoint*    Pointer to a Waypoint.
      */
-    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
+    std::queue<Waypoint*> m_waypointQueue;
 
-    /**
-     * MQTTClient Instance
-     */
-    MqttClient m_mqttClient;
+    /** Topic to receive target Waypoints. */
+    String m_inputTopic;
 
-private:
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
+    /** Topic to send target Waypoints. */
+    String m_outputTopic;
 
-    /**
-     * Callback for Command MQTT Topic.
-     * @param[in] payload   Payload of the MQTT message.
-     */
-    void cmdTopicCallback(const String& payload);
-
-    /**
-     * Callback for Motor Speeds MQTT Topic.
-     * @param[in] payload   Payload of the MQTT message.
-     */
-    void motorSpeedsTopicCallback(const String& payload);
+    /** Leader flag. */
+    bool m_isLeader;
 
 private:
-    /* Not allowed. */
-    App(const App& app);            /**< Copy construction of an instance. */
-    App& operator=(const App& app); /**< Assignment of an instance. */
+    /**
+     * Callback for Position Setpoint MQTT Topic.
+     *
+     * @param[in] payload   Payload of the MQTT message.
+     */
+    void targetWaypointTopicCallback(const String& payload);
+
+    /**
+     * Default constructor.
+     */
+    V2VClient();
+
+    /**
+     * Copy constructor.
+     */
+    V2VClient(const V2VClient&);
+
+    /**
+     * Assignment operator.
+     */
+    V2VClient& operator=(const V2VClient&);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* V2V_CLIENT_H */
 /** @} */

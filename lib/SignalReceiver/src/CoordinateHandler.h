@@ -161,11 +161,6 @@ public:
         return isTrue;
     }
 
-    bool isListening(bool isTrue)
-    {
-        return isTrue;
-    }
-
     /**
      * Check if orientation matches the one given by the infrastructure element.
      *
