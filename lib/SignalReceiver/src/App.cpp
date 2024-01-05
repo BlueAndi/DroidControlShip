@@ -400,9 +400,6 @@ void App::settingsCallback(const String& payload)
                     LOG_DEBUG("ENTRY VALUES    x:%d y:%d", trafficParticipant->entryX, trafficParticipant->entryY);
                 }
             }
-
-            // Participant::getInstance().setEntryValues(xEntryValue.as<int32_t>(), yEntryValue.as<int32_t>());
-            // Participant::getInstance().setRequiredOrientation(orientationValue.as<int32_t>());
         }
         else
         {
