@@ -62,8 +62,6 @@ struct InfrastructureElement
 {
     String  name;        /**< Name of Infrastructure Element */
     int32_t orientation; /**< Orientation of the infrastructure element. */
-    int32_t intervX;     /**< Interval values on the x axis. */
-    int32_t intervY;     /**< Interval values on the y axis. */
     int32_t entryX;      /**< Entry value of x. */
     int32_t entryY;      /**< Entry value of y. */
 };
@@ -100,43 +98,6 @@ public:
     int32_t getRequiredOrientation()
     {
         return m_orientation;
-    }
-
-    /**
-     * Set interval values for the trigger area.
-     * This in combination with setting the required entry
-     * coordinate setup an area.
-     *
-     * The TL shall send relevant signals only once the robot
-     * is in this area.
-     *
-     * @param[in] intervValueX value of x that shall be used to form a line on the x-Axis.
-     * @param[in] intervValueY value of y that shall be used to form a line on the y-Axis.
-     */
-    void setIntervalValues(int32_t intervValueX, int32_t intervValueY)
-    {
-        m_intervX = intervValueX;
-        m_intervY = intervValueY;
-    }
-
-    /**
-     * Get interval x value.
-     *
-     * @return interval x value
-     */
-    int32_t getIntervalValueX()
-    {
-        return m_intervX;
-    }
-
-    /**
-     * Get interval y value.
-     *
-     * @return interval y value
-     */
-    int32_t getIntervalValueY()
-    {
-        return m_intervY;
     }
 
     /**
@@ -177,12 +138,6 @@ private:
     /** Orientation of the infrastructure element. */
     int32_t m_orientation;
 
-    /** Interval values on the x axis. */
-    int32_t m_intervX;
-
-    /** Interval value on the y axis. */
-    int32_t m_intervY;
-
     /** Entry value of x. */
     int32_t m_entryX;
 
@@ -190,7 +145,7 @@ private:
     int32_t m_entryY;
 
     /** Participant constructor. */
-    Participant() : m_name(""), m_orientation(0U), m_intervX(0U), m_intervY(0U), m_entryX(0U), m_entryY(0U)
+    Participant() : m_name(""), m_orientation(0U), m_entryX(0U), m_entryY(0U)
     {
     }
 
