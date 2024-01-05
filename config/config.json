@@ -1,11 +1,23 @@
-{
-  "robotName": "zumo_0",
-  "WIFI": {
-    "SSID": "",
-    "PSWD": ""
-  },
-  "MQTT": {
-    "HOST": "localhost",
-    "PORT": "1883"
-  }
+{
+  "robotName": "zumo_0",
+  "wifi": {
+    "ssid": "",
+    "pswd": ""
+  },
+  "mqtt": {
+    "host": "localhost",
+    "port": 1883
+  },
+  "ap": {
+    "ssid": "DCS_AP",
+    "pswd": "hanshotfirst"
+  },
+  "webServer": {
+    "user": "admin",
+    "pswd": "admin"
+  },
+  "platoon": {
+    "platoonId": 0,
+    "vehicleId": 0
+  }
 }

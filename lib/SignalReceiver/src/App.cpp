@@ -204,7 +204,7 @@ void App::setup()
                 {
                     LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_TRAFFIC_LIGHT_COLORS);
                 }
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_SETTINGS, true,
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_SETTINGS, false,
                                                          [this](const String& payload) { settingsCallback(payload); }))
                 {
                     LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_TRAFFIC_LIGHT_COLORS);
@@ -263,6 +263,7 @@ void App::loop()
         LOG_DEBUG("Could not process MQTT services.");
     }
 
+    /** Send color once. */
     if ((true == gIsListening) && (oldColorId.colorId != clr.colorId))
     {
         oldColorId.colorId = clr.colorId;
@@ -292,35 +293,14 @@ void App::odometryCallback(const OdometryData& odometry)
     CoordinateHandler::getInstance().setCurrentOrientation(odometry.orientation);
     CoordinateHandler::getInstance().setCurrentCoordinates(odometry.xPos, odometry.yPos);
 
-    Queuer::getInstance().process();
-
-    // if (true == CoordinateHandler::getInstance().isMovingTowards())
-    // {
-    //     if (true == CoordinateHandler::getInstance().checkOrientation())
-    //     {
-    //         LOG_DEBUG("Robot pointing towards IE.");
-
-    //         if (CoordinateHandler::getInstance().getCurrentDistance() < 250)
-    //         {
-    //             LOG_DEBUG("Robot is near IE, listening for signals.");
-    //             gIsListening = true;
-    //         }
-    //         else
-    //         {
-    //             gIsListening = false;
-    //             LOG_DEBUG("Robot has some more driving to do.");
-    //         }
-    //     }
-    //     else
-    //     {
-    //         gIsListening = false;
-    //         LOG_DEBUG("Robot isn't pointing towards IE.");
-    //     }
-    // }
-    // else
-    // {
-    //     gIsListening = false;
-    // }
+    if (true == Queuer::getInstance().process())
+    {
+        gIsListening = true;
+    }
+    else
+    {
+        gIsListening = false;
+    }
 }
 
 void App::sendCurrentColor()
@@ -399,13 +379,10 @@ void App::settingsCallback(const String& payload)
     {
         JsonVariant robotName        = jsonPayload["FROM"];
         JsonVariant orientationValue = jsonPayload["TOWARDS"];
-        JsonVariant xIntervalValue   = jsonPayload["IX"];
-        JsonVariant yIntervalValue   = jsonPayload["IY"];
         JsonVariant xEntryValue      = jsonPayload["EX"];
         JsonVariant yEntryValue      = jsonPayload["EY"];
 
-        if ((false == xIntervalValue.isNull()) && (false == yIntervalValue.isNull()) &&
-            (false == xEntryValue.isNull()) && (false == yEntryValue.isNull()))
+        if ((false == xEntryValue.isNull()) && (false == yEntryValue.isNull()))
         {
             InfrastructureElement* trafficParticipant = new (std::nothrow) InfrastructureElement();
 
@@ -413,23 +390,19 @@ void App::settingsCallback(const String& payload)
             {
                 trafficParticipant->name        = robotName.as<const char*>();
                 trafficParticipant->orientation = orientationValue.as<int32_t>();
-                trafficParticipant->intervX     = xIntervalValue.as<int32_t>();
-                trafficParticipant->intervY     = yIntervalValue.as<int32_t>();
                 trafficParticipant->entryX      = xEntryValue.as<int32_t>();
                 trafficParticipant->entryY      = yEntryValue.as<int32_t>();
 
                 if (true == Queuer::getInstance().enqueueParticipant(trafficParticipant))
                 {
-                    LOG_DEBUG("IE %s pointing towards %d with Trigger Area:", trafficParticipant->name,
+                    LOG_DEBUG("IE %s pointing towards %d with Trigger Area:", robotName.as<const char*>(),
                               trafficParticipant->orientation);
-                    LOG_DEBUG("INTERVAL VALUES x:%d y:%d", trafficParticipant->intervX, trafficParticipant->intervY);
                     LOG_DEBUG("ENTRY VALUES    x:%d y:%d", trafficParticipant->entryX, trafficParticipant->entryY);
                 }
             }
 
-            Participant::getInstance().setEntryValues(xEntryValue.as<int32_t>(), yEntryValue.as<int32_t>());
-            Participant::getInstance().setIntervalValues(xIntervalValue.as<int32_t>(), yIntervalValue.as<int32_t>());
-            Participant::getInstance().setRequiredOrientation(orientationValue.as<int32_t>());
+            // Participant::getInstance().setEntryValues(xEntryValue.as<int32_t>(), yEntryValue.as<int32_t>());
+            // Participant::getInstance().setRequiredOrientation(orientationValue.as<int32_t>());
         }
         else
         {
