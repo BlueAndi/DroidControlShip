@@ -63,44 +63,56 @@
  * Public Methods
  *****************************************************************************/
 
-void Queuer::process()
+bool Queuer::process()
 {
+    bool isSuccessful;
+
     if (false == m_IEQueue.empty())
     {
+        /** Process the first element in queue */
         InfrastructureElement* selectedIE = m_IEQueue.front();
+        m_IEQueue.pop();
 
+        /** Set and process the current coordinates with the ones of the selected IE.*/
         Participant::getInstance().setRequiredOrientation(selectedIE->orientation);
-        Participant::getInstance().setIntervalValues(selectedIE->intervX, selectedIE->intervY);
-        Participant::getInstance().setIntervalValues(selectedIE->entryX, selectedIE->entryY);
+        Participant::getInstance().setEntryValues(selectedIE->entryX, selectedIE->entryY);
 
         if (true == CoordinateHandler::getInstance().isMovingTowards())
         {
+            LOG_DEBUG("Robot is moving towards %d.", selectedIE->entryX);
+
             if (true == CoordinateHandler::getInstance().checkOrientation())
             {
-                LOG_DEBUG("Robot pointing towards IE.");
+                LOG_DEBUG("Robot pointing towards %d.", selectedIE->entryX);
 
                 if (CoordinateHandler::getInstance().getCurrentDistance() < 250)
                 {
-                    LOG_DEBUG("Robot is near IE, listening for signals.");
-                    // gIsListening = true;
+                    LOG_DEBUG("Robot is near %d, listening for signals.", selectedIE->entryX);
+                    isSuccessful = true;
                 }
                 else
                 {
-                    // gIsListening = false;
+                    isSuccessful = false;
                     LOG_DEBUG("Robot has some more driving to do.");
                 }
             }
             else
             {
-                // gIsListening = false;
-                LOG_DEBUG("Robot isn't pointing towards IE.");
+                isSuccessful = false;
+                LOG_DEBUG("Robot isn't pointing towards %d.", selectedIE->entryX);
             }
         }
         else
         {
-            // gIsListening = false;
+            LOG_DEBUG("Robot is moving away from %d.", selectedIE->entryX);
+            isSuccessful = false;
         }
+
+        /** Cycle queue. */
+        m_IEQueue.push(selectedIE);
     }
+
+    return isSuccessful;
 }
 
 bool Queuer::enqueueParticipant(InfrastructureElement* enqueuedParticipant)
@@ -134,11 +146,6 @@ void Queuer::dequeueParticipant()
     {
         LOG_DEBUG("Queue is empty.");
     }
-}
-
-void Queuer::addParticipant(InfrastructureElement infrastructureElement)
-{
-    /** If new settings have been received, process them as a new traffic participant. */
 }
 
 /******************************************************************************

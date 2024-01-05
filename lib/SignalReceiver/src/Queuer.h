@@ -77,7 +77,7 @@ public:
         return instance;
     }
 
-    void process();
+    bool process();
 
     /**
      * Enqueue infrastructure element.
@@ -91,13 +91,6 @@ public:
      *
      */
     void dequeueParticipant();
-
-    /**
-     * Adds the infrastructure element to the list of traffic participants.
-     *
-     * @param[in] infrastructureElement the traffic participant
-     */
-    void addParticipant(InfrastructureElement infrastructureElement);
 
 private:
     /** Max number of elements in the queue. */
