@@ -146,12 +146,10 @@ public:
 
         if (m_distance < m_oldDistance)
         {
-            LOG_DEBUG("Robot is moving towards IE.");
             isTrue = true;
         }
         else
         {
-            LOG_DEBUG("Robot is moving away from IE.");
             isTrue = false;
         }
 
