@@ -107,14 +107,14 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& ka
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-void ExtendedKalmanFilter::generateMeasurementVector(KalmanParameter& kalmanParameter)
+void ExtendedKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParameter)
 {
     m_measurementVector(IDX_ODOMETRY_X_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryX);
     m_measurementVector(IDX_ODOMETRY_Y_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryY);
     m_measurementVector(IDX_ODOMETRY_ORIENTATION_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.angleOdometry);
 }
 
-void ExtendedKalmanFilter::generateControlInputVector(KalmanParameter& kalmanParameter)
+void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)
 {
     m_controlInputVector(IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationX);
     m_controlInputVector(IDX_ACCELERATION_Y_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationY);
