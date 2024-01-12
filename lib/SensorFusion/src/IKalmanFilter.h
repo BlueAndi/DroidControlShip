@@ -72,8 +72,9 @@ public:
 
     /**
      * Prediction of the covariance and the state of the Kalman Filter.
+     * @param[in] timeStep Measured Time Step in ms.
      */
-    virtual void predictionStep() = 0;
+    virtual void predictionStep(const uint16_t timeStep) = 0;
 
     /**
      * Update of the covariance and the state of the Kalman Filter.
@@ -82,6 +83,21 @@ public:
      *
      */
     virtual PositionData updateStep(KalmanParameter& kalmanParameter) = 0;
+
+private:
+    /**
+     * Writes data from a KalmanParameter Struct into the Measurement Vector as a member variable
+     *
+     * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
+     */
+    virtual void updateMeasurementVector(KalmanParameter& kalmanParameter) = 0;
+
+    /**
+     * Writes data from a KalmanParameter Struct into the Control Input Vector as a member variable
+     *
+     * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
+     */
+    virtual void updateControlInputVector(KalmanParameter& kalmanParameter) = 0;
 };
 
 #endif /* IKALMANFILTER_H */

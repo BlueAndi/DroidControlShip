@@ -63,7 +63,7 @@ public:
     /**
      * Constructs the SensorFusion Algorithm.
      */
-    SensorFusion() : m_linearKalmanFilter(), m_currentPosition{0, 0, 0}
+    SensorFusion() : m_linearKalmanFilter(), m_estimatedPosition{0, 0, 0}
     {
     }
 
@@ -84,7 +84,7 @@ public:
      *
      * @param[in] newSensorData New Sensor Data.
      */
-    void estimateNewState(SensorData newSensorData);
+    void estimateNewState(const SensorData& newSensorData);
 
     /**
      * Get the Latest calculated State
@@ -93,13 +93,13 @@ public:
      */
     IKalmanFilter::PositionData getLatestPosition()
     {
-        return m_currentPosition;
+        return m_estimatedPosition;
     }
 
 private:
     LinearKalmanFilter m_linearKalmanFilter; /**< An Instance of the Kalman Filter algorithm class. */
 
-    IKalmanFilter::PositionData m_currentPosition; /**< Variable where the current estimated Position is saved in. */
+    IKalmanFilter::PositionData m_estimatedPosition; /**< Variable where the current estimated Position is saved in. */
 
     /**
      * Transform the local acceleration vector [acc_x, acc_y] into a global vector using the provided angle.
@@ -110,19 +110,6 @@ private:
      */
     void transformLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
                                 const int16_t& rotationAngle);
-
-    /**
-     * This function combines encoder and magnetometer data to estimate the current angle.
-     *
-     * @param[in] estimatedAngle   Reference to the variable storing the estimated angle.
-     * @param[in] encoderAngle     The angle value obtained from an encoder.
-     * @param[in] magnetometerValueX  The X-axis value from a magnetometer.
-     * @param[in] magnetometerValueY  The Y-axis value from a magnetometer.
-     *
-     * @note The function updates the estimatedAngle parameter with the combined angle estimation.
-     */
-    void estimateAngle(int16_t& estimatedAngle, const int32_t& encoderAngle, const int16_t& magnetometerValueX,
-                       const int16_t& magnetometerValueY);
 };
 
 /******************************************************************************

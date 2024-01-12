@@ -54,7 +54,30 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+/* TODO: TD124 Determine the right Parameters for LKF and EKF. */
+/** Initial covariance matrix (notation in literature: P). */
+const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> ExtendedKalmanFilter::INITIAL_COVARIANCE_MATRIX_P{
+    {0.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 0.0F, 0.0F, 0.0F}};
 
+/** The covariance matrix of the process noise Matrix (notation in literature: Q). */
+const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> ExtendedKalmanFilter::PROCESS_COVARIANCE_MATRIX_Q{
+    {5.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 5.0F, 0.0F, 0.0F},
+    {0.0F, 0.0F, 5.0F, 0.0F},
+    {0.0F, 0.0F, 0.0F, 5.0F}};
+
+/** The observation model Matrix (notation in literature: H). */
+const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> ExtendedKalmanFilter::OBSERVATION_MATRIX_H{
+    {1.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 1.0F, 0.0F, 0.0F},
+    {0.0F, 0.0F, 0.0F, 1.0F}};
+
+/** The covariance of the observation noise Matrix (notation in literature: R). */
+const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M>
+    ExtendedKalmanFilter::OBSERVATION_NOISE_MATRIX_R{{0.0F, 0.0F, 0.0F}, {0.0F, 0.0F, 0.0F}, {0.0F, 0.0F, 0.0F}};
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -63,7 +86,7 @@ void ExtendedKalmanFilter::init()
     /* TODO: Implement Kalman Filter in cpp (TD072) */
 }
 
-void ExtendedKalmanFilter::predictionStep()
+void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
 {
     /* TODO: Implement Kalman Filter in cpp (TD072) */
 }
@@ -84,7 +107,19 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& ka
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+void ExtendedKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParameter)
+{
+    m_measurementVector(IDX_ODOMETRY_X_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryX);
+    m_measurementVector(IDX_ODOMETRY_Y_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryY);
+    m_measurementVector(IDX_ODOMETRY_ORIENTATION_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.angleOdometry);
+}
 
+void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)
+{
+    m_controlInputVector(IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationX);
+    m_controlInputVector(IDX_ACCELERATION_Y_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationY);
+    m_controlInputVector(IDX_TURNRATE_CONTROL_INPUT_VECTOR)       = static_cast<float>(kalmanParameter.turnRate);
+}
 /******************************************************************************
  * External Functions
  *****************************************************************************/

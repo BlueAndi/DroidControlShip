@@ -53,6 +53,27 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+/* TODO: TD124 Determine the right Parameters for LKF and EKF. */
+
+/** The covariance matrix of the process noise Matrix (notation in literature: Q). */
+const Eigen::Matrix<float, NUMBER_OF_CONTROL_INPUTS_L, NUMBER_OF_CONTROL_INPUTS_L>
+    LinearKalmanFilter::PROCESS_COVARIANCE_MATRIX_Q{{0.0F, 0.0F}, {0.0F, 0.0F}};
+
+/** The observation model Matrix (notation in literature: H). */
+const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> LinearKalmanFilter::OBSERVATION_MATRIX_H{
+    {1.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 1.0F, 0.0F, 0.0F}};
+
+/** The covariance of the observation noise Matrix (notation in literature: R). */
+const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M>
+    LinearKalmanFilter::OBSERVATION_NOISE_MATRIX_R{{0.0F * 0.0F, 0.0F}, {0.0F, 0.0F * 0.0F}};
+
+/** Initial covariance matrix (notation in literature: P). */
+const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> LinearKalmanFilter::INITIAL_COVARIANCE_MATRIX_P{
+    {1.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 1.0F, 0.0F, 0.0F},
+    {0.0F, 0.0F, 1.0F, 0.0F},
+    {0.0F, 0.0F, 0.0F, 1.0F}};
 
 /******************************************************************************
  * Public Methods
@@ -62,7 +83,7 @@ void LinearKalmanFilter::init()
     /* TODO: Implement Kalman Filter in cpp (TD072)  */
 }
 
-void LinearKalmanFilter::predictionStep()
+void LinearKalmanFilter::predictionStep(const uint16_t timeStep)
 {
     /* TODO: Implement Kalman Filter in cpp (TD072) */
 }
@@ -83,7 +104,17 @@ IKalmanFilter::PositionData LinearKalmanFilter::updateStep(KalmanParameter& kalm
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+void LinearKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParameter)
+{
+    m_measurementVector(IDX_ODOMETRY_X_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryX);
+    m_measurementVector(IDX_ODOMETRY_Y_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryY);
+}
 
+void LinearKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)
+{
+    m_controlInputVector(IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationX);
+    m_controlInputVector(IDX_ACCELERATION_Y_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationY);
+}
 /******************************************************************************
  * External Functions
  *****************************************************************************/
