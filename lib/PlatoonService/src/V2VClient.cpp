@@ -88,10 +88,11 @@ V2VClient::~V2VClient()
 
 bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
 {
-    bool    isSuccessful = false;
-    char    inputTopicBuffer[MAX_TOPIC_LENGTH];
-    char    outputTopicBuffer[MAX_TOPIC_LENGTH];
-    uint8_t followerVehicleId = vehicleId + 1U; /* Output is published to next vehicle. */
+    bool        isSuccessful = false;
+    char        inputTopicBuffer[MAX_TOPIC_LENGTH];
+    char        outputTopicBuffer[MAX_TOPIC_LENGTH];
+    uint8_t     followerVehicleId = vehicleId + 1U; /* Output is published to next vehicle. */
+    const char* outputSubtopic    = "targetWaypoint";
 
     if (PLATOON_LEADER_ID == vehicleId)
     {
@@ -102,6 +103,7 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
     {
         /* Last follower. Sends data to the leader. */
         followerVehicleId = 0U;
+        outputSubtopic    = "feedback";
     }
     else
     {
@@ -118,8 +120,8 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
     {
         LOG_ERROR("Failed to create input topic.");
     }
-    else if (0 >= snprintf(outputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/targetWaypoint", platoonId,
-                           followerVehicleId))
+    else if (0 >= snprintf(outputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", platoonId,
+                           followerVehicleId, outputSubtopic))
     {
         LOG_ERROR("Failed to create output topic.");
     }
