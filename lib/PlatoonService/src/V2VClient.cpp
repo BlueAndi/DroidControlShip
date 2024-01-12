@@ -214,6 +214,11 @@ bool V2VClient::getNextWaypoint(Waypoint& waypoint)
     return isSuccessful;
 }
 
+size_t V2VClient::getWaypointQueueSize() const
+{
+    return m_waypointQueue.size();
+}
+
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/

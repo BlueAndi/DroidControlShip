@@ -71,7 +71,8 @@ PlatoonController::PlatoonController() :
     m_lastSentWaypoint(),
     m_processingChainTimer(),
     m_processingChain(nullptr),
-    m_isPositionKnown(false)
+    m_isPositionKnown(false),
+    m_processingChainRelease(false)
 {
 }
 
@@ -114,7 +115,7 @@ bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback
     return isSuccessful;
 }
 
-void PlatoonController::process()
+void PlatoonController::process(size_t numberOfAvailableWaypoints)
 {
     if (false == m_isPositionKnown)
     {
@@ -167,8 +168,13 @@ void PlatoonController::process()
         }
     }
 
+    /* Are there enough waypoints available at the start of the drive? */
+    if ((false == m_processingChainRelease) && (MIN_AVAILABLE_WAYPOINTS < numberOfAvailableWaypoints))
+    {
+        m_processingChainRelease = true;
+    }
     /* Process chain on timeout. */
-    if ((true == m_processingChainTimer.isTimeout()) && (nullptr != m_motorSetpointCallback))
+    else if ((true == m_processingChainTimer.isTimeout()) && (nullptr != m_motorSetpointCallback))
     {
         if (nullptr != m_processingChain)
         {
