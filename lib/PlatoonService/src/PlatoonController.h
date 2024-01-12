@@ -134,6 +134,11 @@ private:
     static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 1/3 * pi */
 
     /**
+     * Distance interval between waypoints in mm.
+     */
+    static const int32_t WAYPOINT_DISTANCE_INTERVAL = 50;
+
+    /**
      * Input waypoint callback.
      */
     InputWaypointCallback m_inputWaypointCallback;
@@ -162,6 +167,11 @@ private:
      * Current vehicle data in the form of a waypoint.
      */
     Waypoint m_currentVehicleData;
+
+    /**
+     * Last sent waypoint to the next platoon participant.
+     */
+    Waypoint m_lastSentWaypoint;
 
     /**
      * Processing chain timer.

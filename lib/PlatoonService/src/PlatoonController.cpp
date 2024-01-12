@@ -66,7 +66,9 @@ PlatoonController::PlatoonController() :
     m_outputWaypointCallback(nullptr),
     m_motorSetpointCallback(nullptr),
     m_currentWaypoint(),
+    m_nextWaypoint(),
     m_currentVehicleData(),
+    m_lastSentWaypoint(),
     m_processingChainTimer(),
     m_processingChain(nullptr),
     m_isPositionKnown(false)
@@ -129,11 +131,6 @@ void PlatoonController::process()
         {
             ; /* Nothing to do here. Have to wait for a waypoint. */
         }
-        /* Send current waypoint to the next vehicle only when a new one has been received. */
-        else if (false == m_outputWaypointCallback(m_currentWaypoint))
-        {
-            LOG_ERROR("Failed to send waypoint to next vehicle.");
-        }
         else
         {
             /* Sanitize the Waypoint. */
@@ -154,6 +151,19 @@ void PlatoonController::process()
             {
                 LOG_ERROR("Invalid target waypoint (%d, %d)", m_nextWaypoint.xPos, m_nextWaypoint.yPos);
             }
+        }
+    }
+
+    /* Send current position as waypoint in a constant distance interval. */
+    if (WAYPOINT_DISTANCE_INTERVAL < PlatoonUtils::calculateAbsoluteDistance(m_lastSentWaypoint, m_currentVehicleData))
+    {
+        if (false == m_outputWaypointCallback(m_currentVehicleData))
+        {
+            LOG_ERROR("Failed to send waypoint to next vehicle.");
+        }
+        else
+        {
+            m_lastSentWaypoint = m_currentVehicleData;
         }
     }
 
