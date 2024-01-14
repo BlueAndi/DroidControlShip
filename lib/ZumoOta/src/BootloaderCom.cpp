@@ -32,12 +32,11 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "FlashManager.h"
-#include <LittleFS.h>
+#include "BootloaderCom.h"
 #include <Logging.h>
-#include <string.h>
 #include <Board.h>
 #include <GPIO.h>
+
 
 /******************************************************************************
  * Compiler Switches
@@ -46,10 +45,7 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-const uint8_t USB_RETRY_DELAY_MS = 10U;
-const uint16_t USB_TIMEOUT_MS = 2000U;
-const uint8_t AWAIT_RESPONSE_DELAY_MS = 50;
-const uint8_t NEXT_SERIAL_SEND_DELAY_MS = 10;
+
 /******************************************************************************
  * Types and classes
  *****************************************************************************/
@@ -69,330 +65,40 @@ static const uint16_t PAGE_SIZE_BYTES = 128U;
  * Public Methods
  *****************************************************************************/
 
-FlashManager::FlashManager():
-    m_writtenFirmwareBytes(0),
-    m_expectedFirmwareSize(0),
-    m_expectedHashValue()
-{
-}
-
-FlashManager::~FlashManager()
-{
-}
-
-void FlashManager::readToRobotFlash(size_t expectedsize)
-{
-    Stream& deviceStream   = Board::getInstance().getDevice().getStream();
-    Board::getInstance().getDevice().process();
-    int     availableBytes = deviceStream.available();
-    if (0 < availableBytes)
-
-    {
-        uint8_t buffer[availableBytes];
-        size_t  readBytes = deviceStream.readBytes(buffer, availableBytes);
-       if(expectedsize == readBytes)
-       {
-            
-            LOG_INFO("Hexadecimal Data:");
-            for (size_t idx = 0; idx < readBytes; idx++)
-            {
-                Serial.print("0x");
-                if (buffer[idx] < 0x10) Serial.print("0"); 
-                Serial.print(buffer[idx], HEX);
-                Serial.print(" ");
-            }
-            Serial.println(); 
-
-            
-            LOG_INFO("Binary Data:");
-            for (size_t idx = 0; idx < readBytes; idx++)
-            {
-                for (int bit = 7; bit >= 0; bit--)
-                {
-                    Serial.print((buffer[idx] >> bit) & 1);
-                }
-                Serial.print(" ");
-            }
-            Serial.println(); 
-        }
-        else
-        {
-            LOG_INFO("Failure!");
-        }  
-    }
-    
-}
-
-void FlashManager ::sendCommand(const uint8_t command[])
-{
-    Stream& deviceStream   = Board::getInstance().getDevice().getStream();
-    size_t commandsize = sizeof(command[0]);
-    size_t mysize= deviceStream.write(command, commandsize);
-    
-    readToRobotFlash(mysize);
-
-}
-
-void FlashManager:: enterBootloadermode()
-{
-    /* enter bootloader mode.*/
-    m_bootloader.enterBootloader();
-}
-
-void FlashManager::exitBootloader()
+BootloaderCom::BootloaderCom()
 {
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+BootloaderCom::~BootloaderCom()
+{
+}
+
+void BootloaderCom :: enterBootloader()
+{
+    Board::getInstance().getDevice().enterBootloader();
+    LOG_INFO(" bootloader mode is activated");
+}
+
+void BootloaderCom::exitBootloader()
+{
+    GpioPins::resetDevicePin.write(HIGH);
+    delay(WAIT_TIME_MS);
+    GpioPins::resetDevicePin.write(LOW);
+    LOG_INFO(" bootloader mode is exited");
+
+}
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 
 
 

@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef BOOTLOADERCOM_H
+#define BOOTLOADERCOM_H
 
 /******************************************************************************
  * Compile Switches
@@ -42,11 +42,7 @@
 
 /******************************************************************************
  * Includes
- *****************************************************************************/
-#include <Board.h>
-#include "FileManager.h"
-#include "WebServerCustom.h"
-#include "FlashManager.h"
+ ******************************************************************************
 
 /******************************************************************************
  * Macros
@@ -56,73 +52,33 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Remote Control application. */
-class App
+/** The class manages the Bootloader Protocoll. */
+class BootloaderCom
 {
 public:
     /**
-     * Construct the app  application.
+     * Construct the bootloader  application.
      */
-    App();
+  BootloaderCom();
 
     /**
-     * Destroy the app  application.
+     * Destroy the bootloader  application.
      */
-    ~App();
+    ~BootloaderCom();
 
     /**
-     * Setup the application.
+     * @brief enter the bootloader mode.
      */
-    void setup();
+    void enterBootloader();
 
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-    /**
-     * Start the Application.
-     */
-    void start();
-
-    /**
-     * Initialize the logging
-     */
-    bool loginit();
-
-    /**
-     * Function to stop the application
-     */
-    void halt();
+   /**
+    * @brief exit the bootloader mode.
+    */
+   void exitBootloader();
 
 private:
-    /**
-     * Flag: Webserver is initialized
-     */
-    bool m_isWebServerInitialized;
 
-    /**
-     * Instance of the FileManager class
-     *responsible for managing the LittleFs file System.
-     */
-    FileManager m_fileManager;
-
-    /**
-     * Instance of the WebServerCustom class
-     *representing a custom webserver for the application.
-     */
-    WebServerCustom m_webServer;
-
-    /**
-     * Instance of the Upload class
-     */
-    Upload m_upload;
-
-    /**
-     * Instance of the FlashManager class
-     */
-    FlashManager m_flashManager;
 };
 
-#endif /* APP_H */
+#endif /* BOOTLOADERCOM_H */
 /** @} */

@@ -38,6 +38,8 @@
 #include <Logging.h>
 #include <LogSinkPrinter.h>
 #include <SettingsHandler.h>
+#include <Device.h>
+#include "GPIO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -173,6 +175,7 @@ void App::setup()
         else
         {
             isSuccessful = true;
+            
         }
     }
 
@@ -203,9 +206,13 @@ void App::loop()
     if ((false == m_isWebServerInitialized) && (Board::getInstance().getNetwork().isUp()))
     {
         start();
+
         m_webServer.handleUploadRequest();
         m_isWebServerInitialized = true;
+        m_webServer.handleUpdateRequest();   
     }
+
+
 }
 
 /******************************************************************************
