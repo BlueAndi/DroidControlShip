@@ -162,7 +162,3 @@ namespace Zumo32U4Specification
     static const uint8_t EXPECTED_SIGNATURE[] = {0x87, 0x95, 0x1E};
 };
 #endif /** __ZUMO32U4Specification_H__ */
-
-/**
- *  @}
- */

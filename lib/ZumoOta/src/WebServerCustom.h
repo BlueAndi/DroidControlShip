@@ -40,10 +40,10 @@ private:
      */
     AsyncWebServer server{80};
 
-    /*FlashManager
-    * FlashManager instance.
-    */
-     FlashManager m_flashManager;
+    /**
+     * FlashManager instance.
+     */
+    FlashManager m_flashManager;
 
 
 public:
