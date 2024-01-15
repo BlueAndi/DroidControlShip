@@ -61,7 +61,8 @@ const uint8_t NEXT_SERIAL_SEND_DELAY_MS = 10;
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-const uint16_t WAIT_TIME_MS = 500U;
+/*Delay before processing the response.
+const uint8_t AWAIT_RESPONSE_DELAY_MS = 50U;*/
 
 /** Specifies the number of bytes stored in one Zumo bootloader/flash memory page.*/
 static const uint16_t PAGE_SIZE_BYTES = 128U;
@@ -80,10 +81,10 @@ FlashManager::~FlashManager()
 {
 }
 
-void FlashManager::readToRobotFlash(size_t expectedsize)
+bool FlashManager::readToRobotFlash(size_t expectedsize)
 {
+    bool retCode = false;
     Stream& deviceStream   = Board::getInstance().getDevice().getStream();
-    Board::getInstance().getDevice().process();
     int     availableBytes = deviceStream.available();
     if (0 < availableBytes)
 
@@ -114,23 +115,40 @@ void FlashManager::readToRobotFlash(size_t expectedsize)
                 Serial.print(" ");
             }
             Serial.println(); 
+            retCode = true;
         }
         else
         {
             LOG_INFO("Failure!");
         }  
     }
+    return retCode;
     
 }
 
 void FlashManager ::sendCommand(const uint8_t command[])
 {
+    const uint16_t WRITE_BUFFER_SIZE = 256;
+    uint8_t writeBuffer[WRITE_BUFFER_SIZE];
     Stream& deviceStream   = Board::getInstance().getDevice().getStream();
-    size_t commandsize = sizeof(command[0]);
-    size_t mysize= deviceStream.write(command, commandsize);
-    
-    readToRobotFlash(mysize);
+    /*Size of array*/
+    size_t commandsize = sizeof(command);
+     /* Copy the command OpCode into buffer */
+    memcpy(writeBuffer, command, commandsize);
 
+    /* Send the OpCode and command data to Zumo robot */
+    size_t bytesWritten= deviceStream.write(command, commandsize);
+
+    if(bytesWritten == commandsize)
+    {
+        /* Await response */
+        delay(50);
+        readToRobotFlash(commandsize);
+    }
+    else
+    {
+        LOG_ERROR("Could not send data packet to Zumo robot. Aborting now");
+    }
 }
 
 void FlashManager:: enterBootloadermode()

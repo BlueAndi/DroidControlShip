@@ -63,7 +63,7 @@ public:
      * This function reads data from the provided stream and writes it to
      * the robot's flash memory.
      */
-    void readToRobotFlash(size_t expectedsize);
+    bool readToRobotFlash(size_t expectedsize);
 
     /**
      * @brief exit the bootloader mode.

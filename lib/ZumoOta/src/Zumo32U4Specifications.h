@@ -72,7 +72,7 @@ namespace Zumo32U4Specification
     /** Command for reading the software ID */
     static const uint8_t READ_SW_ID_COMMAND[] = {0x53};
 
-    /** Command for reading the software version *
+    /** Command for reading the software version */
     static const uint8_t READ_SW_VERSION[] = {0x56};
 
     /** Command for reading the hardware version */
@@ -129,7 +129,6 @@ namespace Zumo32U4Specification
     /** The expected bootloader ID string */
     static const uint8_t EXPECTED_SOFTWARE_ID[] = {'C', 'A', 'T', 'E', 'R', 'I', 'N', '\0'};
 
-
     /** The expected bootloader version */
     
     static const uint8_t EXPECTED_SW_VERSION[] = {0x31, 0x30};
@@ -161,4 +160,6 @@ namespace Zumo32U4Specification
     /** The expected signature value */
     static const uint8_t EXPECTED_SIGNATURE[] = {0x87, 0x95, 0x1E};
 };
+
 #endif /** __ZUMO32U4Specification_H__ */
+/** @} */

@@ -167,15 +167,6 @@ void WebServerCustom::init()
             }
         });
 
-    /*server.on("/changeProfile", HTTP_GET, [](AsyncWebServerRequest *request)
-    {
-
-        request->send(LittleFS, "/login.html","text/html");
-    });*/
-
-   
-   
-   
 
     server.on("/uploadFirmware", HTTP_GET, [](AsyncWebServerRequest *request)
     {
@@ -190,13 +181,6 @@ void WebServerCustom::init()
               });
 
 
-/*server.on("/performFirmwareUpdate", HTTP_POST, [](AsyncWebServerRequest* request)
-{
-    {
-        request->send(200, "text/plain", "Firmware update successful!");
-   
-    }
-});*/
 
 
 
