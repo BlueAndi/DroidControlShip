@@ -337,7 +337,12 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
     if ((nullptr != payload) && (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize))
     {
         const CommandResponse* cmdRsp = reinterpret_cast<const CommandResponse*>(payload);
-        LOG_DEBUG("CMD_RSP: 0x%02X", cmdRsp->response);
+        LOG_DEBUG("CMD_RSP: ID: 0x%02X , RSP: 0x%02X", cmdRsp->commandId, cmdRsp->responseId);
+
+        if (0x04 == cmdRsp->commandId)
+        {
+            LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
+        }
     }
     else
     {
