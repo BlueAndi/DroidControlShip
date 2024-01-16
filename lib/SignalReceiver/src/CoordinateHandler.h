@@ -222,7 +222,7 @@ private:
     /**
      * Check if orientation matches the one given by the infrastructure element.
      *
-     * @param[in] orientatioIE orientation of infrastructure element.
+     * @param[in] orientationIE orientation of infrastructure element.
      * @returns true if orientations match.
      */
     bool checkOrientation(int32_t orientationIE);
