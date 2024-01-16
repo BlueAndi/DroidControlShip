@@ -104,7 +104,7 @@ bool TrafficHandler::setNewInfrastructureElement(const String& nameAsParameter,
                                                  int32_t defaultPreviousDistanceAsParameter,
                                                  const String&  topicNameAsParameter)
 {
-    bool isSuccessful;
+    bool isSuccessful = false;
 
     /** Setting a new IE if unique and increasing the list for each new IE settings received. */
     for (int CURRENT_ELEMENT = 0; CURRENT_ELEMENT < MAX_ELEMENTS; CURRENT_ELEMENT++)
@@ -143,7 +143,7 @@ bool TrafficHandler::setNewInfrastructureElement(const String& nameAsParameter,
 
 bool TrafficHandler::checkLockIn()
 {
-    bool isTrue;
+    bool isTrue = false;
 
     for (int i = 0; i < NR_OF_ELEMENTS; i++)
     {
@@ -166,7 +166,7 @@ bool TrafficHandler::checkLockIn()
 
 bool TrafficHandler::isNear()
 {
-    bool isTrue;
+    bool isTrue = false;
 
     for (int i = 0; i < NR_OF_ELEMENTS; i++)
     {
