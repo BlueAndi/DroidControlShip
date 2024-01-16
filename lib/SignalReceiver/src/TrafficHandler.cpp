@@ -96,11 +96,13 @@ bool TrafficHandler::process()
     return true;
 }
 
-bool TrafficHandler::setNewInfrastructureElement(String nameAsParameter, int32_t orientationAsParameter,
-                                                 int32_t xPosAsParameter, int32_t yPosAsParameter,
+bool TrafficHandler::setNewInfrastructureElement(const String& nameAsParameter, 
+                                                 int32_t orientationAsParameter,
+                                                 int32_t xPosAsParameter, 
+                                                 int32_t yPosAsParameter,
                                                  int32_t defaultDistanceAsParameter,
                                                  int32_t defaultPreviousDistanceAsParameter,
-                                                 String  topicNameAsParameter)
+                                                 const String&  topicNameAsParameter)
 {
     bool isSuccessful;
 

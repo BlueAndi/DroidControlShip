@@ -64,7 +64,7 @@
  * Public Methods
  *****************************************************************************/
 
-bool CoordinateHandler::process(String ieName, 
+bool CoordinateHandler::process(const String& ieName, 
                                 int32_t ieOrientation, 
                                 int32_t distanceToIE,
                                 int32_t previousDistanceToIE)

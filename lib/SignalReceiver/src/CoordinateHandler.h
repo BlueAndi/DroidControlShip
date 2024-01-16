@@ -154,7 +154,7 @@ public:
      * 
      * @returns true if robot is successfully driving towards IE
      */
-    bool process(String ieName, int32_t ieOrientation, int32_t distanceToIE, int32_t previousDistanceToIE);
+    bool process(const String& ieName, int32_t ieOrientation, int32_t distanceToIE, int32_t previousDistanceToIE);
 
     /**
      * Checks distance of robot to selected IE using vector absolute value logic:

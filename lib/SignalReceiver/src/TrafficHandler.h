@@ -94,9 +94,13 @@ public:
      * @param[in] defaultPreviousDistanceAsParameter is set to 0 as default.
      * @param[in] topicNameAsParameter is the MQTT topic to subscribe to.
      */
-    bool setNewInfrastructureElement(String nameAsParameter, int32_t orientationAsParameter, int32_t xPosAsParameter,
-                                     int32_t yPosAsParameter, int32_t defaultDistanceAsParameter,
-                                     int32_t defaultPreviousDistanceAsParameter, String topicNameAsParameter);
+    bool setNewInfrastructureElement(const String& nameAsParameter, 
+                                     int32_t orientationAsParameter, 
+                                     int32_t xPosAsParameter,
+                                     int32_t yPosAsParameter, 
+                                     int32_t defaultDistanceAsParameter,
+                                     int32_t defaultPreviousDistanceAsParameter, 
+                                     const String& topicNameAsParameter);
 
     /**
      * Check if robot-IE status is LOCKED_IN.
