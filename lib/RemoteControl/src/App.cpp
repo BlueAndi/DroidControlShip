@@ -62,6 +62,7 @@
 
 static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 static void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -161,6 +162,9 @@ void App::setup()
                 m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
             m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
             m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
+            m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME, App_currentVehicleChannelCallback);
+            m_serialMuxProtChannelInitialVehicleData =
+                m_smpServer.createChannel(INITIAL_VEHICLE_DATA_CHANNEL_NAME, INITIAL_VEHICLE_DATA_CHANNEL_DLC);
 
             if (false == m_mqttClient.init())
             {
@@ -223,6 +227,18 @@ void App::loop()
 
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
+
+    if (false == m_initialDataSent)
+    {
+        VehicleData initialVehicleData = {.xPos = 0, .yPos = 0, .orientation = 0, .left = 0, .right = 0, .center = 0};
+
+        if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
+                                         sizeof(initialVehicleData)))
+        {
+            LOG_DEBUG("Initial vehicle data sent.");
+            m_initialDataSent = true;
+        }
+    }
 }
 
 /******************************************************************************
@@ -362,4 +378,30 @@ void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payload
     UTIL_NOT_USED(payload);
     UTIL_NOT_USED(payloadSize);
     UTIL_NOT_USED(userData);
+}
+
+/**
+ * Receives current position and heading of the robot over SerialMuxProt channel.
+ *
+ * @param[in] payload       Current vehicle data. Two coordinates, one orientation and two motor speeds.
+ * @param[in] payloadSize   Size of two coordinates, one orientation and two motor speeds.
+ * @param[in] userData      Instance of App class.
+ */
+void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+{
+    UTIL_NOT_USED(userData);
+
+    if ((nullptr != payload) && (CURRENT_VEHICLE_DATA_CHANNEL_DLC == payloadSize))
+    {
+        const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
+
+        LOG_DEBUG("X: %d Y: %d Heading: %d Left: %d Right: %d Center: %d", currentVehicleData->xPos,
+                  currentVehicleData->yPos, currentVehicleData->orientation, currentVehicleData->left,
+                  currentVehicleData->right, currentVehicleData->center);
+    }
+    else
+    {
+        LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u", CURRENT_VEHICLE_DATA_CHANNEL_NAME,
+                    CURRENT_VEHICLE_DATA_CHANNEL_DLC, payloadSize);
+    }
 }
