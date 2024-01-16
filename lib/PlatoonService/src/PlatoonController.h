@@ -133,7 +133,7 @@ private:
     /**
      * Aperture angle of the forward cone in mrad.
      */
-    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 1/3 * pi */
+    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 75 degrees */
 
     /**
      * Distance interval between waypoints in mm.
@@ -143,7 +143,7 @@ private:
     /**
      * Minimum number of available waypoints for release of processing chain.
      */
-    static const size_t MIN_AVAILABLE_WAYPOINTS = 2;
+    static const size_t MIN_AVAILABLE_WAYPOINTS = 2U;
 
     /**
      * Input waypoint callback.

@@ -174,7 +174,7 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
         m_processingChainRelease = true;
     }
     /* Process chain on timeout. */
-    else if ((true == m_processingChainTimer.isTimeout()) && (nullptr != m_motorSetpointCallback))
+    else if (true == m_processingChainTimer.isTimeout())
     {
         if (nullptr != m_processingChain)
         {
@@ -194,7 +194,7 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
                 rightMotorSpeedSetpoint = 0;
             }
 
-            if (true == calculationSuccessful)
+            if ((true == calculationSuccessful) && (nullptr != m_motorSetpointCallback))
             {
                 /* Send motor setpoints. */
                 m_motorSetpointCallback(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
