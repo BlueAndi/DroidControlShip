@@ -76,7 +76,7 @@ public:
     /**
      * Set the name of the traffic element.
      *
-     * @returns name of IE
+     * @param[in] elementName is name of IE to be set.
      */
     void setName(String elementName)
     {
@@ -116,7 +116,8 @@ public:
     /**
      * Set position of inftastrucure element.
      *
-     * @param[in] x and y values of elements position.
+     * @param[in] entryX is the x position of IE element.
+     * @param[in] entryY is the y position of IE element.
      */
     void setEntryValues(int32_t entryX, int32_t entryY)
     {
@@ -147,7 +148,7 @@ public:
     /**
      * Set distance between robot and the IE.
      *
-     * @param[in] current distance.
+     * @param[in] currentDistance is value of current distance.
      */
     void setDistance(int32_t currentDistance)
     {
@@ -167,7 +168,7 @@ public:
     /**
      * Set previous distance.
      *
-     * @param[in] previous distance
+     * @param[in] previousDistance is distance from previous cycle.
      */
     void setPreviousDistance(int32_t previousDistance)
     {
@@ -207,7 +208,7 @@ public:
     /**
      * Sets the status.
      *
-     * @param[i] status is the status to be set.
+     * @param[in] status is the status to be set.
      */
     void setStatus(uint8_t status)
     {
