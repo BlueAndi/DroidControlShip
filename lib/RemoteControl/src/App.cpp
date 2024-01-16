@@ -230,7 +230,13 @@ void App::loop()
 
     if (false == m_initialDataSent)
     {
-        VehicleData initialVehicleData = {.xPos = 0, .yPos = 0, .orientation = 0, .left = 0, .right = 0, .center = 0};
+        SettingsHandler& settings           = SettingsHandler::getInstance();
+        VehicleData      initialVehicleData = {.xPos        = settings.getInitialXPosition(),
+                                               .yPos        = settings.getInitialYPosition(),
+                                               .orientation = settings.getInitialHeading(),
+                                               .left        = 0,
+                                               .right       = 0,
+                                               .center      = 0};
 
         if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
                                          sizeof(initialVehicleData)))
