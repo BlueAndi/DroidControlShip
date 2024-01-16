@@ -95,6 +95,17 @@ namespace ConfigurationKeys
     /** Vehicle ID */
     static const char VEHICLE_ID[] = "vehicleId";
 
+    /** Initial Position */
+    static const char INITIAL_POSITION[] = "initialPosition";
+
+    /** Initial X Position */
+    static const char INITIAL_X_POSITION[] = "x";
+
+    /** Initial Y Position */
+    static const char INITIAL_Y_POSITION[] = "y";
+
+    /** Initial Heading */
+    static const char INITIAL_HEADING[] = "heading";
 } // namespace ConfigurationKeys
 
 /******************************************************************************

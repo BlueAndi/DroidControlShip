@@ -71,6 +71,9 @@ typedef struct
     bool        verbose;           /**< Show verbose information */
     const char* platoonId;         /**< Platoon ID */
     const char* vehicleId;         /**< Vehicle ID */
+    const char* xPosition;         /**< X position */
+    const char* yPosition;         /**< Y position */
+    const char* heading;           /**< Heading */
 } PrgArguments;
 
 #endif
@@ -114,6 +117,9 @@ static const struct option LONG_OPTIONS[] = {{"help", no_argument, nullptr, 0},
                                              {"radonUlzerPort", required_argument, nullptr, 0},
                                              {"platoonId", required_argument, nullptr, 0},
                                              {"vehicleId", required_argument, nullptr, 0},
+                                             {"xPosition", required_argument, nullptr, 0},
+                                             {"yPosition", required_argument, nullptr, 0},
+                                             {"heading", required_argument, nullptr, 0},
                                              {nullptr, no_argument, nullptr, 0}}; /* Marks the end. */
 
 /** Program argument default value of the robot name. */
@@ -139,6 +145,15 @@ static const char PRG_ARG_PLATOON_ID_DEFAULT[] = "0";
 
 /** Program argument default value of the Vehicle ID. */
 static const char PRG_ARG_VEHICLE_ID_DEFAULT[] = "0";
+
+/** Program argument default value of the initial X position. */
+static const char PRG_ARG_X_POS[] = "0";
+
+/** Program argument default value of the initial Y position. */
+static const char PRG_ARG_Y_POS[] = "0";
+
+/** Program argument default value of the initial heading. */
+static const char PRG_ARG_HEADING[] = "0";
 
 /** Program argument default value of the verbose flag. */
 static bool PRG_ARG_VERBOSE_DEFAULT = false;
@@ -308,6 +323,9 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
     prgArguments.verbose           = PRG_ARG_VERBOSE_DEFAULT;
     prgArguments.platoonId         = PRG_ARG_PLATOON_ID_DEFAULT;
     prgArguments.vehicleId         = PRG_ARG_VEHICLE_ID_DEFAULT;
+    prgArguments.xPosition         = PRG_ARG_X_POS;
+    prgArguments.yPosition         = PRG_ARG_Y_POS;
+    prgArguments.heading           = PRG_ARG_HEADING;
 
     while ((-1 != option) && (0 == status))
     {
@@ -346,6 +364,18 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "vehicleId"))
             {
                 prgArguments.vehicleId = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "xPosition"))
+            {
+                prgArguments.xPosition = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "yPosition"))
+            {
+                prgArguments.yPosition = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "heading"))
+            {
+                prgArguments.heading = optarg;
             }
             else
             {
@@ -397,6 +427,12 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
         printf(" Default: %s\n", PRG_ARG_PLATOON_ID_DEFAULT);                 /* Platoon ID default value */
         printf("\t--vehicleId <VEHICLE-ID>\tSet vehicle ID.");                /* Vehicle ID */
         printf(" Default: %s\n", PRG_ARG_VEHICLE_ID_DEFAULT);                 /* Vehicle ID default value */
+        printf("\t--xPosition <X-POS>\t\tSet initial X position.");           /* Initial X position */
+        printf(" Default: %s\n", PRG_ARG_X_POS);                              /* Initial X position default value */
+        printf("\t--yPosition <Y-POS>\t\tSet initial Y position.");           /* Initial Y position */
+        printf(" Default: %s\n", PRG_ARG_Y_POS);                              /* Initial Y position default value */
+        printf("\t--heading <HEADING>\t\tSet initial heading.");              /* Initial heading */
+        printf(" Default: %s\n", PRG_ARG_HEADING);                            /* Initial heading default value */
     }
 
     return status;
@@ -417,6 +453,9 @@ static void showPrgArguments(const PrgArguments& prgArgs)
     printf("Radon Ulzer port       : %s\n", prgArgs.radonUlzerPort);
     printf("Platoon ID             : %s\n", prgArgs.platoonId);
     printf("Vehicle ID             : %s\n", prgArgs.vehicleId);
+    printf("Initial X position     : %s\n", prgArgs.xPosition);
+    printf("Initial Y position     : %s\n", prgArgs.yPosition);
+    printf("Initial heading        : %s\n", prgArgs.heading);
     /* Skip verbose flag. */
 }
 
@@ -495,6 +534,9 @@ static int createConfigFile(const PrgArguments& prgArgs)
                 jsonDoc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::PASSWORD] = WEBSERVER_PASSPHRASE_DEFAULT;
                 jsonDoc[ConfigurationKeys::PLATOON][ConfigurationKeys::PLATOON_ID] = prgArgs.platoonId;
                 jsonDoc[ConfigurationKeys::PLATOON][ConfigurationKeys::VEHICLE_ID] = prgArgs.vehicleId;
+                jsonDoc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_X_POSITION] = prgArgs.xPosition;
+                jsonDoc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_Y_POSITION] = prgArgs.yPosition;
+                jsonDoc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_HEADING]    = prgArgs.heading;
 
                 {
                     size_t jsonBufferSize = measureJsonPretty(jsonDoc) + 1U;

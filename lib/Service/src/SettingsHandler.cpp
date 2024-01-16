@@ -65,7 +65,7 @@
 bool SettingsHandler::loadConfigurationFile(const String& filename)
 {
     bool                              isSuccessful  = false;
-    const uint32_t                    maxBufferSize = 1024U;
+    const uint32_t                    maxBufferSize = 2048U;
     StaticJsonDocument<maxBufferSize> doc;
     char                              buffer[maxBufferSize];
 
@@ -94,6 +94,12 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
             JsonVariantConst jsonWebServerPswd    = doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::PASSWORD];
             JsonVariantConst jsonPlatoonPlatoonId = doc[ConfigurationKeys::PLATOON][ConfigurationKeys::PLATOON_ID];
             JsonVariantConst jsonPlatoonVehicleId = doc[ConfigurationKeys::PLATOON][ConfigurationKeys::VEHICLE_ID];
+            JsonVariantConst jsonInitialXPosition =
+                doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_X_POSITION];
+            JsonVariantConst jsonInitialYPosition =
+                doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_Y_POSITION];
+            JsonVariantConst jsonInitialHeading =
+                doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_HEADING];
 
             if (false == jsonRobotName.isNull())
             {
@@ -148,6 +154,21 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
             if (false == jsonPlatoonVehicleId.isNull())
             {
                 m_platoonVehicleId = jsonPlatoonVehicleId.as<uint8_t>();
+            }
+
+            if (false == jsonInitialXPosition.isNull())
+            {
+                m_initialXPosition = jsonInitialXPosition.as<int32_t>();
+            }
+
+            if (false == jsonInitialYPosition.isNull())
+            {
+                m_initialYPosition = jsonInitialYPosition.as<int32_t>();
+            }
+
+            if (false == jsonInitialHeading.isNull())
+            {
+                m_initialHeading = jsonInitialHeading.as<int32_t>();
             }
 
             isSuccessful = true;

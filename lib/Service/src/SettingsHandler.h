@@ -229,6 +229,36 @@ public:
         return m_platoonVehicleId;
     }
 
+    /**
+     * Get Initial Position: X
+     *
+     * @returns Initial Position: X
+     */
+    int32_t getInitialXPosition()
+    {
+        return m_initialXPosition;
+    }
+
+    /**
+     * Get Initial Position: Y
+     *
+     * @returns Initial Position: Y
+     */
+    int32_t getInitialYPosition()
+    {
+        return m_initialYPosition;
+    }
+
+    /**
+     * Get Initial Position: Heading
+     *
+     * @returns Initial Position: Heading
+     */
+    int32_t getInitialHeading()
+    {
+        return m_initialHeading;
+    }
+
 private:
     /**
      * Instance Name.
@@ -284,6 +314,21 @@ private:
      * Platoon: Vehicle ID.
      */
     uint8_t m_platoonVehicleId;
+
+    /**
+     * Initial Position: X
+     */
+    int32_t m_initialXPosition;
+
+    /**
+     * Initial Position: Y
+     */
+    int32_t m_initialYPosition;
+
+    /**
+     * Initial Position: Heading
+     */
+    int32_t m_initialHeading;
 
     /**
      * FileHandler instance.
