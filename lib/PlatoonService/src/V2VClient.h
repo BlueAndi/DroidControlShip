@@ -103,6 +103,13 @@ public:
      */
     bool getNextWaypoint(Waypoint& waypoint);
 
+    /**
+     * Get the number of waypoints in the queue.
+     *
+     * @return Number of waypoints in the queue.
+     */
+    size_t getWaypointQueueSize() const;
+
 private:
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;

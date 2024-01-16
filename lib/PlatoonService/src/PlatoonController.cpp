@@ -66,10 +66,13 @@ PlatoonController::PlatoonController() :
     m_outputWaypointCallback(nullptr),
     m_motorSetpointCallback(nullptr),
     m_currentWaypoint(),
+    m_nextWaypoint(),
     m_currentVehicleData(),
+    m_lastSentWaypoint(),
     m_processingChainTimer(),
     m_processingChain(nullptr),
-    m_isPositionKnown(false)
+    m_isPositionKnown(false),
+    m_processingChainRelease(false)
 {
 }
 
@@ -112,7 +115,7 @@ bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback
     return isSuccessful;
 }
 
-void PlatoonController::process()
+void PlatoonController::process(size_t numberOfAvailableWaypoints)
 {
     if (false == m_isPositionKnown)
     {
@@ -128,11 +131,6 @@ void PlatoonController::process()
         if (false == m_inputWaypointCallback(m_nextWaypoint))
         {
             ; /* Nothing to do here. Have to wait for a waypoint. */
-        }
-        /* Send current waypoint to the next vehicle only when a new one has been received. */
-        else if (false == m_outputWaypointCallback(m_currentWaypoint))
-        {
-            LOG_ERROR("Failed to send waypoint to next vehicle.");
         }
         else
         {
@@ -157,8 +155,26 @@ void PlatoonController::process()
         }
     }
 
+    /* Send current position as waypoint in a constant distance interval. */
+    if (WAYPOINT_DISTANCE_INTERVAL < PlatoonUtils::calculateAbsoluteDistance(m_lastSentWaypoint, m_currentVehicleData))
+    {
+        if (false == m_outputWaypointCallback(m_currentVehicleData))
+        {
+            LOG_ERROR("Failed to send waypoint to next vehicle.");
+        }
+        else
+        {
+            m_lastSentWaypoint = m_currentVehicleData;
+        }
+    }
+
+    /* Are there enough waypoints available at the start of the drive? */
+    if ((false == m_processingChainRelease) && (MIN_AVAILABLE_WAYPOINTS < numberOfAvailableWaypoints))
+    {
+        m_processingChainRelease = true;
+    }
     /* Process chain on timeout. */
-    if ((true == m_processingChainTimer.isTimeout()) && (nullptr != m_motorSetpointCallback))
+    else if (true == m_processingChainTimer.isTimeout())
     {
         if (nullptr != m_processingChain)
         {
@@ -178,7 +194,7 @@ void PlatoonController::process()
                 rightMotorSpeedSetpoint = 0;
             }
 
-            if (true == calculationSuccessful)
+            if ((true == calculationSuccessful) && (nullptr != m_motorSetpointCallback))
             {
                 /* Send motor setpoints. */
                 m_motorSetpointCallback(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
