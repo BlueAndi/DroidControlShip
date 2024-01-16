@@ -181,22 +181,25 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
 bool SettingsHandler::saveConfigurationFile(const String& filename)
 {
     bool                           isSuccessful = false;
-    const size_t                   maxDocSize   = 1024U;
+    const size_t                   maxDocSize   = 2048U;
     StaticJsonDocument<maxDocSize> doc;
     size_t                         jsonBufferSize = 0U;
     size_t                         bytesToWrite   = 0U;
 
-    doc[ConfigurationKeys::ROBOT_NAME]                             = m_robotName;
-    doc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID]          = m_wifiSSID;
-    doc[ConfigurationKeys::WIFI][ConfigurationKeys::PASSWORD]      = m_wifiPassword;
-    doc[ConfigurationKeys::MQTT][ConfigurationKeys::HOST]          = m_mqttBrokerAddress;
-    doc[ConfigurationKeys::MQTT][ConfigurationKeys::PORT]          = m_mqttPort;
-    doc[ConfigurationKeys::AP][ConfigurationKeys::SSID]            = m_apSSID;
-    doc[ConfigurationKeys::AP][ConfigurationKeys::PASSWORD]        = m_apPassword;
-    doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::USER]     = m_webServerUser;
-    doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::PASSWORD] = m_webServerPassword;
-    doc[ConfigurationKeys::PLATOON][ConfigurationKeys::PLATOON_ID] = m_platoonPlatoonId;
-    doc[ConfigurationKeys::PLATOON][ConfigurationKeys::VEHICLE_ID] = m_platoonVehicleId;
+    doc[ConfigurationKeys::ROBOT_NAME]                                              = m_robotName;
+    doc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID]                           = m_wifiSSID;
+    doc[ConfigurationKeys::WIFI][ConfigurationKeys::PASSWORD]                       = m_wifiPassword;
+    doc[ConfigurationKeys::MQTT][ConfigurationKeys::HOST]                           = m_mqttBrokerAddress;
+    doc[ConfigurationKeys::MQTT][ConfigurationKeys::PORT]                           = m_mqttPort;
+    doc[ConfigurationKeys::AP][ConfigurationKeys::SSID]                             = m_apSSID;
+    doc[ConfigurationKeys::AP][ConfigurationKeys::PASSWORD]                         = m_apPassword;
+    doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::USER]                      = m_webServerUser;
+    doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::PASSWORD]                  = m_webServerPassword;
+    doc[ConfigurationKeys::PLATOON][ConfigurationKeys::PLATOON_ID]                  = m_platoonPlatoonId;
+    doc[ConfigurationKeys::PLATOON][ConfigurationKeys::VEHICLE_ID]                  = m_platoonVehicleId;
+    doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_X_POSITION] = m_initialXPosition;
+    doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_Y_POSITION] = m_initialYPosition;
+    doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_HEADING]    = m_initialHeading;
 
     jsonBufferSize = measureJsonPretty(doc) + 1U;
     char jsonBuffer[jsonBufferSize];
@@ -241,6 +244,9 @@ SettingsHandler::SettingsHandler() :
     m_webServerPassword(),
     m_platoonPlatoonId(0U),
     m_platoonVehicleId(0U),
+    m_initialXPosition(0),
+    m_initialYPosition(0),
+    m_initialHeading(0),
     m_fileHandler()
 {
 }
