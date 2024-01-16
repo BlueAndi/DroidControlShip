@@ -42,8 +42,10 @@
 #include <Util.h>
 #include <CoordinateHandler.h>
 
-#include <Participants.h>
-#include <Queuer.h>
+#include <TrafficElement.h>
+#include <TrafficHandler.h>
+
+#include <math.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -101,7 +103,7 @@ bool gIsListening = false;
 /** Save current deserialized value of COLOR ID. */
 Color clr;
 
-/** Making decisions only on change. */
+/** Sending color only on change. */
 Color oldColorId;
 
 /******************************************************************************
@@ -197,13 +199,6 @@ void App::setup()
                 {
                     LOG_FATAL("MQTT configuration could not be set.");
                 }
-                /* Subscribe to Traffic Light Colors Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_TRAFFIC_LIGHT_COLORS, true,
-                                                         [this](const String& payload)
-                                                         { trafficLightColorsCallback(payload); }))
-                {
-                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_TRAFFIC_LIGHT_COLORS);
-                }
                 else if (false == m_mqttClient.subscribe(TOPIC_NAME_SETTINGS, false,
                                                          [this](const String& payload) { settingsCallback(payload); }))
                 {
@@ -277,36 +272,51 @@ void App::odometryCallback(const OdometryData& odometry)
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
     char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
 
-    // payloadJson["x"] = odometry.xPos;
-    // payloadJson["y"] = odometry.yPos;
-
-    // (void)serializeJson(payloadJson, payloadArray);
-    // String payloadStr(payloadArray);
-
-    // if (true == m_mqttClient.publish("TL_0/coordinates", false, payloadStr))
-    // {
-    //     LOG_DEBUG("PUBLISHED ODOMETRY: x: %d y: %d ", odometry.xPos, odometry.yPos);
-    // }
-
     LOG_DEBUG("RECEIVED ODOMETRY: x: %d y: %d ORIENTATION:  %d", odometry.xPos, odometry.yPos, odometry.orientation);
 
+    /** Set new coordinates in for processing. */
     CoordinateHandler::getInstance().setCurrentOrientation(odometry.orientation);
     CoordinateHandler::getInstance().setCurrentCoordinates(odometry.xPos, odometry.yPos);
 
-    if (true == Queuer::getInstance().process())
+    /** Process queue only when receiving new coordinates. */
+    if (true == TrafficHandler::getInstance().process())
     {
-        gIsListening = true;
-    }
-    else
-    {
-        gIsListening = false;
+        if (true == TrafficHandler::getInstance().checkLockIn())
+        {
+            /** Sub to locked onto IE. */
+            if (true == m_mqttClient.subscribe(TrafficHandler::getInstance().getTargetName(), 
+                                               false,
+                                               [this](const String& payload){trafficLightColorsCallback(payload);}))
+            {
+                LOG_DEBUG("Subscribed to Channel:%s", TrafficHandler::getInstance().getTargetName().c_str());
+            }
+
+            /** If near, listen to signals. */
+            if (true == TrafficHandler::getInstance().isNear())
+            {
+                gIsListening = true;
+            }
+            else
+            {
+                gIsListening = false;
+            }
+        }
+        else
+        {
+            /** Unsub from IE. */
+            m_mqttClient.unsubscribe(TrafficHandler::getInstance().getTargetName(), false);
+            gIsListening = false;
+        }
     }
 }
 
 void App::sendCurrentColor()
 {
-    if (true ==
-        m_smpServer.sendData(m_serialMuxProtChannelIdTrafficLightColors, reinterpret_cast<uint8_t*>(&clr), sizeof(clr)))
+    /** if signal matches lockOn target, send the color. */
+
+    if (true == m_smpServer.sendData(m_serialMuxProtChannelIdTrafficLightColors, 
+                                     reinterpret_cast<uint8_t*>(&clr), 
+                                     sizeof(clr)))
     {
         LOG_DEBUG("Color %d sent.", clr.colorId);
     }
@@ -348,12 +358,24 @@ void App::trafficLightColorsCallback(const String& payload)
     }
     else
     {
+        /** Who is sending? */
+        JsonVariant from = jsonPayload["FROM"];
+
+        /** what is the color ID? */
         JsonVariant color = jsonPayload["COLOR"];
 
-        if (false == color.isNull())
+        if ((false == color.isNull()) && (false == from.isNull()))
         {
-            clr.colorId = color.as<uint8_t>();
-            LOG_DEBUG("COLOR_ID %d", clr.colorId);
+            /** If a new color has been received, deserialize it! */
+            if ((oldColorId.colorId != color.as<uint8_t>()))
+            {
+                clr.colorId = color.as<uint8_t>();
+            }
+            else
+            {
+            }
+
+            LOG_DEBUG("COLOR_ID: %d", clr.colorId);
         }
         else
         {
@@ -371,39 +393,58 @@ void App::settingsCallback(const String& payload)
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
     DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
 
+    /** Used to create topic of IE. */
+    char   topic[64U];
+    String topicString;
+
+    TrafficHandler& handler = TrafficHandler::getInstance();
+
+    String  IEname;
+    int32_t receivedOrientation;
+    int32_t receivedEntryX;
+    int32_t receivedEntryY;
+    int32_t distance;
+    int32_t previousDistance;
+
     if (error != DeserializationError::Ok)
     {
         LOG_ERROR("JSON deserialization error %d.", error);
     }
     else
     {
-        JsonVariant robotName        = jsonPayload["FROM"];
+        JsonVariant name             = jsonPayload["FROM"];
         JsonVariant orientationValue = jsonPayload["TOWARDS"];
         JsonVariant xEntryValue      = jsonPayload["EX"];
         JsonVariant yEntryValue      = jsonPayload["EY"];
 
         if ((false == xEntryValue.isNull()) && (false == yEntryValue.isNull()))
         {
-            InfrastructureElement* trafficParticipant = new (std::nothrow) InfrastructureElement();
+            IEname              = name.as<const char*>();
+            receivedOrientation = orientationValue.as<int32_t>() /** * (1000 * (PI / 180)) */;
+            receivedEntryX      = xEntryValue.as<int32_t>();
+            receivedEntryY      = yEntryValue.as<int32_t>();
+            distance            = 0;
+            previousDistance    = 0;
 
-            if (nullptr != trafficParticipant)
+            /** Create the topic of received IE. */
+            if (0 <= snprintf(topic, 64U, "%s/trafficLightColors", IEname.c_str()))
             {
-                trafficParticipant->name        = robotName.as<const char*>();
-                trafficParticipant->orientation = orientationValue.as<int32_t>();
-                trafficParticipant->entryX      = xEntryValue.as<int32_t>();
-                trafficParticipant->entryY      = yEntryValue.as<int32_t>();
-
-                if (true == Queuer::getInstance().enqueueParticipant(trafficParticipant))
-                {
-                    LOG_DEBUG("IE %s pointing towards %d with Trigger Area:", robotName.as<const char*>(),
-                              trafficParticipant->orientation);
-                    LOG_DEBUG("ENTRY VALUES    x:%d y:%d", trafficParticipant->entryX, trafficParticipant->entryY);
-                }
+                topicString = topic;
             }
-        }
-        else
-        {
-            LOG_WARNING("Received invalid coordinate set.");
+
+            if ((true == handler.setNewInfrastructureElement(IEname, 
+                                                             receivedOrientation, 
+                                                             receivedEntryX,
+                                                             receivedEntryY, 
+                                                             distance, 
+                                                             previousDistance, 
+                                                             topicString)))
+            {
+                LOG_DEBUG("Received settings from %s at X %d, Y %d pointing towards %d.", IEname.c_str(),
+                                                                                          receivedEntryX, 
+                                                                                          receivedEntryY, 
+                                                                                          receivedOrientation);
+            }
         }
     }
 }

@@ -25,19 +25,20 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Queue implementation
+ * @brief  Coordinate handler implementation
  * @author Paul Gramescu <paul.gramescu@gmail.com>
+ *
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Queuer.h"
+#include "CoordinateHandler.h"
 
 #include <Board.h>
 
 #include <Logging.h>
-#include <CoordinateHandler.h>
+#include <math.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -63,89 +64,64 @@
  * Public Methods
  *****************************************************************************/
 
-bool Queuer::process()
+bool CoordinateHandler::process(String ieName, 
+                                int32_t ieOrientation, 
+                                int32_t distanceToIE,
+                                int32_t previousDistanceToIE)
+
 {
     bool isSuccessful;
 
-    if (false == m_IEQueue.empty())
+    /** The default status. */
+    m_currentStatus = STATUS_IDLE;
+
+    if (true == CoordinateHandler::getInstance().isMovingTowards(distanceToIE, previousDistanceToIE))
     {
-        /** Process the first element in queue */
-        InfrastructureElement* selectedIE = m_IEQueue.front();
-        m_IEQueue.pop();
+        m_currentStatus = STATUS_TOWARDS;
+        // LOG_DEBUG("Robot is moving towards %s.", ieName.c_str());
 
-        /** Set and process the current coordinates with the ones of the selected IE.*/
-        Participant::getInstance().setRequiredOrientation(selectedIE->orientation);
-        Participant::getInstance().setEntryValues(selectedIE->entryX, selectedIE->entryY);
-
-        if (true == CoordinateHandler::getInstance().isMovingTowards())
+        if (true == CoordinateHandler::getInstance().checkOrientation(ieOrientation))
         {
-            LOG_DEBUG("Robot is moving towards %d.", selectedIE->entryX);
+            // LOG_DEBUG("Robot pointing towards %s.", ieName.c_str());
 
-            if (true == CoordinateHandler::getInstance().checkOrientation())
+            /** Robot is moving towards the IE AND has matching orientation, lock in! */
+            m_currentStatus = STATUS_LOCKED_IN;
+
+            if (m_distance < 200)
             {
-                LOG_DEBUG("Robot pointing towards %d.", selectedIE->entryX);
-
-                if (CoordinateHandler::getInstance().getCurrentDistance() < 250)
-                {
-                    LOG_DEBUG("Robot is near %d, listening for signals.", selectedIE->entryX);
-                    isSuccessful = true;
-                }
-                else
-                {
-                    isSuccessful = false;
-                    LOG_DEBUG("Robot has some more driving to do.");
-                }
+                m_currentStatus = STATUS_NEAR;
+                // LOG_DEBUG("Robot is near %s, listening for signals.", ieName.c_str());
+                isSuccessful = true;
             }
             else
             {
+                m_currentStatus = STATUS_LOCKED_IN;
+                // LOG_DEBUG("Robot has some more driving to do.");
                 isSuccessful = false;
-                LOG_DEBUG("Robot isn't pointing towards %d.", selectedIE->entryX);
             }
         }
         else
         {
-            LOG_DEBUG("Robot is moving away from %d.", selectedIE->entryX);
+            m_currentStatus = STATUS_TOWARDS;
+            // LOG_DEBUG("Robot isn't pointing towards %s.", ieName.c_str());
             isSuccessful = false;
         }
-
-        /** Cycle queue. */
-        m_IEQueue.push(selectedIE);
-    }
-
-    return isSuccessful;
-}
-
-bool Queuer::enqueueParticipant(InfrastructureElement* enqueuedParticipant)
-{
-    bool isSuccessful;
-
-    if (enqueuedParticipant->name != "")
-    {
-        m_IEQueue.push(enqueuedParticipant);
-        LOG_DEBUG("Added %s to the list.", enqueuedParticipant->name);
-
-        isSuccessful = true;
     }
     else
     {
-        LOG_ERROR("Invalid name received, participant has not been listed!");
-
+        m_currentStatus = STATUS_PASSED;
+        // LOG_DEBUG("Robot is moving away from %s.", ieName.c_str());
         isSuccessful = false;
     }
 
     return isSuccessful;
 }
 
-void Queuer::dequeueParticipant()
+int32_t CoordinateHandler::checkDistance(int32_t xPos, int32_t yPos)
 {
-    if (m_IEQueue.empty() == false)
-    {
-        m_IEQueue.pop();
-    }
-    else
-    {
-        LOG_DEBUG("Queue is empty.");
-    }
+    m_distance = pow(pow((xPos - m_currentX), 2) + pow((yPos - m_currentY), 2), 0.5);
+
+    return m_distance;
 }
 
 /******************************************************************************
@@ -155,6 +131,49 @@ void Queuer::dequeueParticipant()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+bool CoordinateHandler::isMovingTowards(int32_t currentDistance, int32_t previousDistance)
+    {
+        bool isTrue;
+
+        if (currentDistance < previousDistance)
+        {
+            /** Distance is decreasing, robot is moving towards. */
+            isTrue = true;
+        }
+        else
+        {
+            /** Distance is increasing, robot is moving away. */
+            isTrue = false;
+        }
+
+        return isTrue;
+    }
+
+bool CoordinateHandler::checkOrientation(int32_t orientationIE)
+{
+    bool isTrue = false;
+
+    if (orientationIE != 0)
+    {
+        if (((orientationIE - 500) <= getCurrentOrientation()) &&
+            (getCurrentOrientation() <= (orientationIE + 500)))
+        {
+            isTrue = true;
+        }
+        else
+        {
+            isTrue = false;
+        }
+    }
+    else
+    {
+        /** If there is no orientation set, set it to always be true. */
+        isTrue = true;
+    }
+
+        return isTrue;
+}
 
 /******************************************************************************
  * External Functions

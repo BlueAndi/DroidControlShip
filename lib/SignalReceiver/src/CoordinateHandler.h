@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief The green light phase realization.
+ * @brief The coordinate handler realization.
  * @author Paul Gramescu <paul.gramescu@gmail.com>
  *
  * @addtogroup Application
@@ -48,9 +48,6 @@
 
 #include <Logging.h>
 #include <Board.h>
-
-#include <Participants.h>
-#include <math.h>
 
 /******************************************************************************
  * Macros
@@ -75,8 +72,11 @@ public:
     }
 
     /**
-     * Set current coordinates received from robots
+     * Set current coordinates received from robot
      * into values to be processed in the program.
+     *
+     * @param[in] xPos is current x position of the robot
+     * @param[in] yPos is current y position of the robot
      */
     void setCurrentCoordinates(int32_t xPos, int32_t yPos)
     {
@@ -105,7 +105,9 @@ public:
     }
 
     /**
-     * Set orientation of infrastructure element.
+     * Set current orientation of the robot
+     *
+     * @param[in] currentOrientation is the orientation value
      */
     void setCurrentOrientation(int32_t currentOrientation)
     {
@@ -113,9 +115,9 @@ public:
     }
 
     /**
-     * Get orientation.
+     * Get current orientation.
      *
-     * @returns the orientation value
+     * @returns the current orientation of the robot
      */
     int32_t getCurrentOrientation()
     {
@@ -123,7 +125,7 @@ public:
     }
 
     /**
-     * Get current distance between robot and infrastructure element.
+     * Get current distance between robot and IE.
      *
      * @returns the current distance.
      */
@@ -133,66 +135,61 @@ public:
     }
 
     /**
-     * Check if robot is near the infrastructure element.
+     * Get old distance between robot and IE.
      *
-     * @returns true if near the infrastructure element.
+     * @returns the old distance.
      */
-    bool isMovingTowards()
+    int32_t getOldDistance()
     {
-        bool isTrue;
-
-        /** Recalculate current distance. */
-        checkDistance();
-
-        if (m_distance < m_oldDistance)
-        {
-            isTrue = true;
-        }
-        else
-        {
-            isTrue = false;
-        }
-
-        /** Refresh previous distance. */
-        m_oldDistance = m_distance;
-
-        return isTrue;
+        return m_oldDistance;
     }
 
     /**
-     * Check if orientation matches the one given by the infrastructure element.
+     * Process current coordinates with the ones of the IE.
      *
-     * @returns true if orientations match.
+     * @param[in] ieName is name of IE to be processed.
+     * @param[in] ieOrientation is orientation of IE to be processed.
+     * @param[in] distanceToIE is current robot-IE distance to be processed.
+     * @param[in] previousDistanceToIE is older robot-IE distance to be processed.
+     * 
+     * @returns true if robot is successfully driving towards IE
      */
-    bool checkOrientation()
+    bool process(String ieName, int32_t ieOrientation, int32_t distanceToIE, int32_t previousDistanceToIE);
+
+    /**
+     * Checks distance of robot to selected IE using vector absolute value logic:
+     * dist = sqrt ((x1 - x2)^2 + (y1 - y2)^2)
+     *
+     * @param[in] xPos is position of IE on x axis.
+     * @param[in] yPos is position of IE on y axis.
+     * 
+     * @returns the calculated distance.
+     */
+    int32_t checkDistance(int32_t xPos, int32_t yPos);
+
+    /**
+     * Checks current status between robot and IE.
+     *
+     * @returns the current status.
+     */
+    int8_t getStatus()
     {
-        bool isTrue = false;
-
-        if (Participant::getInstance().getRequiredOrientation() != 0)
-        {
-            // LOG_DEBUG("Comparing %d < %d < %d", Participant::getInstance().getRequiredOrientation() - 500,
-            //           getCurrentOrientation(), Participant::getInstance().getRequiredOrientation() + 500);
-
-            if (((Participant::getInstance().getRequiredOrientation() - 500) <= getCurrentOrientation()) &&
-                (getCurrentOrientation() <= (Participant::getInstance().getRequiredOrientation() + 500)))
-            {
-                isTrue = true;
-            }
-            else
-            {
-                isTrue = false;
-            }
-        }
-        else
-        {
-            /** If no there is no orientation set, set it to always be true. */
-            isTrue = true;
-        }
-
-        return isTrue;
+        return m_currentStatus;
     }
 
 private:
+    /**
+     * Status between robot and current IE.
+     */
+    enum CurrentStatus
+    {
+        STATUS_IDLE = 0,  /**< robot isn't moving towards and not pointing towards IE.  */
+        STATUS_TOWARDS,   /**< robot is moing towards, but not pointing to IE. */
+        STATUS_LOCKED_IN, /**< robot is moving towards, and pointing to IE. */
+        STATUS_NEAR,      /**< robot is near IE, listen to signals.  */
+        STATUS_PASSED     /**< robot passed this IE. */
+    };
+
     /** Current distance between robot and infrastructure element. */
     int32_t m_distance;
 
@@ -208,27 +205,40 @@ private:
     /** Current orientation */
     int32_t m_currentOrientation;
 
+    /** Status of robot in relation to IE. */
+    CurrentStatus m_currentStatus;
+
     /**
-     * Checks distance of robot to IE using vector absolute value logic:
-     * dist = sqrt ((x1 - x2)^2 + (y1 - y2)^2)
+     * Check if robot is moving towards an IE. If distance gets smaller then
+     * robot is moving towards it.
      *
-     * @returns the calculated distance.
+     * @param[in] currentDistance current distance between robot and IE.
+     * @param[in] previousDistance older distance between robot and IE.
+     * 
+     * @returns true if driving towards
      */
-    int32_t checkDistance()
-    {
-        m_distance = pow(pow((Participant::getInstance().getEntryX() - getCurrentXCoord()), 2) +
-                             pow((Participant::getInstance().getEntryY() - getCurrentYCoord()), 2),
-                         0.5);
+    bool isMovingTowards(int32_t currentDistance, int32_t previousDistance);
 
-        return m_distance;
+    /**
+     * Check if orientation matches the one given by the infrastructure element.
+     *
+     * @param[in] orientatioIE orientation of infrastructure element.
+     * @returns true if orientations match.
+     */
+    bool checkOrientation(int32_t orientationIE);
+
+    /** Coordinate handler constructor. */
+    CoordinateHandler() :
+        m_distance(0U),
+        m_oldDistance(0U),
+        m_currentOrientation(0U),
+        m_currentX(0U),
+        m_currentY(0U),
+        m_currentStatus(STATUS_IDLE)
+    {
     }
 
-    /** Green state constructor. */
-    CoordinateHandler() : m_distance(0U), m_oldDistance(0U), m_currentOrientation(0U), m_currentX(0U), m_currentY(0U)
-    {
-    }
-
-    /** Green state deconstructor. */
+    /** Coordinate handler deconstructor. */
     ~CoordinateHandler()
     {
     }

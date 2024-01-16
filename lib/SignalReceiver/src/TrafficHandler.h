@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef QUEUER_H
-#define QUEUER_H
+#ifndef TRAFFIC_HANDLER_H
+#define TRAFFIC_HANDLER_H
 
 /******************************************************************************
  * Compile Switches
@@ -49,8 +49,7 @@
 #include <Logging.h>
 #include <Board.h>
 
-#include <Participants.h>
-#include <queue>
+#include <TrafficElement.h>
 
 /******************************************************************************
  * Macros
@@ -61,54 +60,91 @@
  *****************************************************************************/
 
 /**
- * The green light phase.
+ * The traffic handler class.
  */
-class Queuer
+class TrafficHandler
 {
 public:
-    /** Queue of infrastructure elements. */
-    std::queue<InfrastructureElement*> m_IEQueue;
+    /** List of infrastructure elements. */
+    TrafficElement listOfElements[10];
 
-    /** The instance of Queuer */
-    static Queuer& getInstance()
+    /** The instance of Traffic handler. */
+    static TrafficHandler& getInstance()
     {
-        static Queuer instance;
+        static TrafficHandler instance;
 
         return instance;
     }
 
+    /**
+     * Process list by cycling IEs.
+     *
+     * @returns true if robot-IE traffic successfully processed.
+     */
     bool process();
 
     /**
-     * Enqueue infrastructure element.
+     * Add new IE to the list of traffic participants.
      *
-     * @param[in] elementToEnqueue the infrastructure element
+     * @param[in] nameAsParameter is name of the IE
+     * @param[in] orientationAsParameter is orientation of IE
+     * @param[in] xPosAsParameter is position of IE on the x Axis
+     * @param[in] yPosAsParameter is position of IE on the y Axis
+     * @param[in] defaultDistanceAsParameter is set to 0 as default.
+     * @param[in] defaultPreviousDistanceAsParameter is set to 0 as default.
+     * @param[in] topicNameAsParameter is the MQTT topic to subscribe to.
      */
-    bool enqueueParticipant(InfrastructureElement* elementToEnqueue);
+    bool setNewInfrastructureElement(String nameAsParameter, int32_t orientationAsParameter, int32_t xPosAsParameter,
+                                     int32_t yPosAsParameter, int32_t defaultDistanceAsParameter,
+                                     int32_t defaultPreviousDistanceAsParameter, String topicNameAsParameter);
 
     /**
-     * Dequeue infrastructure element.
+     * Check if robot-IE status is LOCKED_IN.
      *
+     * @returns true if robot is locked onto IE.
      */
-    void dequeueParticipant();
+    bool checkLockIn();
+
+    /**
+     * Check if robot-IE status is NEAR.
+     *
+     * @returns true if robot is near the IE.
+     */
+    bool isNear();
+
+    /**
+     * Get the name of locked-onto IE.
+     *
+     * @returns the name of locked onto IE.
+     */
+    String getTargetName()
+    {
+        return lockedOnto;
+    }
+
+    /** Traffic handler constructor. */
+    TrafficHandler()
+    {
+    }
+
+    /** Traffic handler deconstructor. */
+    ~TrafficHandler()
+    {
+    }
 
 private:
-    /** Max number of elements in the queue. */
-    static const int8_t MAX_QUEUE_ELEMENTS = 10;
+    /** Max number of elements in the list. */
+    int8_t MAX_ELEMENTS = 10;
 
-    /** Green state constructor. */
-    Queuer()
-    {
-    }
+    /** Number of enlisted IEs. */
+    int8_t NR_OF_ELEMENTS = 0;
 
-    /** Green state deconstructor. */
-    ~Queuer()
-    {
-    }
+    /** Current IE that robot is locked onto. */
+    String lockedOnto = "";
 
-    Queuer(const Queuer& state);            /**< Copy construction of an instance. */
-    Queuer& operator=(const Queuer& state); /**< Assignment of an instance. */
+    TrafficHandler(const TrafficHandler& state);            /**< Copy construction of an instance. */
+    TrafficHandler& operator=(const TrafficHandler& state); /**< Assignment of an instance. */
 };
 
-#endif /*QUEUER_H*/
+#endif /*TRAFFIC_HANDLER_H*/
        /** @} */
