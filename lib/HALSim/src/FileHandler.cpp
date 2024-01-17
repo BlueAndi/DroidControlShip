@@ -97,7 +97,7 @@ size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint
 size_t FileHandler::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
 {
     size_t writtenBytes = 0U;
-    FILE*  file         = fopen(fileName.c_str(), "w");
+    FILE*  file         = fopen(fileName.c_str(), "wb");
 
     if (nullptr == file)
     {
