@@ -140,6 +140,15 @@ private:
     /** Timer for sending coordinate sets. */
     SimpleTimer m_sendPackageTimer;
 
+    /** Sending coordinate Id only once in trigger area. */
+    bool gIsListening = false;
+
+    /** Save current deserialized value of COLOR ID. */
+    Color clr;
+
+    /** Sending color only on change. */
+    Color oldColorId;
+
     /**
      * Handler of fatal errors in the Application.
      */

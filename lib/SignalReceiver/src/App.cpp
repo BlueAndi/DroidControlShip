@@ -97,15 +97,6 @@ static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
-/** Sending coordinate Id only once in trigger area. */
-bool gIsListening = false;
-
-/** Save current deserialized value of COLOR ID. */
-Color clr;
-
-/** Sending color only on change. */
-Color oldColorId;
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
