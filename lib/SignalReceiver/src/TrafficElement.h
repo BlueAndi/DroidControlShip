@@ -78,7 +78,7 @@ public:
      *
      * @param[in] elementName is name of IE to be set.
      */
-    void setName(String elementName)
+    void setIEName(String elementName)
     {
         m_nameElement = elementName;
     }
@@ -288,7 +288,7 @@ private:
     String m_topicName;
 
     /** Status between robot and IE. */
-    int8_t m_trafficStatus;
+    uint8_t m_trafficStatus;
 
     TrafficElement(const TrafficElement& state);            /**< Copy construction of an instance. */
     TrafficElement& operator=(const TrafficElement& state); /**< Assignment of an instance. */

@@ -64,9 +64,7 @@
  * Public Methods
  *****************************************************************************/
 
-bool CoordinateHandler::process(const String& ieName, 
-                                int32_t ieOrientation, 
-                                int32_t distanceToIE,
+bool CoordinateHandler::process(const String& ieName, int32_t ieOrientation, int32_t distanceToIE,
                                 int32_t previousDistanceToIE)
 
 {
@@ -82,7 +80,7 @@ bool CoordinateHandler::process(const String& ieName,
 
         if (true == CoordinateHandler::getInstance().checkOrientation(ieOrientation))
         {
-            // LOG_DEBUG("Robot pointing towards %s.", ieName.c_str());
+            // LOG_DEBUG("Robot pointing towards %s.", ieName.c_str());            
 
             /** Robot is moving towards the IE AND has matching orientation, lock in! */
             m_currentStatus = STATUS_LOCKED_IN;
@@ -117,7 +115,7 @@ bool CoordinateHandler::process(const String& ieName,
     return isSuccessful;
 }
 
-int32_t CoordinateHandler::checkDistance(int32_t xPos, int32_t yPos)
+int32_t CoordinateHandler::calculateDistance(int32_t xPos, int32_t yPos)
 {
     m_distance = pow(pow((xPos - m_currentX), 2) + pow((yPos - m_currentY), 2), 0.5);
 
@@ -133,9 +131,10 @@ int32_t CoordinateHandler::checkDistance(int32_t xPos, int32_t yPos)
  *****************************************************************************/
 
 bool CoordinateHandler::isMovingTowards(int32_t currentDistance, int32_t previousDistance)
+{
+    bool isTrue = false;
+    if (currentDistance <= 700)
     {
-        bool isTrue;
-
         if (currentDistance < previousDistance)
         {
             /** Distance is decreasing, robot is moving towards. */
@@ -146,9 +145,15 @@ bool CoordinateHandler::isMovingTowards(int32_t currentDistance, int32_t previou
             /** Distance is increasing, robot is moving away. */
             isTrue = false;
         }
-
-        return isTrue;
     }
+    else
+    {
+        /** Robot is too far away. */
+        isTrue = false;
+    }
+
+    return isTrue;
+}
 
 bool CoordinateHandler::checkOrientation(int32_t orientationIE)
 {
@@ -156,8 +161,7 @@ bool CoordinateHandler::checkOrientation(int32_t orientationIE)
 
     if (orientationIE != 0)
     {
-        if (((orientationIE - 500) <= getCurrentOrientation()) &&
-            (getCurrentOrientation() <= (orientationIE + 500)))
+        if (((orientationIE - 500) <= getCurrentOrientation()) && (getCurrentOrientation() <= (orientationIE + 500)))
         {
             isTrue = true;
         }
@@ -172,7 +176,7 @@ bool CoordinateHandler::checkOrientation(int32_t orientationIE)
         isTrue = true;
     }
 
-        return isTrue;
+    return isTrue;
 }
 
 /******************************************************************************

@@ -74,7 +74,7 @@ bool TrafficHandler::process()
     {
         /** Recalculate distances. */
         listOfElements[i].setPreviousDistance(listOfElements[i].getDistance());
-        listOfElements[i].setDistance(CoordinateHandler::getInstance().checkDistance(listOfElements[i].getEntryX(),
+        listOfElements[i].setDistance(CoordinateHandler::getInstance().calculateDistance(listOfElements[i].getEntryX(),
                                                                                      listOfElements[i].getEntryY()));
 
         /** Process new coordinates. */
@@ -112,7 +112,7 @@ bool TrafficHandler::setNewInfrastructureElement(const String& nameAsParameter,
         /** If IE name isn't empty, add it to the list. */
         if (true == listOfElements[CURRENT_ELEMENT].isEmpty())
         {
-            listOfElements[CURRENT_ELEMENT].setName(nameAsParameter);
+            listOfElements[CURRENT_ELEMENT].setIEName(nameAsParameter);
             listOfElements[CURRENT_ELEMENT].setTopicName(topicNameAsParameter);
             listOfElements[CURRENT_ELEMENT].setRequiredOrientation(orientationAsParameter);
             listOfElements[CURRENT_ELEMENT].setEntryValues(xPosAsParameter, yPosAsParameter);

@@ -165,14 +165,14 @@ public:
      * 
      * @returns the calculated distance.
      */
-    int32_t checkDistance(int32_t xPos, int32_t yPos);
+    int32_t calculateDistance(int32_t xPos, int32_t yPos);
 
     /**
      * Checks current status between robot and IE.
      *
      * @returns the current status.
      */
-    int8_t getStatus()
+    uint8_t getStatus()
     {
         return m_currentStatus;
     }
