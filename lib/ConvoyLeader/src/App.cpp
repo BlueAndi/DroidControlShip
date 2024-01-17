@@ -153,88 +153,26 @@ void App::setup()
         {
             LOG_FATAL("Network configuration could not be set.");
         }
+        else if (false == setupMqttClient())
+        {
+            LOG_FATAL("Failed to setup MQTT client.");
+        }
+        else if (PLATOON_LEADER_ID != settings.getPlatoonVehicleId())
+        {
+            /* Correct config.json file loaded? */
+            LOG_FATAL("Platoon Vehicle ID must be 0 for the leader.");
+        }
+        else if (false == m_v2vClient.init(settings.getPlatoonPlatoonId(), settings.getPlatoonVehicleId()))
+        {
+            LOG_FATAL("Failed to initialize V2V client.");
+        }
+        else if (false == setupSerialMuxProt())
+        {
+            LOG_FATAL("Failed to setup SerialMuxProt.");
+        }
         else
         {
-            /* Setup MQTT Server, Birth and Will messages. */
-            StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
-            char                                           birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
-            String                                         birthMessage;
-
-            birthDoc["name"] = settings.getRobotName().c_str();
-            (void)serializeJson(birthDoc, birthMsgArray);
-            birthMessage = birthMsgArray;
-
-            if (false == m_mqttClient.init())
-            {
-                LOG_FATAL("Failed to initialize MQTT client.");
-            }
-            else
-            {
-                MqttSettings mqttSettings = {settings.getRobotName(),
-                                             settings.getMqttBrokerAddress(),
-                                             settings.getMqttPort(),
-                                             TOPIC_NAME_BIRTH,
-                                             birthMessage,
-                                             TOPIC_NAME_WILL,
-                                             birthMessage,
-                                             true};
-
-                if (false == m_mqttClient.setConfig(mqttSettings))
-                {
-                    LOG_FATAL("MQTT configuration could not be set.");
-                }
-                else if (PLATOON_LEADER_ID != settings.getPlatoonVehicleId())
-                {
-                    /* Correct config.json file loaded? */
-                    LOG_FATAL("Platoon Vehicle ID must be 0 for the leader.");
-                }
-                else if (false == m_v2vClient.init(settings.getPlatoonPlatoonId(), settings.getPlatoonVehicleId()))
-                {
-                    LOG_FATAL("Failed to initialize V2V client.");
-                }
-                else
-                {
-                    /* Setup SerialMuxProt Channels */
-                    m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME,
-                                                   App_currentVehicleChannelCallback);
-                    m_serialMuxProtChannelIdMotorSpeedSetpoints =
-                        m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
-
-                    if (0U == m_serialMuxProtChannelIdMotorSpeedSetpoints)
-                    {
-                        LOG_FATAL("Could not create SerialMuxProt Channel: %s.", SPEED_SETPOINT_CHANNEL_NAME);
-                    }
-                    else
-                    {
-
-                        ProcessingChainFactory& processingChainFactory = ProcessingChainFactory::getInstance();
-
-                        processingChainFactory.registerLongitudinalControllerCreateFunc(LongitudinalController::create);
-                        processingChainFactory.registerLongitudinalSafetyPolicyCreateFunc(
-                            LongitudinalSafetyPolicy::create);
-                        processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
-                        processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
-
-                        PlatoonController::InputWaypointCallback lambdaInputWaypointCallback =
-                            [this](Waypoint& waypoint) { return this->inputWaypointCallback(waypoint); };
-                        PlatoonController::OutputWaypointCallback lambdaOutputWaypointCallback =
-                            [this](const Waypoint& waypoint) { return this->outputWaypointCallback(waypoint); };
-                        PlatoonController::MotorSetpointCallback lambdaMotorSetpointCallback =
-                            [this](const int16_t left, const int16_t right)
-                        { return this->motorSetpointCallback(left, right); };
-
-                        if (false == m_platoonController.init(lambdaInputWaypointCallback, lambdaOutputWaypointCallback,
-                                                              lambdaMotorSetpointCallback))
-                        {
-                            LOG_FATAL("Could not initialize Platoon Controller.");
-                        }
-                        else
-                        {
-                            isSuccessful = true;
-                        }
-                    }
-                }
-            }
+            isSuccessful = setupPlatoonController();
         }
     }
 
@@ -324,6 +262,98 @@ void App::fatalErrorHandler()
     {
         ;
     }
+}
+
+bool App::setupMqttClient()
+{
+    /* Setup MQTT Server, Birth and Will messages. */
+    bool                                           isSuccessful = false;
+    SettingsHandler&                               settings     = SettingsHandler::getInstance();
+    StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
+    char                                           birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+    String                                         birthMessage;
+
+    birthDoc["name"] = settings.getRobotName();
+    (void)serializeJson(birthDoc, birthMsgArray);
+    birthMessage = birthMsgArray;
+
+    MqttSettings mqttSettings = {settings.getRobotName(),
+                                 settings.getMqttBrokerAddress(),
+                                 settings.getMqttPort(),
+                                 TOPIC_NAME_BIRTH,
+                                 birthMessage,
+                                 TOPIC_NAME_WILL,
+                                 birthMessage,
+                                 true};
+
+    if (false == m_mqttClient.init())
+    {
+        LOG_FATAL("Failed to initialize MQTT client.");
+    }
+    else if (false == m_mqttClient.setConfig(mqttSettings))
+    {
+        LOG_FATAL("MQTT configuration could not be set.");
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
+bool App::setupSerialMuxProt()
+{
+    bool isSuccessful = false;
+
+    /* Channel subscription. */
+    m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME, App_currentVehicleChannelCallback);
+
+    /* Channel creation. */
+    m_serialMuxProtChannelIdMotorSpeedSetpoints =
+        m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+
+    if (0U == m_serialMuxProtChannelIdMotorSpeedSetpoints)
+    {
+        LOG_FATAL("Could not create SerialMuxProt Channel: %s.", SPEED_SETPOINT_CHANNEL_NAME);
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
+bool App::setupPlatoonController()
+{
+    bool isSuccessful = false;
+
+    ProcessingChainFactory& processingChainFactory = ProcessingChainFactory::getInstance();
+
+    PlatoonController::InputWaypointCallback lambdaInputWaypointCallback = [this](Waypoint& waypoint)
+    { return this->inputWaypointCallback(waypoint); };
+    PlatoonController::OutputWaypointCallback lambdaOutputWaypointCallback = [this](const Waypoint& waypoint)
+    { return this->outputWaypointCallback(waypoint); };
+    PlatoonController::MotorSetpointCallback lambdaMotorSetpointCallback =
+        [this](const int16_t left, const int16_t right) { return this->motorSetpointCallback(left, right); };
+
+    processingChainFactory.registerLongitudinalControllerCreateFunc(LongitudinalController::create);
+    processingChainFactory.registerLongitudinalSafetyPolicyCreateFunc(LongitudinalSafetyPolicy::create);
+    processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
+    processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
+
+    if (false == m_platoonController.init(lambdaInputWaypointCallback, lambdaOutputWaypointCallback,
+                                          lambdaMotorSetpointCallback))
+    {
+        LOG_FATAL("Could not initialize Platoon Controller.");
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
 }
 
 /******************************************************************************

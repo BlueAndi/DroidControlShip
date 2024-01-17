@@ -172,9 +172,25 @@ private:
     void fatalErrorHandler();
 
     /**
-     * Send speed setpoints using SerialMuxProt.
+     * Setup the MQTT client.
+     *
+     * @return If successful returns true, otherwise false.
      */
-    void sendSpeedSetpoints();
+    bool setupMqttClient();
+
+    /**
+     * Setup the SerialMuxProt channels.
+     *
+     * @return If successful returns true, otherwise false.
+     */
+    bool setupSerialMuxProt();
+
+    /**
+     * Setup the platoon controller.
+     *
+     * @return If successful returns true, otherwise false.
+     */
+    bool setupPlatoonController();
 
 private:
     /* Not allowed. */
