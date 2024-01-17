@@ -69,7 +69,9 @@ public:
         m_serialMuxProtChannelIdCoordinates(0U),
         m_serialMuxProtChannelIdTrafficLightColors(0U),
         m_mqttClient(),
-        m_sendPackageTimer()
+        m_sendPackageTimer(),
+        clr(),
+        oldColorId()
     {
     }
 
