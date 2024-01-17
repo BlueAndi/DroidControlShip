@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "App.h"
+#include "RemoteControl.h"
 #include <Board.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
@@ -61,6 +62,7 @@
  * Prototypes
  *****************************************************************************/
 
+static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 static void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
@@ -271,17 +273,18 @@ bool App::setupSerialMuxProt()
     bool isSuccessful = false;
 
     /* Channel subscription. */
-    m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME, App_currentVehicleChannelCallback);
+    m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
+    m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME, App_currentVehicleChannelCallback);
 
     /* Channel creation. */
-    m_serialMuxProtChannelIdMotorSpeedSetpoints =
+    m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
+    m_serialMuxProtChannelIdMotorSpeeds =
         m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+    m_serialMuxProtChannelInitialVehicleData =
+        m_smpServer.createChannel(INITIAL_VEHICLE_DATA_CHANNEL_NAME, INITIAL_VEHICLE_DATA_CHANNEL_DLC);
 
-    if (0U == m_serialMuxProtChannelIdMotorSpeedSetpoints)
-    {
-        LOG_FATAL("Could not create SerialMuxProt Channel: %s.", SPEED_SETPOINT_CHANNEL_NAME);
-    }
-    else
+    if ((0U != m_serialMuxProtChannelIdRemoteCtrl) && (0U != m_serialMuxProtChannelIdMotorSpeeds) &&
+        (0U != m_serialMuxProtChannelInitialVehicleData))
     {
         isSuccessful = true;
     }
@@ -296,6 +299,33 @@ bool App::setupSerialMuxProt()
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
+
+/**
+ * Receives remote control command responses over SerialMuxProt channel.
+ *
+ * @param[in] payload       Command id
+ * @param[in] payloadSize   Size of command id
+ * @param[in] userData      User data
+ */
+void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+{
+    UTIL_NOT_USED(userData);
+    if ((nullptr != payload) && (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize))
+    {
+        const CommandResponse* cmdRsp = reinterpret_cast<const CommandResponse*>(payload);
+        LOG_DEBUG("CMD_RSP: ID: 0x%02X , RSP: 0x%02X", cmdRsp->commandId, cmdRsp->responseId);
+
+        if (RemoteControl::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
+        {
+            LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
+        }
+    }
+    else
+    {
+        LOG_WARNING("CMD_RSP: Invalid payload size. Expected: %u Received: %u", COMMAND_RESPONSE_CHANNEL_DLC,
+                    payloadSize);
+    }
+}
 
 /**
  * Receives current position and heading of the robot over SerialMuxProt channel.
@@ -314,7 +344,7 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     }
     else
     {
-        LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u",
-                    CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME, CURRENT_VEHICLE_DATA_CHANNEL_DLC, payloadSize);
+        LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u", CURRENT_VEHICLE_DATA_CHANNEL_NAME,
+                    CURRENT_VEHICLE_DATA_CHANNEL_DLC, payloadSize);
     }
 }

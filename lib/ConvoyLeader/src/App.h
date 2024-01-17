@@ -66,8 +66,10 @@ public:
      * Construct the convoy leader application.
      */
     App() :
+        m_serialMuxProtChannelIdRemoteCtrl(0U),
+        m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_serialMuxProtChannelInitialVehicleData(0U),
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
-        m_serialMuxProtChannelIdMotorSpeedSetpoints(0U),
         m_mqttClient(),
         m_v2vClient(m_mqttClient)
     {
@@ -107,8 +109,14 @@ private:
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
 
-    /** SerialMuxProt Channel id sending sending motor speed setpoints. */
-    uint8_t m_serialMuxProtChannelIdMotorSpeedSetpoints;
+    /** SerialMuxProt Channel id for sending remote control commands. */
+    uint8_t m_serialMuxProtChannelIdRemoteCtrl;
+
+    /** SerialMuxProt Channel id for sending motor speeds. */
+    uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+
+    /** SerialMuxProt Channel id for sending initial position data. */
+    uint8_t m_serialMuxProtChannelInitialVehicleData;
 
     /**
      * SerialMuxProt Server Instance
