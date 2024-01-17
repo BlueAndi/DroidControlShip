@@ -65,9 +65,6 @@
 class TrafficHandler
 {
 public:
-    /** List of infrastructure elements. */
-    TrafficElement listOfElements[10];
-
     /** The instance of Traffic handler. */
     static TrafficHandler& getInstance()
     {
@@ -137,11 +134,14 @@ public:
     }
 
 private:
+    /** List of infrastructure elements. */
+    TrafficElement listOfElements[10];
+
     /** Max number of elements in the list. */
-    int8_t MAX_ELEMENTS = 10;
+    uint8_t MAX_ELEMENTS = 10;
 
     /** Number of enlisted IEs. */
-    int8_t NR_OF_ELEMENTS = 0;
+    uint8_t NR_OF_ELEMENTS = 0;
 
     /** Current IE that robot is locked onto. */
     String lockedOnto = "";
