@@ -81,6 +81,9 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
 
+/* MQTT topic name for release messages. */
+const char* App::TOPIC_NAME_RELEASE = "release";
+
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
@@ -169,6 +172,11 @@ void App::setup()
         }
         else
         {
+            LongitudinalController::MotorSetpointCallback motorSetpointCallback = [this](const int16_t& topCenterSpeed)
+            { return this->motorSetpointCallback(topCenterSpeed); };
+
+            m_longitudinalController.setMotorSetpointCallback(motorSetpointCallback);
+
             isSuccessful = true;
         }
     }
@@ -205,6 +213,9 @@ void App::loop()
     /* Process V2V Communication */
     m_v2vClient.process();
 
+    /* Process Longitudinal Controller */
+    m_longitudinalController.process();
+
     if (false == m_initialDataSent)
     {
         SettingsHandler& settings = SettingsHandler::getInstance();
@@ -220,12 +231,64 @@ void App::loop()
             m_initialDataSent = true;
         }
     }
+
+    if (LongitudinalController::STATE_STARTUP == m_longitudinalController.getState())
+    {
+        Command payload;
+        payload.commandId = RemoteControl::CMD_ID_GET_MAX_SPEED;
+
+        (void)m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &payload, sizeof(payload));
+    }
 }
 
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
 {
     LOG_DEBUG("X: %d Y: %d Heading: %d Left: %d Right: %d Center: %d", vehicleData.xPos, vehicleData.yPos,
               vehicleData.orientation, vehicleData.left, vehicleData.right, vehicleData.center);
+
+    Waypoint vehicleDataAsWaypoint;
+
+    vehicleDataAsWaypoint.xPos        = vehicleData.xPos;
+    vehicleDataAsWaypoint.yPos        = vehicleData.yPos;
+    vehicleDataAsWaypoint.orientation = vehicleData.orientation;
+    vehicleDataAsWaypoint.left        = vehicleData.left;
+    vehicleDataAsWaypoint.right       = vehicleData.right;
+    vehicleDataAsWaypoint.center      = vehicleData.center;
+
+    m_longitudinalController.calculateTopMotorSpeed(vehicleDataAsWaypoint);
+}
+
+bool App::motorSetpointCallback(const int16_t topCenterSpeed)
+{
+    SpeedData payload;
+    payload.center = topCenterSpeed;
+
+    return m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload));
+}
+
+void App::release()
+{
+    Command payload;
+    payload.commandId = RemoteControl::CMD_ID_START_DRIVING;
+
+    /* Release robot. */
+    if (false == m_longitudinalController.release())
+    {
+        LOG_WARNING("Robot could not be released.");
+    }
+    else if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &payload, sizeof(payload)))
+    {
+        LOG_WARNING("Failed to send release command to RU.");
+    }
+    else
+    {
+        LOG_INFO("Robot released.");
+    }
+}
+
+void App::setMaxMotorSpeed(const int16_t maxMotorSpeed)
+{
+    m_longitudinalController.setMaxMotorSpeed(maxMotorSpeed);
 }
 
 /******************************************************************************
@@ -279,6 +342,8 @@ bool App::setupMqttClient()
     }
     else
     {
+        m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, [this](const String& payload) { this->release(); });
+
         isSuccessful = true;
     }
 
@@ -326,15 +391,16 @@ bool App::setupSerialMuxProt()
  */
 void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
-    UTIL_NOT_USED(userData);
-    if ((nullptr != payload) && (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize))
+    if ((nullptr != payload) && (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
-        const CommandResponse* cmdRsp = reinterpret_cast<const CommandResponse*>(payload);
+        App*                   application = reinterpret_cast<App*>(userData);
+        const CommandResponse* cmdRsp      = reinterpret_cast<const CommandResponse*>(payload);
         LOG_DEBUG("CMD_RSP: ID: 0x%02X , RSP: 0x%02X", cmdRsp->commandId, cmdRsp->responseId);
 
         if (RemoteControl::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
         {
             LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
+            application->setMaxMotorSpeed(cmdRsp->maxMotorSpeed);
         }
     }
     else

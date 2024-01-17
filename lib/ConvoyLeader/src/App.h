@@ -49,6 +49,7 @@
 #include <SerialMuxProtServer.hpp>
 #include "SerialMuxChannels.h"
 #include <V2VClient.h>
+#include "LongitudinalController.h"
 
 /******************************************************************************
  * Macros
@@ -72,7 +73,8 @@ public:
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_mqttClient(),
         m_v2vClient(m_mqttClient),
-        m_initialDataSent(false)
+        m_initialDataSent(false),
+        m_longitudinalController()
     {
     }
 
@@ -100,6 +102,28 @@ public:
      */
     void currentVehicleChannelCallback(const VehicleData& vehicleData);
 
+    /**
+     * Motor setpoint callback.
+     * Called in order to send the motor speeds using SerialMuxProt to the robot.
+     *
+     * @param[in] topCenterSpeed  Center motor speed [steps/s].
+     *
+     * @return If the motor speed was sent successfully, returns true. Otherwise, false.
+     */
+    bool motorSetpointCallback(const int16_t topCenterSpeed);
+
+    /**
+     * Release robot and start driving.
+     */
+    void release();
+
+    /**
+     * Set max motor speed.
+     *
+     * @param[in] maxMotorSpeed    Max motor speed [steps/s].
+     */
+    void setMaxMotorSpeed(const int16_t maxMotorSpeed);
+
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
@@ -109,6 +133,9 @@ private:
 
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
+
+    /** MQTT topic name for release messages. */
+    static const char* TOPIC_NAME_RELEASE;
 
     /** SerialMuxProt Channel id for sending remote control commands. */
     uint8_t m_serialMuxProtChannelIdRemoteCtrl;
@@ -140,6 +167,11 @@ private:
      * Flag for setting initial data through SMP.
      */
     bool m_initialDataSent;
+
+    /**
+     * Longitudinal controller.
+     */
+    LongitudinalController m_longitudinalController;
 
 private:
     /**

@@ -28,7 +28,7 @@
  * @brief  RemoteControl common constants.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup App
+ * @addtogroup Application
  *
  * @{
  */
@@ -64,6 +64,7 @@ namespace RemoteControl
         CMD_ID_START_MOTOR_SPEED_CALIB, /**< Start motor speed calibration. */
         CMD_ID_REINIT_BOARD,            /**< Re-initialize the board. Required for webots simulation. */
         CMD_ID_GET_MAX_SPEED,           /**< Get maximum speed. */
+        CMD_ID_START_DRIVING,           /**< Start driving. */
 
     } CmdId;
 
