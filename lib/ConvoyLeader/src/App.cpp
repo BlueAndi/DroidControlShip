@@ -204,11 +204,28 @@ void App::loop()
 
     /* Process V2V Communication */
     m_v2vClient.process();
+
+    if (false == m_initialDataSent)
+    {
+        SettingsHandler& settings = SettingsHandler::getInstance();
+        VehicleData      initialVehicleData;
+        initialVehicleData.xPos        = settings.getInitialXPosition();
+        initialVehicleData.yPos        = settings.getInitialYPosition();
+        initialVehicleData.orientation = settings.getInitialHeading();
+
+        if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
+                                         sizeof(initialVehicleData)))
+        {
+            LOG_DEBUG("Initial vehicle data sent.");
+            m_initialDataSent = true;
+        }
+    }
 }
 
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
 {
-    UTIL_NOT_USED(vehicleData);
+    LOG_DEBUG("X: %d Y: %d Heading: %d Left: %d Right: %d Center: %d", vehicleData.xPos, vehicleData.yPos,
+              vehicleData.orientation, vehicleData.left, vehicleData.right, vehicleData.center);
 }
 
 /******************************************************************************

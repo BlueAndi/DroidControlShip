@@ -71,7 +71,8 @@ public:
         m_serialMuxProtChannelInitialVehicleData(0U),
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_mqttClient(),
-        m_v2vClient(m_mqttClient)
+        m_v2vClient(m_mqttClient),
+        m_initialDataSent(false)
     {
     }
 
@@ -134,6 +135,11 @@ private:
      * V2V client instance.
      */
     V2VClient m_v2vClient;
+
+    /**
+     * Flag for setting initial data through SMP.
+     */
+    bool m_initialDataSent;
 
 private:
     /**
