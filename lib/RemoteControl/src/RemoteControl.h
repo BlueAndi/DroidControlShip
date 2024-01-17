@@ -75,7 +75,7 @@ namespace RemoteControl
         RSP_ID_ERROR    /**< Command failed. */
 
     } RspId;
-} // namespace RemoteControl
+} /* namespace RemoteControl */
 
 /******************************************************************************
  * Functions
