@@ -40,11 +40,6 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <Util.h>
-#include <ProcessingChainFactory.h>
-#include "LongitudinalController.h"
-#include "LongitudinalSafetyPolicy.h"
-#include "LateralController.h"
-#include "LateralSafetyPolicy.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -172,7 +167,7 @@ void App::setup()
         }
         else
         {
-            isSuccessful = setupPlatoonController();
+            isSuccessful = true;
         }
     }
 
@@ -207,42 +202,11 @@ void App::loop()
 
     /* Process V2V Communication */
     m_v2vClient.process();
-
-    /* Process Platoon Controller */
-    m_platoonController.process(m_v2vClient.getWaypointQueueSize());
 }
 
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
 {
-    Waypoint vehicleDataAsWaypoint;
-
-    vehicleDataAsWaypoint.xPos        = vehicleData.xPos;
-    vehicleDataAsWaypoint.yPos        = vehicleData.yPos;
-    vehicleDataAsWaypoint.orientation = vehicleData.orientation;
-    vehicleDataAsWaypoint.left        = vehicleData.left;
-    vehicleDataAsWaypoint.right       = vehicleData.right;
-    vehicleDataAsWaypoint.center      = vehicleData.center;
-
-    m_platoonController.setLatestVehicleData(vehicleDataAsWaypoint);
-}
-
-bool App::inputWaypointCallback(Waypoint& waypoint)
-{
-    return m_v2vClient.getNextWaypoint(waypoint);
-}
-
-bool App::outputWaypointCallback(const Waypoint& waypoint)
-{
-    return m_v2vClient.sendWaypoint(waypoint);
-}
-
-bool App::motorSetpointCallback(const int16_t left, const int16_t right)
-{
-    SpeedData payload;
-    payload.left  = left;
-    payload.right = right;
-
-    return m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints, &payload, sizeof(payload));
+    UTIL_NOT_USED(vehicleData);
 }
 
 /******************************************************************************
@@ -316,37 +280,6 @@ bool App::setupSerialMuxProt()
     if (0U == m_serialMuxProtChannelIdMotorSpeedSetpoints)
     {
         LOG_FATAL("Could not create SerialMuxProt Channel: %s.", SPEED_SETPOINT_CHANNEL_NAME);
-    }
-    else
-    {
-        isSuccessful = true;
-    }
-
-    return isSuccessful;
-}
-
-bool App::setupPlatoonController()
-{
-    bool isSuccessful = false;
-
-    ProcessingChainFactory& processingChainFactory = ProcessingChainFactory::getInstance();
-
-    PlatoonController::InputWaypointCallback lambdaInputWaypointCallback = [this](Waypoint& waypoint)
-    { return this->inputWaypointCallback(waypoint); };
-    PlatoonController::OutputWaypointCallback lambdaOutputWaypointCallback = [this](const Waypoint& waypoint)
-    { return this->outputWaypointCallback(waypoint); };
-    PlatoonController::MotorSetpointCallback lambdaMotorSetpointCallback =
-        [this](const int16_t left, const int16_t right) { return this->motorSetpointCallback(left, right); };
-
-    processingChainFactory.registerLongitudinalControllerCreateFunc(LongitudinalController::create);
-    processingChainFactory.registerLongitudinalSafetyPolicyCreateFunc(LongitudinalSafetyPolicy::create);
-    processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
-    processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
-
-    if (false == m_platoonController.init(lambdaInputWaypointCallback, lambdaOutputWaypointCallback,
-                                          lambdaMotorSetpointCallback))
-    {
-        LOG_FATAL("Could not initialize Platoon Controller.");
     }
     else
     {
