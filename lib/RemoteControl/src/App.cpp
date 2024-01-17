@@ -39,6 +39,7 @@
 #include <SettingsHandler.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
+#include "RemoteControl.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -230,13 +231,11 @@ void App::loop()
 
     if (false == m_initialDataSent)
     {
-        SettingsHandler& settings           = SettingsHandler::getInstance();
-        VehicleData      initialVehicleData = {.xPos        = settings.getInitialXPosition(),
-                                               .yPos        = settings.getInitialYPosition(),
-                                               .orientation = settings.getInitialHeading(),
-                                               .left        = 0,
-                                               .right       = 0,
-                                               .center      = 0};
+        SettingsHandler& settings = SettingsHandler::getInstance();
+        VehicleData      initialVehicleData;
+        initialVehicleData.xPos        = settings.getInitialXPosition();
+        initialVehicleData.yPos        = settings.getInitialYPosition();
+        initialVehicleData.orientation = settings.getInitialHeading();
 
         if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
                                          sizeof(initialVehicleData)))
@@ -360,9 +359,8 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
     {
         const CommandResponse* cmdRsp = reinterpret_cast<const CommandResponse*>(payload);
         LOG_DEBUG("CMD_RSP: ID: 0x%02X , RSP: 0x%02X", cmdRsp->commandId, cmdRsp->responseId);
-        const uint8_t COMMAND_ID_GET_MAX_SPEED = 0x04U; /* Defined here for debugging. */
 
-        if (COMMAND_ID_GET_MAX_SPEED == cmdRsp->commandId)
+        if (RemoteControl::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
         {
             LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
         }

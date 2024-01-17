@@ -230,9 +230,9 @@ public:
     }
 
     /**
-     * Get Initial Position: X
+     * Get Initial Position: X [mm]
      *
-     * @returns Initial Position: X
+     * @returns Initial Position: X [mm]
      */
     int32_t getInitialXPosition()
     {
@@ -240,9 +240,9 @@ public:
     }
 
     /**
-     * Get Initial Position: Y
+     * Get Initial Position: Y [mm]
      *
-     * @returns Initial Position: Y
+     * @returns Initial Position: Y [mm]
      */
     int32_t getInitialYPosition()
     {
@@ -250,9 +250,9 @@ public:
     }
 
     /**
-     * Get Initial Position: Heading
+     * Get Initial Position: Heading [mrad]
      *
-     * @returns Initial Position: Heading
+     * @returns Initial Position: Heading [mrad]
      */
     int32_t getInitialHeading()
     {
@@ -316,17 +316,17 @@ private:
     uint8_t m_platoonVehicleId;
 
     /**
-     * Initial Position: X
+     * Initial Position: X [mm]
      */
     int32_t m_initialXPosition;
 
     /**
-     * Initial Position: Y
+     * Initial Position: Y [mm]
      */
     int32_t m_initialYPosition;
 
     /**
-     * Initial Position: Heading
+     * Initial Position: Heading [mrad]
      */
     int32_t m_initialHeading;
 

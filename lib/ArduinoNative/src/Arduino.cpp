@@ -71,9 +71,9 @@ typedef struct
     bool        verbose;           /**< Show verbose information */
     const char* platoonId;         /**< Platoon ID */
     const char* vehicleId;         /**< Vehicle ID */
-    const char* xPosition;         /**< X position */
-    const char* yPosition;         /**< Y position */
-    const char* heading;           /**< Heading */
+    const char* xPosition;         /**< X position in mm */
+    const char* yPosition;         /**< Y position in mm */
+    const char* heading;           /**< Heading in mrad*/
 } PrgArguments;
 
 #endif
@@ -146,13 +146,13 @@ static const char PRG_ARG_PLATOON_ID_DEFAULT[] = "0";
 /** Program argument default value of the Vehicle ID. */
 static const char PRG_ARG_VEHICLE_ID_DEFAULT[] = "0";
 
-/** Program argument default value of the initial X position. */
+/** Program argument default value of the initial X position in mm. */
 static const char PRG_ARG_X_POS[] = "0";
 
-/** Program argument default value of the initial Y position. */
+/** Program argument default value of the initial Y position in mm. */
 static const char PRG_ARG_Y_POS[] = "0";
 
-/** Program argument default value of the initial heading. */
+/** Program argument default value of the initial heading in mrad. */
 static const char PRG_ARG_HEADING[] = "0";
 
 /** Program argument default value of the verbose flag. */
@@ -427,11 +427,11 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
         printf(" Default: %s\n", PRG_ARG_PLATOON_ID_DEFAULT);                 /* Platoon ID default value */
         printf("\t--vehicleId <VEHICLE-ID>\tSet vehicle ID.");                /* Vehicle ID */
         printf(" Default: %s\n", PRG_ARG_VEHICLE_ID_DEFAULT);                 /* Vehicle ID default value */
-        printf("\t--xPosition <X-POS>\t\tSet initial X position.");           /* Initial X position */
+        printf("\t--xPosition <X-POS>\t\tSet initial X position in mm.");     /* Initial X position in mm */
         printf(" Default: %s\n", PRG_ARG_X_POS);                              /* Initial X position default value */
-        printf("\t--yPosition <Y-POS>\t\tSet initial Y position.");           /* Initial Y position */
+        printf("\t--yPosition <Y-POS>\t\tSet initial Y position in mm.");     /* Initial Y position in mm */
         printf(" Default: %s\n", PRG_ARG_Y_POS);                              /* Initial Y position default value */
-        printf("\t--heading <HEADING>\t\tSet initial heading.");              /* Initial heading */
+        printf("\t--heading <HEADING>\t\tSet initial heading in mrad.");      /* Initial heading in mrad */
         printf(" Default: %s\n", PRG_ARG_HEADING);                            /* Initial heading default value */
     }
 
@@ -453,9 +453,9 @@ static void showPrgArguments(const PrgArguments& prgArgs)
     printf("Radon Ulzer port       : %s\n", prgArgs.radonUlzerPort);
     printf("Platoon ID             : %s\n", prgArgs.platoonId);
     printf("Vehicle ID             : %s\n", prgArgs.vehicleId);
-    printf("Initial X position     : %s\n", prgArgs.xPosition);
-    printf("Initial Y position     : %s\n", prgArgs.yPosition);
-    printf("Initial heading        : %s\n", prgArgs.heading);
+    printf("Initial X position [mm]: %s\n", prgArgs.xPosition);
+    printf("Initial Y position [mm]: %s\n", prgArgs.yPosition);
+    printf("Initial heading [mrad] : %s\n", prgArgs.heading);
     /* Skip verbose flag. */
 }
 

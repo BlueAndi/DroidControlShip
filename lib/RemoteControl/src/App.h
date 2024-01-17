@@ -65,7 +65,7 @@ public:
      * Construct the Remote Control application.
      */
     App() :
-        m_smpServer(Board::getInstance().getDevice().getStream(), this),
+        m_smpServer(Board::getInstance().getDevice().getStream()),
         m_serialMuxProtChannelIdRemoteCtrl(0U),
         m_serialMuxProtChannelIdMotorSpeeds(0U),
         m_serialMuxProtChannelInitialVehicleData(0U),

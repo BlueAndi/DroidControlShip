@@ -100,7 +100,7 @@ typedef struct _CommandResponse
     /** Response Payload. */
     union
     {
-        int16_t maxMotorSpeed; /**< Max speed. */
+        int16_t maxMotorSpeed; /**< Max speed [steps/s]. */
     };
 } __attribute__((packed)) CommandResponse;
 
