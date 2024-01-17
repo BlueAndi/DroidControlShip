@@ -1,0 +1,137 @@
+@startuml SignalReceiverApplication
+
+title SignalReceiver app
+
+package "Application" as appLayer {
+
+    class App <<main>>{
+        - bool gIsListening
+        - Color clr 
+        - Color oldClr
+        + setup() : void
+        + loop() : void
+        + sendCurrentColor() : void
+        + App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData) : void
+        + trafficLightColorsCallback(const String& payload) : void
+        + settingsCallback(const String& payload) : void
+    }
+
+    note left of App::gIsListening
+        Once conditions are fullfilled, gIsListening is set as true and
+        the robot receives the relevant color ID through SMP/USB.
+    end note
+
+    note left of App::App_odometryChannelCallback
+        Receives and deserializes odometry information from RadonUlzer. 
+    end note
+
+    note left of App::trafficLightColorsCallback
+        Receives and deserializes MQTT signals.
+        * Type: {"COLOR": ID}
+    end note
+
+    note left of App::settingsCallback
+        Receives and deserializes MQTT signals 
+        with settings of IEs present in the system.
+        * Type: {"FROM": , "TOWARDS": , "EX": , "EY": }
+    end note
+
+    class "TrafficElement" as te 
+    {
+        -String m_nameElement
+        -int32_t m_orientation
+        -int32_t m_entryX
+        -int32_t m_entryY
+        -int32_t m_distance
+        -int32_t m_previousDistance
+        -String m_topicName
+        -uint8_t m_trafficStatus
+        +setIEName(String name) : void
+        +getIEName() : String
+        +setRequiredOrientation(int32_t requiredOrientation) : void
+        +getRequiredOrientation() : int32_t
+        +setEntryValues(int32_t entryX, int32_t entryY) : void
+        +getEntryX() : int32_t
+        +getEntryY() : int32_t
+        +setDistance(int32_t currentDistance) : void
+        +getDistance() : int32_t
+        +setPreviousDistance(int32_t previousDistance) : void
+        +getPreviousDistance() : int32_t   
+        +setTopicName(String topic) : void
+        +getTopicName() : String
+        +setStatus(uint8_t status) : void
+        +getStatus() : uint8_t
+        +isEmpty() : bool
+    }
+
+    note bottom of te
+        * The TrafficElement class contains methods to save 
+        incoming relevant settings from IEs.
+        * It is used by TrafficHandler to create a list of 
+        all present IEs in the system.
+    end note
+
+    class "TrafficHandler" as th 
+    {
+        -uint8_t MAX_ELEMENTS
+        -uint8_t NR_OF_ELEMENTS
+        -String lockedOnto
+        -TrafficElement listOfElements[10]
+        +process() : bool
+        +setNewInfrastructureElement() : bool
+        +checkLockIn() : bool
+        +isNear() : bool
+        +getTargetName() : String
+    }
+
+    note top of th
+        * Adds new IEs to the list once it receives relevant settings.
+        * Processes this list and outputs a status between the robot and each IE.
+        * Important statuses are checked using checkLockIn() and isNear()
+    end note
+
+    note left of th::setNewInfrastructureElement()
+        Various parameters are passed through in order to add 
+        the IE to the list.
+    end note
+
+    class "CoordinateHandler" as ch 
+    {
+        -enum CurrentStatus
+        -CurrentStatus m_currentStatus
+        -int32_t m_distance
+        -int32_t m_oldDistance
+        -int32_t m_currentX
+        -int32_t m_currentY
+        -int32_t m_currentOrientation
+        +setCurrentCoordinates(int32_t xPos, int32_t yPos) : void
+        +getCurrentXCoord() : int32_t 
+        +getCurrentYCorrd() : int32_t
+        +setCurrentOrientation() : void
+        +getCurrentOrientation() : int32_t
+        +getCurrentDistance() : int32_t
+        +getOldDistance() : int32_t
+        +process(const String& ieName, int32_t ieOrientation, int32_t distanceToIE, int32_t previousDistanceToIE) : bool
+        +calculateDistance(int32_t xPos, int32_t yPos) : int32_t
+        +getStatus() : uint8_t
+        -isMovingTowards(int32_t currentDistance, int32_t previousDistance) : bool
+        -checkOrientation(int32_t orientationIE) : bool
+    }
+
+    note bottom of ch
+        Processes and compares the coordinates of the robot (current)
+        with the ones of each enlisted IE.
+    end note 
+}
+
+package "Service" as serviceLayer {
+    class Settings <<Singleton>>
+}
+
+App ---o th
+App --o ch 
+App --> Settings : <<use>>
+th "1" --> "MAX 10" te : <<use>>
+th --o ch 
+
+@enduml
