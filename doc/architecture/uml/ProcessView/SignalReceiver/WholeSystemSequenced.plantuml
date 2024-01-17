@@ -1,0 +1,76 @@
+@startuml
+
+title Sequence
+
+note right #Aqua
+Info:
+Tx - transmit
+Rx - receive
+SMP - SerialMuxProt/USB connection
+MQTT - Mosquitto broker
+end note
+
+participant RadonUlzer as RU
+note right of RU
+    running EndlessRun
+end note
+
+participant DroidControlShip as DCS
+note right of DCS
+    running SignalReceiver
+end note
+
+participant InfrastructureElements as IE
+note right of IE
+    running SmartTrafficLight
+end note
+
+== Setup ==
+
+RU --> RU: Init Board + SMP
+RU --> RU: Run Calibration
+DCS --> DCS: Init Board + MQTT Broker
+IE --> IE: Init Board + MQTT Broker
+IE --> IE: wait 5s
+IE --> IE: send settings: \n name \n orientation \n entry x \n entry y
+IE --> DCS: TxMQTT Settings
+DCS --> DCS: settingsCallback()
+DCS --> DCS: Create list of IEs, each member with: \n name \n orientation \n entry x \n entry y
+
+== Loop ==
+
+RU -> RU: follows the line
+
+hnote over RU : sending x,y coordinates and orientation
+RU -> DCS: TxSMP Odometry (x,y,orientation)
+DCS -> DCS: RxSMP Odometry
+
+group TrafficHandler::process()
+
+    group CoordinateHandler::process()
+        hnote over DCS: \nSTATUS_IDLE\n
+        group isMovingTowards = true
+            hnote over DCS: \nSTATUS_TOWARDS\n
+            group checkOrientation = true
+                hnote over DCS: \nSTATUS_LOCKED_IN\n
+
+                group is robot close?
+                    hnote over DCS: \nSTATUS_NEAR\n
+        else return process() as false, STATUS_LOCKED_IN
+                end
+            else return process() as false, STATUS_TOWARDS 
+            end
+        else return process() as false, STATUS_PASSED    
+        end
+    end
+end
+
+hnote over DCS: if status is LOCKED_IN, subscribe to the IE the robot is locked onto
+
+IE -> DCS: TxMQTT trafficLightColors \n periodically publishing relevant color
+DCS -> DCS: RxMQTT trafficLightColorsCallback\n deserialize 
+
+hnote over DCS: if status is NEAR, send last relevant color to RadonUlzer
+DCS -> RU: TxSMP sendColor()
+
+@enduml
