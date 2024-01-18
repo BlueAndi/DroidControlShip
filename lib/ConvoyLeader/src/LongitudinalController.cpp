@@ -113,14 +113,17 @@ void LongitudinalController::calculateTopMotorSpeed(const Waypoint& currentVehic
 {
     if (STATE_DRIVING == m_state)
     {
+        int16_t topMotorSpeed = 0;
+
         /* TODO: Check follower feedback. Calculate platoon length and react accordingly. */
 
-        /* TODO: Calculate top motor speed. */
+        /* Calculate top motor speed. */
+        topMotorSpeed = m_maxMotorSpeed;
 
         /* Send top motor speed. */
         if (nullptr != m_motorSetpointCallback)
         {
-            m_motorSetpointCallback(m_maxMotorSpeed);
+            m_motorSetpointCallback(topMotorSpeed);
         }
     }
 }

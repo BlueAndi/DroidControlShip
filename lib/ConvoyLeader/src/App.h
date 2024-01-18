@@ -124,6 +124,13 @@ public:
      */
     void setMaxMotorSpeed(const int16_t maxMotorSpeed);
 
+    /**
+     * Set incoming feedback from last follower.
+     *
+     * @param[in] feedback Feedback from last follower.
+     */
+    void setLastFollowerFeedback(const Waypoint& feedback);
+
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;

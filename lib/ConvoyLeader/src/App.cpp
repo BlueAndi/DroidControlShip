@@ -87,9 +87,6 @@ const char* App::TOPIC_NAME_RELEASE = "release";
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
-/** Platoon leader vehicle ID. */
-static const uint8_t PLATOON_LEADER_ID = 0U;
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -157,7 +154,7 @@ void App::setup()
         {
             LOG_FATAL("Failed to setup MQTT client.");
         }
-        else if (PLATOON_LEADER_ID != settings.getPlatoonVehicleId())
+        else if (V2VClient::PLATOON_LEADER_ID != settings.getPlatoonVehicleId())
         {
             /* Correct config.json file loaded? */
             LOG_FATAL("Platoon Vehicle ID must be 0 for the leader.");
@@ -243,17 +240,10 @@ void App::loop()
 
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
 {
-    LOG_DEBUG("X: %d Y: %d Heading: %d Left: %d Right: %d Center: %d", vehicleData.xPos, vehicleData.yPos,
-              vehicleData.orientation, vehicleData.left, vehicleData.right, vehicleData.center);
+    Waypoint vehicleDataAsWaypoint(vehicleData.xPos, vehicleData.yPos, vehicleData.orientation, vehicleData.left,
+                                   vehicleData.right, vehicleData.center);
 
-    Waypoint vehicleDataAsWaypoint;
-
-    vehicleDataAsWaypoint.xPos        = vehicleData.xPos;
-    vehicleDataAsWaypoint.yPos        = vehicleData.yPos;
-    vehicleDataAsWaypoint.orientation = vehicleData.orientation;
-    vehicleDataAsWaypoint.left        = vehicleData.left;
-    vehicleDataAsWaypoint.right       = vehicleData.right;
-    vehicleDataAsWaypoint.center      = vehicleData.center;
+    vehicleDataAsWaypoint.debugPrint();
 
     m_longitudinalController.calculateTopMotorSpeed(vehicleDataAsWaypoint);
 }
@@ -289,6 +279,11 @@ void App::release()
 void App::setMaxMotorSpeed(const int16_t maxMotorSpeed)
 {
     m_longitudinalController.setMaxMotorSpeed(maxMotorSpeed);
+}
+
+void App::setLastFollowerFeedback(const Waypoint& feedback)
+{
+    m_longitudinalController.setLastFollowerFeedback(feedback);
 }
 
 /******************************************************************************
@@ -342,9 +337,20 @@ bool App::setupMqttClient()
     }
     else
     {
-        m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, [this](const String& payload) { this->release(); });
+        isSuccessful =
+            m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, [this](const String& payload) { this->release(); });
 
-        isSuccessful = true;
+        isSuccessful &= m_mqttClient.subscribe("platoons/0/vehicles/0/feedback", false,
+                                               [this](const String& payload)
+                                               {
+                                                   Waypoint* waypoint = Waypoint::deserialize(payload);
+
+                                                   if (nullptr != waypoint)
+                                                   {
+                                                       this->setLastFollowerFeedback(*waypoint);
+                                                       delete waypoint;
+                                                   }
+                                               });
     }
 
     return isSuccessful;
