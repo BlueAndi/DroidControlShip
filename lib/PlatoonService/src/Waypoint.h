@@ -58,7 +58,7 @@
  * Waypoint structure definition.
  * Defines the position of a waypoint in the map and the speed at which is to be reached.
  */
-class __attribute__((packed)) Waypoint
+class Waypoint
 {
 public:
     int32_t xPos;        /**< X position [mm]. */
