@@ -45,7 +45,7 @@
  *****************************************************************************/
 
 #include "SerialMuxChannels.h"
-#include "LinearKalmanFilter.h"
+#include "ExtendedKalmanFilter.h"
 #include <stdint.h>
 #include <SensorConstants.h>
 /******************************************************************************
@@ -63,7 +63,7 @@ public:
     /**
      * Constructs the SensorFusion Algorithm.
      */
-    SensorFusion() : m_linearKalmanFilter(), m_estimatedPosition{0, 0, 0}
+    SensorFusion() : m_kalmanFilter(), m_estimatedPosition{0, 0, 0}
     {
     }
 
@@ -97,7 +97,7 @@ public:
     }
 
 private:
-    LinearKalmanFilter m_linearKalmanFilter; /**< An Instance of the Kalman Filter algorithm class. */
+    ExtendedKalmanFilter m_kalmanFilter; /**< An Instance of the Kalman Filter algorithm class. */
 
     IKalmanFilter::PositionData m_estimatedPosition; /**< Variable where the current estimated Position is saved in. */
 

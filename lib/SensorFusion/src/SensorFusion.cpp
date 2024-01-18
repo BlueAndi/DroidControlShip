@@ -60,7 +60,7 @@
 
 void SensorFusion::init(void)
 {
-    m_linearKalmanFilter.init();
+    m_kalmanFilter.init();
 }
 
 void SensorFusion::estimateNewState(const SensorData& newSensorData)
@@ -85,8 +85,8 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
     kalmanParameter.angleOdometry     = newSensorData.orientationOdometry;
     kalmanParameter.turnRate          = physicalTurnRate;
 
-    m_linearKalmanFilter.predictionStep(newSensorData.timePeriod);
-    m_estimatedPosition = m_linearKalmanFilter.updateStep(kalmanParameter);
+    m_kalmanFilter.predictionStep(newSensorData.timePeriod);
+    m_estimatedPosition = m_kalmanFilter.updateStep(kalmanParameter);
 }
 
 /******************************************************************************
