@@ -174,6 +174,8 @@ void App::setup()
 
             m_longitudinalController.setMotorSetpointCallback(motorSetpointCallback);
 
+            m_sendWaypointTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
+
             isSuccessful = true;
         }
     }
@@ -236,16 +238,28 @@ void App::loop()
 
         (void)m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &payload, sizeof(payload));
     }
+
+    if (true == m_sendWaypointTimer.isTimeout())
+    {
+        if (false == m_v2vClient.sendWaypoint(latestVehicleData))
+        {
+            LOG_WARNING("Waypoint could not be sent.");
+        }
+        else
+        {
+            m_sendWaypointTimer.restart();
+        }
+    }
 }
 
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
 {
-    Waypoint vehicleDataAsWaypoint(vehicleData.xPos, vehicleData.yPos, vehicleData.orientation, vehicleData.left,
-                                   vehicleData.right, vehicleData.center);
+    latestVehicleData = Waypoint(vehicleData.xPos, vehicleData.yPos, vehicleData.orientation, vehicleData.left,
+                                 vehicleData.right, vehicleData.center);
 
-    vehicleDataAsWaypoint.debugPrint();
+    latestVehicleData.debugPrint();
 
-    m_longitudinalController.calculateTopMotorSpeed(vehicleDataAsWaypoint);
+    m_longitudinalController.calculateTopMotorSpeed(latestVehicleData);
 }
 
 bool App::motorSetpointCallback(const int16_t topCenterSpeed)

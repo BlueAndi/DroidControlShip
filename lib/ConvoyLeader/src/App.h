@@ -50,6 +50,7 @@
 #include "SerialMuxChannels.h"
 #include <V2VClient.h>
 #include "LongitudinalController.h"
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
@@ -74,7 +75,8 @@ public:
         m_mqttClient(),
         m_v2vClient(m_mqttClient),
         m_initialDataSent(false),
-        m_longitudinalController()
+        m_longitudinalController(),
+        m_sendWaypointTimer()
     {
     }
 
@@ -135,6 +137,9 @@ private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
 
+    /** Send waypoint timer interval. */
+    static const uint32_t SEND_WAYPOINT_TIMER_INTERVAL = 500U;
+
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
 
@@ -179,6 +184,16 @@ private:
      * Longitudinal controller.
      */
     LongitudinalController m_longitudinalController;
+
+    /**
+     * Latest vehicle data from RU.
+     */
+    Waypoint latestVehicleData;
+
+    /**
+     * Send waypoint timer.
+     */
+    SimpleTimer m_sendWaypointTimer;
 
 private:
     /**
