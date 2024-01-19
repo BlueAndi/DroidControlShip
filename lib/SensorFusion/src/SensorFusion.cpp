@@ -77,6 +77,9 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         kalmanParameter.positionOdometryY = static_cast<float>(newSensorData.positionOdometryY);
         kalmanParameter.angleOdometry     = static_cast<float>(newSensorData.orientationOdometry);
         kalmanParameter.turnRate          = physicalTurnRate;
+        kalmanParameter.accelerationX     = physicalAccelerationX;
+        kalmanParameter.velocityOdometry  = 0.0F;
+        kalmanParameter.distanceOdometry  = 0.0F;
         m_kalmanFilter.init(kalmanParameter);
         m_estimatedPosition = {kalmanParameter.positionOdometryX, kalmanParameter.positionOdometryY,
                                kalmanParameter.angleOdometry};
@@ -84,17 +87,32 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
     }
     else
     {
-        /* Perform the Kalman Filter Prediction and Update Steps */
-        kalmanParameter.accelerationX     = physicalAccelerationX;
-        kalmanParameter.positionOdometryX = newSensorData.positionOdometryX;
-        kalmanParameter.positionOdometryY = newSensorData.positionOdometryY;
-        kalmanParameter.angleOdometry     = newSensorData.orientationOdometry;
-        kalmanParameter.turnRate          = physicalTurnRate;
+        /* Calculate the traveled euclidean Distance based upon the Odometry Values. */
+        float deltaXOdometry = static_cast<float>(newSensorData.positionOdometryX) - m_lastOdometryPosition.positionX;
+        float deltaYOdometry = static_cast<float>(newSensorData.positionOdometryY) - m_lastOdometryPosition.positionY;
+        float euclideanDistance = sqrtf(powf(deltaXOdometry, 2.0F) + powf(deltaYOdometry, 2.0F));
 
-        m_kalmanFilter.predictionStep(newSensorData.timePeriod);
-        m_estimatedPosition = m_kalmanFilter.updateStep(kalmanParameter);
+        float deltaAngleOdometry = static_cast<float>(newSensorData.orientationOdometry) - m_lastOdometryPosition.angle;
+        float updatedOrientationOdometry = m_estimatedPosition.angle + deltaAngleOdometry;
+
+        /* Calculate the mean velocity since the last Iteration instead of using the momentary Speed.
+        Correct the sign of the distance via the measured velocity. */
+        float duration         = static_cast<float>(newSensorData.timePeriod) / 1000.0F;
+        float meanVelocityOdometry = euclideanDistance / duration;
+        if (newSensorData.velocityOdometry < 0)
+        {
+            meanVelocityOdometry *= -1.0;
+        }
+
+        /* Perform the Prediction Step and the Update Step of the Kalman Filter. */
+        KalmanParameter kalmanParameter;
+        kalmanParameter.angleOdometry    = updatedOrientationOdometry;
+        kalmanParameter.turnRate         = physicalTurnRate;
+        kalmanParameter.velocityOdometry = meanVelocityOdometry;
+        kalmanParameter.accelerationX    = physicalAccelerationX;
+        kalmanParameter.distanceOdometry = euclideanDistance;
     }
-    
+
     /* Save the last Odometry values */
     m_lastOdometryPosition.positionX = static_cast<float>(newSensorData.positionOdometryX);
     m_lastOdometryPosition.positionY = static_cast<float>(newSensorData.positionOdometryY);

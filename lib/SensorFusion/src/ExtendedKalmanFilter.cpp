@@ -125,9 +125,8 @@ void ExtendedKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParame
 
 void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)
 {
-    m_controlInputVector(IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationX);
-    m_controlInputVector(IDX_ACCELERATION_Y_CONTROL_INPUT_VECTOR) = static_cast<float>(kalmanParameter.accelerationY);
-    m_controlInputVector(IDX_TURNRATE_CONTROL_INPUT_VECTOR)       = static_cast<float>(kalmanParameter.turnRate);
+    m_controlInputVector[IDX_TURNRATE_CONTROL_INPUT_VECTOR]       = static_cast<float>(kalmanParameter.turnRate);
+    m_controlInputVector[IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR] = static_cast<float>(kalmanParameter.accelerationX);
 }
 /******************************************************************************
  * External Functions

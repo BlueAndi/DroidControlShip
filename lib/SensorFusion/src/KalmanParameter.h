@@ -51,12 +51,13 @@
 /** Struct of Data used in the Kalman Filter. */
 typedef struct _KalmanParameter
 {
-    float accelerationX;     /**< Acceleration in x direction in mm/s^2. */
-    float accelerationY;     /**< Acceleration in y direction in mm/s^2. */
+    float accelerationX;     /**< Acceleration in x direction in mm/s^2 in the Robots Coordinate System. */
     float positionOdometryX; /**< Position calculated by Odometry in x direction in mm. */
     float positionOdometryY; /**< Position calculated by Odometry in y direction in mm. */
     float angleOdometry;     /**< Orientation calculated by Odometry in mrad. */
+    float velocityOdometry;  /**< Velocity calculated by Odometry in mm/s. */
     float turnRate;          /**< Turn rate in mrad/s. */
+    float distanceOdometry;  /**< Traveled Euclidean Distance since last Iteration calculated by Odometry. */
 } __attribute__((packed)) KalmanParameter;
 
 /******************************************************************************
