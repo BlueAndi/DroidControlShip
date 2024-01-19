@@ -59,10 +59,10 @@
 static const uint8_t NUMBER_OF_STATES_N = 4U;
 
 /** Number of measurements in the measurement vector z (notation in literature: M). */
-static const uint8_t NUMBER_OF_MEASUREMENTS_M = 3U;
+static const uint8_t NUMBER_OF_MEASUREMENTS_M = 4U;
 
 /** Number of control inputs in the control input vector u (notation in literature: L). */
-static const uint8_t NUMBER_OF_CONTROL_INPUTS_L = 3U;
+static const uint8_t NUMBER_OF_CONTROL_INPUTS_L = 2U;
 
 /** This class provides an Extended Kalman filter. */
 class ExtendedKalmanFilter : public IKalmanFilter
@@ -132,29 +132,26 @@ private:
     /** Index of the orientation in the state vector x. */
     static const uint8_t IDX_ORIENTATION_STATE_VECTOR = 3U;
 
-    /** Index of Position in x-direction of the odometry in the measurement vector z. */
-    static const uint8_t IDX_ODOMETRY_X_MEASUREMENT_VECTOR = 0U;
+    /** Index of Position in x-direction in the measurement vector z. */
+    static const uint8_t IDX_POSITION_X_MEASUREMENT_VECTOR = 0U;
 
-    /** Index of Position in y-direction of the odometry in the measurement vector z. */
-    static const uint8_t IDX_ODOMETRY_Y_MEASUREMENT_VECTOR = 1U;
+    /** Index of Position in y-direction in the measurement vector z. */
+    static const uint8_t IDX_POSITION_Y_MEASUREMENT_VECTOR = 1U;
 
-    /** Index of Orientation of the odometry in the measurement vector z. */
-    static const uint8_t IDX_ODOMETRY_ORIENTATION_MEASUREMENT_VECTOR = 2U;
+    /** Index of Velocity in the measurement vector z. */
+    static const uint8_t IDX_VELOCITY_MEASUREMENT_VECTOR = 2U;
+
+    /** Index of Orientation in the measurement vector z. */
+    static const uint8_t IDX_ORIENTATION_MEASUREMENT_VECTOR = 3U;
 
     /** Index of Acceleration in x-direction in the control input vector u. */
     static const uint8_t IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR = 0U;
 
-    /** Index of Acceleration in y-direction in the control input vector u. */
-    static const uint8_t IDX_ACCELERATION_Y_CONTROL_INPUT_VECTOR = 1U;
-
     /** Index of Turn Rate in the control input vector u. */
-    static const uint8_t IDX_TURNRATE_CONTROL_INPUT_VECTOR = 2U;
+    static const uint8_t IDX_TURNRATE_CONTROL_INPUT_VECTOR = 1U;
 
     /** Initial covariance matrix (notation in literature: P). */
     static const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> INITIAL_COVARIANCE_MATRIX_P;
-
-    /** The covariance matrix of the process noise Matrix (notation in literature: Q). */
-    static const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> PROCESS_COVARIANCE_MATRIX_Q;
 
     /** The observation model Matrix (notation in literature: H). */
     static const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> OBSERVATION_MATRIX_H;
