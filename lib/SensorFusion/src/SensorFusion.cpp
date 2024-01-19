@@ -66,20 +66,13 @@ void SensorFusion::init(void)
 void SensorFusion::estimateNewState(const SensorData& newSensorData)
 {
     /* Calculate the physical Values via the Sensitivity Factors. */
-    int16_t physicalAccelerationX = newSensorData.accelerationX * SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
-    int16_t physicalAccelerationY = newSensorData.accelerationY * SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
-    int16_t physicalTurnRate      = newSensorData.turnRate * SensorConstants::GYRO_SENSITIVITY_FACTOR;
-
-    /* Transform the acceleration values from the robot coordinate system into the world coordinate system */
-    int16_t accelerationInRobotCoordinateSystem[2] = {physicalAccelerationX, physicalAccelerationY};
-    int16_t accelerationInGlobalCoordinateSystem[2];
-    transformLocalToGlobal(accelerationInGlobalCoordinateSystem, accelerationInRobotCoordinateSystem,
-                           m_estimatedPosition.angle);
+    float physicalAccelerationX =
+        static_cast<float>(newSensorData.accelerationX) * SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
+    float physicalTurnRate      = static_cast<float>(newSensorData.turnRate) * SensorConstants::GYRO_SENSITIVITY_FACTOR;
 
     /* Perform the Kalman Filter Prediction and Update Steps */
     KalmanParameter kalmanParameter;
     kalmanParameter.accelerationX     = physicalAccelerationX;
-    kalmanParameter.accelerationY     = physicalAccelerationY;
     kalmanParameter.positionOdometryX = newSensorData.positionOdometryX;
     kalmanParameter.positionOdometryY = newSensorData.positionOdometryY;
     kalmanParameter.angleOdometry     = newSensorData.orientationOdometry;
@@ -96,17 +89,6 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-void SensorFusion::transformLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
-                                          const int16_t& rotationAngle)
-{
-    /*  Calculate the sin and cos of the rotationAngle; convert the angle from mrad to rad. */
-    float cosValue = cosf(static_cast<float>(rotationAngle) / 1000.0F);
-    float sinValue = sinf(static_cast<float>(rotationAngle) / 1000.0F);
-
-    globalResult[0] = cosValue * localVectorToTransform[0] - sinValue * localVectorToTransform[1];
-    globalResult[1] = sinValue * localVectorToTransform[0] + cosValue * localVectorToTransform[1];
-}
 
 /******************************************************************************
  * External Functions

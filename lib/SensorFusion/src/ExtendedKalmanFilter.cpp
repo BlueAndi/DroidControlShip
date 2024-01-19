@@ -94,9 +94,9 @@ void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
 IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& kalmanParameter)
 {
     PositionData currentPosition;
-    currentPosition.positionX = kalmanParameter.positionOdometryX;
-    currentPosition.positionY = kalmanParameter.positionOdometryY;
-    currentPosition.angle     = kalmanParameter.angleOdometry;
+    currentPosition.positionX = m_stateVector(IDX_POSITION_X_STATE_VECTOR);
+    currentPosition.positionY = m_stateVector(IDX_POSITION_Y_STATE_VECTOR);
+    currentPosition.angle     = m_stateVector(IDX_ORIENTATION_STATE_VECTOR);
     return currentPosition;
     /* TODO: Implement Kalman Filter in cpp (TD072) */
 }

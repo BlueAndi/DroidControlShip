@@ -63,7 +63,7 @@ public:
     /**
      * Constructs the SensorFusion Algorithm.
      */
-    SensorFusion() : m_kalmanFilter(), m_estimatedPosition{0, 0, 0}
+    SensorFusion() : m_kalmanFilter(), m_estimatedPosition{0.0F, 0.0F, 0.0F}
     {
     }
 
@@ -100,16 +100,6 @@ private:
     ExtendedKalmanFilter m_kalmanFilter; /**< An Instance of the Kalman Filter algorithm class. */
 
     IKalmanFilter::PositionData m_estimatedPosition; /**< Variable where the current estimated Position is saved in. */
-
-    /**
-     * Transform the local acceleration vector [acc_x, acc_y] into a global vector using the provided angle.
-     *
-     * @param[in] globalResult                  The array to store the transformed vector [result_x, result_y].
-     * @param[in] localVectorToTransform        The local acceleration vector [acc_x, acc_y] to be transformed.
-     * @param[in] rotationAngle                 The angle used for the transformation, given in mrad.
-     */
-    void transformLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
-                                const int16_t& rotationAngle);
 };
 
 /******************************************************************************
