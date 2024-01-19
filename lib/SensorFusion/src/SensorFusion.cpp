@@ -60,7 +60,6 @@
 
 void SensorFusion::init(void)
 {
-    m_kalmanFilter.init();
 }
 
 void SensorFusion::estimateNewState(const SensorData& newSensorData)
@@ -68,18 +67,33 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
     /* Calculate the physical Values via the Sensitivity Factors. */
     float physicalAccelerationX =
         static_cast<float>(newSensorData.accelerationX) * SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
-    float physicalTurnRate      = static_cast<float>(newSensorData.turnRate) * SensorConstants::GYRO_SENSITIVITY_FACTOR;
+    float physicalTurnRate = static_cast<float>(newSensorData.turnRate) * SensorConstants::GYRO_SENSITIVITY_FACTOR;
 
-    /* Perform the Kalman Filter Prediction and Update Steps */
     KalmanParameter kalmanParameter;
-    kalmanParameter.accelerationX     = physicalAccelerationX;
-    kalmanParameter.positionOdometryX = newSensorData.positionOdometryX;
-    kalmanParameter.positionOdometryY = newSensorData.positionOdometryY;
-    kalmanParameter.angleOdometry     = newSensorData.orientationOdometry;
-    kalmanParameter.turnRate          = physicalTurnRate;
+    if (true == m_isFirstIteration)
+    {
+        /* Directely use the Position calculated via Odometry in the first iteration */
+        kalmanParameter.positionOdometryX = static_cast<float>(newSensorData.positionOdometryX);
+        kalmanParameter.positionOdometryY = static_cast<float>(newSensorData.positionOdometryY);
+        kalmanParameter.angleOdometry     = static_cast<float>(newSensorData.orientationOdometry);
+        kalmanParameter.turnRate          = physicalTurnRate;
+        m_kalmanFilter.init(kalmanParameter);
+        m_estimatedPosition = {kalmanParameter.positionOdometryX, kalmanParameter.positionOdometryY,
+                               kalmanParameter.angleOdometry};
+        m_isFirstIteration  = false;
+    }
+    else
+    {
+        /* Perform the Kalman Filter Prediction and Update Steps */
+        kalmanParameter.accelerationX     = physicalAccelerationX;
+        kalmanParameter.positionOdometryX = newSensorData.positionOdometryX;
+        kalmanParameter.positionOdometryY = newSensorData.positionOdometryY;
+        kalmanParameter.angleOdometry     = newSensorData.orientationOdometry;
+        kalmanParameter.turnRate          = physicalTurnRate;
 
-    m_kalmanFilter.predictionStep(newSensorData.timePeriod);
-    m_estimatedPosition = m_kalmanFilter.updateStep(kalmanParameter);
+        m_kalmanFilter.predictionStep(newSensorData.timePeriod);
+        m_estimatedPosition = m_kalmanFilter.updateStep(kalmanParameter);
+    }
 }
 
 /******************************************************************************

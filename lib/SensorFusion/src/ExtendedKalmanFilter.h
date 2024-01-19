@@ -89,8 +89,10 @@ public:
 
     /**
      * Initializes the variables of the Extended Kalman Filter.
+     *
+     * @param[in] kalmanParameter Parameters which should be used to initialize the filter.
      */
-    void init() final;
+    void init(KalmanParameter& initialParameter) final;
 
     /**
      * Prediction of the covariance and the state of the Extended Kalman Filter.

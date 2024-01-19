@@ -29,7 +29,7 @@
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *
  * @addtogroup Application
- * 
+ *
  * @{
  */
 
@@ -63,7 +63,7 @@ public:
     /**
      * Constructs the SensorFusion Algorithm.
      */
-    SensorFusion() : m_kalmanFilter(), m_estimatedPosition{0.0F, 0.0F, 0.0F}
+    SensorFusion() : m_kalmanFilter(), m_estimatedPosition{0.0F, 0.0F, 0.0F}, m_isFirstIteration(true)
     {
     }
 
@@ -100,6 +100,8 @@ private:
     ExtendedKalmanFilter m_kalmanFilter; /**< An Instance of the Kalman Filter algorithm class. */
 
     IKalmanFilter::PositionData m_estimatedPosition; /**< Variable where the current estimated Position is saved in. */
+
+    bool m_isFirstIteration; /**< Flag if the current Iteration is the first one */
 };
 
 /******************************************************************************

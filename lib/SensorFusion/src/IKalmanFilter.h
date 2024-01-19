@@ -67,8 +67,10 @@ public:
 
     /**
      * Initializes the variables of the Kalman Filter.
+     *
+     * @param[in] kalmanParameter Parameters which should be used to initialize the filter.
      */
-    virtual void init() = 0;
+    virtual void init(KalmanParameter& kalmanParameter) = 0;
 
     /**
      * Prediction of the covariance and the state of the Kalman Filter.

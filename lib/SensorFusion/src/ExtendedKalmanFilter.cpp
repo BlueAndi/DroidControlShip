@@ -78,12 +78,20 @@ const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> Extende
 /** The covariance of the observation noise Matrix (notation in literature: R). */
 const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M>
     ExtendedKalmanFilter::OBSERVATION_NOISE_MATRIX_R{{0.0F, 0.0F, 0.0F}, {0.0F, 0.0F, 0.0F}, {0.0F, 0.0F, 0.0F}};
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
-void ExtendedKalmanFilter::init()
+
+void ExtendedKalmanFilter::init(KalmanParameter& initialParameter)
 {
-    /* TODO: Implement Kalman Filter in cpp (TD072) */
+    m_stateVector(IDX_POSITION_X_STATE_VECTOR)  = initialParameter.positionOdometryX;
+    m_stateVector(IDX_POSITION_Y_STATE_VECTOR)  = initialParameter.positionOdometryY;
+    m_stateVector(IDX_VELOCITY_STATE_VECTOR)    = 0.0F;
+    m_stateVector(IDX_ORIENTATION_STATE_VECTOR) = initialParameter.angleOdometry;
+    m_covarianceMatrix                          = INITIAL_COVARIANCE_MATRIX_P;
+    updateControlInputVector(initialParameter);
+    updateMeasurementVector(initialParameter);
 }
 
 void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
@@ -111,7 +119,8 @@ void ExtendedKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParame
 {
     m_measurementVector(IDX_ODOMETRY_X_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryX);
     m_measurementVector(IDX_ODOMETRY_Y_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.positionOdometryY);
-    m_measurementVector(IDX_ODOMETRY_ORIENTATION_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.angleOdometry);
+    m_measurementVector(IDX_ODOMETRY_ORIENTATION_MEASUREMENT_VECTOR) =
+        static_cast<float>(kalmanParameter.angleOdometry);
 }
 
 void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)
