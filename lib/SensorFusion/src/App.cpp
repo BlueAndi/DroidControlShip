@@ -96,8 +96,6 @@ void App::setup()
     SettingsHandler& settings = SettingsHandler::getInstance();
     Board&           board    = Board::getInstance();
 
-    m_sensorFusion.init();
-
     Serial.begin(SERIAL_BAUDRATE);
 
     /* Register serial log sink and select it per default. */

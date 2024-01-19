@@ -79,11 +79,6 @@ public:
     }
 
     /**
-     * Initialize the Sensor Fusion.
-     */
-    void init();
-
-    /**
      * Perform an update of the Estimated State.
      *
      * @param[in] newSensorData New Sensor Data.

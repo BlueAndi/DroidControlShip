@@ -58,10 +58,6 @@
  * Public Methods
  *****************************************************************************/
 
-void SensorFusion::init(void)
-{
-}
-
 void SensorFusion::estimateNewState(const SensorData& newSensorData)
 {
     /* Calculate the physical Values via the Sensitivity Factors. */
