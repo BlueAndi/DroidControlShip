@@ -106,7 +106,7 @@ private:
     IKalmanFilter::PositionData m_estimatedPosition; /**< Variable where the current estimated Position is saved in. */
 
     IKalmanFilter::PositionData
-        m_lastOdometryPosition; /** Variable where the previous odometry Position is saved in. */
+        m_lastOdometryPosition; /**< Variable where the previous odometry Position is saved in. */
 
     bool m_isFirstIteration; /**< Flag if the current Iteration is the first one */
 };

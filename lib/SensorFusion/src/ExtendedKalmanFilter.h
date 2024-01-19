@@ -90,7 +90,7 @@ public:
     /**
      * Initializes the variables of the Extended Kalman Filter.
      *
-     * @param[in] kalmanParameter Parameters which should be used to initialize the filter.
+     * @param[in] initialParameter Parameters which should be used to initialize the filter.
      */
     void init(KalmanParameter& initialParameter) final;
 
