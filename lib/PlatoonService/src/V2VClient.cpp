@@ -158,7 +158,7 @@ bool V2VClient::sendWaypoint(const Waypoint& waypoint)
     }
     else if (false == m_mqttClient.publish(m_outputTopic, false, payload))
     {
-        LOG_ERROR("Failed to publish MQTT message to %s.", m_outputTopic);
+        LOG_ERROR("Failed to publish MQTT message to %s.", m_outputTopic.c_str());
     }
     else
     {
