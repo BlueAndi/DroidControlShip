@@ -94,6 +94,11 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         m_kalmanFilter.predictionStep(newSensorData.timePeriod);
         m_estimatedPosition = m_kalmanFilter.updateStep(kalmanParameter);
     }
+    
+    /* Save the last Odometry values */
+    m_lastOdometryPosition.positionX = static_cast<float>(newSensorData.positionOdometryX);
+    m_lastOdometryPosition.positionY = static_cast<float>(newSensorData.positionOdometryY);
+    m_lastOdometryPosition.angle     = static_cast<float>(newSensorData.orientationOdometry);
 }
 
 /******************************************************************************
