@@ -132,6 +132,16 @@ void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParam
     m_controlInputVector[IDX_TURNRATE_CONTROL_INPUT_VECTOR]       = static_cast<float>(kalmanParameter.turnRate);
     m_controlInputVector[IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR] = static_cast<float>(kalmanParameter.accelerationX);
 }
+
+float ExtendedKalmanFilter::wrapAngle(float inputAngle)
+{
+    if (inputAngle < -1000.0F * M_PI)
+    {
+        inputAngle += 2000.0F * M_PI;
+    }
+    float outputAngle = fmodf(inputAngle + 1000.0F * M_PI, 2000.0F * M_PI) - 1000.0F * M_PI;
+    return outputAngle;
+}
 /******************************************************************************
  * External Functions
  *****************************************************************************/

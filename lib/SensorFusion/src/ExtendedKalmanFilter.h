@@ -174,6 +174,14 @@ private:
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
      */
     void updateControlInputVector(KalmanParameter& kalmanParameter);
+
+    /**
+     * Wraps the angle from -2 pi to 2 pi.
+     *
+     * @param[in] inputAngle   Angle to be wrapped in mrad
+     * @return Wrapped angle in mrad from (-2 pi, 2 pi]
+     */
+    float wrapAngle(float inputAngle);
 };
 
 /******************************************************************************
