@@ -79,7 +79,6 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         kalmanParameter.turnRate          = physicalTurnRate;
         kalmanParameter.accelerationX     = physicalAccelerationX;
         kalmanParameter.velocityOdometry  = 0.0F;
-        kalmanParameter.distanceOdometry  = 0.0F;
         m_kalmanFilter.init(kalmanParameter);
         m_estimatedPosition = {kalmanParameter.positionOdometryX, kalmanParameter.positionOdometryY,
                                kalmanParameter.angleOdometry};
@@ -96,21 +95,32 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         float updatedOrientationOdometry = m_estimatedPosition.angle + deltaAngleOdometry;
 
         /* Calculate the mean velocity since the last Iteration instead of using the momentary Speed.
-        Correct the sign of the distance via the measured velocity. */
-        float duration         = static_cast<float>(newSensorData.timePeriod) / 1000.0F;
-        float meanVelocityOdometry = euclideanDistance / duration;
+        Correct the sign of the distance via the measured velocity if the velocity is negative, hence the robot drives
+        backwards. */
+        float duration            = static_cast<float>(newSensorData.timePeriod) / 1000.0F;
+        float directionCorrection = 1.0F;
         if (newSensorData.velocityOdometry < 0)
         {
-            meanVelocityOdometry *= -1.0;
+            directionCorrection = -1.0;
         }
+        float meanVelocityOdometry = directionCorrection * euclideanDistance / duration;
 
-        /* Perform the Prediction Step and the Update Step of the Kalman Filter. */
-        KalmanParameter kalmanParameter;
+        /* Update the measured position assuming the robot drives in the estimated Direction.
+        Use the Correction Factor in case the robot drives Backwards. */
+        kalmanParameter.positionOdometryX =
+            m_estimatedPosition.positionX +
+            directionCorrection * cosf(m_estimatedPosition.angle / 1000.0F) * euclideanDistance;
+        kalmanParameter.positionOdometryY =
+            m_estimatedPosition.positionY +
+            directionCorrection * sinf(m_estimatedPosition.angle / 1000.0F) * euclideanDistance;
         kalmanParameter.angleOdometry    = updatedOrientationOdometry;
         kalmanParameter.turnRate         = physicalTurnRate;
         kalmanParameter.velocityOdometry = meanVelocityOdometry;
         kalmanParameter.accelerationX    = physicalAccelerationX;
-        kalmanParameter.distanceOdometry = euclideanDistance;
+
+        /* Perform the Prediction Step and the Update Step of the Kalman Filter. */
+        m_kalmanFilter.predictionStep(newSensorData.timePeriod);
+        m_kalmanFilter.updateStep(kalmanParameter);
     }
 
     /* Save the last Odometry values */

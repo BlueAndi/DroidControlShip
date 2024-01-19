@@ -57,7 +57,6 @@ typedef struct _KalmanParameter
     float angleOdometry;     /**< Orientation calculated by Odometry in mrad. */
     float velocityOdometry;  /**< Velocity calculated by Odometry in mm/s. */
     float turnRate;          /**< Turn rate in mrad/s. */
-    float distanceOdometry;  /**< Traveled Euclidean Distance since last Iteration calculated by Odometry. */
 } __attribute__((packed)) KalmanParameter;
 
 /******************************************************************************
