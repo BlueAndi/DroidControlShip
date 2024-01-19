@@ -101,17 +101,74 @@ void ExtendedKalmanFilter::init(KalmanParameter& initialParameter)
 
 void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
 {
-    /* TODO: Implement Kalman Filter in cpp (TD072) */
+    /* Extract individual values into variables in favor of readability. */
+    float positionX   = m_stateVector(IDX_POSITION_X_STATE_VECTOR);
+    float positionY   = m_stateVector(IDX_POSITION_Y_STATE_VECTOR);
+    float velocity    = m_stateVector(IDX_VELOCITY_STATE_VECTOR);
+    float orientation = m_stateVector(IDX_ORIENTATION_STATE_VECTOR);
+
+    float cosOrienation = cosf(orientation / 1000.0F);
+    float sinOrienation = sinf(orientation / 1000.0F);
+
+    float duration = static_cast<float>(timeStep) / 1000.0F;
+
+    /* Perform the prediction step of the state vector according to the State Model */
+    m_stateVector[IDX_POSITION_X_STATE_VECTOR] = positionX + duration * velocity * cosOrienation;
+    m_stateVector[IDX_POSITION_Y_STATE_VECTOR] = positionY + duration * velocity * sinOrienation;
+    m_stateVector[IDX_VELOCITY_STATE_VECTOR] =
+        velocity + m_controlInputVector[IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR] * duration;
+    m_stateVector[IDX_ORIENTATION_STATE_VECTOR] =
+        orientation + duration * m_controlInputVector[IDX_TURNRATE_CONTROL_INPUT_VECTOR];
+
+    /* Perform the prediction step of the covariance matrix with the help of the Jacobian Matrix */
+    Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> jacobianMatrix;
+    jacobianMatrix << 1, 0, -duration * velocity * sinOrienation, duration * cosOrienation, 0, 1,
+        duration * velocity * cosOrienation, duration * sinOrienation, 0, 0, 1, 0, 0, 0, 0, 1;
+
+    /* Generate Process Covariance Matrix Q */
+    Eigen::MatrixXf processCovarianceMatrixQ = Eigen::MatrixXf::Zero(NUMBER_OF_STATES_N, NUMBER_OF_STATES_N);
+    processCovarianceMatrixQ(IDX_POSITION_X_STATE_VECTOR, IDX_POSITION_X_STATE_VECTOR) =
+        duration * duration * ODOMETRY_POSITION_STD * ODOMETRY_POSITION_STD;
+    processCovarianceMatrixQ(IDX_POSITION_Y_STATE_VECTOR, IDX_POSITION_Y_STATE_VECTOR) =
+        duration * duration * ODOMETRY_POSITION_STD * ODOMETRY_POSITION_STD;
+    processCovarianceMatrixQ(IDX_VELOCITY_STATE_VECTOR, IDX_VELOCITY_STATE_VECTOR) =
+        duration * duration * ACCELERATION_STD * ACCELERATION_STD;
+    processCovarianceMatrixQ(IDX_ORIENTATION_STATE_VECTOR, IDX_ORIENTATION_STATE_VECTOR) =
+        duration * duration * TURNRATE_STD * TURNRATE_STD;
+
+    m_covarianceMatrix = jacobianMatrix * m_covarianceMatrix * jacobianMatrix.transpose() + processCovarianceMatrixQ;
 }
 
 IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& kalmanParameter)
 {
+    updateControlInputVector(kalmanParameter);
+    updateMeasurementVector(kalmanParameter);
+
+    /* Calculate the Kalman Gain Matrix according to Kalman Formula. */
+    Eigen::VectorXf z_hat             = OBSERVATION_MATRIX_H * m_stateVector;
+    Eigen::VectorXf innovationVectorY = m_measurementVector - z_hat;
+    innovationVectorY(IDX_ORIENTATION_MEASUREMENT_VECTOR) =
+        wrapAngle(innovationVectorY(IDX_ORIENTATION_MEASUREMENT_VECTOR));
+    Eigen::MatrixXf kalmanGainMatrix =
+        m_covarianceMatrix * OBSERVATION_MATRIX_H.transpose() *
+        (OBSERVATION_MATRIX_H * m_covarianceMatrix * OBSERVATION_MATRIX_H.transpose() + OBSERVATION_NOISE_MATRIX_R)
+            .inverse();
+
+    /* Perform the update step of the state vector  */
+    m_stateVector                               = m_stateVector + kalmanGainMatrix * innovationVectorY;
+    m_stateVector(IDX_ORIENTATION_STATE_VECTOR) = wrapAngle(m_stateVector(IDX_ORIENTATION_STATE_VECTOR));
+
+    /* Perform the update step of the covariance matrix  */
+    Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> identityMatrix =
+        Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N>::Identity();
+    m_covarianceMatrix = (identityMatrix - kalmanGainMatrix * OBSERVATION_MATRIX_H) * m_covarianceMatrix;
+
+    /* Fill the PositionData struct  */
     PositionData currentPosition;
     currentPosition.positionX = m_stateVector(IDX_POSITION_X_STATE_VECTOR);
     currentPosition.positionY = m_stateVector(IDX_POSITION_Y_STATE_VECTOR);
     currentPosition.angle     = m_stateVector(IDX_ORIENTATION_STATE_VECTOR);
     return currentPosition;
-    /* TODO: Implement Kalman Filter in cpp (TD072) */
 }
 /******************************************************************************
  * Protected Methods
