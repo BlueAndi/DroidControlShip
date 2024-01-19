@@ -179,10 +179,10 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& ka
  *****************************************************************************/
 void ExtendedKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParameter)
 {
-    m_measurementVector(IDX_POSITION_X_MEASUREMENT_VECTOR)  = static_cast<float>(kalmanParameter.positionOdometryX);
-    m_measurementVector(IDX_POSITION_Y_MEASUREMENT_VECTOR)  = static_cast<float>(kalmanParameter.positionOdometryY);
-    m_measurementVector(IDX_VELOCITY_MEASUREMENT_VECTOR)    = static_cast<float>(kalmanParameter.velocityOdometry);
-    m_measurementVector(IDX_ORIENTATION_MEASUREMENT_VECTOR) = static_cast<float>(kalmanParameter.angleOdometry);
+    m_measurementVector[IDX_POSITION_X_MEASUREMENT_VECTOR]  = static_cast<float>(kalmanParameter.positionOdometryX);
+    m_measurementVector[IDX_POSITION_Y_MEASUREMENT_VECTOR]  = static_cast<float>(kalmanParameter.positionOdometryY);
+    m_measurementVector[IDX_VELOCITY_MEASUREMENT_VECTOR]    = static_cast<float>(kalmanParameter.velocityOdometry);
+    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = static_cast<float>(kalmanParameter.angleOdometry);
 }
 
 void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)

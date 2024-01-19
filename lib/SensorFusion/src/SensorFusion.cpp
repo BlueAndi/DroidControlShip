@@ -116,7 +116,7 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
 
         /* Perform the Prediction Step and the Update Step of the Kalman Filter. */
         m_kalmanFilter.predictionStep(newSensorData.timePeriod);
-        m_kalmanFilter.updateStep(kalmanParameter);
+        m_estimatedPosition = m_kalmanFilter.updateStep(kalmanParameter);
     }
 
     /* Save the last Odometry values */
