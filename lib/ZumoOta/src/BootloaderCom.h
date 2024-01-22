@@ -117,7 +117,7 @@ private:
     /*
      * Flag indicating whether the FlashManager is currently waiting for a response.
      */
-    bool m_waitingForResponse;
+     bool m_waitingForResponse;
 
 };
 
