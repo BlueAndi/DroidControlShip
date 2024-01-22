@@ -30,17 +30,10 @@
 class FlashManager
 {
 private:
-
-    /**
-     *Buffer to store received data.
-     */
-    uint8_t buffer[256];
-
     /**
      *Number of bytes read from the stream;
      */
-      size_t m_bytesRead;
-
+     size_t m_bytesRead;
 
 
 public:

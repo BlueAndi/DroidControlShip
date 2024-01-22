@@ -92,6 +92,9 @@ public:
      bool compareExpectedAndReceivedResponse(const uint8_t command[], size_t commandSize, const uint8_t expectedResponse[], size_t expectedResponseSize);
 
 private:
+    /**
+     *@brief Enumeration representing different states for the BootloaderCom class.
+     */
     enum State
     {
         Idle,
@@ -99,13 +102,21 @@ private:
         ReadingResponse,
         Complete
     };
+    
+    /**
+     *@brief Current state of the BootloaderCom class.
+     *Initialized to Idle by default.
+     */
     State m_state;
 
-    FlashManager myFlashManager;
+    /**
+     * Instance of the BootloaderCom class
+     */
+     FlashManager myFlashManager;
 
     /*
      * Flag indicating whether the FlashManager is currently waiting for a response.
-    */
+     */
     bool m_waitingForResponse;
 
 };
