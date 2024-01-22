@@ -206,7 +206,6 @@ void WebServerCustom::handleUpdateRequest()
     
         {
             /* Process the firmware update.*/
-            m_flashManager.enterBootloadermode();
             request->send(200, "text/plain", "Firmware update successful!");
         });
 }
