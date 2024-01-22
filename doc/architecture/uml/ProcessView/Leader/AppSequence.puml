@@ -1,0 +1,131 @@
+@startuml LeaderAppSequenceDiagram
+
+autoactivate on
+
+Title Leader App Sequence Diagram
+
+participant "App" as App
+participant "State Machine" as SM
+participant "SMP Server" as Smp
+participant "V2V Client" as Mqtt
+participant "Remote Command Response Handler" as RCRH
+participant "Startup State" as StartupState
+participant "Driving State" as DrivingState
+participant "Safety Monitor" as SafetyMonitor
+
+entity "RadonUlzer" as RU
+
+== State Machine: Startup State ==
+
+group Startup Commands [Repeats for each pending command]
+    App -> SM : process()
+        SM -> StartupState : process()
+        return
+    return
+
+    App -> StartupState : getPendingCommand(Command& cmd) : bool
+        StartupState -> SM: inCorrectState()
+        return true
+    return pending command is valid
+
+    App -> Smp : sendCommand(cmd) : bool
+        Smp -> RU : send
+        deactivate
+    return command sent
+
+    RU -->> Smp : response
+
+    App -> Smp : process()
+        Smp -> App : CMD_RSP callback
+            App -> RCRH : handleCommandResponse(rsp)
+                RCRH -> StartupState : notify(Event event)
+                return
+                RCRH -> DrivingState : setMaxSpeed(speed)
+                return
+            return
+        return
+    return
+end group
+
+App -> SM : process()
+    SM -> StartupState : process()
+        StartupState -> SM : setState(IdleState)
+        return
+    return
+return
+
+== State Machine: Idle State ==
+
+group Wait for release
+    App -> Mqtt : process()
+        Mqtt -> App : cmdCallback(releaseCmd)
+            App -> Smp : sendCommand(releaseCmd)
+                Smp -> RU : send
+                deactivate
+            return
+        return
+    return
+
+    RU -->> Smp : response
+
+    App -> Smp : process()
+        Smp -> App : CMD_RSP callback
+            App -> RCRH : handleCommandResponse(OK)
+                RCRH -> SM : setState(DrivingState)
+                return
+            return
+        return
+    return
+end group
+
+== State Machine: Driving State ==
+group Driving
+    App -> Smp : process()
+        Smp -> App : currentVehicleDataCallback(CurrentVehicleData data)
+            App -> DrivingState : calculateTopMotorSpeed(const Waypoint& currentVehicleData): int16_t
+                DrivingState -> SM : inCorrectState()
+                return true
+            return top speed
+            App -> Smp : sendSpeed(topSpeed)
+                Smp -> RU : send
+                deactivate
+            return
+        return
+    return
+
+    App -> Mqtt : process()
+        Mqtt -> App : lastFollowerFeedbackCallback()
+            App -> DrivingState : setLastFollowerFeedback(const Waypoint& feedback)
+            return 
+        return
+    return
+
+    App -> DrivingState : getLatestVehicleData(Waypoint& vehicleData)
+        DrivingState -> SM : inCorrectState()
+        return true
+    return vehicle data is valid
+
+    App -> Mqtt : sendWaypoint(const Waypoint& vehicleData)
+    return
+
+end group
+
+== Stateless ==
+
+loop 
+    App -> Smp : process()
+        Smp -> App : Heartbeat callback
+            App -> SafetyMonitor : heartbeatCallback()
+            return
+        return
+    return
+
+    App -> SafetyMonitor : process()
+        SafetyMonitor -> SafetyMonitor : checkHeartbeat()
+        return false
+        SafetyMonitor -> SM : setState(ErrorState)
+        return
+    return
+end loop
+
+@enduml
