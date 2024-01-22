@@ -110,7 +110,7 @@ private:
     State m_state;
 
     /**
-     * Instance of the BootloaderCom class
+     * Instance of the FlashManager class
      */
      FlashManager myFlashManager;
 
@@ -118,7 +118,7 @@ private:
      * @brief Flag indicating whether the FlashManager is currently waiting for a response.
      * If true, the system is waiting for a response otherwise, it is not.
      */
-     bool m_waitingForResponse;
+     bool m_waitingForResponse; /** Flag indicating if waiting for a response from FlashManager.*/
 
 };
 
