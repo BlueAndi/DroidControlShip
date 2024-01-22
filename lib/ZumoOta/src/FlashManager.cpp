@@ -38,6 +38,7 @@
 #include <string.h>
 #include <Board.h>
 #include <GPIO.h>
+#include <typeinfo>
 
 /******************************************************************************
  * Compiler Switches
@@ -46,10 +47,11 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-const uint8_t USB_RETRY_DELAY_MS = 10U;
-const uint16_t USB_TIMEOUT_MS = 2000U;
+/*Delay before processing the response.*/
 const uint8_t AWAIT_RESPONSE_DELAY_MS = 50;
-const uint8_t NEXT_SERIAL_SEND_DELAY_MS = 10;
+const uint8_t MAX_BUFFER_SIZE = 128;
+const uint16_t USB_TIMEOUT_MS = 2000;
+
 /******************************************************************************
  * Types and classes
  *****************************************************************************/
@@ -61,19 +63,13 @@ const uint8_t NEXT_SERIAL_SEND_DELAY_MS = 10;
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-/*Delay before processing the response.
-const uint8_t AWAIT_RESPONSE_DELAY_MS = 50U;*/
 
-/** Specifies the number of bytes stored in one Zumo bootloader/flash memory page.*/
-static const uint16_t PAGE_SIZE_BYTES = 128U;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
 FlashManager::FlashManager():
-    m_writtenFirmwareBytes(0),
-    m_expectedFirmwareSize(0),
-    m_expectedHashValue()
+    m_bytesRead(0)
 {
 }
 
@@ -81,86 +77,231 @@ FlashManager::~FlashManager()
 {
 }
 
-bool FlashManager::readToRobotFlash(size_t expectedsize)
+size_t FlashManager::readingStream(uint8_t* expectedResponse)
 {
-    bool retCode = false;
-    Stream& deviceStream   = Board::getInstance().getDevice().getStream();
-    int     availableBytes = deviceStream.available();
-    if (0 < availableBytes)
 
     {
-        uint8_t buffer[availableBytes];
-        size_t  readBytes = deviceStream.readBytes(buffer, availableBytes);
-       if(expectedsize == readBytes)
-       {
+        Stream& deviceStream   = Board::getInstance().getDevice().getStream();
+        int     availableBytes = deviceStream.available();
+        size_t totalReadBytes = 0;
+        uint8_t pReadBuffer[availableBytes];
+        uint8_t* buffer;
+
+
+        /*Check if there are bytes available in the input stream.*/
+        if ( availableBytes > 0)
+        {
+            LOG_INFO("Available size: "+ availableBytes);
+            buffer = &pReadBuffer[totalReadBytes];
+            do
+            {
+                m_bytesRead = deviceStream.readBytes(buffer, MAX_BUFFER_SIZE);
+                totalReadBytes += m_bytesRead;
+            } while (m_bytesRead != 0);
+            
             
             LOG_INFO("Hexadecimal Data:");
-            for (size_t idx = 0; idx < readBytes; idx++)
+            for (size_t idx = 0; idx < totalReadBytes; idx++)
             {
                 Serial.print("0x");
                 if (buffer[idx] < 0x10) Serial.print("0"); 
                 Serial.print(buffer[idx], HEX);
                 Serial.print(" ");
+                expectedResponse[idx]= buffer[idx];
             }
             Serial.println(); 
-
             
             LOG_INFO("Binary Data:");
-            for (size_t idx = 0; idx < readBytes; idx++)
+            for (size_t idx = 0; idx < totalReadBytes; idx++)
             {
                 for (int bit = 7; bit >= 0; bit--)
                 {
                     Serial.print((buffer[idx] >> bit) & 1);
+                    
                 }
                 Serial.print(" ");
+                expectedResponse[idx]= buffer[idx];
             }
             Serial.println(); 
-            retCode = true;
+            
+            return totalReadBytes;
         }
         else
         {
-            LOG_INFO("Failure!");
-        }  
+            /*Handle the case where there are no bytes available in the input stream.*/
+            LOG_INFO("Failure! No bytes available in the input stream.");
+             /*No valid response received.*/
+            return -1;
+        }
+       
+       
     }
-    return retCode;
-    
+
+
+
+
+
 }
 
-void FlashManager ::sendCommand(const uint8_t command[])
+bool FlashManager ::sendCommand(const uint8_t command[], size_t commandsize)
 {
-    const uint16_t WRITE_BUFFER_SIZE = 256;
-    uint8_t writeBuffer[WRITE_BUFFER_SIZE];
-    Stream& deviceStream   = Board::getInstance().getDevice().getStream();
-    /*Size of array*/
-    size_t commandsize = sizeof(command);
-     /* Copy the command OpCode into buffer */
-    memcpy(writeBuffer, command, commandsize);
-
-    /* Send the OpCode and command data to Zumo robot */
-    size_t bytesWritten= deviceStream.write(command, commandsize);
-
-    if(bytesWritten == commandsize)
     {
-        /* Await response */
-        delay(50);
-        readToRobotFlash(commandsize);
+        Stream& deviceStream   = Board::getInstance().getDevice().getStream();
+        
+    
+        unsigned long startTime = 0L;
+       
+        /* Send the OpCode and command data to Zumo robot. */
+        size_t bytesWritten= deviceStream.write(command, commandsize);
+         LOG_INFO("byteswritten ist %d", bytesWritten);
+    
+        if(bytesWritten == commandsize)
+        {
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("Could not send data packet to Zumo robot FlashManager. Aborting now");
+           
+            return false;
+        }
+    }
+}
+
+bool FlashManager::Check(const uint8_t command[], size_t commandSize, const uint8_t expectedResponse[], size_t expectedResponseSize)
+{
+    /*Send the Command.*/
+    if (true == sendCommand(command, commandSize))
+    {
+        /*Read the Response.*/
+        uint8_t readBuffer[expectedResponseSize];
+        size_t readBytes = 0;
+        /*Set the actually read bytes.*/
+        readBytes = readingStream(readBuffer);
+    
+        if (0 < readBytes)
+        {
+            /*Check if the received response matches the expected response.*/ 
+            if (readBytes == expectedResponseSize && memcmp(&readBuffer, &expectedResponse, expectedResponseSize) == 0)
+            {
+                LOG_INFO("Received expected response.");
+                return true;
+            }
+            else
+            {
+                LOG_ERROR("Received response does not match the expected response.");
+            }
+        }
+        else
+        {
+            LOG_ERROR("Error reading response.");
+
+        }
+        
     }
     else
     {
-        LOG_ERROR("Could not send data packet to Zumo robot. Aborting now");
+         LOG_ERROR("Error sending command.");
+
     }
+    return false;
 }
 
-void FlashManager:: enterBootloadermode()
-{
-    /* enter bootloader mode.*/
-    m_bootloader.enterBootloader();
-}
 
-void FlashManager::exitBootloader()
-{
 
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

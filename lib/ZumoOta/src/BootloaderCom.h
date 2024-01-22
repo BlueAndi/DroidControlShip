@@ -43,7 +43,7 @@
 /******************************************************************************
  * Includes
  ******************************************************************************/
-
+#include "FlashManager.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -76,7 +76,37 @@ public:
     */
    void exitBootloader();
 
+   /**
+    * @brief Process the flash manager state machine.
+    */
+    void process();
+
+    /**
+     *@brief Compare the received response against the expected response after sending a command.
+     *@param command The command to be sent.
+     *@param commandSize The size of the command.
+     *@param expectedResponse The expected response to compare against.
+     *@param expectedResponseSize The size of the expected response.
+     *@return True if the received response matches the expected response, false otherwise.
+     */
+     bool compareExpectedAndReceivedResponse(const uint8_t command[], size_t commandSize, const uint8_t expectedResponse[], size_t expectedResponseSize);
+
 private:
+    enum State
+    {
+        Idle,
+        Pending,
+        ReadingResponse,
+        Complete
+    };
+    State m_state;
+
+    FlashManager myFlashManager;
+
+    /*
+     * Flag indicating whether the FlashManager is currently waiting for a response.
+    */
+    bool m_waitingForResponse;
 
 };
 

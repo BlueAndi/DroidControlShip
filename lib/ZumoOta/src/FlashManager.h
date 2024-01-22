@@ -15,8 +15,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Zumo32U4Specifications.h"
-#include "BootloaderCom.h"
+#include "Zumo32U4Specification.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -31,20 +30,18 @@
 class FlashManager
 {
 private:
-    /** Specifies the expected firmware size of the firmware to be flashed */
-    uint16_t m_expectedFirmwareSize;
 
-    /** Specifies how many bytes have already been written to Zumo program flash */
-    uint16_t m_writtenFirmwareBytes;
-    
-    /** Specifies the expected SHA256 hash string of the firmware to be flashed */
-    String m_expectedHashValue;
+    /**
+     *Buffer to store received data.
+     */
+    uint8_t buffer[256];
 
-   
-     /**
-    * Instance of the BootloaderCom class
-    */
-    BootloaderCom m_bootloader;
+    /**
+     *Number of bytes read from the stream;
+     */
+      size_t m_bytesRead;
+
+
 
 public:
     /**
@@ -58,27 +55,32 @@ public:
     ~FlashManager();
 
     /**
-     * @brief  Write received firmware data to the robot's flash memory.
-     * 
-     * This function reads data from the provided stream and writes it to
-     * the robot's flash memory.
+     * @brief Reads a stream of data from the device's input stream.
+     * @param expectedResponse Pointer to the buffer to store the expected response.
+     *@return The total number of bytes read from the stream.
      */
-    bool readToRobotFlash(size_t expectedsize);
+    size_t readingStream(uint8_t* expectedResponse);
 
     /**
-     * @brief exit the bootloader mode.
+     * @brief Send a command to the Zumo robot and prepare for receiving a response.
+     *
+     * @param command Array containing the command to be sent.
+     * @param commandSize Size of the command array.
+     * @return True if the command was successfully sent, otherwise false.
      */
-    void exitBootloader();
+    bool sendCommand(const uint8_t command[], size_t commandSize);
 
     /**
-     * @brief enter the bootloader mode.
-    */
-    void enterBootloadermode();
+     * @brief Checks the response against the expected response after sending a command.
+     *
+     * @param command The command to be sent.
+     * @param commandSize The size of the command.
+     * @param expectedResponse The expected response to compare against.
+     * @param expectedResponseSize The size of the expected response.
+     * @return True if the received response matches the expected response, false otherwise.
+     */
+    bool Check(const uint8_t command[], size_t commandSize, const uint8_t expectedResponse[], size_t expectedResponseSize);
 
-    /**
-     * @brief send a Command.
-    */
-    void sendCommand(const uint8_t command[]);
 
 };
 

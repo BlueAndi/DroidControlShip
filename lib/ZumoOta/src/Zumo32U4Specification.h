@@ -71,7 +71,7 @@ struct ZumoData
 namespace Zumo32U4Specification
 {
     /** Command for reading the software ID */
-    static const uint8_t READ_SW_ID_COMMAND[] = {0x53};
+    static const uint8_t READ_SW_ID[] = {0x53};
 
     /** Command for reading the software version */
     static const uint8_t READ_SW_VERSION[] = {0x56};

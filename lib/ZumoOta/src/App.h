@@ -46,7 +46,7 @@
 #include <Board.h>
 #include "FileManager.h"
 #include "WebServerCustom.h"
-#include "FlashManager.h"
+#include "BootloaderCom.h"
 
 /******************************************************************************
  * Macros
@@ -119,9 +119,9 @@ private:
     Upload m_upload;
 
     /**
-     * Instance of the FlashManager class
+     * Instance of the BootloaderCom class
      */
-    FlashManager m_flashManager;
+    BootloaderCom m_bootloader;
 };
 
 #endif /* APP_H */

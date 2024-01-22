@@ -65,7 +65,9 @@ static const uint16_t PAGE_SIZE_BYTES = 128U;
  * Public Methods
  *****************************************************************************/
 
-BootloaderCom::BootloaderCom()
+BootloaderCom::BootloaderCom():
+m_state(Idle),
+m_waitingForResponse(false)
 {
 
 }
@@ -87,6 +89,56 @@ void BootloaderCom::exitBootloader()
     GpioPins::resetDevicePin.write(LOW);
     LOG_INFO(" bootloader mode is exited");
 
+}
+
+void BootloaderCom::process()
+{
+    switch(m_state)
+    {
+        
+        case Idle:
+        /*Handle Idle state*/
+        m_waitingForResponse = false;
+        myFlashManager.sendCommand(Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID));
+        break;
+     
+        case Pending:
+        /*Handle Pending state*/
+        m_state = ReadingResponse;
+        m_waitingForResponse = true;
+        break;
+
+        case ReadingResponse:
+        /*Handle Complete state*/
+        uint8_t expectedSW[sizeof(&Zumo32U4Specification::EXPECTED_SOFTWARE_ID)];
+        myFlashManager.readingStream(expectedSW);
+        m_state = Complete;
+        m_waitingForResponse = false;
+
+        if (compareExpectedAndReceivedResponse(Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID),Zumo32U4Specification::EXPECTED_SOFTWARE_ID, sizeof(Zumo32U4Specification::EXPECTED_SOFTWARE_ID)))
+            {
+                LOG_INFO("Received expected response.");
+            }
+        else
+            {
+                LOG_ERROR("Received response does not match the expected response.");
+            }
+        break;
+
+        case Complete:
+        m_state = Idle;
+        break;
+
+        default:
+            break;
+ }
+}
+
+bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], size_t commandSize, const uint8_t expectedResponse[], size_t expectedResponseSize)
+{
+    
+    myFlashManager.Check( command,  commandSize,  expectedResponse,  expectedResponseSize);
+    return true;
 }
  
  

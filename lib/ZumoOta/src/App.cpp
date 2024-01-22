@@ -209,7 +209,9 @@ void App::loop()
 
         m_webServer.handleUploadRequest();
         m_isWebServerInitialized = true;
-        m_webServer.handleUpdateRequest();   
+        Board::getInstance().process();
+        m_bootloader.enterBootloader();
+        m_bootloader.process();  
     }
 
 

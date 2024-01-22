@@ -1,0 +1,37 @@
+@startuml
+autoactivate on 
+participant "App" as  App
+participant Board
+participant USBStream
+participant "FlashManager" as FM 
+participant "BootloaderCom" as BC
+
+
+App -> Board: Process
+Board --> App
+Board -> USBStream: Process
+USBStream--> Board
+
+alt if(Idle) 
+App -> BC: Process
+BC -> FM: sendcommand()
+FM -> USBStream: write()
+USBStream --> FM: writtenbytes
+FM --> BC: true
+BC --> App
+end alt
+
+alt if (waitingforResponse)
+App -> BC: Process
+
+BC -> FM: readResponse()
+FM -> USBStream: read
+USBStream --> FM: 
+BC -> FM : isComplete()
+FM --> BC: true
+BC-> BC: checkresponse()
+BC -> FM: set Idle
+BC --> App: true
+end alt
+
+@enduml
