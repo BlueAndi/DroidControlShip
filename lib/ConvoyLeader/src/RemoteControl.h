@@ -65,6 +65,7 @@ namespace RemoteControl
         CMD_ID_REINIT_BOARD,            /**< Re-initialize the board. Required for webots simulation. */
         CMD_ID_GET_MAX_SPEED,           /**< Get maximum speed. */
         CMD_ID_START_DRIVING,           /**< Start driving. */
+        CMD_ID_SET_INIT_POS,            /**< Set initial position. */
 
     } CmdId;
 

@@ -175,6 +175,7 @@ void App::setup()
             m_longitudinalController.setMotorSetpointCallback(motorSetpointCallback);
 
             m_sendWaypointTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
+            m_initialCommandTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
 
             isSuccessful = true;
         }
@@ -215,33 +216,44 @@ void App::loop()
     /* Process Longitudinal Controller */
     m_longitudinalController.process();
 
-    if (false == m_initialDataSent)
+    if (true == m_initialCommandTimer.isTimeout())
     {
-        SettingsHandler& settings = SettingsHandler::getInstance();
-        VehicleData      initialVehicleData;
-        initialVehicleData.xPos        = settings.getInitialXPosition();
-        initialVehicleData.yPos        = settings.getInitialYPosition();
-        initialVehicleData.orientation = settings.getInitialHeading();
-
-        if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
-                                         sizeof(initialVehicleData)))
+        if (false == m_receivedMaxMotorSpeed)
         {
-            LOG_DEBUG("Initial vehicle data sent.");
-            m_initialDataSent = true;
+            Command payload;
+            payload.commandId = RemoteControl::CMD_ID_GET_MAX_SPEED;
+
+            (void)m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &payload, sizeof(payload));
         }
-    }
 
-    if (LongitudinalController::STATE_STARTUP == m_longitudinalController.getState())
-    {
-        Command payload;
-        payload.commandId = RemoteControl::CMD_ID_GET_MAX_SPEED;
+        if (false == m_initialPositionSent)
+        {
+            SettingsHandler& settings = SettingsHandler::getInstance();
+            Command          initialVehicleDataCmd;
+            initialVehicleDataCmd.commandId   = RemoteControl::CMD_ID_SET_INIT_POS;
+            initialVehicleDataCmd.xPos        = settings.getInitialXPosition();
+            initialVehicleDataCmd.yPos        = settings.getInitialYPosition();
+            initialVehicleDataCmd.orientation = settings.getInitialHeading();
 
-        (void)m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &payload, sizeof(payload));
+            (void)m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &initialVehicleDataCmd,
+                                       sizeof(initialVehicleDataCmd));
+        }
+
+        if ((false == m_receivedMaxMotorSpeed) || (false == m_initialPositionSent))
+        {
+            /* Something is pending. */
+            m_initialCommandTimer.restart();
+        }
+        else
+        {
+            /* Nothing is pending anymore. */
+            m_initialCommandTimer.stop();
+        }
     }
 
     if (true == m_sendWaypointTimer.isTimeout())
     {
-        if (false == m_v2vClient.sendWaypoint(latestVehicleData))
+        if (false == m_v2vClient.sendWaypoint(m_latestVehicleData))
         {
             LOG_WARNING("Waypoint could not be sent.");
         }
@@ -254,12 +266,12 @@ void App::loop()
 
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
 {
-    latestVehicleData = Waypoint(vehicleData.xPos, vehicleData.yPos, vehicleData.orientation, vehicleData.left,
-                                 vehicleData.right, vehicleData.center);
+    m_latestVehicleData = Waypoint(vehicleData.xPos, vehicleData.yPos, vehicleData.orientation, vehicleData.left,
+                                   vehicleData.right, vehicleData.center);
 
-    latestVehicleData.debugPrint();
+    // latestVehicleData.debugPrint();
 
-    m_longitudinalController.calculateTopMotorSpeed(latestVehicleData);
+    m_longitudinalController.calculateTopMotorSpeed(m_latestVehicleData);
 }
 
 bool App::motorSetpointCallback(const int16_t topCenterSpeed)
@@ -382,11 +394,8 @@ bool App::setupSerialMuxProt()
     m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
     m_serialMuxProtChannelIdMotorSpeeds =
         m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
-    m_serialMuxProtChannelInitialVehicleData =
-        m_smpServer.createChannel(INITIAL_VEHICLE_DATA_CHANNEL_NAME, INITIAL_VEHICLE_DATA_CHANNEL_DLC);
 
-    if ((0U != m_serialMuxProtChannelIdRemoteCtrl) && (0U != m_serialMuxProtChannelIdMotorSpeeds) &&
-        (0U != m_serialMuxProtChannelInitialVehicleData))
+    if ((0U != m_serialMuxProtChannelIdRemoteCtrl) && (0U != m_serialMuxProtChannelIdMotorSpeeds))
     {
         isSuccessful = true;
     }
@@ -421,6 +430,11 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
         {
             LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
             application->setMaxMotorSpeed(cmdRsp->maxMotorSpeed);
+            application->notifyMaxMotorSpeedIsReceived();
+        }
+        else if (RemoteControl::CMD_ID_SET_INIT_POS == cmdRsp->commandId)
+        {
+            application->notifyInitialPositionIsSet();
         }
     }
     else

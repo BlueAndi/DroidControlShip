@@ -70,11 +70,10 @@ public:
     App() :
         m_serialMuxProtChannelIdRemoteCtrl(0U),
         m_serialMuxProtChannelIdMotorSpeeds(0U),
-        m_serialMuxProtChannelInitialVehicleData(0U),
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_mqttClient(),
         m_v2vClient(m_mqttClient),
-        m_initialDataSent(false),
+        m_initialPositionSent(false),
         m_longitudinalController(),
         m_sendWaypointTimer()
     {
@@ -133,11 +132,27 @@ public:
      */
     void setLastFollowerFeedback(const Waypoint& feedback);
 
+    /**
+     * Notify initial position is set.
+     */
+    void notifyInitialPositionIsSet()
+    {
+        m_initialPositionSent = true;
+    }
+
+    /**
+     * Notify max motor speed is received.
+     */
+    void notifyMaxMotorSpeedIsReceived()
+    {
+        m_receivedMaxMotorSpeed = true;
+    }
+
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
 
-    /** Send waypoint timer interval. */
+    /** Send waypoint timer interval in ms. */
     static const uint32_t SEND_WAYPOINT_TIMER_INTERVAL = 500U;
 
     /** MQTT topic name for birth messages. */
@@ -154,9 +169,6 @@ private:
 
     /** SerialMuxProt Channel id for sending motor speeds. */
     uint8_t m_serialMuxProtChannelIdMotorSpeeds;
-
-    /** SerialMuxProt Channel id for sending initial position data. */
-    uint8_t m_serialMuxProtChannelInitialVehicleData;
 
     /**
      * SerialMuxProt Server Instance
@@ -176,9 +188,14 @@ private:
     V2VClient m_v2vClient;
 
     /**
-     * Flag for setting initial data through SMP.
+     * Flag for setting initial position through SMP.
      */
-    bool m_initialDataSent;
+    bool m_initialPositionSent;
+
+    /**
+     * Flag for received the max motor speed through SMP.
+     */
+    bool m_receivedMaxMotorSpeed;
 
     /**
      * Longitudinal controller.
@@ -188,12 +205,17 @@ private:
     /**
      * Latest vehicle data from RU.
      */
-    Waypoint latestVehicleData;
+    Waypoint m_latestVehicleData;
 
     /**
      * Send waypoint timer.
      */
     SimpleTimer m_sendWaypointTimer;
+
+    /**
+     * Timer for sending initial commands.
+     */
+    SimpleTimer m_initialCommandTimer;
 
 private:
     /**
