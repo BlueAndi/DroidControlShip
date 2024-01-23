@@ -46,11 +46,11 @@
 #include <Arduino.h>
 #include <Board.h>
 #include <MqttClient.h>
-#include <SerialMuxProtServer.hpp>
-#include "SerialMuxChannels.h"
-#include <V2VClient.h>
-#include "LongitudinalController.h"
 #include <SimpleTimer.hpp>
+#include <StateMachine.h>
+#include <V2VClient.h>
+#include "SerialMuxChannels.h"
+#include "LongitudinalController.h"
 
 /******************************************************************************
  * Macros
@@ -175,7 +175,7 @@ private:
      *
      * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
-    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
+    SMPServer m_smpServer;
 
     /**
      * MQTTClient Instance
