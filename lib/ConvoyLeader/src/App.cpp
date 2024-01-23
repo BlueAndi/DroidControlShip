@@ -226,33 +226,7 @@ void App::loop()
     m_systemStateMachine.process();
 
     /* Process periodic tasks. */
-    if ((true == m_initialCommandTimer.isTimeout()) && (true == m_smpServer.isSynced()))
-    {
-        Command* pendingCommand = StartupState::getInstance().getPendingCommand();
-
-        if (nullptr != pendingCommand)
-        {
-            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, pendingCommand, sizeof(Command)))
-            {
-                LOG_WARNING("Failed to send pending command to RU.");
-            }
-
-            /* Something is pending. */
-            m_initialCommandTimer.restart();
-        }
-    }
-
-    if (true == m_sendWaypointTimer.isTimeout())
-    {
-        if (false == m_v2vClient.sendWaypoint(m_latestVehicleData))
-        {
-            LOG_WARNING("Waypoint could not be sent.");
-        }
-        else
-        {
-            m_sendWaypointTimer.restart();
-        }
-    }
+    processPeriodicTasks();
 }
 
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
@@ -394,6 +368,36 @@ bool App::setupSerialMuxProt()
     return isSuccessful;
 }
 
+void App::processPeriodicTasks()
+{
+    if ((true == m_initialCommandTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        Command* pendingCommand = StartupState::getInstance().getPendingCommand();
+
+        if (nullptr != pendingCommand)
+        {
+            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, pendingCommand, sizeof(Command)))
+            {
+                LOG_WARNING("Failed to send pending command to RU.");
+            }
+
+            m_initialCommandTimer.restart();
+        }
+    }
+
+    if (true == m_sendWaypointTimer.isTimeout())
+    {
+        if (false == m_v2vClient.sendWaypoint(m_latestVehicleData))
+        {
+            LOG_WARNING("Waypoint could not be sent.");
+        }
+        else
+        {
+            m_sendWaypointTimer.restart();
+        }
+    }
+}
+
 /******************************************************************************
  * External Functions
  *****************************************************************************/
@@ -417,7 +421,11 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
         const CommandResponse* cmdRsp      = reinterpret_cast<const CommandResponse*>(payload);
         LOG_DEBUG("CMD_RSP: ID: 0x%02X , RSP: 0x%02X", cmdRsp->commandId, cmdRsp->responseId);
 
-        if (RemoteControl::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
+        if (RemoteControl::RSP_ID_ERROR == cmdRsp->responseId)
+        {
+            /* Go to error state. */
+        }
+        else if (RemoteControl::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
         {
             LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
             application->setMaxMotorSpeed(cmdRsp->maxMotorSpeed);

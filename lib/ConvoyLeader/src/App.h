@@ -213,6 +213,11 @@ private:
      */
     bool setupSerialMuxProt();
 
+    /**
+     * Process periodic tasks.
+     */
+    void processPeriodicTasks();
+
 private:
     /* Not allowed. */
     App(const App& app);            /**< Copy construction of an instance. */

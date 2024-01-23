@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 #include "StartupState.h"
+#include "IdleState.h"
 #include "RemoteControl.h"
 #include <SettingsHandler.h>
 
@@ -68,7 +69,6 @@ void StartupState::entry()
 
 void StartupState::process(StateMachine& sm)
 {
-
     SettingsHandler& settings = SettingsHandler::getInstance();
 
     switch (m_pendingCommandCounter)
@@ -103,7 +103,7 @@ void StartupState::process(StateMachine& sm)
 
     case CMD_NONE:
         /* All commands processed. Switch to idle state. */
-        // sm.setState(&IdleState::getInstance());
+        sm.setState(&IdleState::getInstance());
         break;
 
     default:
