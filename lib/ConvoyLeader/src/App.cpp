@@ -41,6 +41,7 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <Util.h>
+#include "StartupState.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -169,13 +170,18 @@ void App::setup()
         }
         else
         {
+            /* Setup longitudinal controller. */
             LongitudinalController::MotorSetpointCallback motorSetpointCallback = [this](const int16_t& topCenterSpeed)
             { return this->motorSetpointCallback(topCenterSpeed); };
 
             m_longitudinalController.setMotorSetpointCallback(motorSetpointCallback);
 
+            /* Initialize timers. */
             m_sendWaypointTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
             m_initialCommandTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
+
+            /* Start with startup state. */
+            m_systemStateMachine.setState(&StartupState::getInstance());
 
             isSuccessful = true;
         }
@@ -216,6 +222,10 @@ void App::loop()
     /* Process Longitudinal Controller */
     m_longitudinalController.process();
 
+    /* Process System State Machine */
+    m_systemStateMachine.process();
+
+    /* Process periodic tasks. */
     if (true == m_initialCommandTimer.isTimeout())
     {
         if (false == m_receivedMaxMotorSpeed)

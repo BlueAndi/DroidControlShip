@@ -187,6 +187,9 @@ private:
      */
     V2VClient m_v2vClient;
 
+    /** The system state machine. */
+    StateMachine m_systemStateMachine;
+
     /**
      * Flag for setting initial position through SMP.
      */
