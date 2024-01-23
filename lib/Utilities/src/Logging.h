@@ -359,14 +359,8 @@ private:
     /**
      * Construct Logging.
      */
-    Logging() : m_currentLogLevel(LOG_LEVEL_INFO), m_sinks(), m_selectedSink(nullptr)
+    Logging() : m_currentLogLevel(LOG_LEVEL_INFO), m_sinks{nullptr}, m_selectedSink(nullptr)
     {
-        uint8_t index = 0U;
-
-        for (index = 0U; index < MAX_SINKS; ++index)
-        {
-            m_sinks[index] = nullptr;
-        }
     }
 
     /**
