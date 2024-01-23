@@ -18,17 +18,10 @@ entity "RadonUlzer" as RU
 == State Machine: Startup State ==
 
 group Startup Commands [Repeats for each pending command]
-    App -> SM : process()
-        SM -> StartupState : process()
-        return
-    return
+    App -> StartupState : getPendingCommand
+    return pendingCommand
 
-    App -> StartupState : getPendingCommand(Command& cmd) : bool
-        StartupState -> SM: inCorrectState()
-        return true
-    return pending command is valid
-
-    App -> Smp : sendCommand(cmd) : bool
+    App -> Smp : sendCommand(pendingCommand)
         Smp -> RU : send
         deactivate
     return command sent
@@ -38,28 +31,29 @@ group Startup Commands [Repeats for each pending command]
     App -> Smp : process()
         Smp -> App : CMD_RSP callback
             App -> RCRH : handleCommandResponse(rsp)
-                RCRH -> StartupState : notify(Event event)
-                return
-                RCRH -> DrivingState : setMaxSpeed(speed)
-                return
+                alt OK
+                    RCRH -> StartupState : notify(Event event)
+                    return
+                end
+                alt max speed received
+                    RCRH -> DrivingState : setMaxSpeed(speed)
+                    return
+                end
+                alt error received
+                    RCRH -> SM : setState(ErrorState)
+                    return
+                end
             return
         return
     return
 end group
 
-App -> SM : process()
-    SM -> StartupState : process()
-        StartupState -> SM : setState(IdleState)
-        return
-    return
-return
-
 == State Machine: Idle State ==
 
 group Wait for release
     App -> Mqtt : process()
-        Mqtt -> App : cmdCallback(releaseCmd)
-            App -> Smp : sendCommand(releaseCmd)
+        Mqtt -> App : release command
+            App -> Smp : release command
                 Smp -> RU : send
                 deactivate
             return
@@ -70,9 +64,15 @@ group Wait for release
 
     App -> Smp : process()
         Smp -> App : CMD_RSP callback
-            App -> RCRH : handleCommandResponse(OK)
-                RCRH -> SM : setState(DrivingState)
-                return
+            App -> RCRH : handleCommandResponse(rsp)
+                alt OK
+                    RCRH -> SM : setState(DrivingState)
+                    return
+                end
+                alt error received
+                    RCRH -> SM : setState(ErrorState)
+                    return
+                end
             return
         return
     return
@@ -81,10 +81,8 @@ end group
 == State Machine: Driving State ==
 group Driving
     App -> Smp : process()
-        Smp -> App : currentVehicleDataCallback(CurrentVehicleData data)
-            App -> DrivingState : calculateTopMotorSpeed(const Waypoint& currentVehicleData): int16_t
-                DrivingState -> SM : inCorrectState()
-                return true
+        Smp -> App : CurrentVehicleData
+            App -> DrivingState : CurrentVehicleData
             return top speed
             App -> Smp : sendSpeed(topSpeed)
                 Smp -> RU : send
@@ -101,8 +99,6 @@ group Driving
     return
 
     App -> DrivingState : getLatestVehicleData(Waypoint& vehicleData)
-        DrivingState -> SM : inCorrectState()
-        return true
     return vehicle data is valid
 
     App -> Mqtt : sendWaypoint(const Waypoint& vehicleData)
