@@ -226,38 +226,19 @@ void App::loop()
     m_systemStateMachine.process();
 
     /* Process periodic tasks. */
-    if (true == m_initialCommandTimer.isTimeout())
+    if ((true == m_initialCommandTimer.isTimeout()) && (true == m_smpServer.isSynced()))
     {
-        if (false == m_receivedMaxMotorSpeed)
+        Command* pendingCommand = StartupState::getInstance().getPendingCommand();
+
+        if (nullptr != pendingCommand)
         {
-            Command payload;
-            payload.commandId = RemoteControl::CMD_ID_GET_MAX_SPEED;
+            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, pendingCommand, sizeof(Command)))
+            {
+                LOG_WARNING("Failed to send pending command to RU.");
+            }
 
-            (void)m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &payload, sizeof(payload));
-        }
-
-        if (false == m_initialPositionSent)
-        {
-            SettingsHandler& settings = SettingsHandler::getInstance();
-            Command          initialVehicleDataCmd;
-            initialVehicleDataCmd.commandId   = RemoteControl::CMD_ID_SET_INIT_POS;
-            initialVehicleDataCmd.xPos        = settings.getInitialXPosition();
-            initialVehicleDataCmd.yPos        = settings.getInitialYPosition();
-            initialVehicleDataCmd.orientation = settings.getInitialHeading();
-
-            (void)m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &initialVehicleDataCmd,
-                                       sizeof(initialVehicleDataCmd));
-        }
-
-        if ((false == m_receivedMaxMotorSpeed) || (false == m_initialPositionSent))
-        {
             /* Something is pending. */
             m_initialCommandTimer.restart();
-        }
-        else
-        {
-            /* Nothing is pending anymore. */
-            m_initialCommandTimer.stop();
         }
     }
 
@@ -440,11 +421,11 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
         {
             LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
             application->setMaxMotorSpeed(cmdRsp->maxMotorSpeed);
-            application->notifyMaxMotorSpeedIsReceived();
+            StartupState::getInstance().notifyCommandProcessed();
         }
         else if (RemoteControl::CMD_ID_SET_INIT_POS == cmdRsp->commandId)
         {
-            application->notifyInitialPositionIsSet();
+            StartupState::getInstance().notifyCommandProcessed();
         }
     }
     else

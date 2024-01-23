@@ -73,7 +73,6 @@ public:
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_mqttClient(),
         m_v2vClient(m_mqttClient),
-        m_initialPositionSent(false),
         m_longitudinalController(),
         m_sendWaypointTimer()
     {
@@ -132,22 +131,6 @@ public:
      */
     void setLastFollowerFeedback(const Waypoint& feedback);
 
-    /**
-     * Notify initial position is set.
-     */
-    void notifyInitialPositionIsSet()
-    {
-        m_initialPositionSent = true;
-    }
-
-    /**
-     * Notify max motor speed is received.
-     */
-    void notifyMaxMotorSpeedIsReceived()
-    {
-        m_receivedMaxMotorSpeed = true;
-    }
-
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
@@ -189,16 +172,6 @@ private:
 
     /** The system state machine. */
     StateMachine m_systemStateMachine;
-
-    /**
-     * Flag for setting initial position through SMP.
-     */
-    bool m_initialPositionSent;
-
-    /**
-     * Flag for received the max motor speed through SMP.
-     */
-    bool m_receivedMaxMotorSpeed;
 
     /**
      * Longitudinal controller.

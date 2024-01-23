@@ -44,6 +44,9 @@
  *****************************************************************************/
 
 #include <IState.h>
+#include <StateMachine.h>
+#include "SerialMuxChannels.h"
+#include "SimpleTimer.hpp"
 
 /******************************************************************************
  * Macros
@@ -57,6 +60,14 @@
 class StartupState : public IState
 {
 public:
+    /** Commands to send and process in the Startup State. */
+    enum StartupCommands : uint8_t
+    {
+        CMD_GET_MAX_SPEED = 0, /**< Get maximum motor speed. */
+        CMD_SET_INIT_POS,      /**< Set initial position. */
+        CMD_NONE               /**< No pending command. Required to signal the end of the enum. */
+    };
+
     /**
      * Get state instance.
      *
@@ -88,12 +99,33 @@ public:
      */
     void exit() final;
 
+    /**
+     * Get pending command. If there is no pending command or the state is not active, it will return nullptr.
+     *
+     * @return Pending command or nullptr.
+     */
+    Command* getPendingCommand();
+
+    /**
+     * Notify the state, that the pending command is successfully processed by RU.
+     */
+    void notifyCommandProcessed();
+
 protected:
 private:
+    /** Flag: State is active. */
+    bool m_isActive;
+
+    /** Pending command. */
+    Command* m_pendingCommand;
+
+    /** Pending command counter. */
+    uint8_t m_pendingCommandCounter;
+
     /**
      * Default constructor.
      */
-    StartupState()
+    StartupState() : IState(), m_isActive(false), m_pendingCommand(nullptr), m_pendingCommandCounter(CMD_GET_MAX_SPEED)
     {
     }
 

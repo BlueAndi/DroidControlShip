@@ -34,6 +34,8 @@
  *****************************************************************************/
 
 #include "StartupState.h"
+#include "RemoteControl.h"
+#include <SettingsHandler.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -61,17 +63,79 @@
 
 void StartupState::entry()
 {
-    /* Nothing to do */
+    m_isActive = true;
 }
 
 void StartupState::process(StateMachine& sm)
 {
-    /* Nothing to do */
+
+    SettingsHandler& settings = SettingsHandler::getInstance();
+
+    switch (m_pendingCommandCounter)
+    {
+    case CMD_GET_MAX_SPEED:
+        if (nullptr == m_pendingCommand)
+        {
+            /* Create new pending commmand. */
+            m_pendingCommand = new Command{RemoteControl::CMD_ID_GET_MAX_SPEED};
+        }
+        else
+        {
+            /* Command is still pending. */
+        }
+        break;
+
+    case CMD_SET_INIT_POS:
+        if (nullptr == m_pendingCommand)
+        {
+            /* Create new pending commmand. */
+            m_pendingCommand              = new Command;
+            m_pendingCommand->commandId   = RemoteControl::CMD_ID_SET_INIT_POS;
+            m_pendingCommand->xPos        = settings.getInitialXPosition();
+            m_pendingCommand->yPos        = settings.getInitialYPosition();
+            m_pendingCommand->orientation = settings.getInitialHeading();
+        }
+        else
+        {
+            /* Command is still pending. */
+        }
+        break;
+
+    case CMD_NONE:
+        /* All commands processed. Switch to idle state. */
+        // sm.setState(&IdleState::getInstance());
+        break;
+
+    default:
+        break;
+    }
 }
 
 void StartupState::exit()
 {
-    /* Nothing to do */
+    /* Ensure the pending command is deleted. */
+    if (nullptr != m_pendingCommand)
+    {
+        delete m_pendingCommand;
+        m_pendingCommand = nullptr;
+    }
+
+    m_isActive = false;
+}
+
+Command* StartupState::getPendingCommand()
+{
+    return (true == m_isActive) ? m_pendingCommand : nullptr;
+}
+
+void StartupState::notifyCommandProcessed()
+{
+    if (nullptr != m_pendingCommand)
+    {
+        delete m_pendingCommand;
+        m_pendingCommand = nullptr;
+        m_pendingCommandCounter++;
+    }
 }
 
 /******************************************************************************
