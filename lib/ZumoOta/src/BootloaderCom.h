@@ -114,11 +114,11 @@ private:
      */
      FlashManager myFlashManager;
 
-    /*
+    /**
      * @brief Flag indicating whether the FlashManager is currently waiting for a response.
      * If true, the system is waiting for a response otherwise, it is not.
      */
-     bool m_waitingForResponse; /** Flag indicating if waiting for a response from FlashManager.*/
+     bool m_waitingForResponse;
 
 };
 
