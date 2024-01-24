@@ -92,9 +92,6 @@ private:
     /** Flag: State is active. */
     bool m_isActive;
 
-    /** Flag: Release is requested. */
-    bool m_releaseRequested;
-
     /**
      * Default constructor.
      */

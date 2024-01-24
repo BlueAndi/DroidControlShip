@@ -62,8 +62,7 @@
 
 void ErrorState::entry()
 {
-    m_isActive         = true;
-    m_releaseRequested = false;
+    m_isActive = true;
 }
 
 void ErrorState::process(StateMachine& sm)
