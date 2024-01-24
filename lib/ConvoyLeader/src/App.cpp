@@ -257,12 +257,16 @@ bool App::setupMqttClient()
     bool                                           isSuccessful = false;
     SettingsHandler&                               settings     = SettingsHandler::getInstance();
     StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
-    char                                           birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
     String                                         birthMessage;
 
     birthDoc["name"] = settings.getRobotName();
-    (void)serializeJson(birthDoc, birthMsgArray);
-    birthMessage = birthMsgArray;
+
+    if (0U == serializeJson(birthDoc, birthMessage))
+    {
+        /* Non-fatal error. Birth message will be empty. */
+        LOG_ERROR("Failed to serialize birth message.");
+        birthMessage.clear();
+    }
 
     MqttSettings mqttSettings = {settings.getRobotName(),
                                  settings.getMqttBrokerAddress(),
