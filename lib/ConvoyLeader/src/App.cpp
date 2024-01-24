@@ -43,6 +43,7 @@
 #include <Util.h>
 #include "StartupState.h"
 #include "IdleState.h"
+#include "DrivingState.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -171,12 +172,6 @@ void App::setup()
         }
         else
         {
-            /* Setup longitudinal controller. */
-            LongitudinalController::MotorSetpointCallback motorSetpointCallback = [this](const int16_t& topCenterSpeed)
-            { return this->motorSetpointCallback(topCenterSpeed); };
-
-            m_longitudinalController.setMotorSetpointCallback(motorSetpointCallback);
-
             /* Initialize timers. */
             m_sendWaypointTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
             m_commandTimer.start(SEND_COMMANDS_TIMER_INTERVAL);
@@ -220,9 +215,6 @@ void App::loop()
     /* Process V2V Communication */
     m_v2vClient.process();
 
-    /* Process Longitudinal Controller */
-    m_longitudinalController.process();
-
     /* Process System State Machine */
     m_systemStateMachine.process();
 
@@ -230,52 +222,9 @@ void App::loop()
     processPeriodicTasks();
 }
 
-void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
+void App::setLatestVehicleData(const Waypoint& waypoint)
 {
-    m_latestVehicleData = Waypoint(vehicleData.xPos, vehicleData.yPos, vehicleData.orientation, vehicleData.left,
-                                   vehicleData.right, vehicleData.center);
-
-    // latestVehicleData.debugPrint();
-
-    m_longitudinalController.calculateTopMotorSpeed(m_latestVehicleData);
-}
-
-bool App::motorSetpointCallback(const int16_t topCenterSpeed)
-{
-    SpeedData payload;
-    payload.center = topCenterSpeed;
-
-    return m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload));
-}
-
-void App::release()
-{
-    Command payload;
-    payload.commandId = RemoteControl::CMD_ID_START_DRIVING;
-
-    /* Release robot. */
-    if (false == m_longitudinalController.release())
-    {
-        LOG_WARNING("Robot could not be released.");
-    }
-    else if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &payload, sizeof(payload)))
-    {
-        LOG_WARNING("Failed to send release command to RU.");
-    }
-    else
-    {
-        LOG_INFO("Robot released.");
-    }
-}
-
-void App::setMaxMotorSpeed(const int16_t maxMotorSpeed)
-{
-    m_longitudinalController.setMaxMotorSpeed(maxMotorSpeed);
-}
-
-void App::setLastFollowerFeedback(const Waypoint& feedback)
-{
-    m_longitudinalController.setLastFollowerFeedback(feedback);
+    m_latestVehicleData = waypoint;
 }
 
 /******************************************************************************
@@ -329,20 +278,19 @@ bool App::setupMqttClient()
     }
     else
     {
-        isSuccessful =
-            m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, [this](const String& payload) { this->release(); });
+        isSuccessful = m_mqttClient.subscribe(
+            TOPIC_NAME_RELEASE, true, [this](const String& payload) { IdleState::getInstance().requestRelease(); });
 
-        isSuccessful &= m_mqttClient.subscribe("platoons/0/vehicles/0/feedback", false,
-                                               [this](const String& payload)
-                                               {
-                                                   Waypoint* waypoint = Waypoint::deserialize(payload);
+        isSuccessful &=
+            m_mqttClient.subscribe("platoons/0/vehicles/0/feedback", false,
+                                   [this](const String& payload)
+                                   {
+                                       Waypoint*   waypoint = Waypoint::deserialize(payload);
+                                       VehicleData feedback{waypoint->xPos, waypoint->yPos,  waypoint->orientation,
+                                                            waypoint->left, waypoint->right, waypoint->center};
 
-                                                   if (nullptr != waypoint)
-                                                   {
-                                                       this->setLastFollowerFeedback(*waypoint);
-                                                       delete waypoint;
-                                                   }
-                                               });
+                                       DrivingState::getInstance().setLastFollowerFeedback(feedback);
+                                   });
     }
 
     return isSuccessful;
@@ -441,7 +389,7 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
         else if (RemoteControl::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
         {
             LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
-            application->setMaxMotorSpeed(cmdRsp->maxMotorSpeed);
+            DrivingState::getInstance().setMaxMotorSpeed(cmdRsp->maxMotorSpeed);
             StartupState::getInstance().notifyCommandProcessed();
         }
         else if (RemoteControl::CMD_ID_SET_INIT_POS == cmdRsp->commandId)
@@ -477,7 +425,11 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
         App*               application        = reinterpret_cast<App*>(userData);
-        application->currentVehicleChannelCallback(*currentVehicleData);
+        Waypoint dataAsWaypoint(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
+                                currentVehicleData->left, currentVehicleData->right, currentVehicleData->center);
+
+        application->setLatestVehicleData(dataAsWaypoint);
+        DrivingState::getInstance().setVehicleData(*currentVehicleData);
     }
     else
     {

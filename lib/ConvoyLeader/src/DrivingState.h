@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Leader Longitudinal Controller.
+ * @brief  Driving state.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup Application
  *
  * @{
  */
-#ifndef LONGITUDINAL_CONTROLLER_H
-#define LONGITUDINAL_CONTROLLER_H
+#ifndef DRIVING_STATE_H
+#define DRIVING_STATE_H
 
 /******************************************************************************
  * Compile Switches
@@ -44,8 +44,9 @@
  *****************************************************************************/
 
 #include <stdint.h>
-#include <Waypoint.h>
-#include <functional>
+#include <IState.h>
+#include <StateMachine.h>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -55,132 +56,116 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Leader Longitudinal Controller. */
-class LongitudinalController
+/** The system driving state. */
+class DrivingState : public IState
 {
 public:
     /**
-     * Motor setpoint callback.
-     * Called in order to set the motor speeds.
+     * Get state instance.
+     *
+     * @return State instance.
      */
-    typedef std::function<bool(const int16_t topCenterSpeed)> MotorSetpointCallback;
-
-    /** Controller states. */
-    enum STATE : uint8_t
+    static DrivingState& getInstance()
     {
-        STATE_STARTUP = 0, /**< Startup state. */
-        STATE_READY,       /**< Ready state. */
-        STATE_DRIVING,     /**< Driving state. */
-        STATE_SAFE,        /**< Safe state. */
-    };
+        static DrivingState instance;
+
+        /* Singleton idiom to force initialization during first usage. */
+
+        return instance;
+    }
 
     /**
-     * LongitudinalController constructor.
+     * If the state is entered, this method will called once.
      */
-    LongitudinalController();
+    void entry() final;
+
+    /**
+     * Processing the state.
+     *
+     * @param[in] sm State machine, which is calling this state.
+     */
+    void process(StateMachine& sm) final;
+
+    /**
+     * If the state is left, this method will be called once.
+     */
+    void exit() final;
+
+    /**
+     * Set maximum motor speed.
+     *
+     * @param[in] speed Maximum motor speed.
+     */
+    void setMaxMotorSpeed(int16_t maxSpeed);
+
+    /**
+     * Get the calculated top motor speed.
+     *
+     * @param[out] topMotorSpeed The calculated top motor speed.
+     *
+     * @returns true if the top motor speed is valid. Otherwise, false.
+     */
+    bool getTopMotorSpeed(int16_t& topMotorSpeed) const;
+
+    /**
+     * Set latest vehicle data.
+     *
+     * @param[in] vehicleData   Latest vehicle data.
+     */
+    void setVehicleData(const VehicleData& vehicleData);
+
+    /**
+     * Set last follower feedback.
+     *
+     * @param[in] feedback  Last follower feedback.
+     */
+    void setLastFollowerFeedback(const VehicleData& feedback);
+
+protected:
+private:
+    /** Flag: State is active. */
+    bool m_isActive;
+
+    /** Maximum motor speed. */
+    int16_t m_maxMotorSpeed;
+
+    /** Calculated top motor speed. */
+    int16_t m_topMotorSpeed;
+
+    /** Latest vehicle data. */
+    VehicleData m_vehicleData;
+
+    /** Last follower feedback. */
+    VehicleData m_followerFeedback;
+
+    /**
+     * Default constructor.
+     */
+    DrivingState() :
+        IState(),
+        m_isActive(false),
+        m_maxMotorSpeed(0),
+        m_topMotorSpeed(0),
+        m_vehicleData{0},
+        m_followerFeedback{0}
+    {
+    }
 
     /**
      * Default destructor.
      */
-    ~LongitudinalController();
-
-    /**
-     * Process the longitudinal controller.
-     */
-    void process();
-
-    /**
-     * Set the maximum motor speed of the robot.
-     *
-     * @param[in] maxMotorSpeed Maximum motor speed.
-     */
-    void setMaxMotorSpeed(int16_t maxMotorSpeed)
+    virtual ~DrivingState()
     {
-        m_maxMotorSpeed = maxMotorSpeed;
     }
 
-    /**
-     * Release robot for driving state, only if in ready state.
-     *
-     * @return If the robot was released, returns true. Otherwise false.
-     */
-    bool release()
-    {
-        bool isReleased = false;
-
-        if (STATE_READY == m_state)
-        {
-            m_state    = STATE_DRIVING;
-            isReleased = true;
-        }
-
-        return isReleased;
-    }
-
-    /**
-     * Set incoming feedback from last follower.
-     *
-     * @param[in] feedback Feedback from last follower.
-     */
-    void setLastFollowerFeedback(const Waypoint& feedback)
-    {
-        m_lastFollowerFeedback = feedback;
-    }
-
-    /**
-     * Get current state.
-     *
-     * @return Current state.
-     */
-    STATE getState() const
-    {
-        return m_state;
-    }
-
-    /**
-     * Set safe state. This will stop the robot.
-     */
-    void setSafeState()
-    {
-        m_state = STATE_SAFE;
-    }
-
-    /**
-     * Set motor setpoint callback.
-     *
-     * @param[in] motorSetpointCallback Motor setpoint callback.
-     */
-    void setMotorSetpointCallback(const MotorSetpointCallback& motorSetpointCallback)
-    {
-        m_motorSetpointCallback = motorSetpointCallback;
-    }
-
-    /**
-     * Calculate the top motor speed and send it to the robot.
-     *
-     * @param[in] currentVehicleData Current vehicle data.
-     */
-    void calculateTopMotorSpeed(const Waypoint& currentVehicleData);
-
-private:
-    /** Maximum motor speed. */
-    int16_t m_maxMotorSpeed;
-
-    /** Current state. */
-    STATE m_state;
-
-    /** Feedback from last follower. */
-    Waypoint m_lastFollowerFeedback;
-
-    /**
-     * Motor setpoint callback.
-     */
-    MotorSetpointCallback m_motorSetpointCallback;
+    /* Not allowed. */
+    DrivingState(const DrivingState& state);            /**< Copy construction of an instance. */
+    DrivingState& operator=(const DrivingState& state); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* LONGITUDINAL_CONTROLLER_H */
+#endif /* DRIVING_STATE_H */
 /** @} */

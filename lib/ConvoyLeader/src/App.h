@@ -50,7 +50,6 @@
 #include <StateMachine.h>
 #include <V2VClient.h>
 #include "SerialMuxChannels.h"
-#include "LongitudinalController.h"
 
 /******************************************************************************
  * Macros
@@ -73,7 +72,6 @@ public:
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_mqttClient(),
         m_v2vClient(m_mqttClient),
-        m_longitudinalController(),
         m_sendWaypointTimer()
     {
     }
@@ -96,40 +94,11 @@ public:
     void loop();
 
     /**
-     * Callback for the current vehicle data.
+     * Set latest vehicle data from RU.
      *
-     * @param[in] vehicleData Current vehicle data.
+     * @param[in] waypoint  Latest vehicle data from RU.
      */
-    void currentVehicleChannelCallback(const VehicleData& vehicleData);
-
-    /**
-     * Motor setpoint callback.
-     * Called in order to send the motor speeds using SerialMuxProt to the robot.
-     *
-     * @param[in] topCenterSpeed  Center motor speed [steps/s].
-     *
-     * @return If the motor speed was sent successfully, returns true. Otherwise, false.
-     */
-    bool motorSetpointCallback(const int16_t topCenterSpeed);
-
-    /**
-     * Release robot and start driving.
-     */
-    void release();
-
-    /**
-     * Set max motor speed.
-     *
-     * @param[in] maxMotorSpeed    Max motor speed [steps/s].
-     */
-    void setMaxMotorSpeed(const int16_t maxMotorSpeed);
-
-    /**
-     * Set incoming feedback from last follower.
-     *
-     * @param[in] feedback Feedback from last follower.
-     */
-    void setLastFollowerFeedback(const Waypoint& feedback);
+    void setLatestVehicleData(const Waypoint& waypoint);
 
 private:
     /** Minimum battery level in percent. */
@@ -175,11 +144,6 @@ private:
 
     /** The system state machine. */
     StateMachine m_systemStateMachine;
-
-    /**
-     * Longitudinal controller.
-     */
-    LongitudinalController m_longitudinalController;
 
     /**
      * Latest vehicle data from RU.

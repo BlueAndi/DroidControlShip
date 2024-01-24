@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Leader Longitudinal Controller.
+ * @brief  Driving state.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
@@ -33,8 +33,7 @@
  * Includes
  *****************************************************************************/
 
-#include "LongitudinalController.h"
-#include <Logging.h>
+#include "DrivingState.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -60,72 +59,55 @@
  * Public Methods
  *****************************************************************************/
 
-LongitudinalController::LongitudinalController() :
-    m_maxMotorSpeed(0),
-    m_state(STATE_STARTUP),
-    m_lastFollowerFeedback(),
-    m_motorSetpointCallback(nullptr)
+void DrivingState::entry()
 {
+    m_isActive = true;
 }
 
-LongitudinalController::~LongitudinalController()
+void DrivingState::process(StateMachine& sm)
 {
-}
-
-void LongitudinalController::process()
-{
-    switch (m_state)
+    /* Check if the state is active. */
+    if (false == m_isActive)
     {
-    case STATE_STARTUP:
-        /* Max speed must be positive. */
-        if (0 < m_maxMotorSpeed)
-        {
-            m_state = STATE_READY;
-        }
-
-        break;
-
-    case STATE_READY:
-        /* Wait for external release. */
-        break;
-
-    case STATE_DRIVING:
-        /* Allow top motor speed calculation. */
-        break;
-
-    case STATE_SAFE:
-        /* Stop the vehicle. Sent continously to prevent overwriting by other modules. */
-        if (nullptr != m_motorSetpointCallback)
-        {
-            m_motorSetpointCallback(0);
-        }
-
-        break;
-
-    default:
-        /* Should never happen. */
-        m_state = STATE_SAFE;
-        break;
+        m_topMotorSpeed = 0;
     }
-}
-
-void LongitudinalController::calculateTopMotorSpeed(const Waypoint& currentVehicleData)
-{
-    if (STATE_DRIVING == m_state)
+    else
     {
-        int16_t topMotorSpeed = 0;
+        /* Check limits. */
 
-        /* TODO: Check follower feedback. Calculate platoon length and react accordingly. */
+        /* Check follower feedback. Calculate platoon length and react accordingly */
 
         /* Calculate top motor speed. */
-        topMotorSpeed = m_maxMotorSpeed;
-
-        /* Send top motor speed. */
-        if (nullptr != m_motorSetpointCallback)
-        {
-            m_motorSetpointCallback(topMotorSpeed);
-        }
+        m_topMotorSpeed = m_maxMotorSpeed;
     }
+}
+
+void DrivingState::exit()
+{
+    m_isActive = false;
+}
+
+void DrivingState::setMaxMotorSpeed(int16_t maxSpeed)
+{
+    m_maxMotorSpeed = maxSpeed;
+}
+
+bool DrivingState::getTopMotorSpeed(int16_t& topMotorSpeed) const
+{
+    topMotorSpeed = m_topMotorSpeed;
+
+    /* Only valid if the state is active. */
+    return m_isActive;
+}
+
+void DrivingState::setVehicleData(const VehicleData& vehicleData)
+{
+    m_vehicleData = vehicleData;
+}
+
+void DrivingState::setLastFollowerFeedback(const VehicleData& feedback)
+{
+    m_followerFeedback = feedback;
 }
 
 /******************************************************************************
