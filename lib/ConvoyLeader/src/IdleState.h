@@ -108,7 +108,7 @@ private:
     /**
      * Default constructor.
      */
-    IdleState() : IState(), m_isActive(false)
+    IdleState() : IState(), m_isActive(false), m_releaseRequested(false)
     {
     }
 

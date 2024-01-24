@@ -91,7 +91,7 @@ namespace RemoteControl
         CMD_ID_START_DRIVING,           /**< Start driving. */
         CMD_ID_SET_INIT_POS,            /**< Set initial position. */
 
-    } CmdId;
+    } CmdId; /**< Command ID */
 
     /** Remote control command responses. */
     typedef enum : uint8_t
@@ -100,7 +100,7 @@ namespace RemoteControl
         RSP_ID_PENDING, /**< Command is pending. */
         RSP_ID_ERROR    /**< Command failed. */
 
-    } RspId;
+    } RspId; /**< Response ID */
 } /* namespace RemoteControl */
 
 /** Struct of the "Command" channel payload. */
