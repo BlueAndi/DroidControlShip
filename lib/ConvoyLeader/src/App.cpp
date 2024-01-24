@@ -330,18 +330,6 @@ void App::processPeriodicTasks()
                 LOG_WARNING("Failed to send StartupState pending command to RU.");
             }
         }
-        else
-        {
-            pendingCommand = IdleState::getInstance().getPendingCommand();
-
-            if (nullptr != pendingCommand)
-            {
-                if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, pendingCommand, sizeof(Command)))
-                {
-                    LOG_WARNING("Failed to send IdleState pending command to RU.");
-                }
-            }
-        }
 
         m_commandTimer.restart();
     }
@@ -395,14 +383,6 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
         else if (RemoteControl::CMD_ID_SET_INIT_POS == cmdRsp->commandId)
         {
             StartupState::getInstance().notifyCommandProcessed();
-        }
-        else if (RemoteControl::CMD_ID_START_DRIVING == cmdRsp->commandId)
-        {
-            IdleState::getInstance().notifyCommandProcessed();
-        }
-        else
-        {
-            LOG_WARNING("CMD_RSP: Unknown command ID: 0x%02X", cmdRsp->commandId);
         }
     }
     else

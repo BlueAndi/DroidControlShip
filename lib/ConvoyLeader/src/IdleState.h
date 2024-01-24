@@ -91,18 +91,6 @@ public:
     void exit() final;
 
     /**
-     * Get pending command. If there is no pending command or the state is not active, it will return nullptr.
-     *
-     * @return Pending command or nullptr.
-     */
-    Command* getPendingCommand();
-
-    /**
-     * Notify the state, that the pending command is successfully processed by RU.
-     */
-    void notifyCommandProcessed();
-
-    /**
      * Release the vehicle to start driving.
      *
      * @return If the request to release the vehicle is successful, returns true. Otherwise, false.
@@ -114,16 +102,13 @@ private:
     /** Flag: State is active. */
     bool m_isActive;
 
-    /** Flag: Release is successful. */
-    bool m_isReleaseSuccessful;
-
-    /** Pending command. */
-    Command* m_pendingCommand;
+    /** Flag: Release is requested. */
+    bool m_releaseRequested;
 
     /**
      * Default constructor.
      */
-    IdleState() : IState(), m_isActive(false), m_isReleaseSuccessful(false), m_pendingCommand(nullptr)
+    IdleState() : IState(), m_isActive(false)
     {
     }
 

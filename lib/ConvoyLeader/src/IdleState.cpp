@@ -35,8 +35,6 @@
 
 #include "IdleState.h"
 #include "DrivingState.h"
-#include "RemoteControl.h"
-#include <new>
 
 /******************************************************************************
  * Compiler Switches
@@ -64,22 +62,16 @@
 
 void IdleState::entry()
 {
-    m_isActive            = true;
-    m_isReleaseSuccessful = false;
-
-    if (nullptr != m_pendingCommand)
-    {
-        delete m_pendingCommand;
-        m_pendingCommand = nullptr;
-    }
+    m_isActive         = true;
+    m_releaseRequested = false;
 }
 
 void IdleState::process(StateMachine& sm)
 {
-    if (true == m_isReleaseSuccessful)
+    if ((true == m_isActive) && (true == m_releaseRequested))
     {
-        /* Release is successful. Switch to driving state. */
         sm.setState(&DrivingState::getInstance());
+        m_releaseRequested = false;
     }
 }
 
@@ -88,42 +80,14 @@ void IdleState::exit()
     m_isActive = false;
 }
 
-Command* IdleState::getPendingCommand()
-{
-    return (true == m_isActive) ? m_pendingCommand : nullptr;
-}
-
-void IdleState::notifyCommandProcessed()
-{
-    if (nullptr != m_pendingCommand)
-    {
-        delete m_pendingCommand;
-        m_pendingCommand      = nullptr;
-        m_isReleaseSuccessful = true;
-    }
-}
-
 bool IdleState::requestRelease()
 {
-    bool isSuccessful = false;
-
     if (true == m_isActive)
     {
-        if (nullptr != m_pendingCommand)
-        {
-            delete m_pendingCommand;
-            m_pendingCommand = nullptr;
-        }
-
-        m_pendingCommand = new (std::nothrow) Command{RemoteControl::CMD_ID_START_DRIVING};
-
-        if (nullptr != m_pendingCommand)
-        {
-            isSuccessful = true;
-        }
+        m_releaseRequested = true;
     }
 
-    return isSuccessful;
+    return m_isActive;
 }
 
 /******************************************************************************
