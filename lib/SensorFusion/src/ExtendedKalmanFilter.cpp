@@ -122,8 +122,8 @@ void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
 
     /* Perform the prediction step of the covariance matrix with the help of the Jacobian Matrix */
     Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> jacobianMatrix;
-    jacobianMatrix << 1, 0, -duration * velocity * sinOrienation, duration * cosOrienation, 0, 1,
-        duration * velocity * cosOrienation, duration * sinOrienation, 0, 0, 1, 0, 0, 0, 0, 1;
+    jacobianMatrix << 1, 0, duration * cosOrienation, -duration * velocity * sinOrienation, 0, 1,
+        duration * sinOrienation, duration * velocity * cosOrienation, 0, 0, 1, 0, 0, 0, 0, 1;
 
     /* Generate Process Covariance Matrix Q */
     Eigen::MatrixXf processCovarianceMatrixQ = Eigen::MatrixXf::Zero(NUMBER_OF_STATES_N, NUMBER_OF_STATES_N);
