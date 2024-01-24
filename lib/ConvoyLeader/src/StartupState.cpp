@@ -35,7 +35,6 @@
 
 #include "StartupState.h"
 #include "IdleState.h"
-#include "RemoteControl.h"
 #include <new>
 #include <SettingsHandler.h>
 

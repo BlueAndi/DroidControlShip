@@ -77,10 +77,36 @@
 /** SerialMuxProt Server with fixed template argument. */
 typedef SerialMuxProtServer<MAX_CHANNELS> SMPServer;
 
+/** RemoteControl application constants */
+namespace RemoteControl
+{
+    /** Remote control commands. */
+    typedef enum : uint8_t
+    {
+        CMD_ID_IDLE = 0,                /**< Nothing to do. */
+        CMD_ID_START_LINE_SENSOR_CALIB, /**< Start line sensor calibration. */
+        CMD_ID_START_MOTOR_SPEED_CALIB, /**< Start motor speed calibration. */
+        CMD_ID_REINIT_BOARD,            /**< Re-initialize the board. Required for webots simulation. */
+        CMD_ID_GET_MAX_SPEED,           /**< Get maximum speed. */
+        CMD_ID_START_DRIVING,           /**< Start driving. */
+        CMD_ID_SET_INIT_POS,            /**< Set initial position. */
+
+    } CmdId;
+
+    /** Remote control command responses. */
+    typedef enum : uint8_t
+    {
+        RSP_ID_OK = 0,  /**< Command successful executed. */
+        RSP_ID_PENDING, /**< Command is pending. */
+        RSP_ID_ERROR    /**< Command failed. */
+
+    } RspId;
+} /* namespace RemoteControl */
+
 /** Struct of the "Command" channel payload. */
 typedef struct _Command
 {
-    uint8_t commandId; /**< Command ID */
+    RemoteControl::CmdId commandId; /**< Command ID */
 
     /** Command payload. */
     union
@@ -99,8 +125,8 @@ typedef struct _Command
 /** Struct of the "Command Response" channel payload. */
 typedef struct _CommandResponse
 {
-    uint8_t commandId;  /**< Command ID */
-    uint8_t responseId; /**< Response to the command */
+    RemoteControl::CmdId commandId;  /**< Command ID */
+    RemoteControl::RspId responseId; /**< Response to the command */
 
     /** Response Payload. */
     union

@@ -33,7 +33,6 @@
  * Includes
  *****************************************************************************/
 #include "App.h"
-#include "RemoteControl.h"
 #include <Board.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
