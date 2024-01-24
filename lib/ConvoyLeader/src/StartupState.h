@@ -45,7 +45,6 @@
 
 #include <IState.h>
 #include <StateMachine.h>
-#include <SimpleTimer.hpp>
 #include "SerialMuxChannels.h"
 
 /******************************************************************************

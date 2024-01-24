@@ -36,6 +36,7 @@
 #include "StartupState.h"
 #include "IdleState.h"
 #include "RemoteControl.h"
+#include <new>
 #include <SettingsHandler.h>
 
 /******************************************************************************
@@ -65,6 +66,12 @@
 void StartupState::entry()
 {
     m_isActive = true;
+
+    if (nullptr != m_pendingCommand)
+    {
+        delete m_pendingCommand;
+        m_pendingCommand = nullptr;
+    }
 }
 
 void StartupState::process(StateMachine& sm)
@@ -77,7 +84,7 @@ void StartupState::process(StateMachine& sm)
         if (nullptr == m_pendingCommand)
         {
             /* Create new pending commmand. */
-            m_pendingCommand = new Command{RemoteControl::CMD_ID_GET_MAX_SPEED};
+            m_pendingCommand = new (std::nothrow) Command{RemoteControl::CMD_ID_GET_MAX_SPEED};
         }
         else
         {
@@ -89,11 +96,15 @@ void StartupState::process(StateMachine& sm)
         if (nullptr == m_pendingCommand)
         {
             /* Create new pending commmand. */
-            m_pendingCommand              = new Command;
-            m_pendingCommand->commandId   = RemoteControl::CMD_ID_SET_INIT_POS;
-            m_pendingCommand->xPos        = settings.getInitialXPosition();
-            m_pendingCommand->yPos        = settings.getInitialYPosition();
-            m_pendingCommand->orientation = settings.getInitialHeading();
+            m_pendingCommand = new (std::nothrow) Command;
+
+            if (nullptr != m_pendingCommand)
+            {
+                m_pendingCommand->commandId   = RemoteControl::CMD_ID_SET_INIT_POS;
+                m_pendingCommand->xPos        = settings.getInitialXPosition();
+                m_pendingCommand->yPos        = settings.getInitialYPosition();
+                m_pendingCommand->orientation = settings.getInitialHeading();
+            }
         }
         else
         {
