@@ -175,6 +175,7 @@ void App::setup()
             /* Initialize timers. */
             m_sendWaypointTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
             m_commandTimer.start(SEND_COMMANDS_TIMER_INTERVAL);
+            m_motorSpeedTimer.start(SEND_MOTOR_SPEED_TIMER_INTERVAL);
 
             /* Start with startup state. */
             m_systemStateMachine.setState(&StartupState::getInstance());
@@ -356,15 +357,31 @@ void App::processPeriodicTasks()
         m_commandTimer.restart();
     }
 
-    if (true == m_sendWaypointTimer.isTimeout())
+    if ((true == m_sendWaypointTimer.isTimeout()) && (true == m_mqttClient.isConnected()))
     {
         if (false == m_v2vClient.sendWaypoint(m_latestVehicleData))
         {
             LOG_WARNING("Waypoint could not be sent.");
         }
-        else
+
+        m_sendWaypointTimer.restart();
+    }
+
+    if ((true == m_motorSpeedTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        int16_t centerSpeed = 0;
+
+        if (true == DrivingState::getInstance().getTopMotorSpeed(centerSpeed))
         {
-            m_sendWaypointTimer.restart();
+            SpeedData payload;
+            payload.center = centerSpeed;
+
+            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(SpeedData)))
+            {
+                LOG_WARNING("Failed to send motor speeds to RU.");
+            }
+
+            m_motorSpeedTimer.restart();
         }
     }
 }

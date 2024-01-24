@@ -72,7 +72,11 @@ public:
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_mqttClient(),
         m_v2vClient(m_mqttClient),
-        m_sendWaypointTimer()
+        m_systemStateMachine(),
+        m_latestVehicleData(),
+        m_sendWaypointTimer(),
+        m_commandTimer(),
+        m_motorSpeedTimer()
     {
     }
 
@@ -115,6 +119,9 @@ private:
     /** Send commands timer interval in ms. */
     static const uint32_t SEND_COMMANDS_TIMER_INTERVAL = 100U;
 
+    /** Send motor speed timer interval in ms. */
+    static const uint32_t SEND_MOTOR_SPEED_TIMER_INTERVAL = 100U;
+
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
 
@@ -147,7 +154,9 @@ private:
      */
     V2VClient m_v2vClient;
 
-    /** The system state machine. */
+    /**
+     * The system state machine.
+     */
     StateMachine m_systemStateMachine;
 
     /**
@@ -164,6 +173,11 @@ private:
      * Timer for sending initial commands.
      */
     SimpleTimer m_commandTimer;
+
+    /**
+     * Timer for sending motor speed to RU.
+     */
+    SimpleTimer m_motorSpeedTimer;
 
 private:
     /**
