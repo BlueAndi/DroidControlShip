@@ -138,6 +138,9 @@ private:
     /** Send waypoint timer interval in ms. */
     static const uint32_t SEND_WAYPOINT_TIMER_INTERVAL = 500U;
 
+    /** Send commands timer interval in ms. */
+    static const uint32_t SEND_COMMANDS_TIMER_INTERVAL = 100U;
+
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
 
@@ -191,7 +194,7 @@ private:
     /**
      * Timer for sending initial commands.
      */
-    SimpleTimer m_initialCommandTimer;
+    SimpleTimer m_commandTimer;
 
 private:
     /**

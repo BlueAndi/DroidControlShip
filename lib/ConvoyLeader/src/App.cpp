@@ -42,6 +42,7 @@
 #include <WiFi.h>
 #include <Util.h>
 #include "StartupState.h"
+#include "IdleState.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -178,7 +179,7 @@ void App::setup()
 
             /* Initialize timers. */
             m_sendWaypointTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
-            m_initialCommandTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
+            m_commandTimer.start(SEND_COMMANDS_TIMER_INTERVAL);
 
             /* Start with startup state. */
             m_systemStateMachine.setState(&StartupState::getInstance());
@@ -370,7 +371,7 @@ bool App::setupSerialMuxProt()
 
 void App::processPeriodicTasks()
 {
-    if ((true == m_initialCommandTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    if ((true == m_commandTimer.isTimeout()) && (true == m_smpServer.isSynced()))
     {
         Command* pendingCommand = StartupState::getInstance().getPendingCommand();
 
@@ -378,11 +379,23 @@ void App::processPeriodicTasks()
         {
             if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, pendingCommand, sizeof(Command)))
             {
-                LOG_WARNING("Failed to send pending command to RU.");
+                LOG_WARNING("Failed to send StartupState pending command to RU.");
             }
-
-            m_initialCommandTimer.restart();
         }
+        else
+        {
+            pendingCommand = IdleState::getInstance().getPendingCommand();
+
+            if (nullptr != pendingCommand)
+            {
+                if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, pendingCommand, sizeof(Command)))
+                {
+                    LOG_WARNING("Failed to send IdleState pending command to RU.");
+                }
+            }
+        }
+
+        m_commandTimer.restart();
     }
 
     if (true == m_sendWaypointTimer.isTimeout())
@@ -434,6 +447,14 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
         else if (RemoteControl::CMD_ID_SET_INIT_POS == cmdRsp->commandId)
         {
             StartupState::getInstance().notifyCommandProcessed();
+        }
+        else if (RemoteControl::CMD_ID_START_DRIVING == cmdRsp->commandId)
+        {
+            IdleState::getInstance().notifyCommandProcessed();
+        }
+        else
+        {
+            LOG_WARNING("CMD_RSP: Unknown command ID: 0x%02X", cmdRsp->commandId);
         }
     }
     else
