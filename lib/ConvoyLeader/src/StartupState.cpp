@@ -83,7 +83,7 @@ void StartupState::process(StateMachine& sm)
         if (nullptr == m_pendingCommand)
         {
             /* Create new pending commmand. */
-            m_pendingCommand = new (std::nothrow) Command{RemoteControl::CMD_ID_GET_MAX_SPEED};
+            m_pendingCommand = new (std::nothrow) Command{SMPChannelPayload::CMD_ID_GET_MAX_SPEED};
         }
         else
         {
@@ -99,7 +99,7 @@ void StartupState::process(StateMachine& sm)
 
             if (nullptr != m_pendingCommand)
             {
-                m_pendingCommand->commandId   = RemoteControl::CMD_ID_SET_INIT_POS;
+                m_pendingCommand->commandId   = SMPChannelPayload::CMD_ID_SET_INIT_POS;
                 m_pendingCommand->xPos        = settings.getInitialXPosition();
                 m_pendingCommand->yPos        = settings.getInitialYPosition();
                 m_pendingCommand->orientation = settings.getInitialHeading();

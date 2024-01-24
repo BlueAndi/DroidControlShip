@@ -70,6 +70,12 @@
 /** DLC of Current Vehicle Data Channel */
 #define CURRENT_VEHICLE_DATA_CHANNEL_DLC (sizeof(VehicleData))
 
+/** Name of Channel to send system status to. */
+#define STATUS_CHANNEL_NAME "STATUS"
+
+/** DLC of Status Channel */
+#define STATUS_CHANNEL_DLC (sizeof(Status))
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
@@ -77,8 +83,8 @@
 /** SerialMuxProt Server with fixed template argument. */
 typedef SerialMuxProtServer<MAX_CHANNELS> SMPServer;
 
-/** RemoteControl application constants */
-namespace RemoteControl
+/** Channel payload constants. */
+namespace SMPChannelPayload
 {
     /** Remote control commands. */
     typedef enum : uint8_t
@@ -101,12 +107,21 @@ namespace RemoteControl
         RSP_ID_ERROR    /**< Command failed. */
 
     } RspId; /**< Response ID */
-} /* namespace RemoteControl */
+
+    /** Status flags. */
+    typedef enum : uint8_t
+    {
+        STATUS_FLAG_OK = 0, /**< Everything is fine. */
+        STATUS_FLAG_ERROR   /**< Something is wrong. */
+
+    } Status; /**< Status flag */
+
+} /* namespace SMPChannelPayload */
 
 /** Struct of the "Command" channel payload. */
 typedef struct _Command
 {
-    RemoteControl::CmdId commandId; /**< Command ID */
+    SMPChannelPayload::CmdId commandId; /**< Command ID */
 
     /** Command payload. */
     union
@@ -125,8 +140,8 @@ typedef struct _Command
 /** Struct of the "Command Response" channel payload. */
 typedef struct _CommandResponse
 {
-    RemoteControl::CmdId commandId;  /**< Command ID */
-    RemoteControl::RspId responseId; /**< Response to the command */
+    SMPChannelPayload::CmdId commandId;  /**< Command ID */
+    SMPChannelPayload::RspId responseId; /**< Response to the command */
 
     /** Response Payload. */
     union
@@ -153,6 +168,12 @@ typedef struct _VehicleData
     int16_t right;       /**< Right motor speed [steps/s]. */
     int16_t center;      /**< Center speed [steps/s]. */
 } __attribute__((packed)) VehicleData;
+
+/** Struct of the "Status" channel payload. */
+typedef struct _Status
+{
+    SMPChannelPayload::Status status; /**< Status */
+} __attribute__((packed)) Status;
 
 /******************************************************************************
  * Functions

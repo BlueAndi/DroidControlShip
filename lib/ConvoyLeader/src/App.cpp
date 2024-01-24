@@ -392,18 +392,18 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
         const CommandResponse* cmdRsp      = reinterpret_cast<const CommandResponse*>(payload);
         LOG_DEBUG("CMD_RSP: ID: 0x%02X , RSP: 0x%02X", cmdRsp->commandId, cmdRsp->responseId);
 
-        if (RemoteControl::RSP_ID_ERROR == cmdRsp->responseId)
+        if (SMPChannelPayload::RSP_ID_ERROR == cmdRsp->responseId)
         {
             /* Go to error state. */
             application->setErrorState();
         }
-        else if (RemoteControl::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
+        else if (SMPChannelPayload::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
         {
             LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
             DrivingState::getInstance().setMaxMotorSpeed(cmdRsp->maxMotorSpeed);
             StartupState::getInstance().notifyCommandProcessed();
         }
-        else if (RemoteControl::CMD_ID_SET_INIT_POS == cmdRsp->commandId)
+        else if (SMPChannelPayload::CMD_ID_SET_INIT_POS == cmdRsp->commandId)
         {
             StartupState::getInstance().notifyCommandProcessed();
         }
