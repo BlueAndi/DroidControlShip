@@ -121,11 +121,9 @@ bool Logging::selectSink(const String& name)
                 m_selectedSink = m_sinks[index];
                 status         = true;
             }
-            else
-            {
-                ++index;
-            }
         }
+
+        ++index;
     }
 
     return status;
