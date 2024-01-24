@@ -94,7 +94,7 @@ public:
     /**
      * Set maximum motor speed.
      *
-     * @param[in] speed Maximum motor speed.
+     * @param[in] maxSpeed Maximum motor speed.
      */
     void setMaxMotorSpeed(int16_t maxSpeed);
 

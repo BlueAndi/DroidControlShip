@@ -82,8 +82,10 @@ typedef struct _Command
 {
     uint8_t commandId; /**< Command ID */
 
+    /** Command payload. */
     union
     {
+        /** Init data command payload. */
         struct
         {
             int32_t xPos;        /**< X position [mm]. */
