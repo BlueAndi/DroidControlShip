@@ -100,6 +100,11 @@ public:
      */
     void setLatestVehicleData(const Waypoint& waypoint);
 
+    /**
+     * Set error state.
+     */
+    void setErrorState();
+
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;

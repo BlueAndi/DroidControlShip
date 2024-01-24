@@ -44,6 +44,7 @@
 #include "StartupState.h"
 #include "IdleState.h"
 #include "DrivingState.h"
+#include "ErrorState.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -227,6 +228,11 @@ void App::setLatestVehicleData(const Waypoint& waypoint)
     m_latestVehicleData = waypoint;
 }
 
+void App::setErrorState()
+{
+    m_systemStateMachine.setState(&ErrorState::getInstance());
+}
+
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/
@@ -373,6 +379,7 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
         if (RemoteControl::RSP_ID_ERROR == cmdRsp->responseId)
         {
             /* Go to error state. */
+            application->setErrorState();
         }
         else if (RemoteControl::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
         {
