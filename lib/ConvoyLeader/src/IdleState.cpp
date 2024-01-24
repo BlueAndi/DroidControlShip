@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Concrete Lateral Controller
+ * @brief  Idle State.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
@@ -33,8 +33,8 @@
  * Includes
  *****************************************************************************/
 
-#include "LateralController.h"
-#include <Util.h>
+#include "IdleState.h"
+#include "DrivingState.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -60,27 +60,34 @@
  * Public Methods
  *****************************************************************************/
 
-LateralController::LateralController() : ILateralController(), m_headingFinder()
+void IdleState::entry()
 {
+    m_isActive         = true;
+    m_releaseRequested = false;
 }
 
-LateralController::~LateralController()
+void IdleState::process(StateMachine& sm)
 {
+    if ((true == m_isActive) && (true == m_releaseRequested))
+    {
+        sm.setState(&DrivingState::getInstance());
+        m_releaseRequested = false;
+    }
 }
 
-bool LateralController::calculateLateralMovement(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
-                                                 const int16_t centerSpeedSetpoint, int16_t& leftMotorSpeedSetpoint,
-                                                 int16_t& rightMotorSpeedSetpoint)
+void IdleState::exit()
 {
-    bool isSuccessful = true;
+    m_isActive = false;
+}
 
-    m_headingFinder.setOdometryData(currentWaypoint.xPos, currentWaypoint.yPos, currentWaypoint.orientation);
-    m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
-    m_headingFinder.setTargetHeading(targetWaypoint.xPos, targetWaypoint.yPos);
+bool IdleState::requestRelease()
+{
+    if (true == m_isActive)
+    {
+        m_releaseRequested = true;
+    }
 
-    m_headingFinder.process(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
-
-    return isSuccessful;
+    return m_isActive;
 }
 
 /******************************************************************************
