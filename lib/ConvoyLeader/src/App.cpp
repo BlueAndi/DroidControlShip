@@ -283,19 +283,32 @@ bool App::setupMqttClient()
     }
     else
     {
-        isSuccessful = m_mqttClient.subscribe(
-            TOPIC_NAME_RELEASE, true, [this](const String& payload) { IdleState::getInstance().requestRelease(); });
+        /* Create Callbacks. */
+        IMqttClient::TopicCallback releaseTopicCallback = [this](const String& payload)
+        { IdleState::getInstance().requestRelease(); };
 
-        isSuccessful &=
-            m_mqttClient.subscribe("platoons/0/vehicles/0/feedback", false,
-                                   [this](const String& payload)
-                                   {
-                                       Waypoint*   waypoint = Waypoint::deserialize(payload);
-                                       VehicleData feedback{waypoint->xPos, waypoint->yPos,  waypoint->orientation,
-                                                            waypoint->left, waypoint->right, waypoint->center};
+        IMqttClient::TopicCallback lastFollowerFeedbackCallback = [this](const String& payload)
+        {
+            Waypoint*   waypoint = Waypoint::deserialize(payload);
+            VehicleData feedback{waypoint->xPos, waypoint->yPos,  waypoint->orientation,
+                                 waypoint->left, waypoint->right, waypoint->center};
 
-                                       DrivingState::getInstance().setLastFollowerFeedback(feedback);
-                                   });
+            DrivingState::getInstance().setLastFollowerFeedback(feedback);
+        };
+
+        /* Register MQTT client callbacks. */
+        if (false == m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, releaseTopicCallback))
+        {
+            LOG_ERROR("Failed to subscribe to release topic.");
+        }
+        else if (false == m_mqttClient.subscribe("platoons/0/vehicles/0/feedback", false, lastFollowerFeedbackCallback))
+        {
+            LOG_ERROR("Failed to subscribe to last follower feedback topic.");
+        }
+        else
+        {
+            isSuccessful = true;
+        }
     }
 
     return isSuccessful;
