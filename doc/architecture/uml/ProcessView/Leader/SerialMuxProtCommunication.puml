@@ -1,0 +1,53 @@
+@startuml CommSequence
+
+Title Sequence Diagram RU and DCS
+
+autoactivate on
+
+participant "RU" as RU
+participant "DCS" as DCS
+
+note across: Possible STATUS = {STARTUP, OK, ERROR}
+
+group State-Independent Messages
+    RU --> DCS: STATUS: RU_STATE
+    DCS --> RU: STATUS: DCS_STATE
+end
+
+group StateLessSetup
+    RU --> DCS: Subscribe: STATUS
+    RU --> DCS: Subscribe: CMD
+    RU --> DCS: Subscribe: SPEED_SETPOINT
+    DCS --> RU: Subscribe: STATUS
+    DCS --> RU: Subscribe: CMD_RSP
+    DCS --> RU: Subscribe: CURRENT_VEHICLE_DATA
+end
+
+group StatupState
+    DCS -> RU: CMD: GetMaxSpeed
+    RU -->> DCS: CMD_RSP:OK + maxSpeed
+    DCS -> RU: CMD: SetInitialPosition
+    RU -->> DCS: CMD_RSP:OK
+end
+
+group LineSensorsCalibrationState
+
+end
+
+group IdleState
+    DCS -> RU: CMD: Release
+    RU -->> DCS: CMD_RSP:OK
+end
+
+group DrivingState
+    RU ->> DCS: CURRENT_VEHICLE_DATA:Data
+    DCS -> DCS: CalculateSpeed
+    return
+    DCS --> RU: SPEED_SETPOINT: Top Center Speed
+end
+
+group ErrorState
+
+end
+
+@enduml
