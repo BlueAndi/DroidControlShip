@@ -76,12 +76,12 @@ Waypoint* Waypoint::deserialize(const String& serializedWaypoint)
     }
     else
     {
-        JsonVariant jsonXPos        = jsonPayload["X"];           /**< X position [mm]. */
-        JsonVariant jsonYPos        = jsonPayload["Y"];           /**< Y position [mm]. */
-        JsonVariant jsonOrientation = jsonPayload["Orientation"]; /**< Orientation [mrad]. */
-        JsonVariant jsonLeft        = jsonPayload["Left"];        /**< Left motor speed [steps/s]. */
-        JsonVariant jsonRight       = jsonPayload["Right"];       /**< Right motor speed [steps/s]. */
-        JsonVariant jsonCenter      = jsonPayload["Center"];      /**< Center speed [steps/s]. */
+        JsonVariant jsonXPos        = jsonPayload["X"];           /* X position [mm]. */
+        JsonVariant jsonYPos        = jsonPayload["Y"];           /* Y position [mm]. */
+        JsonVariant jsonOrientation = jsonPayload["Orientation"]; /* Orientation [mrad]. */
+        JsonVariant jsonLeft        = jsonPayload["Left"];        /* Left motor speed [steps/s]. */
+        JsonVariant jsonRight       = jsonPayload["Right"];       /* Right motor speed [steps/s]. */
+        JsonVariant jsonCenter      = jsonPayload["Center"];      /* Center speed [steps/s]. */
 
         if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()) && (false == jsonOrientation.isNull()) &&
             (false == jsonLeft.isNull()) && (false == jsonRight.isNull()) && (false == jsonCenter.isNull()))
@@ -105,12 +105,12 @@ void Waypoint::serialize(String& serializedWaypoint) const
 {
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
 
-    jsonPayload["X"]           = xPos;        /**< X position [mm]. */
-    jsonPayload["Y"]           = yPos;        /**< Y position [mm]. */
-    jsonPayload["Orientation"] = orientation; /**< Orientation [mrad]. */
-    jsonPayload["Left"]        = left;        /**< Left motor speed [steps/s]. */
-    jsonPayload["Right"]       = right;       /**< Right motor speed [steps/s]. */
-    jsonPayload["Center"]      = center;      /**< Center speed [steps/s]. */
+    jsonPayload["X"]           = xPos;        /* X position [mm]. */
+    jsonPayload["Y"]           = yPos;        /* Y position [mm]. */
+    jsonPayload["Orientation"] = orientation; /* Orientation [mrad]. */
+    jsonPayload["Left"]        = left;        /* Left motor speed [steps/s]. */
+    jsonPayload["Right"]       = right;       /* Right motor speed [steps/s]. */
+    jsonPayload["Center"]      = center;      /* Center speed [steps/s]. */
 
     size_t jsonBufferSize = measureJson(jsonPayload) + 1U;
     char   jsonBuffer[jsonBufferSize];
