@@ -654,7 +654,7 @@ public:
 
     bool concat(const String& s)
     {
-        this->operator+=(s);
+        (void)this->operator+=(s);
         return true;
     }
 
@@ -664,16 +664,14 @@ public:
         {
             return false;
         }
-        else
-        {
-            this->operator+=(cstr);
-            return true;
-        }
+
+        (void)this->operator+=(cstr);
+        return true;
     }
 
     bool concat(char c)
     {
-        this->operator+=(c);
+        (void)this->operator+=(c);
         return true;
     }
 
