@@ -35,7 +35,6 @@
 
 #include "StartupState.h"
 #include "IdleState.h"
-#include <new>
 #include <SettingsHandler.h>
 
 /******************************************************************************
@@ -64,86 +63,58 @@
 
 void StartupState::entry()
 {
-    m_isActive = true;
-
-    if (nullptr != m_pendingCommand)
-    {
-        delete m_pendingCommand;
-        m_pendingCommand = nullptr;
-    }
+    m_isActive              = true;
+    m_pendingCommandCounter = CMD_GET_MAX_SPEED;
 }
 
 void StartupState::process(StateMachine& sm)
 {
-    SettingsHandler& settings = SettingsHandler::getInstance();
-
-    switch (m_pendingCommandCounter)
+    if (CMD_NONE == m_pendingCommandCounter)
     {
-    case CMD_GET_MAX_SPEED:
-        if (nullptr == m_pendingCommand)
-        {
-            /* Create new pending commmand. */
-            m_pendingCommand = new (std::nothrow) Command{SMPChannelPayload::CMD_ID_GET_MAX_SPEED};
-        }
-        else
-        {
-            /* Command is still pending. */
-        }
-        break;
-
-    case CMD_SET_INIT_POS:
-        if (nullptr == m_pendingCommand)
-        {
-            /* Create new pending commmand. */
-            m_pendingCommand = new (std::nothrow) Command;
-
-            if (nullptr != m_pendingCommand)
-            {
-                m_pendingCommand->commandId   = SMPChannelPayload::CMD_ID_SET_INIT_POS;
-                m_pendingCommand->xPos        = settings.getInitialXPosition();
-                m_pendingCommand->yPos        = settings.getInitialYPosition();
-                m_pendingCommand->orientation = settings.getInitialHeading();
-            }
-        }
-        else
-        {
-            /* Command is still pending. */
-        }
-        break;
-
-    case CMD_NONE:
         /* All commands processed. Switch to idle state. */
         sm.setState(&IdleState::getInstance());
-        break;
-
-    default:
-        break;
     }
 }
 
 void StartupState::exit()
 {
-    /* Ensure the pending command is deleted. */
-    if (nullptr != m_pendingCommand)
-    {
-        delete m_pendingCommand;
-        m_pendingCommand = nullptr;
-    }
-
     m_isActive = false;
 }
 
-Command* StartupState::getPendingCommand()
+bool StartupState::getPendingCommand(Command& cmd)
 {
-    return (true == m_isActive) ? m_pendingCommand : nullptr;
+    bool             isPending = false;
+    SettingsHandler& settings  = SettingsHandler::getInstance();
+
+    if (true == m_isActive)
+    {
+        switch (m_pendingCommandCounter)
+        {
+        case CMD_GET_MAX_SPEED:
+            cmd.commandId = SMPChannelPayload::CMD_ID_GET_MAX_SPEED;
+            isPending     = true;
+            break;
+
+        case CMD_SET_INIT_POS:
+            cmd.commandId   = SMPChannelPayload::CMD_ID_SET_INIT_POS;
+            cmd.xPos        = settings.getInitialXPosition();
+            cmd.yPos        = settings.getInitialYPosition();
+            cmd.orientation = settings.getInitialHeading();
+            isPending       = true;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    return isPending;
 }
 
 void StartupState::notifyCommandProcessed()
 {
-    if (nullptr != m_pendingCommand)
+    if (true == m_isActive)
     {
-        delete m_pendingCommand;
-        m_pendingCommand = nullptr;
         m_pendingCommandCounter++;
     }
 }

@@ -101,9 +101,11 @@ public:
     /**
      * Get pending command. If there is no pending command or the state is not active, it will return nullptr.
      *
-     * @return Pending command or nullptr.
+     * @param[out] cmd Buffer to write the pending command.
+     *
+     * return If there is a pending command, it will return true otherwise false.
      */
-    Command* getPendingCommand();
+    bool getPendingCommand(Command& cmd);
 
     /**
      * Notify the state, that the pending command is successfully processed by RU.

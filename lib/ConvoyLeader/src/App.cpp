@@ -358,12 +358,12 @@ void App::processPeriodicTasks()
 {
     if ((true == m_commandTimer.isTimeout()) && (true == m_smpServer.isSynced()))
     {
-        Command* pendingCommand = StartupState::getInstance().getPendingCommand();
+        Command payload;
+        bool    isPending = StartupState::getInstance().getPendingCommand(payload);
 
-        if (nullptr != pendingCommand)
+        if (true == isPending)
         {
-            if (false ==
-                m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, pendingCommand, sizeof(pendingCommand)))
+            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &payload, sizeof(payload)))
             {
                 LOG_WARNING("Failed to send StartupState pending command to RU.");
             }
