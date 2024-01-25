@@ -237,12 +237,23 @@ void App::setErrorState()
 
 void App::systemStatusCallback(SMPChannelPayload::Status status)
 {
-    if (SMPChannelPayload::STATUS_FLAG_ERROR == status)
+    switch (status)
     {
+    case SMPChannelPayload::STATUS_FLAG_OK:
+        /* Nothing to do. All good. */
+        break;
+
+    case SMPChannelPayload::STATUS_FLAG_ERROR:
+        LOG_DEBUG("RU Status ERROR.");
         setErrorState();
+        m_statusTimeoutTimer.stop();
+        break;
+
+    default:
+        break;
     }
 
-    m_statusTimeoutTimer.restart();
+    m_statusTimeoutTimer.start(STATUS_TIMEOUT_TIMER_INTERVAL);
 }
 
 /******************************************************************************
@@ -338,6 +349,7 @@ bool App::setupSerialMuxProt()
     /* Channel subscription. */
     m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
     m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME, App_currentVehicleChannelCallback);
+    m_smpServer.subscribeToChannel(STATUS_CHANNEL_NAME, App_statusChannelCallback);
 
     /* Channel creation. */
     m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
@@ -427,7 +439,9 @@ void App::processPeriodicTasks()
     else if (true == m_statusTimeoutTimer.isTimeout())
     {
         /* Not receiving status from RU. Go to error state. */
+        LOG_DEBUG("RU Status timeout.");
         setErrorState();
+        m_statusTimeoutTimer.stop();
     }
 }
 
