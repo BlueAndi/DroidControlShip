@@ -53,6 +53,7 @@
 
 static void testWStringReplacement(void);
 static void testWStringAppend(void);
+static void testWStringConcat(void);
 
 /******************************************************************************
  * Local Variables
@@ -88,6 +89,7 @@ extern int main(int argc, char** argv)
 
     RUN_TEST(testWStringReplacement);
     RUN_TEST(testWStringAppend);
+    RUN_TEST(testWStringConcat);
 
     return UNITY_END();
 }
@@ -154,11 +156,11 @@ static void testWStringReplacement(void)
 static void testWStringAppend(void)
 {
     String original = String("Im short");
-    char classic[4];
-    classic[0]      = 'H';
-    classic[1]      = 'I';
-    classic[2]      = '!';
-    classic[3]      = '\0';
+    char   classic[4];
+    classic[0] = 'H';
+    classic[1] = 'I';
+    classic[2] = '!';
+    classic[3] = '\0';
 
     original += String("- first amendment -");
     original += classic;
@@ -168,5 +170,28 @@ static void testWStringAppend(void)
 
     String tester = String("");
     tester += "Im new";
+    TEST_ASSERT_EQUAL_STRING("Im new", tester.c_str());
+}
+
+/**
+ * Test WString += implementation.
+ */
+static void testWStringConcat(void)
+{
+    String original = String("Im short");
+    char   classic[4];
+    classic[0] = 'H';
+    classic[1] = 'I';
+    classic[2] = '!';
+    classic[3] = '\0';
+
+    original.concat(String("- first amendment -"));
+    original.concat(classic);
+    original.concat('-');
+
+    TEST_ASSERT_EQUAL_STRING("Im short- first amendment -HI!-", original.c_str());
+
+    String tester = String("");
+    tester.concat("Im new");
     TEST_ASSERT_EQUAL_STRING("Im new", tester.c_str());
 }
