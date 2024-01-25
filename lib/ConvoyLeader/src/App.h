@@ -158,8 +158,6 @@ private:
 
     /**
      * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
     SMPServer m_smpServer;
 
