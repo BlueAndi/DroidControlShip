@@ -150,7 +150,8 @@ void V2VClient::process()
 bool V2VClient::sendWaypoint(const Waypoint& waypoint)
 {
     bool   isSuccessful = false;
-    String payload      = waypoint.serialize();
+    String payload;
+    waypoint.serialize(payload);
 
     if (true == payload.isEmpty())
     {

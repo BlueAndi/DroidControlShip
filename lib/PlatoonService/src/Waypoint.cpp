@@ -70,7 +70,7 @@ Waypoint* Waypoint::deserialize(const String& serializedWaypoint)
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
     DeserializationError                      error = deserializeJson(jsonPayload, serializedWaypoint.c_str());
 
-    if (error != DeserializationError::Ok)
+    if (DeserializationError::Ok != error)
     {
         LOG_ERROR("JSON Deserialization Error %d.", error);
     }
@@ -101,9 +101,8 @@ Waypoint* Waypoint::deserialize(const String& serializedWaypoint)
     return waypoint;
 }
 
-String Waypoint::serialize() const
+void Waypoint::serialize(String& serializedWaypoint) const
 {
-    String                                    serializedWaypoint;
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
 
     jsonPayload["X"]           = xPos;        /**< X position [mm]. */
@@ -119,13 +118,12 @@ String Waypoint::serialize() const
     if ((jsonBufferSize - 1U) != serializeJson(jsonPayload, jsonBuffer, jsonBufferSize))
     {
         LOG_ERROR("JSON serialization failed.");
+        serializedWaypoint.clear();
     }
     else
     {
         serializedWaypoint = jsonBuffer;
     }
-
-    return serializedWaypoint;
 }
 
 void Waypoint::debugPrint() const

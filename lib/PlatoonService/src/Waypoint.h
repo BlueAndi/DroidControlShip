@@ -58,7 +58,7 @@
  * Waypoint structure definition.
  * Defines the position of a waypoint in the map and the speed at which is to be reached.
  */
-class Waypoint
+struct Waypoint
 {
 public:
     int32_t xPos;        /**< X position [mm]. */
@@ -108,9 +108,9 @@ public:
     /**
      * Serialize the waypoint.
      *
-     * @return Serialized waypoint. Returns an empty string in case of an error.
+     * @param[out] serializedWaypoint Serialized waypoint. Writes an empty string in case of an error.
      */
-    String serialize() const;
+    void serialize(String& serializedWaypoint) const;
 
     /**
      * Print waypoint data to the serial console.
