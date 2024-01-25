@@ -69,6 +69,7 @@ public:
     App() :
         m_serialMuxProtChannelIdRemoteCtrl(0U),
         m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_serialMuxProtChannelIdStatus(0U),
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_mqttClient(),
         m_v2vClient(m_mqttClient),
@@ -76,7 +77,8 @@ public:
         m_latestVehicleData(),
         m_sendWaypointTimer(),
         m_commandTimer(),
-        m_motorSpeedTimer()
+        m_motorSpeedTimer(),
+        m_statusTimer()
     {
     }
 
@@ -122,6 +124,9 @@ private:
     /** Send motor speed timer interval in ms. */
     static const uint32_t SEND_MOTOR_SPEED_TIMER_INTERVAL = 100U;
 
+    /** Send status timer interval in ms. */
+    static const uint32_t SEND_STATUS_TIMER_INTERVAL = 1000U;
+
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
 
@@ -136,6 +141,9 @@ private:
 
     /** SerialMuxProt Channel id for sending motor speeds. */
     uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+
+    /** SerialMuxProt Channel id for sending system status. */
+    uint8_t m_serialMuxProtChannelIdStatus;
 
     /**
      * SerialMuxProt Server Instance
@@ -178,6 +186,11 @@ private:
      * Timer for sending motor speed to RU.
      */
     SimpleTimer m_motorSpeedTimer;
+
+    /**
+     * Timer for sending system status to RU.
+     */
+    SimpleTimer m_statusTimer;
 
 private:
     /**

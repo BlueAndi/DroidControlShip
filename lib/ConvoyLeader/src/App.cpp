@@ -176,6 +176,7 @@ void App::setup()
             m_sendWaypointTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
             m_commandTimer.start(SEND_COMMANDS_TIMER_INTERVAL);
             m_motorSpeedTimer.start(SEND_MOTOR_SPEED_TIMER_INTERVAL);
+            m_statusTimer.start(SEND_STATUS_TIMER_INTERVAL);
 
             /* Start with startup state. */
             m_systemStateMachine.setState(&StartupState::getInstance());
@@ -331,8 +332,10 @@ bool App::setupSerialMuxProt()
     m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
     m_serialMuxProtChannelIdMotorSpeeds =
         m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+    m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
 
-    if ((0U != m_serialMuxProtChannelIdRemoteCtrl) && (0U != m_serialMuxProtChannelIdMotorSpeeds))
+    if ((0U != m_serialMuxProtChannelIdRemoteCtrl) && (0U != m_serialMuxProtChannelIdMotorSpeeds) &&
+        (0U != m_serialMuxProtChannelIdStatus))
     {
         isSuccessful = true;
     }
@@ -348,7 +351,8 @@ void App::processPeriodicTasks()
 
         if (nullptr != pendingCommand)
         {
-            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, pendingCommand, sizeof(Command)))
+            if (false ==
+                m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, pendingCommand, sizeof(pendingCommand)))
             {
                 LOG_WARNING("Failed to send StartupState pending command to RU.");
             }
@@ -379,12 +383,29 @@ void App::processPeriodicTasks()
 
         payload.center = centerSpeed;
 
-        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(SpeedData)))
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
         {
             LOG_WARNING("Failed to send motor speeds to RU.");
         }
 
         m_motorSpeedTimer.restart();
+    }
+
+    if ((true == m_statusTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
+
+        if (true == ErrorState::getInstance().isActive())
+        {
+            payload.status = SMPChannelPayload::Status::STATUS_FLAG_ERROR;
+        }
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
+        {
+            LOG_WARNING("Failed to send current status to RU.");
+        }
+
+        m_statusTimer.restart();
     }
 }
 
