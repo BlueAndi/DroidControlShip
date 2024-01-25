@@ -109,7 +109,7 @@ public:
      *
      * @return If device is in bootloader mode, it will return true. Otherwise false.
      */
-    bool isInBootloaderMode() const final;
+    bool isInBootloaderMode() final;
 
 private:
     /** Time to hold the reset line active in milliseconds. */
