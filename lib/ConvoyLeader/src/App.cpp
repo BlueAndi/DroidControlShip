@@ -369,20 +369,22 @@ void App::processPeriodicTasks()
 
     if ((true == m_motorSpeedTimer.isTimeout()) && (true == m_smpServer.isSynced()))
     {
-        int16_t centerSpeed = 0;
+        int16_t   centerSpeed = 0;
+        SpeedData payload;
 
-        if (true == DrivingState::getInstance().getTopMotorSpeed(centerSpeed))
+        if (false == DrivingState::getInstance().getTopMotorSpeed(centerSpeed))
         {
-            SpeedData payload;
-            payload.center = centerSpeed;
-
-            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(SpeedData)))
-            {
-                LOG_WARNING("Failed to send motor speeds to RU.");
-            }
-
-            m_motorSpeedTimer.restart();
+            centerSpeed = 0;
         }
+
+        payload.center = centerSpeed;
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(SpeedData)))
+        {
+            LOG_WARNING("Failed to send motor speeds to RU.");
+        }
+
+        m_motorSpeedTimer.restart();
     }
 }
 
