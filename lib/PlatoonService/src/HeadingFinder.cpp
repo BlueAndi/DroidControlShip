@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@
 #include <math.h>
 #include <FPMath.h>
 #include <Logging.h>
+#include <PlatoonUtils.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -69,14 +70,6 @@ HeadingFinder::HeadingFinder() :
     m_pidCtrl(),
     m_pidProcessTime()
 {
-}
-
-HeadingFinder::~HeadingFinder()
-{
-}
-
-void HeadingFinder::init()
-{
     /* Configure PID. */
     m_pidCtrl.clear();
     setPIDFactors(PID_P_NUMERATOR, PID_P_DENOMINATOR, PID_I_NUMERATOR, PID_I_DENOMINATOR, PID_D_NUMERATOR,
@@ -86,6 +79,10 @@ void HeadingFinder::init()
     m_pidCtrl.setDerivativeOnMeasurement(true);
 
     m_pidProcessTime.start(0); /* Immediate */
+}
+
+HeadingFinder::~HeadingFinder()
+{
 }
 
 void HeadingFinder::setPIDFactors(int32_t pNumerator, int32_t pDenominator, int32_t iNumerator, int32_t iDenominator,
@@ -103,24 +100,34 @@ int16_t HeadingFinder::process(int16_t& targetSpeedLeft, int16_t& targetSpeedRig
     /* Process PID controller when timer is done and new data is found. */
     if ((true == m_pidProcessTime.isTimeout()) && (true == m_newOdometryData) && (true == m_newMotorSpeedData))
     {
-        /* Delta position. */
-        int32_t deltaX = m_data.targetXPos - m_data.currentXPos;
-        int32_t deltaY = m_data.targetYPos - m_data.currentYPos;
+        /* Pack information in waypoints. */
+        Waypoint nextWaypoint;
+        Waypoint currentVehicleData;
 
-        /* Calculate target heading. */
-        float angle          = atan2(deltaY, deltaX) * 1000.0F;        /* Angle in mrad. */
-        m_data.targetHeading = static_cast<int32_t>(angle) % FP_2PI(); /* Fixed point heading. */
+        nextWaypoint.xPos       = m_data.targetXPos;
+        nextWaypoint.yPos       = m_data.targetYPos;
+        currentVehicleData.xPos = m_data.currentXPos;
+        currentVehicleData.yPos = m_data.currentYPos;
 
-        /* Calculate PID delta. */
-        pidDelta = m_pidCtrl.calculate(m_data.targetHeading, m_data.currentHeading);
-        LOG_DEBUG("Heading: %d, Target: %d, PID Delta: %d", m_data.currentHeading, m_data.targetHeading, pidDelta);
+        if (true == PlatoonUtils::areWaypointsEqual(nextWaypoint, currentVehicleData))
+        {
+            /* Target reached. Do nothing */
+        }
+        else if (false == PlatoonUtils::calculateHeading(nextWaypoint, currentVehicleData, m_data.targetHeading))
+        {
+            LOG_ERROR("Failed to calculate heading. Are waypoints equal?");
+        }
+        else
+        {
+            m_data.targetHeading =
+                PlatoonUtils::calculateEquivalentHeading(m_data.targetHeading, m_data.currentHeading);
 
-        /*
-         * Calculate target speed. Using only targetSpeedLeft as the robot shall stay in place,
-         * but must be changed in the future.
-         */
+            /* Calculate PID delta. */
+            pidDelta = m_pidCtrl.calculate(m_data.targetHeading, m_data.currentHeading);
+        }
+
         targetSpeedLeft  = m_data.currentSpeedLeft - pidDelta;
-        targetSpeedRight = -targetSpeedLeft;
+        targetSpeedRight = m_data.currentSpeedRight + pidDelta;
 
         /* Reset new data flags. */
         m_newOdometryData   = false;

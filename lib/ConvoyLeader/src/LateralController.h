@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,7 @@
  *****************************************************************************/
 #include <ILateralController.h>
 #include <new>
+#include <HeadingFinder.h>
 
 /******************************************************************************
  * Macros
@@ -93,6 +94,8 @@ public:
                                   int16_t& rightMotorSpeedSetpoint) final;
 
 private:
+    /** Heading finder. */
+    HeadingFinder m_headingFinder;
 };
 
 /******************************************************************************

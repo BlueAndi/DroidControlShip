@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@
 #include <getopt.h>
 #include <direct.h>
 #include <ArduinoJson.h>
+#include <ConfigurationKeys.h>
 #endif
 
 /******************************************************************************
@@ -68,7 +69,11 @@ typedef struct
     const char* radonUlzerPort;    /**< Radon Ulzer (socket) port */
     const char* cfgFilePath;       /**< Configuration file path */
     bool        verbose;           /**< Show verbose information */
-
+    const char* platoonId;         /**< Platoon ID */
+    const char* vehicleId;         /**< Vehicle ID */
+    const char* xPosition;         /**< X position in mm */
+    const char* yPosition;         /**< Y position in mm */
+    const char* heading;           /**< Heading in mrad*/
 } PrgArguments;
 
 #endif
@@ -110,34 +115,66 @@ static const struct option LONG_OPTIONS[] = {{"help", no_argument, nullptr, 0},
                                              {"mqttPort", required_argument, nullptr, 0},
                                              {"radonUlzerAddr", required_argument, nullptr, 0},
                                              {"radonUlzerPort", required_argument, nullptr, 0},
+                                             {"platoonId", required_argument, nullptr, 0},
+                                             {"vehicleId", required_argument, nullptr, 0},
+                                             {"xPosition", required_argument, nullptr, 0},
+                                             {"yPosition", required_argument, nullptr, 0},
+                                             {"heading", required_argument, nullptr, 0},
                                              {nullptr, no_argument, nullptr, 0}}; /* Marks the end. */
 
 /** Program argument default value of the robot name. */
-static const char* PRG_ARG_ROBOT_NAME_DEFAULT = "";
+static const char PRG_ARG_ROBOT_NAME_DEFAULT[] = "";
 
 /** Program argument default value of the MQTT broker address. */
-static const char* PRG_ARG_MQTT_ADDR_DEFAULT = "localhost";
+static const char PRG_ARG_MQTT_ADDR_DEFAULT[] = "localhost";
 
 /** Program argument default value of the MQTT broker port. */
-static const char* PRG_ARG_MQTT_PORT_DEFAULT = "1883";
+static const char PRG_ARG_MQTT_PORT_DEFAULT[] = "1883";
 
 /** Program argument default value of the Radon Ulzer address. */
-static const char* PRG_ARG_RADON_ULZER_ADDR_DEFAULT = "localhost";
+static const char PRG_ARG_RADON_ULZER_ADDR_DEFAULT[] = "localhost";
 
 /** Program argument default value of the Radon Ulzer port. */
-static const char* PRG_ARG_RADON_ULZER_PORT_DEFAULT = "65432";
+static const char PRG_ARG_RADON_ULZER_PORT_DEFAULT[] = "65432";
 
 /** Program argument default value of the configuration file. */
-static const char* PRG_ARG_CFG_FILE_DEFAULT = "config/config.json";
+static const char PRG_ARG_CFG_FILE_DEFAULT[] = "./data/config/config.json";
+
+/** Program argument default value of the Platoon ID. */
+static const char PRG_ARG_PLATOON_ID_DEFAULT[] = "0";
+
+/** Program argument default value of the Vehicle ID. */
+static const char PRG_ARG_VEHICLE_ID_DEFAULT[] = "0";
+
+/** Program argument default value of the initial X position in mm. */
+static const char PRG_ARG_X_POS[] = "0";
+
+/** Program argument default value of the initial Y position in mm. */
+static const char PRG_ARG_Y_POS[] = "0";
+
+/** Program argument default value of the initial heading in mrad. */
+static const char PRG_ARG_HEADING[] = "0";
 
 /** Program argument default value of the verbose flag. */
 static bool PRG_ARG_VERBOSE_DEFAULT = false;
 
 /** Default value of the wifi SSID. */
-static const char* WIFI_SSID_DEFAULT = "";
+static const char WIFI_SSID_DEFAULT[] = "";
 
 /** Default value of the wifi passphrase. */
-static const char* WIFI_PASSPHRASE_DEFAULT = "";
+static const char WIFI_PASSPHRASE_DEFAULT[] = "";
+
+/** Default value of the access point SSID. */
+static const char AP_SSID_DEFAULT[] = "DCS_AP";
+
+/** Default value of the access point passphrase. */
+static const char AP_PASSPHRASE_DEFAULT[] = "hanshotfirst";
+
+/** Default value of the webserver user. */
+static const char WEBSERVER_USER_DEFAULT[] = "admin";
+
+/** Default value of the webserver passphrase. */
+static const char WEBSERVER_PASSPHRASE_DEFAULT[] = "admin";
 
 #endif
 
@@ -284,6 +321,11 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
     prgArguments.radonUlzerPort    = PRG_ARG_RADON_ULZER_PORT_DEFAULT;
     prgArguments.robotName         = PRG_ARG_ROBOT_NAME_DEFAULT;
     prgArguments.verbose           = PRG_ARG_VERBOSE_DEFAULT;
+    prgArguments.platoonId         = PRG_ARG_PLATOON_ID_DEFAULT;
+    prgArguments.vehicleId         = PRG_ARG_VEHICLE_ID_DEFAULT;
+    prgArguments.xPosition         = PRG_ARG_X_POS;
+    prgArguments.yPosition         = PRG_ARG_Y_POS;
+    prgArguments.heading           = PRG_ARG_HEADING;
 
     while ((-1 != option) && (0 == status))
     {
@@ -314,6 +356,26 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "radonUlzerPort"))
             {
                 prgArguments.radonUlzerPort = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "platoonId"))
+            {
+                prgArguments.platoonId = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "vehicleId"))
+            {
+                prgArguments.vehicleId = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "xPosition"))
+            {
+                prgArguments.xPosition = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "yPosition"))
+            {
+                prgArguments.yPosition = optarg;
+            }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "heading"))
+            {
+                prgArguments.heading = optarg;
             }
             else
             {
@@ -361,6 +423,16 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
         printf(" Default: %s\n", PRG_ARG_RADON_ULZER_ADDR_DEFAULT); /* Radon Ulzer server address default value*/
         printf("\t--radonUlzerPort <RU-PORT>\tSet Radon Ulzer server port."); /* Radon Ulzer server port */
         printf(" Default: %s\n", PRG_ARG_RADON_ULZER_PORT_DEFAULT);           /* Radon Ulzer server port default value*/
+        printf("\t--platoonId <PLATOON-ID>\tSet platoon ID.");                /* Platoon ID */
+        printf(" Default: %s\n", PRG_ARG_PLATOON_ID_DEFAULT);                 /* Platoon ID default value */
+        printf("\t--vehicleId <VEHICLE-ID>\tSet vehicle ID.");                /* Vehicle ID */
+        printf(" Default: %s\n", PRG_ARG_VEHICLE_ID_DEFAULT);                 /* Vehicle ID default value */
+        printf("\t--xPosition <X-POS>\t\tSet initial X position in mm.");     /* Initial X position in mm */
+        printf(" Default: %s\n", PRG_ARG_X_POS);                              /* Initial X position default value */
+        printf("\t--yPosition <Y-POS>\t\tSet initial Y position in mm.");     /* Initial Y position in mm */
+        printf(" Default: %s\n", PRG_ARG_Y_POS);                              /* Initial Y position default value */
+        printf("\t--heading <HEADING>\t\tSet initial heading in mrad.");      /* Initial heading in mrad */
+        printf(" Default: %s\n", PRG_ARG_HEADING);                            /* Initial heading default value */
     }
 
     return status;
@@ -379,6 +451,11 @@ static void showPrgArguments(const PrgArguments& prgArgs)
     printf("MQTT broker port       : %s\n", prgArgs.mqttPort);
     printf("Radon Ulzer address    : %s\n", prgArgs.radonUlzerAddress);
     printf("Radon Ulzer port       : %s\n", prgArgs.radonUlzerPort);
+    printf("Platoon ID             : %s\n", prgArgs.platoonId);
+    printf("Vehicle ID             : %s\n", prgArgs.vehicleId);
+    printf("Initial X position [mm]: %s\n", prgArgs.xPosition);
+    printf("Initial Y position [mm]: %s\n", prgArgs.yPosition);
+    printf("Initial heading [mrad] : %s\n", prgArgs.heading);
     /* Skip verbose flag. */
 }
 
@@ -434,7 +511,7 @@ static int createConfigFile(const PrgArguments& prgArgs)
         }
         else
         {
-            FILE* fd = fopen(prgArgs.cfgFilePath, "w");
+            FILE* fd = fopen(prgArgs.cfgFilePath, "wb");
 
             if (nullptr == fd)
             {
@@ -446,11 +523,20 @@ static int createConfigFile(const PrgArguments& prgArgs)
                 const size_t        JSON_DOC_SIZE = 2048U;
                 DynamicJsonDocument jsonDoc(JSON_DOC_SIZE);
 
-                jsonDoc["robotName"]    = prgArgs.robotName;
-                jsonDoc["WIFI"]["SSID"] = WIFI_SSID_DEFAULT;
-                jsonDoc["WIFI"]["PSWD"] = WIFI_PASSPHRASE_DEFAULT;
-                jsonDoc["MQTT"]["HOST"] = prgArgs.mqttHost;
-                jsonDoc["MQTT"]["PORT"] = prgArgs.mqttPort;
+                jsonDoc[ConfigurationKeys::ROBOT_NAME]                             = prgArgs.robotName;
+                jsonDoc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID]          = WIFI_SSID_DEFAULT;
+                jsonDoc[ConfigurationKeys::WIFI][ConfigurationKeys::PASSWORD]      = WIFI_PASSPHRASE_DEFAULT;
+                jsonDoc[ConfigurationKeys::MQTT][ConfigurationKeys::HOST]          = prgArgs.mqttHost;
+                jsonDoc[ConfigurationKeys::MQTT][ConfigurationKeys::PORT]          = prgArgs.mqttPort;
+                jsonDoc[ConfigurationKeys::AP][ConfigurationKeys::SSID]            = AP_SSID_DEFAULT;
+                jsonDoc[ConfigurationKeys::AP][ConfigurationKeys::PASSWORD]        = AP_PASSPHRASE_DEFAULT;
+                jsonDoc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::USER]     = WEBSERVER_USER_DEFAULT;
+                jsonDoc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::PASSWORD] = WEBSERVER_PASSPHRASE_DEFAULT;
+                jsonDoc[ConfigurationKeys::PLATOON][ConfigurationKeys::PLATOON_ID] = prgArgs.platoonId;
+                jsonDoc[ConfigurationKeys::PLATOON][ConfigurationKeys::VEHICLE_ID] = prgArgs.vehicleId;
+                jsonDoc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_X_POSITION] = prgArgs.xPosition;
+                jsonDoc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_Y_POSITION] = prgArgs.yPosition;
+                jsonDoc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_HEADING]    = prgArgs.heading;
 
                 {
                     size_t jsonBufferSize = measureJsonPretty(jsonDoc) + 1U;
@@ -458,10 +544,10 @@ static int createConfigFile(const PrgArguments& prgArgs)
 
                     (void)serializeJsonPretty(jsonDoc, jsonBuffer, jsonBufferSize);
 
-                    fprintf(fd, "%s", jsonBuffer);
+                    (void)fprintf(fd, "%s", jsonBuffer);
                 }
 
-                fclose(fd);
+                (void)fclose(fd);
             }
         }
     }

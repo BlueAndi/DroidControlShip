@@ -13,25 +13,29 @@ It provides different kind of exclusive applications, used for educational purpo
 * Convoy Follower Robot - It follows the leader by mainly reacting on the received information.
 * Remote Control - Receives commands and motor speeds from an external source through MQTT.
 
-![RobotWithZumoComSystem](doc/images/RobotWithZumoComSystem.jpg)
-
-It supports running in the [Webots simulation](https://www.cyberbotics.com/) too.
-
-The Droid Control Ship communicates with the [Radon Ulzer](https://github.com/BlueAndi/RadonUlzer), which is the firmware running on the Pololu Zumo32U4 robot.
-
 ## Table of content
 
+* [The ZumoComSystem Shield](#the-zumocomsystem-shield)
 * [The simulation](#the-simulation)
   * [Installation](#installation)
   * [How to start?](#how-to-start)
 * [The target](#the-target)
   * [Installation](#installation-1)
   * [Build and flash procedure](#build-and-flash-procedure)
+* [The Applications](#the-applications)
 * [Documentation](#documentation)
 * [Used Libraries](#used-libraries)
   * [Issues, Ideas And Bugs](#issues-ideas-and-bugs)
   * [License](#license)
   * [Contribution](#contribution)
+
+# The ZumoComSystem Shield
+
+![RobotWithZumoComSystem](doc/images/RobotWithZumoComSystem.jpg)
+
+It supports running in the [Webots simulation](https://www.cyberbotics.com/) too.
+
+The Droid Control Ship communicates with the [Radon Ulzer](https://github.com/BlueAndi/RadonUlzer), which is the firmware running on the Pololu Zumo32U4 robot.
 
 # The simulation
 
@@ -80,7 +84,7 @@ Together with [Radon Ulzer](https://github.com/BlueAndi/RadonUlzer) it can be ru
 
 ## Installation
 1. Make sure that the hardware version of your [ZumoComSystem](https://github.com/NewTec-GmbH/ZumoComSystem) is supported. Currently, only v1.1 and v1.2 are supported.
-2. Install the [drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) for the CP2102 USB-UART converter if required.
+2. Install the [drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) for the CP2102 USB-UART converter if required. The "CP210x Universal Windows Driver" is recommended, as it enables the automatic bootloader mode.
 
 ## Build and flash procedure
 1. Build the firmware using the ```Build``` task in the "PlatformIO Project Tasks"
@@ -91,6 +95,16 @@ Together with [Radon Ulzer](https://github.com/BlueAndi/RadonUlzer) it can be ru
 Note that the robotName can be left empty in case you want the MAC address of the hardware to be used as the name. In case you prefer to give the robot a more descriptive name, can set the name. Beware, if you use multiple robots, you will have to give each a different name manually.
 
 In a similar way, not providing a WiFi configuration will force the target into going into Access Point Mode. In a future update it will be possible to update the WiFi credentials using this mode and an on-board web server.
+
+# The Applications
+
+| Application | Standalone | Zumo32U4 Robot Required | RadonUlzer Application | MQTT Broker Required |
+| - | - | - | - | - |
+| ConvoyLeader | No | Yes | ConvoyLeader | Yes |
+| ConvoyFollower | No | Yes | RemoteControl | Yes |
+| RemoteControl | No | Yes | RemoteControl | Yes |
+| SensorFusion | No | Yes | SensorFusion | Yes |
+| Test | Yes | No | N/A | No |
 
 # Documentation
 

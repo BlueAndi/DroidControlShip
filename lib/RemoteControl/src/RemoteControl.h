@@ -25,76 +25,61 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Concrete Lateral Controller
+ * @brief  RemoteControl common constants.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup App
+ *
+ * @{
  */
+#ifndef REMOTE_CONTROL_H
+#define REMOTE_CONTROL_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
 
-#include "LateralController.h"
-#include <Util.h>
-
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and classes
+ * Types and Classes
  *****************************************************************************/
 
-/******************************************************************************
- * Prototypes
- *****************************************************************************/
-
-/******************************************************************************
- * Local Variables
- *****************************************************************************/
-
-/******************************************************************************
- * Public Methods
- *****************************************************************************/
-
-LateralController::LateralController() : ILateralController(), m_headingFinder()
+/** RemoteControl application constants */
+namespace RemoteControl
 {
-}
+    /** Remote control commands. */
+    typedef enum : uint8_t
+    {
+        CMD_ID_IDLE = 0,                /**< Nothing to do. */
+        CMD_ID_START_LINE_SENSOR_CALIB, /**< Start line sensor calibration. */
+        CMD_ID_START_MOTOR_SPEED_CALIB, /**< Start motor speed calibration. */
+        CMD_ID_REINIT_BOARD,            /**< Re-initialize the board. Required for webots simulation. */
+        CMD_ID_GET_MAX_SPEED,           /**< Get maximum speed. */
 
-LateralController::~LateralController()
-{
-}
+    } CmdId;
 
-bool LateralController::calculateLateralMovement(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
-                                                 const int16_t centerSpeedSetpoint, int16_t& leftMotorSpeedSetpoint,
-                                                 int16_t& rightMotorSpeedSetpoint)
-{
-    bool isSuccessful = true;
+    /** Remote control command responses. */
+    typedef enum : uint8_t
+    {
+        RSP_ID_OK = 0,  /**< Command successful executed. */
+        RSP_ID_PENDING, /**< Command is pending. */
+        RSP_ID_ERROR    /**< Command failed. */
 
-    m_headingFinder.setOdometryData(currentWaypoint.xPos, currentWaypoint.yPos, currentWaypoint.orientation);
-    m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
-    m_headingFinder.setTargetHeading(targetWaypoint.xPos, targetWaypoint.yPos);
-
-    m_headingFinder.process(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
-
-    return isSuccessful;
-}
-
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
+    } RspId;
+} /* namespace RemoteControl */
 
 /******************************************************************************
- * Private Methods
+ * Functions
  *****************************************************************************/
 
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
+#endif /* REMOTE_CONTROL_H */
+/** @} */
