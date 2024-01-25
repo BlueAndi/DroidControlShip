@@ -67,6 +67,7 @@
 
 static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 static void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_statusChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -232,6 +233,16 @@ void App::setLatestVehicleData(const Waypoint& waypoint)
 void App::setErrorState()
 {
     m_systemStateMachine.setState(&ErrorState::getInstance());
+}
+
+void App::systemStatusCallback(SMPChannelPayload::Status status)
+{
+    if (SMPChannelPayload::STATUS_FLAG_ERROR == status)
+    {
+        setErrorState();
+    }
+
+    m_statusTimeoutTimer.restart();
 }
 
 /******************************************************************************
@@ -407,6 +418,17 @@ void App::processPeriodicTasks()
 
         m_statusTimer.restart();
     }
+
+    if ((false == m_statusTimeoutTimer.isTimerRunning()) && (true == m_smpServer.isSynced()))
+    {
+        /* Start status timeout timer once SMP is synced the first time. */
+        m_statusTimeoutTimer.start(STATUS_TIMEOUT_TIMER_INTERVAL);
+    }
+    else if (true == m_statusTimeoutTimer.isTimeout())
+    {
+        /* Not receiving status from RU. Go to error state. */
+        setErrorState();
+    }
 }
 
 /******************************************************************************
@@ -478,5 +500,22 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     {
         LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u", CURRENT_VEHICLE_DATA_CHANNEL_NAME,
                     CURRENT_VEHICLE_DATA_CHANNEL_DLC, payloadSize);
+    }
+}
+
+/**
+ * Receives current status of the RU over SerialMuxProt channel.
+ *
+ * @param[in] payload       Status of the RU.
+ * @param[in] payloadSize   Size of the Status Flag
+ * @param[in] userData      Instance of App class.
+ */
+void App_statusChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+{
+    if ((nullptr != payload) && (STATUS_CHANNEL_DLC == payloadSize) && (nullptr != userData))
+    {
+        const Status* currentStatus = reinterpret_cast<const Status*>(payload);
+        App*          application   = reinterpret_cast<App*>(userData);
+        application->systemStatusCallback(currentStatus->status);
     }
 }

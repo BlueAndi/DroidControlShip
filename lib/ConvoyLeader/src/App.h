@@ -78,7 +78,8 @@ public:
         m_sendWaypointTimer(),
         m_commandTimer(),
         m_motorSpeedTimer(),
-        m_statusTimer()
+        m_statusTimer(),
+        m_statusTimeoutTimer()
     {
     }
 
@@ -111,6 +112,13 @@ public:
      */
     void setErrorState();
 
+    /**
+     * System Status callback.
+     *
+     * @param[in] status    System status
+     */
+    void systemStatusCallback(SMPChannelPayload::Status status);
+
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
@@ -126,6 +134,9 @@ private:
 
     /** Send status timer interval in ms. */
     static const uint32_t SEND_STATUS_TIMER_INTERVAL = 1000U;
+
+    /** Status timeout timer interval in ms. */
+    static const uint32_t STATUS_TIMEOUT_TIMER_INTERVAL = 2U * SEND_STATUS_TIMER_INTERVAL;
 
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
@@ -191,6 +202,11 @@ private:
      * Timer for sending system status to RU.
      */
     SimpleTimer m_statusTimer;
+
+    /**
+     * Timer for timeout of system status of RU.
+     */
+    SimpleTimer m_statusTimeoutTimer;
 
 private:
     /**
