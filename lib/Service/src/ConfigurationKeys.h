@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Interface for a Lateral Safety Policy.
+ * @brief  Keys of the JSON structure of the configuration file.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup PlatoonService
+ * @addtogroup Service
  *
  * @{
  */
-#ifndef I_LATERAL_SAFETY_POLICY_H
-#define I_LATERAL_SAFETY_POLICY_H
+#ifndef CONFIGURAION_KEYS_H
+#define CONFIGURAION_KEYS_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,8 +43,6 @@
  * Includes
  *****************************************************************************/
 
-#include <stdint.h>
-
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -53,46 +51,66 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Abstract lateral safety policy interface. */
-class ILateralSafetyPolicy
+/**
+ * Configuration keys found in the config file.
+ */
+namespace ConfigurationKeys
 {
-public:
-    /**
-     * ILateralSafetyPolicy creation function, used by the ProcessingChainFactory to create a
-     * ILateralSafetyPolicy instance.
-     */
-    typedef ILateralSafetyPolicy* (*CreateFunc)(void);
+    /** Robot name */
+    static const char ROBOT_NAME[] = "robotName";
 
-    /**
-     * Destroys the interface.
-     */
-    virtual ~ILateralSafetyPolicy()
-    {
-    }
+    /** WiFi */
+    static const char WIFI[] = "wifi";
 
-    /**
-     * Checks if the lateral safety policy is satisfied by the calculated motor speeds.
-     * If not, the motor speeds are adjusted accordingly.
-     *
-     * @param[in,out]   leftMotorSpeedSetpoint  Left motor speed [steps/s].
-     * @param[in,out]   rightMotorSpeedSetpoint Right motor speed [steps/s].
-     *
-     * @return True is satisfied, otherwise false.
-     */
-    virtual bool check(int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint) = 0;
+    /** MQTT */
+    static const char MQTT[] = "mqtt";
 
-protected:
-    /**
-     * Constructs the interface.
-     */
-    ILateralSafetyPolicy()
-    {
-    }
-};
+    /** Access point */
+    static const char AP[] = "ap";
+
+    /** WebServer */
+    static const char WEBSERVER[] = "webServer";
+
+    /** Platoon */
+    static const char PLATOON[] = "platoon";
+
+    /** SSID */
+    static const char SSID[] = "ssid";
+
+    /** Passphrase */
+    static const char PASSWORD[] = "pswd";
+
+    /** Host */
+    static const char HOST[] = "host";
+
+    /** Port */
+    static const char PORT[] = "port";
+
+    /** User */
+    static const char USER[] = "user";
+
+    /** Platoon ID */
+    static const char PLATOON_ID[] = "platoonId";
+
+    /** Vehicle ID */
+    static const char VEHICLE_ID[] = "vehicleId";
+
+    /** Initial Position */
+    static const char INITIAL_POSITION[] = "initialPosition";
+
+    /** Initial X Position */
+    static const char INITIAL_X_POSITION[] = "x";
+
+    /** Initial Y Position */
+    static const char INITIAL_Y_POSITION[] = "y";
+
+    /** Initial Heading */
+    static const char INITIAL_HEADING[] = "heading";
+} // namespace ConfigurationKeys
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* I_LATERAL_SAFETY_POLICY_H */
+#endif /* CONFIGURAION_KEYS_H */
 /** @} */

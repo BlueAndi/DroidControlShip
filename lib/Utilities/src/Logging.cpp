@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2019 - 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -114,15 +114,16 @@ bool Logging::selectSink(const String& name)
 
     while ((MAX_SINKS > index) && (false == status))
     {
-        if (m_sinks[index]->getName() == name)
+        if (nullptr != m_sinks[index])
         {
-            m_selectedSink = m_sinks[index];
-            status         = true;
+            if (m_sinks[index]->getName() == name)
+            {
+                m_selectedSink = m_sinks[index];
+                status         = true;
+            }
         }
-        else
-        {
-            ++index;
-        }
+
+        ++index;
     }
 
     return status;

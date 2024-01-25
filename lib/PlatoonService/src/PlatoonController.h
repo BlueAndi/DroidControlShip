@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -106,8 +106,10 @@ public:
 
     /**
      * Process the PlatoonController.
+     *
+     * @param[in] numberOfAvailableWaypoints  Number of available waypoints.
      */
-    void process();
+    void process(size_t numberOfAvailableWaypoints);
 
     /**
      * Set lastest vehicle data.
@@ -126,7 +128,22 @@ private:
      * Error margin in mm for target waypoint.
      * Used to determine if target waypoint has been reached.
      */
-    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 5;
+    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 10;
+
+    /**
+     * Aperture angle of the forward cone in mrad.
+     */
+    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 75 degrees */
+
+    /**
+     * Distance interval between waypoints in mm.
+     */
+    static const int32_t WAYPOINT_DISTANCE_INTERVAL = 50;
+
+    /**
+     * Minimum number of available waypoints for release of processing chain.
+     */
+    static const size_t MIN_AVAILABLE_WAYPOINTS = 2U;
 
     /**
      * Input waypoint callback.
@@ -159,6 +176,11 @@ private:
     Waypoint m_currentVehicleData;
 
     /**
+     * Last sent waypoint to the next platoon participant.
+     */
+    Waypoint m_lastSentWaypoint;
+
+    /**
      * Processing chain timer.
      */
     SimpleTimer m_processingChainTimer;
@@ -167,6 +189,17 @@ private:
      * Processing chain.
      */
     ProcessingChain* m_processingChain;
+
+    /**
+     * Flag to indicate that the first vehicle data has been received.
+     * This means, that the position of the vehicle is known.
+     */
+    bool m_isPositionKnown;
+
+    /**
+     * Flag to indicate the release of the processing chain.
+     */
+    bool m_processingChainRelease;
 
 private:
     /**

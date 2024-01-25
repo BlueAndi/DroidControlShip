@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@
 #include "SettingsHandler.h"
 #include <ArduinoJson.h>
 #include <Logging.h>
+#include <ConfigurationKeys.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -82,15 +83,23 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
         }
         else
         {
-            JsonVariantConst jsonRobotName     = doc["robotName"];
-            JsonVariantConst jsonWifiSsid      = doc["WIFI"]["SSID"];
-            JsonVariantConst jsonWifiPswd      = doc["WIFI"]["PSWD"];
-            JsonVariantConst jsonMqttHost      = doc["MQTT"]["HOST"];
-            JsonVariantConst jsonMqttPort      = doc["MQTT"]["PORT"];
-            JsonVariantConst jsonApSSID        = doc["AP"]["SSID"];
-            JsonVariantConst jsonApPswd        = doc["AP"]["PSWD"];
-            JsonVariantConst jsonWebServerUser = doc["WEBSERVER"]["USER"];
-            JsonVariantConst jsonWebServerPswd = doc["WEBSERVER"]["PSWD"];
+            JsonVariantConst jsonRobotName        = doc[ConfigurationKeys::ROBOT_NAME];
+            JsonVariantConst jsonWifiSsid         = doc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID];
+            JsonVariantConst jsonWifiPswd         = doc[ConfigurationKeys::WIFI][ConfigurationKeys::PASSWORD];
+            JsonVariantConst jsonMqttHost         = doc[ConfigurationKeys::MQTT][ConfigurationKeys::HOST];
+            JsonVariantConst jsonMqttPort         = doc[ConfigurationKeys::MQTT][ConfigurationKeys::PORT];
+            JsonVariantConst jsonApSSID           = doc[ConfigurationKeys::AP][ConfigurationKeys::SSID];
+            JsonVariantConst jsonApPswd           = doc[ConfigurationKeys::AP][ConfigurationKeys::PASSWORD];
+            JsonVariantConst jsonWebServerUser    = doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::USER];
+            JsonVariantConst jsonWebServerPswd    = doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::PASSWORD];
+            JsonVariantConst jsonPlatoonPlatoonId = doc[ConfigurationKeys::PLATOON][ConfigurationKeys::PLATOON_ID];
+            JsonVariantConst jsonPlatoonVehicleId = doc[ConfigurationKeys::PLATOON][ConfigurationKeys::VEHICLE_ID];
+            JsonVariantConst jsonInitialXPosition =
+                doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_X_POSITION];
+            JsonVariantConst jsonInitialYPosition =
+                doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_Y_POSITION];
+            JsonVariantConst jsonInitialHeading =
+                doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_HEADING];
 
             if (false == jsonRobotName.isNull())
             {
@@ -137,6 +146,31 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
                 m_webServerPassword = jsonWebServerPswd.as<const char*>();
             }
 
+            if (false == jsonPlatoonPlatoonId.isNull())
+            {
+                m_platoonPlatoonId = jsonPlatoonPlatoonId.as<uint8_t>();
+            }
+
+            if (false == jsonPlatoonVehicleId.isNull())
+            {
+                m_platoonVehicleId = jsonPlatoonVehicleId.as<uint8_t>();
+            }
+
+            if (false == jsonInitialXPosition.isNull())
+            {
+                m_initialXPosition = jsonInitialXPosition.as<int32_t>();
+            }
+
+            if (false == jsonInitialYPosition.isNull())
+            {
+                m_initialYPosition = jsonInitialYPosition.as<int32_t>();
+            }
+
+            if (false == jsonInitialHeading.isNull())
+            {
+                m_initialHeading = jsonInitialHeading.as<int32_t>();
+            }
+
             isSuccessful = true;
         }
     }
@@ -152,15 +186,20 @@ bool SettingsHandler::saveConfigurationFile(const String& filename)
     size_t                         jsonBufferSize = 0U;
     size_t                         bytesToWrite   = 0U;
 
-    doc["robotName"]         = m_robotName.c_str();
-    doc["WIFI"]["SSID"]      = m_wifiSSID.c_str();
-    doc["WIFI"]["PSWD"]      = m_wifiPassword.c_str();
-    doc["MQTT"]["HOST"]      = m_mqttBrokerAddress.c_str();
-    doc["MQTT"]["PORT"]      = m_mqttPort;
-    doc["AP"]["SSID"]        = m_apSSID.c_str();
-    doc["AP"]["PSWD"]        = m_apPassword.c_str();
-    doc["WEBSERVER"]["USER"] = m_webServerUser.c_str();
-    doc["WEBSERVER"]["PSWD"] = m_webServerPassword.c_str();
+    doc[ConfigurationKeys::ROBOT_NAME]                                              = m_robotName;
+    doc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID]                           = m_wifiSSID;
+    doc[ConfigurationKeys::WIFI][ConfigurationKeys::PASSWORD]                       = m_wifiPassword;
+    doc[ConfigurationKeys::MQTT][ConfigurationKeys::HOST]                           = m_mqttBrokerAddress;
+    doc[ConfigurationKeys::MQTT][ConfigurationKeys::PORT]                           = m_mqttPort;
+    doc[ConfigurationKeys::AP][ConfigurationKeys::SSID]                             = m_apSSID;
+    doc[ConfigurationKeys::AP][ConfigurationKeys::PASSWORD]                         = m_apPassword;
+    doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::USER]                      = m_webServerUser;
+    doc[ConfigurationKeys::WEBSERVER][ConfigurationKeys::PASSWORD]                  = m_webServerPassword;
+    doc[ConfigurationKeys::PLATOON][ConfigurationKeys::PLATOON_ID]                  = m_platoonPlatoonId;
+    doc[ConfigurationKeys::PLATOON][ConfigurationKeys::VEHICLE_ID]                  = m_platoonVehicleId;
+    doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_X_POSITION] = m_initialXPosition;
+    doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_Y_POSITION] = m_initialYPosition;
+    doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_HEADING]    = m_initialHeading;
 
     jsonBufferSize = measureJsonPretty(doc) + 1U;
     char jsonBuffer[jsonBufferSize];
@@ -199,6 +238,15 @@ SettingsHandler::SettingsHandler() :
     m_wifiPassword(),
     m_mqttBrokerAddress(),
     m_mqttPort(0U),
+    m_apSSID(),
+    m_apPassword(),
+    m_webServerUser(),
+    m_webServerPassword(),
+    m_platoonPlatoonId(0U),
+    m_platoonVehicleId(0U),
+    m_initialXPosition(0),
+    m_initialYPosition(0),
+    m_initialHeading(0),
     m_fileHandler()
 {
 }
