@@ -74,8 +74,8 @@ bool TrafficHandler::process()
     {
         /** Recalculate distances. */
         listOfElements[i].setPreviousDistance(listOfElements[i].getDistance());
-        listOfElements[i].setDistance(CoordinateHandler::getInstance().calculateDistance(listOfElements[i].getEntryX(),
-                                                                                     listOfElements[i].getEntryY()));
+        listOfElements[i].setDistance(CoordinateHandler::getInstance().calculateDistance(
+            listOfElements[i].getEntryX(), listOfElements[i].getEntryY()));
 
         /** Process new coordinates. */
         CoordinateHandler::getInstance().process(
@@ -96,13 +96,11 @@ bool TrafficHandler::process()
     return true;
 }
 
-bool TrafficHandler::setNewInfrastructureElement(const String& nameAsParameter, 
-                                                 int32_t orientationAsParameter,
-                                                 int32_t xPosAsParameter, 
-                                                 int32_t yPosAsParameter,
-                                                 int32_t defaultDistanceAsParameter,
-                                                 int32_t defaultPreviousDistanceAsParameter,
-                                                 const String&  topicNameAsParameter)
+bool TrafficHandler::setNewInfrastructureElement(const String& nameAsParameter, int32_t orientationAsParameter,
+                                                 int32_t xPosAsParameter, int32_t yPosAsParameter,
+                                                 int32_t       defaultDistanceAsParameter,
+                                                 int32_t       defaultPreviousDistanceAsParameter,
+                                                 const String& topicNameAsParameter)
 {
     bool isSuccessful = false;
 
@@ -149,11 +147,19 @@ bool TrafficHandler::checkLockIn()
     {
         if ((listOfElements[i].getStatus() == 2) || (listOfElements[i].getStatus() == 3))
         {
-            lockedOnto = listOfElements[i].getTopicName();
+            if (listOfElements[i].getTopicName() != nullptr)
+            {
+                lockedOnto = listOfElements[i].getTopicName();
 
-            LOG_DEBUG("Locked onto %s", listOfElements[i].getIEName().c_str());
-            isTrue = true;
-            break;
+                LOG_DEBUG("The topic name is %s.", lockedOnto.c_str());
+                LOG_DEBUG("Locked onto %s", listOfElements[i].getIEName().c_str());
+                isTrue = true;
+                // break;
+            }
+            else
+            {
+                LOG_WARNING("Empty topic, did not lock onto anything!");
+            }
         }
         else
         {

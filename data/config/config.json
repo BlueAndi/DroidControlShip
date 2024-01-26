@@ -1,23 +1,45 @@
-{
-  "robotName": "020000005710",
-  "wifi": {
-    "ssid": "TheForce",
-    "pswd": "hanshotfirst"
-  },
-  "mqtt": {
-    "host": "192.168.137.1",
-    "port": 1883
-  },
-  "ap": {
-    "ssid": "DCS_AP",
-    "pswd": "hanshotfirst"
-  },
-  "webServer": {
-    "user": "admin",
-    "pswd": "admin"
-  },
-  "platoon": {
-    "platoonId": 0,
-    "vehicleId": 0
-  }
+{
+
+  "robotName": "zumo_0",
+
+  "wifi": {
+
+    "ssid": "TheForce",
+
+    "pswd": "hanshotfirst"
+
+  },
+
+  "mqtt": {
+
+    "host": "192.168.137.1",
+
+    "port": 1883
+
+  },
+
+  "ap": {
+
+    "ssid": "DCS_AP",
+
+    "pswd": "hanshotfirst"
+
+  },
+
+  "webServer": {
+
+    "user": "",
+
+    "pswd": ""
+
+  },
+
+  "platoon": {
+
+    "platoonId": 0,
+
+    "vehicleId": 0
+
+  }
+
 }

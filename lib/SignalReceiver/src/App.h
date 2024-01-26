@@ -145,11 +145,16 @@ private:
     /** Sending coordinate Id only once in trigger area. */
     bool gIsListening = false;
 
+    /** Used for unique subscription. */
+    bool gIsSubscribed = false;
+
     /** Save current deserialized value of COLOR ID. */
     Color clr;
 
     /** Sending color only on change. */
     Color oldColorId;
+
+    String lockedOnto;
 
     /**
      * Handler of fatal errors in the Application.

@@ -85,7 +85,7 @@ bool CoordinateHandler::process(const String& ieName, int32_t ieOrientation, int
             /** Robot is moving towards the IE AND has matching orientation, lock in! */
             m_currentStatus = STATUS_LOCKED_IN;
 
-            if (m_distance < 200)
+            if (m_distance < 500)
             {
                 m_currentStatus = STATUS_NEAR;
                 // LOG_DEBUG("Robot is near %s, listening for signals.", ieName.c_str());

@@ -258,7 +258,8 @@ bool MqttClient::subscribe(const String& topic, const bool useClientIdAsBaseTopi
                 }
                 else
                 {
-                    m_mqttClient.subscribe(subscriber->topic.c_str());
+                    isSuccess = m_mqttClient.subscribe(subscriber->topic.c_str());
+                    LOG_DEBUG("subbed to %s", topic.c_str());
                 }
 
                 if (false == isSuccess)
@@ -275,6 +276,7 @@ bool MqttClient::subscribe(const String& topic, const bool useClientIdAsBaseTopi
 
 void MqttClient::unsubscribe(const String& topic, const bool useClientIdAsBaseTopic)
 {
+    LOG_DEBUG("unsubbed from %s", topic.c_str());
     if ((false == topic.isEmpty()) && (false == m_clientId.isEmpty()))
     {
         SubscriberList::iterator it        = m_subscriberList.begin();
@@ -297,11 +299,16 @@ void MqttClient::unsubscribe(const String& topic, const bool useClientIdAsBaseTo
                 {
                     Subscriber* subscriber = *it;
 
-                    m_mqttClient.unsubscribe(subscriber->topic.c_str());
-
-                    (void)m_subscriberList.erase(it);
-                    delete subscriber;
-
+                    if (false == m_mqttClient.unsubscribe(subscriber->topic.c_str()))
+                    {
+                        LOG_ERROR("Failed to unsubscribe from topic %s", subscriber->topic.c_str());
+                    }
+                    else
+                    {
+                        (void)m_subscriberList.erase(it);
+                        delete subscriber;
+                    }
+                    
                     break;
                 }
             }

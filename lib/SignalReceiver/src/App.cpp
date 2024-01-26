@@ -223,6 +223,7 @@ void App::setup()
     }
     else
     {
+        LOG_DEBUG("Battery is %d.", board.getBattery().getChargeLevel());
         /* Blink Green LED to signal all-good. */
         Board::getInstance().getGreenLed().enable(true);
         delay(100U);
@@ -243,11 +244,8 @@ void App::loop()
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
 
-    /* Process MQTT Communication */
-    if (false == m_mqttClient.process())
-    {
-        LOG_DEBUG("Could not process MQTT services.");
-    }
+    /** Process MQTT Communication */
+    m_mqttClient.process();
 
     /** Send color once. */
     if ((true == gIsListening) && (oldColorId.colorId != clr.colorId))
@@ -269,34 +267,69 @@ void App::odometryCallback(const OdometryData& odometry)
     CoordinateHandler::getInstance().setCurrentOrientation(odometry.orientation);
     CoordinateHandler::getInstance().setCurrentCoordinates(odometry.xPos, odometry.yPos);
 
-    /** Process queue only when receiving new coordinates. */
+    /** Process list only when receiving new coordinates. */
     if (true == TrafficHandler::getInstance().process())
     {
         if (true == TrafficHandler::getInstance().checkLockIn())
         {
-            /** Sub to locked onto IE. */
-            if (true == m_mqttClient.subscribe(TrafficHandler::getInstance().getTargetName(), 
-                                               false,
-                                               [this](const String& payload){trafficLightColorsCallback(payload);}))
+            /** Check the subscribe-once flag. */
+            if (false == gIsSubscribed)
             {
-                LOG_DEBUG("Subscribed to Channel:%s", TrafficHandler::getInstance().getTargetName().c_str());
+                if (TrafficHandler::getInstance().getTargetName() != nullptr)
+                {
+                    lockedOnto = TrafficHandler::getInstance().getTargetName();
+
+                    if (true == m_mqttClient.subscribe(TrafficHandler::getInstance().getTargetName(), false,
+                                                       [this](const String& payload)
+                                                       { trafficLightColorsCallback(payload); }))
+                    {
+                        LOG_DEBUG("Subscribed to Channel:%s.", TrafficHandler::getInstance().getTargetName().c_str());
+                    }
+
+                    gIsSubscribed = true;
+                }
+            }
+            else
+            {
+                LOG_WARNING("Already subscribed to %s", TrafficHandler::getInstance().getTargetName().c_str());
             }
 
             /** If near, listen to signals. */
             if (true == TrafficHandler::getInstance().isNear())
             {
+                LOG_DEBUG("Near IE, listening for signals from topic %s.",
+                          TrafficHandler::getInstance().getTargetName().c_str());
                 gIsListening = true;
             }
             else
             {
+                LOG_DEBUG("Robot has more driving towards %s to do.",
+                          TrafficHandler::getInstance().getTargetName().c_str());
                 gIsListening = false;
             }
         }
         else
         {
             /** Unsub from IE. */
-            m_mqttClient.unsubscribe(TrafficHandler::getInstance().getTargetName(), false);
-            gIsListening = false;
+            if (TrafficHandler::getInstance().getTargetName() == nullptr)
+            {
+                LOG_DEBUG("Target name is invalid.");
+            }
+            else if ((TrafficHandler::getInstance().getTargetName() != nullptr) && (TrafficHandler::getInstance().getTargetName() != ""))
+            {
+                LOG_DEBUG("No longer locked onto IE, unsubbing from %s.",
+                          TrafficHandler::getInstance().getTargetName().c_str());
+                m_mqttClient.unsubscribe(lockedOnto, false);
+
+                TrafficHandler::getInstance().clearTarget();
+            }
+            else
+            {
+                LOG_DEBUG("Nothing to unsubscribe to.");
+            }
+
+            gIsListening  = false;
+            gIsSubscribed = false;
         }
     }
 }
@@ -305,11 +338,13 @@ void App::sendCurrentColor()
 {
     /** if signal matches lockOn target, send the color. */
 
-    if (true == m_smpServer.sendData(m_serialMuxProtChannelIdTrafficLightColors, 
-                                     reinterpret_cast<uint8_t*>(&clr), 
-                                     sizeof(clr)))
+    if (true == m_smpServer.sendData(m_serialMuxProtChannelIdTrafficLightColors, &clr, sizeof(clr)))
     {
         LOG_DEBUG("Color %d sent.", clr.colorId);
+    }
+    else
+    {
+        LOG_WARNING("Did not send color %d.", clr.colorId);
     }
 }
 
@@ -352,13 +387,17 @@ void App::trafficLightColorsCallback(const String& payload)
         /** Who is sending? */
         JsonVariant from = jsonPayload["FROM"];
 
+        LOG_DEBUG("MQTT UNSERIALIZED %s", from.as<const char*>());
+
         /** what is the color ID? */
         JsonVariant color = jsonPayload["COLOR"];
+
+        LOG_DEBUG("MQTT UNSERIALIZED %d", color.as<uint8_t>());
 
         if ((false == color.isNull()) && (false == from.isNull()))
         {
             /** If a new color has been received, deserialize it! */
-            if ((oldColorId.colorId != color.as<uint8_t>()))
+            if (oldColorId.colorId != color.as<uint8_t>())
             {
                 clr.colorId = color.as<uint8_t>();
             }
@@ -423,18 +462,12 @@ void App::settingsCallback(const String& payload)
                 topicString = topic;
             }
 
-            if ((true == handler.setNewInfrastructureElement(IEname, 
-                                                             receivedOrientation, 
-                                                             receivedEntryX,
-                                                             receivedEntryY, 
-                                                             distance, 
-                                                             previousDistance, 
-                                                             topicString)))
+            if ((true == handler.setNewInfrastructureElement(IEname, receivedOrientation, receivedEntryX,
+                                                             receivedEntryY, distance, previousDistance, topicString)))
             {
                 LOG_DEBUG("Received settings from %s at X %d, Y %d pointing towards %d.", IEname.c_str(),
-                                                                                          receivedEntryX, 
-                                                                                          receivedEntryY, 
-                                                                                          receivedOrientation);
+                          receivedEntryX, receivedEntryY, receivedOrientation);
+                LOG_DEBUG("Created MQTT topic with IE: %s.", topicString.c_str());
             }
         }
     }

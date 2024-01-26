@@ -4,7 +4,7 @@ title SignalReceiver app
 
 package "Application" as appLayer {
 
-    class App <<main>>{
+    class App {
         - bool gIsListening
         - Color clr 
         - Color oldClr
@@ -125,13 +125,43 @@ package "Application" as appLayer {
 }
 
 package "Service" as serviceLayer {
-    class Settings <<Singleton>>
+    class SettingsHandler {
+        - String m_robotName
+        - String m_wifiSSID
+        - String m_wifiPassword
+        - String m_mqttBrokerAddress
+        - uint16_t m_mqttPort
+        - String m_apSSID
+        - String m_apPassword
+        - String m_webServerUser
+        - String m_webServerPassword
+        - uint8_t m_platoonPlatoonId
+        - uint8_t m_platoonVehicleId
+        - FileHandler m_fileHandler
+        + getInstance() : SettingsHandler
+        + loadConfigurationFile(const String& filename) : bool
+        + saveConfigurationFile(const String& filename) : bool
+        + getRobotName() : const String&
+        + setRobotName(const String& robotName) : void
+        + getWiFiSSID() : const String&
+        + setWiFiSSID(const String& wifiSSID) : void 
+        + getWiFiPassword() : const String&
+        + setWiFiPassword(const String& wifiPassword) : void
+        + getMqttBrokerAddress() : const String&
+        + getMqttPort() : uint16_t
+        + getApSSID() : const String&
+        + getApPassword() : const String&
+        + getWebServerUser() : const String&
+        + getWebServerPassword() : const String&
+        + getPlatoonPlatoonId() : uint8_t
+        + getPLatoonVehicleId() : uint8_t
+    }
 }
 
 App ---o th
 App --o ch 
-App --> Settings : <<use>>
-th "1" --> "MAX 10" te : <<use>>
+App ----> SettingsHandler : <<use>>
+th "1" --> "0...10" te : <<use>>
 th --o ch 
 
 @enduml

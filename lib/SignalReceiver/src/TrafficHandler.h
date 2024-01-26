@@ -123,6 +123,14 @@ public:
         return lockedOnto;
     }
 
+    /**
+     * Clears the target name.
+    */
+    void clearTarget()
+    {
+        lockedOnto = "";
+    }
+
     /** Traffic handler constructor. */
     TrafficHandler()
     {

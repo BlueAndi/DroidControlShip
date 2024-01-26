@@ -190,7 +190,7 @@ public:
      *
      * @param[in] topic is topic name.
      */
-    void setTopicName(String topic)
+    void setTopicName(const String& topic)
     {
         m_topicName = topic;
     }
@@ -200,7 +200,7 @@ public:
      *
      * @returns the topic name.
      */
-    String getTopicName()
+    String& getTopicName()
     {
         return m_topicName;
     }
