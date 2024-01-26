@@ -203,7 +203,7 @@ private:
     ACMAsyncOper m_asyncOper;
 
     /** Instance of ACM */
-    ACM m_acm;
+    mutable ACM m_acm;
 
     /** RX Queue */
     QueueHandle_t m_rxQueue;
