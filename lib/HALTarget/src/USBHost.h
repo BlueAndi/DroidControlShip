@@ -190,7 +190,7 @@ public:
      *
      * @return If the bootloader mode is active, returns true. Otherwise, false.
      */
-    bool isBootloaderModeActive();
+    bool isBootloaderModeActive() const;
 
 private:
     /** Size of the RX Queue */
@@ -203,7 +203,7 @@ private:
     ACMAsyncOper m_asyncOper;
 
     /** Instance of ACM */
-    ACM m_acm;
+    mutable ACM m_acm;
 
     /** RX Queue */
     QueueHandle_t m_rxQueue;

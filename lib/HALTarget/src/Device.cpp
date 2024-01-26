@@ -109,7 +109,7 @@ void Device::enterBootloader()
     reset();
 }
 
-bool Device::isInBootloaderMode()
+bool Device::isInBootloaderMode() const
 {
     return m_usbHost.isBootloaderModeActive();
 }
