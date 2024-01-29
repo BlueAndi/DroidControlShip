@@ -179,6 +179,10 @@ void App::setup()
             m_motorSpeedTimer.start(SEND_MOTOR_SPEED_TIMER_INTERVAL);
             m_statusTimer.start(SEND_STATUS_TIMER_INTERVAL);
 
+            m_latestVehicleData.xPos        = settings.getInitialXPosition();
+            m_latestVehicleData.yPos        = settings.getInitialYPosition();
+            m_latestVehicleData.orientation = settings.getInitialHeading();
+
             /* Start with startup state. */
             m_systemStateMachine.setState(&StartupState::getInstance());
 
