@@ -115,7 +115,7 @@ void StartupState::notifyCommandProcessed()
 {
     if (true == m_isActive)
     {
-        m_pendingCommandCounter++;
+        ++m_pendingCommandCounter;
     }
 }
 

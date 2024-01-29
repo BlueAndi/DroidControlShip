@@ -73,9 +73,9 @@ void DrivingState::process(StateMachine& sm)
     }
     else
     {
-        /* Check limits. */
+        /* TODO: Check limits. */
 
-        /* Check follower feedback. Calculate platoon length and react accordingly */
+        /* TODO: Check follower feedback. Calculate platoon length and react accordingly */
 
         /* Calculate top motor speed. */
         m_topMotorSpeed = m_maxMotorSpeed;
