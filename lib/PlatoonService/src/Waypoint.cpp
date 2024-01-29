@@ -25,15 +25,17 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Test (some) WString functions.
- * @author Luca Dubies <luca.dubies@newtec.de>
+ * @brief  Definition of a Waypoint.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <unity.h>
-#include <WString.h>
+
+#include "Waypoint.h"
+#include <ArduinoJson.h>
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -51,17 +53,84 @@
  * Prototypes
  *****************************************************************************/
 
-static void testWStringReplacement(void);
-static void testWStringAppend(void);
-static void testWStringConcat(void);
-
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
 
+/** Default size of the JSON Document for parsing. */
+static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
+
+Waypoint* Waypoint::deserialize(const String& serializedWaypoint)
+{
+    Waypoint*                                 waypoint = nullptr;
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    DeserializationError                      error = deserializeJson(jsonPayload, serializedWaypoint.c_str());
+
+    if (DeserializationError::Ok != error)
+    {
+        LOG_ERROR("JSON Deserialization Error %d.", error);
+    }
+    else
+    {
+        JsonVariant jsonXPos        = jsonPayload["X"];           /* X position [mm]. */
+        JsonVariant jsonYPos        = jsonPayload["Y"];           /* Y position [mm]. */
+        JsonVariant jsonOrientation = jsonPayload["Orientation"]; /* Orientation [mrad]. */
+        JsonVariant jsonLeft        = jsonPayload["Left"];        /* Left motor speed [steps/s]. */
+        JsonVariant jsonRight       = jsonPayload["Right"];       /* Right motor speed [steps/s]. */
+        JsonVariant jsonCenter      = jsonPayload["Center"];      /* Center speed [steps/s]. */
+
+        if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()) && (false == jsonOrientation.isNull()) &&
+            (false == jsonLeft.isNull()) && (false == jsonRight.isNull()) && (false == jsonCenter.isNull()))
+        {
+
+            int32_t xPos        = jsonXPos.as<int32_t>();
+            int32_t yPos        = jsonYPos.as<int32_t>();
+            int32_t orientation = jsonOrientation.as<int32_t>();
+            int16_t left        = jsonLeft.as<int16_t>();
+            int16_t right       = jsonRight.as<int16_t>();
+            int16_t center      = jsonCenter.as<int16_t>();
+
+            waypoint = new (std::nothrow) Waypoint(xPos, yPos, orientation, left, right, center);
+        }
+    }
+
+    return waypoint;
+}
+
+void Waypoint::serialize(String& serializedWaypoint) const
+{
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+
+    jsonPayload["X"]           = xPos;        /* X position [mm]. */
+    jsonPayload["Y"]           = yPos;        /* Y position [mm]. */
+    jsonPayload["Orientation"] = orientation; /* Orientation [mrad]. */
+    jsonPayload["Left"]        = left;        /* Left motor speed [steps/s]. */
+    jsonPayload["Right"]       = right;       /* Right motor speed [steps/s]. */
+    jsonPayload["Center"]      = center;      /* Center speed [steps/s]. */
+
+    size_t jsonBufferSize = measureJson(jsonPayload) + 1U;
+    char   jsonBuffer[jsonBufferSize];
+
+    if ((jsonBufferSize - 1U) != serializeJson(jsonPayload, jsonBuffer, jsonBufferSize))
+    {
+        LOG_ERROR("JSON serialization failed.");
+        serializedWaypoint.clear();
+    }
+    else
+    {
+        serializedWaypoint = jsonBuffer;
+    }
+}
+
+void Waypoint::debugPrint() const
+{
+    LOG_DEBUG("X: %d, Y: %d, Orientation: %d, Left: %d, Right: %d, Center: %d", xPos, yPos, orientation, left, right,
+              center);
+}
 
 /******************************************************************************
  * Protected Methods
@@ -75,123 +144,6 @@ static void testWStringConcat(void);
  * External Functions
  *****************************************************************************/
 
-/**
- * Main entry point
- *
- * @param[in] argc  Number of command line arguments
- * @param[in] argv  Command line arguments
- *
- * @returns Test failure count
- */
-extern int main(int argc, char** argv)
-{
-    UNITY_BEGIN();
-
-    RUN_TEST(testWStringReplacement);
-    RUN_TEST(testWStringAppend);
-    RUN_TEST(testWStringConcat);
-
-    return UNITY_END();
-}
-
-/**
- * Setup a test. This function will be called before every test by unity.
- */
-extern void setUp(void)
-{
-    /* Not used. */
-}
-
-/**
- * Clean up test. This function will be called after every test by unity.
- */
-extern void tearDown(void)
-{
-    /* Not used. */
-}
-
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
-
-/**
- * Test WString replace.
- */
-static void testWStringReplacement(void)
-{
-    String original = String("I am a long string that will feature some replacements!");
-    String tester;
-
-    /* same length replacement */
-    tester = String(original);
-    tester.replace(String("long"), String("same"));
-    TEST_ASSERT_EQUAL_STRING("I am a same string that will feature some replacements!", tester.c_str());
-
-    /* shorter replacement */
-    tester = String(original);
-    tester.replace(String("feature"), String("have"));
-    TEST_ASSERT_EQUAL_STRING("I am a long string that will have some replacements!", tester.c_str());
-    TEST_ASSERT_EQUAL(original.length() - 3, tester.length());
-
-    /* longer replacement */
-    tester = String(original);
-    tester.replace("a", "AAA");
-    TEST_ASSERT_EQUAL_STRING("I AAAm AAA long string thAAAt will feAAAture some replAAAcements!", tester.c_str());
-    TEST_ASSERT_EQUAL(original.length() + 10, tester.length());
-
-    /* replacement with empty string */
-    tester = String(original);
-    tester.replace(" ", "");
-    TEST_ASSERT_EQUAL_STRING("Iamalongstringthatwillfeaturesomereplacements!", tester.c_str());
-
-    /* test original empty string */
-    tester = String("");
-    tester.replace("never", "happens");
-    TEST_ASSERT_EQUAL_STRING("", tester.c_str());
-}
-
-/**
- * Test WString += implementation.
- */
-static void testWStringAppend(void)
-{
-    String original = String("Im short");
-    char   classic[4];
-    classic[0] = 'H';
-    classic[1] = 'I';
-    classic[2] = '!';
-    classic[3] = '\0';
-
-    original += String("- first amendment -");
-    original += classic;
-    original += '-';
-
-    TEST_ASSERT_EQUAL_STRING("Im short- first amendment -HI!-", original.c_str());
-
-    String tester = String("");
-    tester += "Im new";
-    TEST_ASSERT_EQUAL_STRING("Im new", tester.c_str());
-}
-
-/**
- * Test WString += implementation.
- */
-static void testWStringConcat(void)
-{
-    String original = String("Im short");
-    char   classic[4];
-    classic[0] = 'H';
-    classic[1] = 'I';
-    classic[2] = '!';
-    classic[3] = '\0';
-
-    original.concat(String("- first amendment -"));
-    original.concat(classic);
-    original.concat('-');
-
-    TEST_ASSERT_EQUAL_STRING("Im short- first amendment -HI!-", original.c_str());
-
-    String tester = String("");
-    tester.concat("Im new");
-    TEST_ASSERT_EQUAL_STRING("Im new", tester.c_str());
-}

@@ -68,7 +68,9 @@ public:
         m_smpServer(Board::getInstance().getDevice().getStream()),
         m_serialMuxProtChannelIdRemoteCtrl(0U),
         m_serialMuxProtChannelIdMotorSpeeds(0U),
-        m_mqttClient()
+        m_serialMuxProtChannelInitialVehicleData(0U),
+        m_mqttClient(),
+        m_initialDataSent(false)
     {
     }
 
@@ -102,11 +104,14 @@ private:
     /** MQTT topic name for receiving motor speeds. */
     static const char* TOPIC_NAME_MOTOR_SPEEDS;
 
-    /** SerialMuxProt Channel id sending remote control commands. */
+    /** SerialMuxProt Channel id for sending remote control commands. */
     uint8_t m_serialMuxProtChannelIdRemoteCtrl;
 
-    /** SerialMuxProt Channel id sending sending motor speeds. */
+    /** SerialMuxProt Channel id for sending motor speeds. */
     uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+
+    /** SerialMuxProt Channel id for sending initial position data. */
+    uint8_t m_serialMuxProtChannelInitialVehicleData;
 
     /**
      * SerialMuxProt Server Instance
@@ -119,6 +124,9 @@ private:
      * MQTTClient Instance
      */
     MqttClient m_mqttClient;
+
+    /** Flag for setting initial data through SMP. */
+    bool m_initialDataSent;
 
 private:
     /**

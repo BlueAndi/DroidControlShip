@@ -271,7 +271,7 @@ void App::loop()
     m_v2vClient.process();
 
     /* Process Platoon Controller */
-    m_platoonController.process();
+    m_platoonController.process(m_v2vClient.getWaypointQueueSize());
 }
 
 void App::currentVehicleChannelCallback(const VehicleData& vehicleData)

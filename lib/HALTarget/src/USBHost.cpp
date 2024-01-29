@@ -285,7 +285,7 @@ void USBHost::reset()
 
 bool USBHost::isBootloaderModeActive() const
 {
-    return m_isBootloaderModeActive;
+    return ((true == m_isBootloaderModeActive) && (true == m_acm.isReady()));
 }
 
 /******************************************************************************

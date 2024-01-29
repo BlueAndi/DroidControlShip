@@ -106,8 +106,10 @@ public:
 
     /**
      * Process the PlatoonController.
+     *
+     * @param[in] numberOfAvailableWaypoints  Number of available waypoints.
      */
-    void process();
+    void process(size_t numberOfAvailableWaypoints);
 
     /**
      * Set lastest vehicle data.
@@ -131,7 +133,17 @@ private:
     /**
      * Aperture angle of the forward cone in mrad.
      */
-    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 1/3 * pi */
+    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 75 degrees */
+
+    /**
+     * Distance interval between waypoints in mm.
+     */
+    static const int32_t WAYPOINT_DISTANCE_INTERVAL = 50;
+
+    /**
+     * Minimum number of available waypoints for release of processing chain.
+     */
+    static const size_t MIN_AVAILABLE_WAYPOINTS = 2U;
 
     /**
      * Input waypoint callback.
@@ -164,6 +176,11 @@ private:
     Waypoint m_currentVehicleData;
 
     /**
+     * Last sent waypoint to the next platoon participant.
+     */
+    Waypoint m_lastSentWaypoint;
+
+    /**
      * Processing chain timer.
      */
     SimpleTimer m_processingChainTimer;
@@ -178,6 +195,11 @@ private:
      * This means, that the position of the vehicle is known.
      */
     bool m_isPositionKnown;
+
+    /**
+     * Flag to indicate the release of the processing chain.
+     */
+    bool m_processingChainRelease;
 
 private:
     /**

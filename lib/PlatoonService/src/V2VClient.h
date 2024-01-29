@@ -58,6 +58,9 @@
 class V2VClient
 {
 public:
+    /** Platoon leader vehicle ID. */
+    static const uint8_t PLATOON_LEADER_ID = 0U;
+
     /**
      * Constructs a V2V client.
      *
@@ -103,13 +106,14 @@ public:
      */
     bool getNextWaypoint(Waypoint& waypoint);
 
+    /**
+     * Get the number of waypoints in the queue.
+     *
+     * @return Number of waypoints in the queue.
+     */
+    size_t getWaypointQueueSize() const;
+
 private:
-    /** MQTT topic name for birth messages. */
-    static const char* TOPIC_NAME_BIRTH;
-
-    /** MQTT topic name for will messages. */
-    static const char* TOPIC_NAME_WILL;
-
     /** Max topic length */
     static const uint8_t MAX_TOPIC_LENGTH = 64U;
 

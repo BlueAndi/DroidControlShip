@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Definition of a Waypoint.
+ * @brief  RemoteControl common constants.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup PlatoonService
+ * @addtogroup App
  *
  * @{
  */
-#ifndef WAYPOINT_H
-#define WAYPOINT_H
+#ifndef REMOTE_CONTROL_H
+#define REMOTE_CONTROL_H
 
 /******************************************************************************
  * Compile Switches
@@ -44,7 +44,6 @@
  *****************************************************************************/
 
 #include <stdint.h>
-#include <WString.h>
 
 /******************************************************************************
  * Macros
@@ -54,74 +53,33 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Waypoint structure definition.
- * Defines the position of a waypoint in the map and the speed at which is to be reached.
- */
-struct Waypoint
+/** RemoteControl application constants */
+namespace RemoteControl
 {
-public:
-    int32_t xPos;        /**< X position [mm]. */
-    int32_t yPos;        /**< Y position [mm]. */
-    int32_t orientation; /**< Orientation [mrad]. */
-    int16_t left;        /**< Left motor speed [steps/s]. */
-    int16_t right;       /**< Right motor speed [steps/s]. */
-    int16_t center;      /**< Center speed [steps/s]. */
-
-    /**
-     * Default constructor.
-     */
-    Waypoint() : Waypoint(0, 0, 0, 0, 0, 0)
+    /** Remote control commands. */
+    typedef enum : uint8_t
     {
-    }
+        CMD_ID_IDLE = 0,                /**< Nothing to do. */
+        CMD_ID_START_LINE_SENSOR_CALIB, /**< Start line sensor calibration. */
+        CMD_ID_START_MOTOR_SPEED_CALIB, /**< Start motor speed calibration. */
+        CMD_ID_REINIT_BOARD,            /**< Re-initialize the board. Required for webots simulation. */
+        CMD_ID_GET_MAX_SPEED,           /**< Get maximum speed. */
 
-    /**
-     * Constructor
-     *
-     * @param[in] xPos          X position [mm].
-     * @param[in] yPos          Y position [mm].
-     * @param[in] orientation   Orientation [mrad].
-     * @param[in] left          Left motor speed [steps/s].
-     * @param[in] right         Right motor speed [steps/s].
-     * @param[in] center        Center speed [steps/s].
-     */
-    Waypoint(int32_t xPos, int32_t yPos, int32_t orientation, int16_t left, int16_t right, int16_t center) :
-        xPos(xPos),
-        yPos(yPos),
-        orientation(orientation),
-        left(left),
-        right(right),
-        center(center)
+    } CmdId;
+
+    /** Remote control command responses. */
+    typedef enum : uint8_t
     {
-    }
+        RSP_ID_OK = 0,  /**< Command successful executed. */
+        RSP_ID_PENDING, /**< Command is pending. */
+        RSP_ID_ERROR    /**< Command failed. */
 
-    /**
-     * Deserialize a waypoint.
-     * The waypoint is created on the heap and must be deleted by the caller.
-     *
-     * @param[in]   serializedWaypoint  Serialized waypoint.
-     *
-     * @return Pointer to a waypoint object. In case of an error, it returns nullptr.
-     */
-    static Waypoint* deserialize(const String& serializedWaypoint);
-
-    /**
-     * Serialize the waypoint.
-     *
-     * @param[out] serializedWaypoint Serialized waypoint. Writes an empty string in case of an error.
-     */
-    void serialize(String& serializedWaypoint) const;
-
-    /**
-     * Print waypoint data to the serial console.
-     * Uses the LOG_DEBUG macro, so it can be deactivated.
-     */
-    void debugPrint() const;
-};
+    } RspId;
+} /* namespace RemoteControl */
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* WAYPOINT_H */
+#endif /* REMOTE_CONTROL_H */
 /** @} */
