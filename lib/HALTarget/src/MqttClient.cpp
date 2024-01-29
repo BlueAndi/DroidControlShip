@@ -259,7 +259,6 @@ bool MqttClient::subscribe(const String& topic, const bool useClientIdAsBaseTopi
                 else
                 {
                     isSuccess = m_mqttClient.subscribe(subscriber->topic.c_str());
-                    LOG_DEBUG("subbed to %s", topic.c_str());
                 }
 
                 if (false == isSuccess)
@@ -276,7 +275,6 @@ bool MqttClient::subscribe(const String& topic, const bool useClientIdAsBaseTopi
 
 void MqttClient::unsubscribe(const String& topic, const bool useClientIdAsBaseTopic)
 {
-    LOG_DEBUG("unsubbed from %s", topic.c_str());
     if ((false == topic.isEmpty()) && (false == m_clientId.isEmpty()))
     {
         SubscriberList::iterator it        = m_subscriberList.begin();

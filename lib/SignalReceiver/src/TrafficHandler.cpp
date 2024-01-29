@@ -150,7 +150,7 @@ bool TrafficHandler::checkLockIn()
             if (listOfElements[i].getTopicName() != nullptr)
             {
                 lockedOnto = listOfElements[i].getTopicName();
-
+    
                 LOG_DEBUG("The topic name is %s.", lockedOnto.c_str());
                 LOG_DEBUG("Locked onto %s", listOfElements[i].getIEName().c_str());
                 isTrue = true;

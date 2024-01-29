@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  RemoteControl application
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  SignalReceiver application
+ * @author Paul Gramescu <paul.gramescu@gmail.com>
  */
 
 /******************************************************************************
@@ -321,7 +321,7 @@ void App::odometryCallback(const OdometryData& odometry)
                           TrafficHandler::getInstance().getTargetName().c_str());
                 m_mqttClient.unsubscribe(lockedOnto, false);
 
-                TrafficHandler::getInstance().clearTarget();
+                // TrafficHandler::getInstance().clearTarget();
             }
             else
             {
