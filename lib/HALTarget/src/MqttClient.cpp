@@ -258,7 +258,15 @@ bool MqttClient::subscribe(const String& topic, const bool useClientIdAsBaseTopi
                 }
                 else
                 {
-                    m_mqttClient.subscribe(subscriber->topic.c_str());
+                    if (false == m_mqttClient.subscribe(subscriber->topic.c_str()))
+                    {
+                        LOG_WARNING("MQTT topic subscription not possible: %s", subscriber->topic.c_str());
+                    }
+                    else
+                    {
+                        m_subscriberList.push_back(subscriber);
+                        isSuccess = true;
+                    }
                 }
 
                 if (false == isSuccess)
