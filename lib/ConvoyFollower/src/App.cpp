@@ -158,10 +158,10 @@ void App::setup()
         {
             LOG_FATAL("Failed to setup MQTT client.");
         }
-        else if (V2VClient::PLATOON_LEADER_ID != settings.getPlatoonVehicleId())
+        else if (V2VClient::PLATOON_LEADER_ID == settings.getPlatoonVehicleId())
         {
             /* Correct config.json file loaded? */
-            LOG_FATAL("Platoon Vehicle ID must be 0 for the leader.");
+            LOG_FATAL("Platoon Vehicle ID must not be 0 for a follower.");
         }
         else if (false == m_v2vClient.init(settings.getPlatoonPlatoonId(), settings.getPlatoonVehicleId()))
         {
@@ -328,10 +328,6 @@ bool App::setupMqttClient()
         if (false == m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, releaseTopicCallback))
         {
             LOG_ERROR("Failed to subscribe to release topic.");
-        }
-        else if (false == m_mqttClient.subscribe("platoons/0/vehicles/0/feedback", false, lastFollowerFeedbackCallback))
-        {
-            LOG_ERROR("Failed to subscribe to last follower feedback topic.");
         }
         else
         {
