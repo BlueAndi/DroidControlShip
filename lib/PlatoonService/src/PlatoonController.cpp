@@ -91,7 +91,8 @@ bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback
 {
     bool isSuccessful = false;
 
-    if ((nullptr != inputWaypointCallback) && (nullptr != outputWaypointCallback) && (nullptr != motorSetpointCallback))
+    if ((nullptr != inputWaypointCallback) && (nullptr != outputWaypointCallback) &&
+        (nullptr != motorSetpointCallback) && (nullptr == m_processingChain))
     {
         m_processingChain = ProcessingChainFactory::getInstance().create();
 
