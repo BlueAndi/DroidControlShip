@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
+ * @brief  ConvoyFollower application
  * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup Application
@@ -59,12 +59,12 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The convoy leader application. */
+/** The convoy follower application. */
 class App
 {
 public:
     /**
-     * Construct the convoy leader application.
+     * Construct the convoy follower application.
      */
     App() :
         m_serialMuxProtChannelIdRemoteCtrl(0U),
@@ -74,7 +74,6 @@ public:
         m_mqttClient(),
         m_v2vClient(m_mqttClient),
         m_systemStateMachine(),
-        m_latestVehicleData(),
         m_sendWaypointTimer(),
         m_commandTimer(),
         m_motorSpeedTimer(),
@@ -84,7 +83,7 @@ public:
     }
 
     /**
-     * Destroy the convoy leader application.
+     * Destroy the convoy follower application.
      */
     ~App()
     {
@@ -175,11 +174,6 @@ private:
      * The system state machine.
      */
     StateMachine m_systemStateMachine;
-
-    /**
-     * Latest vehicle data from RU.
-     */
-    Waypoint m_latestVehicleData;
 
     /**
      * Send waypoint timer.

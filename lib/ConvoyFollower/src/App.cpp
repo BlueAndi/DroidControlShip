@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  ConvoyLeader application
+ * @brief  ConvoyFollower application
  * @author Andreas Merkle <web@blue-andi.de>
  */
 
@@ -249,11 +249,6 @@ void App::loop()
     }
 }
 
-void App::setLatestVehicleData(const Waypoint& waypoint)
-{
-    m_latestVehicleData = waypoint;
-}
-
 void App::setErrorState()
 {
     m_systemStateMachine.setState(&ErrorState::getInstance());
@@ -417,7 +412,7 @@ void App::processPeriodicTasks()
         {
             LOG_WARNING("Failed to get waypoint from driving state.");
         }
-        else if (false == m_v2vClient.sendWaypoint(m_latestVehicleData))
+        else if (false == m_v2vClient.sendWaypoint(payload))
         {
             LOG_WARNING("Waypoint could not be sent.");
         }
@@ -542,10 +537,6 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
         App*               application        = reinterpret_cast<App*>(userData);
-        Waypoint dataAsWaypoint(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
-                                currentVehicleData->left, currentVehicleData->right, currentVehicleData->center);
-
-        application->setLatestVehicleData(dataAsWaypoint);
         DrivingState::getInstance().setVehicleData(*currentVehicleData);
     }
     else
