@@ -45,6 +45,8 @@
 
 #include <stdint.h>
 #include <IState.h>
+#include <PlatoonController.h>
+#include <queue>
 #include <StateMachine.h>
 #include "SerialMuxChannels.h"
 
@@ -99,13 +101,24 @@ public:
     void setMaxMotorSpeed(int16_t maxSpeed);
 
     /**
-     * Get the calculated top motor speed.
+     * Get the calculated motor speed setpoints.
      *
-     * @param[out] topMotorSpeed The calculated top motor speed.
+     * @param[out] leftMotorSpeed The calculated left motor speed.
+     * @param[out] rightMotorSpeed The calculated right motor speed.
      *
-     * @returns true if the top motor speed is valid. Otherwise, false.
+     * @returns true if the speed setpoints are valid. Otherwise, false.
      */
-    bool getTopMotorSpeed(int16_t& topMotorSpeed) const;
+    bool getMotorSpeedSetpoints(int16_t& leftMotorSpeed, int16_t& rightMotorSpeed) const;
+
+    /**
+     * Set the calculated motor speed setpoints. Shall only be called internally and not by the user.
+     *
+     * @param[in] leftMotorSpeed The calculated left motor speed.
+     * @param[in] rightMotorSpeed The calculated right motor speed.
+     *
+     * @returns true, as the assignment cannot fail.
+     */
+    bool setMotorSpeedSetpoints(const int16_t leftMotorSpeed, const int16_t rightMotorSpeed);
 
     /**
      * Set latest vehicle data.
@@ -121,16 +134,50 @@ public:
      */
     void setLastFollowerFeedback(const VehicleData& feedback);
 
+    /**
+     * Push the next waypoint into the queue.
+     *
+     * @param[in] waypoint  Next waypoint.
+     *
+     * @return If successful returns true, otherwise false.
+     */
+    bool pushWaypoint(const Waypoint& waypoint);
+
+    /**
+     * Get latest waypoint to be sent to follower.
+     *
+     * @param[out] waypoint  Latest waypoint.
+     *
+     * @return If successful returns true, otherwise false.
+     */
+    bool getWaypoint(Waypoint& waypoint);
+
+    /**
+     * Is state active?
+     *
+     * @return If state is active, it will return true otherwise false.
+     */
+    bool isActive() const
+    {
+        return m_isActive;
+    }
+
 protected:
 private:
     /** Flag: State is active. */
     bool m_isActive;
 
+    /** Flag: initialization is successful. */
+    bool m_isInitSuccessful;
+
     /** Maximum motor speed. */
     int16_t m_maxMotorSpeed;
 
-    /** Calculated top motor speed. */
-    int16_t m_topMotorSpeed;
+    /** Calculated left motor speed. */
+    int16_t m_leftMotorSpeed;
+
+    /** Calculated left motor speed. */
+    int16_t m_rightMotorSpeed;
 
     /** Latest vehicle data. */
     VehicleData m_vehicleData;
@@ -138,16 +185,44 @@ private:
     /** Last follower feedback. */
     VehicleData m_followerFeedback;
 
+    /** Platoon controller. */
+    PlatoonController m_platoonController;
+
+    /** Outgoing Waypoint. */
+    Waypoint m_outputWaypoint;
+
+    /**
+     * Queue for the received waypoints.
+     * Stores pointers to the waypoints in the queue when received in the callback.
+     * The queue is emptied by the getNextWaypoint() method.
+     * The queue is filled by the targetWaypointTopicCallback() method.
+     *
+     * @tparam Waypoint*    Pointer to a Waypoint.
+     */
+    std::queue<Waypoint*> m_inputWaypointQueue;
+
+    /**
+     * Setup the platoon controller.
+     *
+     * @return If successful returns true, otherwise false.
+     */
+    bool setupPlatoonController();
+
     /**
      * Default constructor.
      */
     DrivingState() :
         IState(),
         m_isActive(false),
+        m_isInitSuccessful(false),
         m_maxMotorSpeed(0),
-        m_topMotorSpeed(0),
+        m_leftMotorSpeed(0),
+        m_rightMotorSpeed(0),
         m_vehicleData{0},
-        m_followerFeedback{0}
+        m_followerFeedback{0},
+        m_platoonController(),
+        m_outputWaypoint(),
+        m_inputWaypointQueue()
     {
     }
 

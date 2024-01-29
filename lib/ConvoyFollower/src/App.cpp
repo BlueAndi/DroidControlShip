@@ -223,6 +223,30 @@ void App::loop()
 
     /* Process periodic tasks. */
     processPeriodicTasks();
+
+    /* Process V2V event queue. */
+    while (0U < m_v2vClient.getWaypointQueueSize())
+    {
+        /* Waypoints are pending. */
+        Waypoint waypoint;
+
+        if (false == m_v2vClient.getNextWaypoint(waypoint))
+        {
+            LOG_WARNING("Failed to get next waypoint from V2V client.");
+        }
+        if (false == DrivingState::getInstance().isActive())
+        {
+            /* Not in the correct state. Do nothing. Waypoint can be safely ignored for now. */
+        }
+        else if (false == DrivingState::getInstance().pushWaypoint(waypoint))
+        {
+            LOG_WARNING("Failed to push waypoint into driving state.");
+        }
+        else
+        {
+            /* Nothing to do. */
+        }
+    }
 }
 
 void App::setLatestVehicleData(const Waypoint& waypoint)
@@ -382,9 +406,24 @@ void App::processPeriodicTasks()
 
     if ((true == m_sendWaypointTimer.isTimeout()) && (true == m_mqttClient.isConnected()))
     {
-        if (false == m_v2vClient.sendWaypoint(m_latestVehicleData))
+        Waypoint      payload;
+        DrivingState& drivingState = DrivingState::getInstance();
+
+        if (false == drivingState.isActive())
+        {
+            /* Not in the correct state. Do nothing. */
+        }
+        else if (false == drivingState.getWaypoint(payload))
+        {
+            LOG_WARNING("Failed to get waypoint from driving state.");
+        }
+        else if (false == m_v2vClient.sendWaypoint(m_latestVehicleData))
         {
             LOG_WARNING("Waypoint could not be sent.");
+        }
+        else
+        {
+            /* Nothing to do. */
         }
 
         m_sendWaypointTimer.restart();
@@ -392,15 +431,18 @@ void App::processPeriodicTasks()
 
     if ((true == m_motorSpeedTimer.isTimeout()) && (true == m_smpServer.isSynced()))
     {
-        int16_t   centerSpeed = 0;
+        int16_t   leftSpeed  = 0;
+        int16_t   rightSpeed = 0;
         SpeedData payload;
 
-        if (false == DrivingState::getInstance().getTopMotorSpeed(centerSpeed))
+        if (false == DrivingState::getInstance().getMotorSpeedSetpoints(leftSpeed, rightSpeed))
         {
-            centerSpeed = 0;
+            leftSpeed  = 0;
+            rightSpeed = 0;
         }
 
-        payload.center = centerSpeed;
+        payload.left  = leftSpeed;
+        payload.right = rightSpeed;
 
         if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
         {
