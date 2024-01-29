@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Concrete Longitudinal Safety Policy.
+ * @brief  Driving state.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup Application
  *
  * @{
  */
-#ifndef LONGITUDINAL_SAFETY_POLICY_H
-#define LONGITUDINAL_SAFETY_POLICY_H
+#ifndef DRIVING_STATE_H
+#define DRIVING_STATE_H
 
 /******************************************************************************
  * Compile Switches
@@ -42,8 +42,11 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <ILongitudinalSafetyPolicy.h>
-#include <new>
+
+#include <stdint.h>
+#include <IState.h>
+#include <StateMachine.h>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -53,54 +56,116 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Concrete Longitudinal Safety Policy. */
-class LongitudinalSafetyPolicy : public ILongitudinalSafetyPolicy
+/** The system driving state. */
+class DrivingState : public IState
 {
 public:
     /**
-     * Longitudinal Safety Policy constructor.
-     */
-    LongitudinalSafetyPolicy();
-
-    /**
-     * Longitudinal Safety Policy destructor.
-     */
-    virtual ~LongitudinalSafetyPolicy();
-
-    /**
-     * Creates a LongitudinalSafetyPolicy instance, for registering in the ProcessingChainFactory.
+     * Get state instance.
      *
-     * @return If successful, returns a pointer to the LongitudinalSafetyPolicy instance. Otherwise nullptr.
+     * @return State instance.
      */
-    static ILongitudinalSafetyPolicy* create()
+    static DrivingState& getInstance()
     {
-        return new (std::nothrow) LongitudinalSafetyPolicy();
+        static DrivingState instance;
+
+        /* Singleton idiom to force initialization during first usage. */
+
+        return instance;
     }
 
     /**
-     * Checks if the longitudinal safety policy is satisfied by the calculated center speed.
-     * If not, the center speed is adjusted accordingly.
-     *
-     * @param[in,out]   centerSpeedSetpoint  Center speed [steps/s].
-     *
-     * @return True is satisfied, otherwise false.
+     * If the state is entered, this method will called once.
      */
-    bool check(int16_t& centerSpeedSetpoint) final;
+    void entry() final;
 
-private:
     /**
-     * Maximum motor speed in encoder steps/s
-     * Speed determined experimentally using the motor calibration of the RadonUlzer.
+     * Processing the state.
+     *
+     * @param[in] sm State machine, which is calling this state.
      */
-    static const int16_t MAX_MOTOR_SPEED = 2400;
+    void process(StateMachine& sm) final;
 
-    /** Minimum motor speed in encoder steps/s */
-    static const int16_t MIN_MOTOR_SPEED = 0;
+    /**
+     * If the state is left, this method will be called once.
+     */
+    void exit() final;
+
+    /**
+     * Set maximum motor speed.
+     *
+     * @param[in] maxSpeed Maximum motor speed.
+     */
+    void setMaxMotorSpeed(int16_t maxSpeed);
+
+    /**
+     * Get the calculated top motor speed.
+     *
+     * @param[out] topMotorSpeed The calculated top motor speed.
+     *
+     * @returns true if the top motor speed is valid. Otherwise, false.
+     */
+    bool getTopMotorSpeed(int16_t& topMotorSpeed) const;
+
+    /**
+     * Set latest vehicle data.
+     *
+     * @param[in] vehicleData   Latest vehicle data.
+     */
+    void setVehicleData(const VehicleData& vehicleData);
+
+    /**
+     * Set last follower feedback.
+     *
+     * @param[in] feedback  Last follower feedback.
+     */
+    void setLastFollowerFeedback(const VehicleData& feedback);
+
+protected:
+private:
+    /** Flag: State is active. */
+    bool m_isActive;
+
+    /** Maximum motor speed. */
+    int16_t m_maxMotorSpeed;
+
+    /** Calculated top motor speed. */
+    int16_t m_topMotorSpeed;
+
+    /** Latest vehicle data. */
+    VehicleData m_vehicleData;
+
+    /** Last follower feedback. */
+    VehicleData m_followerFeedback;
+
+    /**
+     * Default constructor.
+     */
+    DrivingState() :
+        IState(),
+        m_isActive(false),
+        m_maxMotorSpeed(0),
+        m_topMotorSpeed(0),
+        m_vehicleData{0},
+        m_followerFeedback{0}
+    {
+    }
+
+    /**
+     * Default destructor.
+     */
+    virtual ~DrivingState()
+    {
+    }
+
+    /* Not allowed. */
+    DrivingState(const DrivingState& state);            /**< Copy construction of an instance. */
+    DrivingState& operator=(const DrivingState& state); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* LONGITUDINAL_SAFETY_POLICY_H */
+#endif /* DRIVING_STATE_H */
 /** @} */

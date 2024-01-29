@@ -25,16 +25,14 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Concrete Lateral Controller
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Statemachine
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include "LateralController.h"
-#include <Util.h>
+#include <StateMachine.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -60,27 +58,29 @@
  * Public Methods
  *****************************************************************************/
 
-LateralController::LateralController() : ILateralController(), m_headingFinder()
+void StateMachine::process()
 {
-}
+    /* Change state? */
+    if (nullptr != m_nextState)
+    {
+        /* Leave current state */
+        if (nullptr != m_currentState)
+        {
+            m_currentState->exit();
+        }
 
-LateralController::~LateralController()
-{
-}
+        m_currentState = m_nextState;
+        m_nextState    = nullptr;
 
-bool LateralController::calculateLateralMovement(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
-                                                 const int16_t centerSpeedSetpoint, int16_t& leftMotorSpeedSetpoint,
-                                                 int16_t& rightMotorSpeedSetpoint)
-{
-    bool isSuccessful = true;
+        /* Enter new state */
+        m_currentState->entry();
+    }
 
-    m_headingFinder.setOdometryData(currentWaypoint.xPos, currentWaypoint.yPos, currentWaypoint.orientation);
-    m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
-    m_headingFinder.setTargetHeading(targetWaypoint.xPos, targetWaypoint.yPos);
-
-    m_headingFinder.process(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
-
-    return isSuccessful;
+    /* Process current state */
+    if (nullptr != m_currentState)
+    {
+        m_currentState->process(*this);
+    }
 }
 
 /******************************************************************************

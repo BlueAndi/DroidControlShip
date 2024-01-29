@@ -46,10 +46,10 @@
 #include <Arduino.h>
 #include <Board.h>
 #include <MqttClient.h>
-#include <SerialMuxProtServer.hpp>
-#include "SerialMuxChannels.h"
-#include <PlatoonController.h>
+#include <SimpleTimer.hpp>
+#include <StateMachine.h>
 #include <V2VClient.h>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -67,11 +67,19 @@ public:
      * Construct the convoy leader application.
      */
     App() :
+        m_serialMuxProtChannelIdRemoteCtrl(0U),
+        m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_serialMuxProtChannelIdStatus(0U),
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
-        m_serialMuxProtChannelIdMotorSpeedSetpoints(0U),
         m_mqttClient(),
-        m_platoonController(),
-        m_v2vClient(m_mqttClient)
+        m_v2vClient(m_mqttClient),
+        m_systemStateMachine(),
+        m_latestVehicleData(),
+        m_sendWaypointTimer(),
+        m_commandTimer(),
+        m_motorSpeedTimer(),
+        m_statusTimer(),
+        m_statusTimeoutTimer()
     {
     }
 
@@ -93,46 +101,42 @@ public:
     void loop();
 
     /**
-     * Callback for the current vehicle data.
+     * Set latest vehicle data from RU.
      *
-     * @param[in] vehicleData Current vehicle data.
+     * @param[in] waypoint  Latest vehicle data from RU.
      */
-    void currentVehicleChannelCallback(const VehicleData& vehicleData);
+    void setLatestVehicleData(const Waypoint& waypoint);
 
     /**
-     * Input waypoint callback.
-     * Called in order to get the next waypoint into the platoon controller.
-     *
-     * @param[out] waypoint   Next waypoint.
-     *
-     * @return If a waypoint is available, it returns true. Otherwise, false.
+     * Set error state.
      */
-    bool inputWaypointCallback(Waypoint& waypoint);
+    void setErrorState();
 
     /**
-     * Output waypoint callback.
-     * Called in order to send the last waypoint to the next platoon participant.
+     * System Status callback.
      *
-     * @param[in] waypoint    Last waypoint.
-     *
-     * @return If the waypoint was sent successfully, returns true. Otherwise, false.
+     * @param[in] status    System status
      */
-    bool outputWaypointCallback(const Waypoint& waypoint);
-
-    /**
-     * Motor setpoint callback.
-     * Called in order to send the motor speeds using SerialMuxProt to the robot.
-     *
-     * @param[in] left      Left motor speed [steps/s].
-     * @param[in] right     Right motor speed [steps/s].
-     *
-     * @return If the motor speeds were sent successfully, returns true. Otherwise, false.
-     */
-    bool motorSetpointCallback(const int16_t left, const int16_t right);
+    void systemStatusCallback(SMPChannelPayload::Status status);
 
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
+
+    /** Send waypoint timer interval in ms. */
+    static const uint32_t SEND_WAYPOINT_TIMER_INTERVAL = 500U;
+
+    /** Send commands timer interval in ms. */
+    static const uint32_t SEND_COMMANDS_TIMER_INTERVAL = 100U;
+
+    /** Send motor speed timer interval in ms. */
+    static const uint32_t SEND_MOTOR_SPEED_TIMER_INTERVAL = 100U;
+
+    /** Send status timer interval in ms. */
+    static const uint32_t SEND_STATUS_TIMER_INTERVAL = 1000U;
+
+    /** Status timeout timer interval in ms. */
+    static const uint32_t STATUS_TIMEOUT_TIMER_INTERVAL = 2U * SEND_STATUS_TIMER_INTERVAL;
 
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
@@ -140,15 +144,22 @@ private:
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
 
-    /** SerialMuxProt Channel id sending sending motor speed setpoints. */
-    uint8_t m_serialMuxProtChannelIdMotorSpeedSetpoints;
+    /** MQTT topic name for release messages. */
+    static const char* TOPIC_NAME_RELEASE;
+
+    /** SerialMuxProt Channel id for sending remote control commands. */
+    uint8_t m_serialMuxProtChannelIdRemoteCtrl;
+
+    /** SerialMuxProt Channel id for sending motor speeds. */
+    uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+
+    /** SerialMuxProt Channel id for sending system status. */
+    uint8_t m_serialMuxProtChannelIdStatus;
 
     /**
      * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
-    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
+    SMPServer m_smpServer;
 
     /**
      * MQTTClient Instance
@@ -161,9 +172,39 @@ private:
     V2VClient m_v2vClient;
 
     /**
-     * Platoon controller instance.
+     * The system state machine.
      */
-    PlatoonController m_platoonController;
+    StateMachine m_systemStateMachine;
+
+    /**
+     * Latest vehicle data from RU.
+     */
+    Waypoint m_latestVehicleData;
+
+    /**
+     * Send waypoint timer.
+     */
+    SimpleTimer m_sendWaypointTimer;
+
+    /**
+     * Timer for sending initial commands.
+     */
+    SimpleTimer m_commandTimer;
+
+    /**
+     * Timer for sending motor speed to RU.
+     */
+    SimpleTimer m_motorSpeedTimer;
+
+    /**
+     * Timer for sending system status to RU.
+     */
+    SimpleTimer m_statusTimer;
+
+    /**
+     * Timer for timeout of system status of RU.
+     */
+    SimpleTimer m_statusTimeoutTimer;
 
 private:
     /**
@@ -172,9 +213,23 @@ private:
     void fatalErrorHandler();
 
     /**
-     * Send speed setpoints using SerialMuxProt.
+     * Setup the MQTT client.
+     *
+     * @return If successful returns true, otherwise false.
      */
-    void sendSpeedSetpoints();
+    bool setupMqttClient();
+
+    /**
+     * Setup the SerialMuxProt channels.
+     *
+     * @return If successful returns true, otherwise false.
+     */
+    bool setupSerialMuxProt();
+
+    /**
+     * Process periodic tasks.
+     */
+    void processPeriodicTasks();
 
 private:
     /* Not allowed. */

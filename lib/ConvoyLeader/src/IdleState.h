@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Concrete Longitudinal Controller.
+ * @brief  Idle State.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup Application
  *
  * @{
  */
-#ifndef LONGITUDINAL_CONTROLLER_H
-#define LONGITUDINAL_CONTROLLER_H
+#ifndef IDLE_STATE_H
+#define IDLE_STATE_H
 
 /******************************************************************************
  * Compile Switches
@@ -42,8 +42,10 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <ILongitudinalController.h>
-#include <new>
+
+#include <IState.h>
+#include <StateMachine.h>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -53,65 +55,78 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Concrete Longitudinal Controller */
-class LongitudinalController : public ILongitudinalController
+/** The system idle state. */
+class IdleState : public IState
 {
 public:
     /**
-     * Longitudinal Controller constructor.
-     */
-    LongitudinalController();
-
-    /**
-     * Longitudinal Controller destructor.
-     */
-    virtual ~LongitudinalController();
-
-    /**
-     * Creates a LongitudinalController instance, for registering in the ProcessingChainFactory.
+     * Get state instance.
      *
-     * @return If successful, returns a pointer to the LongitudinalController instance. Otherwise nullptr.
+     * @return State instance.
      */
-    static ILongitudinalController* create()
+    static IdleState& getInstance()
     {
-        return new (std::nothrow) LongitudinalController();
+        static IdleState instance;
+
+        /* Singleton idiom to force initialization during first usage. */
+
+        return instance;
     }
 
     /**
-     * Calculates the motor speeds for the next step.
-     *
-     * @param[in]   currentWaypoint         Current waypoint where the vehicle is found.
-     * @param[in]   targetWaypoint          Target waypoint to drive to.
-     * @param[out]  centerSpeedSetpoint     Center speed setpoint [steps/s].
-     *
-     * @return If successful, returns true otherwise false.
+     * If the state is entered, this method will called once.
      */
-    bool calculateLongitudinalMovement(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
-                                       int16_t& centerSpeedSetpoint) final;
+    void entry() final;
 
+    /**
+     * Processing the state.
+     *
+     * @param[in] sm State machine, which is calling this state.
+     */
+    void process(StateMachine& sm) final;
+
+    /**
+     * If the state is left, this method will be called once.
+     */
+    void exit() final;
+
+    /**
+     * Release the vehicle to start driving.
+     *
+     * @return If the request to release the vehicle is successful, returns true. Otherwise, false.
+     */
+    bool requestRelease();
+
+protected:
 private:
-    /**
-     * Maximum motor speed in encoder steps/s
-     * Speed determined experimentally using the motor calibration of the RadonUlzer.
-     */
-    static const int16_t MAX_MOTOR_SPEED = 2400;
+    /** Flag: State is active. */
+    bool m_isActive;
 
-    /** Minimum distance to drive with max motor speed to in mm.*/
-    static const int16_t MIN_DISTANCE_TO_MAX_SPEED = 400;
+    /** Flag: Release is requested. */
+    bool m_releaseRequested;
 
     /**
-     * Offset speed in encoder steps/s
-     * Used to being too slow when approaching the target waypoint.
+     * Default constructor.
      */
-    static const int16_t OFFSET_SPEED = 500;
+    IdleState() : IState(), m_isActive(false), m_releaseRequested(false)
+    {
+    }
 
-    /** Ramp factor. */
-    static const int16_t RAMP_FACTOR = MAX_MOTOR_SPEED / MIN_DISTANCE_TO_MAX_SPEED;
+    /**
+     * Default destructor.
+     */
+    virtual ~IdleState()
+    {
+    }
+
+    /* Not allowed. */
+    IdleState(const IdleState& state);            /**< Copy construction of an instance. */
+    IdleState& operator=(const IdleState& state); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* LONGITUDINAL_CONTROLLER_H */
+#endif /* IDLE_STATE_H */
 /** @} */

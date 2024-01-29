@@ -1,0 +1,43 @@
+@startuml DcsStateMachine
+
+Title DroidControlShip ConvoyLeader State Machine
+
+hide empty description
+
+state StatelessSetup
+state ErrorState
+state StartupState
+state IdleState
+state DrivingState
+
+[*] --> StatelessSetup: Power up
+StatelessSetup -right-> StartupState : [Basic services initialized]
+StatelessSetup --> ErrorState: [Basic services init failed]
+
+StartupState --> IdleState : [Initial data loaded and exchanged]
+StartupState --> ErrorState : [Error in initialization]
+
+IdleState --> DrivingState : [Release command received]
+IdleState --> ErrorState : [Lost connection to RU]
+
+DrivingState --> IdleState : [Stop command received]
+DrivingState --> ErrorState : [Error while driving]
+
+note left of StatelessSetup
+    Initialization of:
+        - Logger
+        - HAL
+        - Network
+        - MQTT
+        - SMP
+        - Longitudinal Controller
+end note
+
+note right of StartupState
+    Establish connections:
+        - Network
+        - MQTT
+        - SMP
+end note
+
+@enduml
