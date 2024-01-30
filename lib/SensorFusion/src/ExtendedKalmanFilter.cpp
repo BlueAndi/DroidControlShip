@@ -179,16 +179,16 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& ka
  *****************************************************************************/
 void ExtendedKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParameter)
 {
-    m_measurementVector[IDX_POSITION_X_MEASUREMENT_VECTOR]  = static_cast<float>(kalmanParameter.positionOdometryX);
-    m_measurementVector[IDX_POSITION_Y_MEASUREMENT_VECTOR]  = static_cast<float>(kalmanParameter.positionOdometryY);
-    m_measurementVector[IDX_VELOCITY_MEASUREMENT_VECTOR]    = static_cast<float>(kalmanParameter.velocityOdometry);
-    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = static_cast<float>(kalmanParameter.angleOdometry);
+    m_measurementVector[IDX_POSITION_X_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryX;
+    m_measurementVector[IDX_POSITION_Y_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryY;
+    m_measurementVector[IDX_VELOCITY_MEASUREMENT_VECTOR]    = kalmanParameter.velocityOdometry;
+    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = kalmanParameter.angleOdometry;
 }
 
 void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)
 {
-    m_controlInputVector[IDX_TURNRATE_CONTROL_INPUT_VECTOR]       = static_cast<float>(kalmanParameter.turnRate);
-    m_controlInputVector[IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR] = static_cast<float>(kalmanParameter.accelerationX);
+    m_controlInputVector[IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR] = kalmanParameter.accelerationX;
+    m_controlInputVector[IDX_TURNRATE_CONTROL_INPUT_VECTOR]       = kalmanParameter.turnRate;
 }
 
 float ExtendedKalmanFilter::wrapAngle(float inputAngle)
