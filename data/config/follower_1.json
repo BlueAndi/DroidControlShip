@@ -21,8 +21,8 @@
     "vehicleId": "1"
   },
   "initialPosition": {
-    "x": "0",
-    "y": "0",
-    "heading": "0"
+    "x": "-250",
+    "y": "-200",
+    "heading": "1588"
   }
 }

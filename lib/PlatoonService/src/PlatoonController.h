@@ -48,6 +48,7 @@
 #include "Waypoint.h"
 #include "ProcessingChain.h"
 #include "ProcessingChainFactory.h"
+#include <SettingsHandler.h>
 
 /******************************************************************************
  * Macros
