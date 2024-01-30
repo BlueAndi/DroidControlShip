@@ -90,16 +90,29 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         float deltaAngleOdometry = static_cast<float>(newSensorData.orientationOdometry) - m_lastOdometryPosition.angle;
         float updatedOrientationOdometry = m_estimatedPosition.angle + deltaAngleOdometry;
 
+        float duration = static_cast<float>(newSensorData.timePeriod) / 1000.0F;
+
         /* Calculate the mean velocity since the last Iteration instead of using the momentary Speed.
         Correct the sign of the distance via the measured velocity if the velocity is negative, hence the robot drives
-        backwards. */
-        float duration            = static_cast<float>(newSensorData.timePeriod) / 1000.0F;
+        backwards.
+        For the correction of the sign, the dot product is used. If the robot moves forward, the dot product is
+        positive. Otherwise, negative. */
+        float dotProduct = deltaXOdometry * cosf(static_cast<float>(newSensorData.orientationOdometry) / 1000.0F) +
+                           deltaYOdometry * sinf(static_cast<float>(newSensorData.orientationOdometry) / 1000.0F);
         float directionCorrection = 1.0F;
-        if (newSensorData.velocityOdometry < 0)
+        if (dotProduct < 0.0F)
         {
-            directionCorrection = -1.0;
+            directionCorrection = -1.0F;
         }
         float meanVelocityOdometry = directionCorrection * euclideanDistance / duration;
+
+        /* If the robot moves slowly, the odometry might not be updated in the scope of one iteration.
+        The velocity would be falsely assumed to be 0. In this case, the last Velocity shall be used.  */
+        if (0.0F == meanVelocityOdometry)
+        {
+            meanVelocityOdometry = m_lastOdometryVelocity;
+        }
+        m_lastOdometryVelocity = meanVelocityOdometry;
 
         /* Update the measured position assuming the robot drives in the estimated Direction.
         Use the Correction Factor in case the robot drives Backwards. */
