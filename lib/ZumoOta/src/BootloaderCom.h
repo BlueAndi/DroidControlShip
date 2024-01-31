@@ -106,10 +106,10 @@ public:
    /**
     * @brief exit the bootloader mode.
     */
-   void exitBootloader();
+    void exitBootloader();
 
    /**
-    * @brief Process the flash manager state machine.
+    *@brief Process the flash manager state machine.
     *return bool True if the process was successful, otherwise false.
     */
     bool process();
@@ -126,22 +126,22 @@ public:
 
     /**
      *@brief This function is used to enter the programming mode.
-     *@It prepares the system to accept programming commands.
-     *@returns 0 if the fuses are verified successfully.
+     *It prepares the system to accept programming commands.
+     *returns 0 if the fuses are verified successfully.
      */
      bool enterprogrammingmode();
 
     /**
      *@brief This Function verifies the signature of the program.
-     *@It checks the validity of the signature to ensure the integrity of the program.
-     *@return = if the signature is verified successfully
+     *It checks the validity of the signature to ensure the integrity of the program.
+     *return = if the signature is verified successfully
      */
     bool verifySignature();
 
     /**
      *@ brief This function is responsible for verifying the fuses.
-     *@It checks the integrity of the fuse settings to ensure they are valid.
-     * return 0 if the fuses are verified successfully.
+     *It checks the integrity of the fuse settings to ensure they are valid.
+     *return 0 if the fuses are verified successfully.
      */
     bool verifyFuses();
 
