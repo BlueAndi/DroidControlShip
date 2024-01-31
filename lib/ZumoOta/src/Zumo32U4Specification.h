@@ -141,13 +141,13 @@ namespace Zumo32U4Specification
     static const uint8_t EXPECTED_PROGRAMMER_TYPE[] = {0x53};
 
     /** The expected supported device code */
-    static const uint8_t EXPECTED_DEVICE_CODE[] = {0x44};
+    static const uint8_t EXPECTED_DEVICE_CODE[] = {0x44, 0x00};
 
     /** The expected result when checking if bootloader supports auto incrementing page byte addresses */
     static const uint8_t  EXPECTED_SUPPORTS_AUTO_MEM_ADDR_INC[] = {0x59};
 
     /** The expected block size result in bytes when checking if bootloader supports page/block flashing */
-    static const uint8_t EXPECTED_BLOCK_BUFFER_SIZE[] = {0x59};
+    static const uint8_t EXPECTED_BLOCK_BUFFER_SIZE[] = {0x59, 0x00, 0x80};
 
     /** The expected AVR low byte fuse value */
     static const uint8_t EXPECTED_LSB_FUSE_VALUE [] = {0xFF};
