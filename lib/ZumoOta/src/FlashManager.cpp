@@ -83,14 +83,16 @@ size_t FlashManager::readingStream(uint8_t* expectedResponse, size_t mybytes)
         LOG_INFO("Available size: %d ", availableBytes);
         do
         {
-            m_bytesRead = deviceStream.readBytes(expectedResponse, mybytes - m_bytesRead);
+            m_bytesRead = deviceStream.readBytes(&expectedResponse[totalReadBytes], mybytes - totalReadBytes);
+            Board::getInstance().process();
             totalReadBytes += m_bytesRead;
-        } while (m_bytesRead != 0);
+        } while (totalReadBytes > mybytes);
 
         for (size_t idx = 0; idx < totalReadBytes; idx++)
         {
             /*Handle the Hexadecimal.*/
             Serial.print(expectedResponse[idx], HEX);
+            //Serial.print((char)expectedResponse[idx]);
         }
         Serial.println();
         LOG_INFO("totalReadBytes ist %d", totalReadBytes);

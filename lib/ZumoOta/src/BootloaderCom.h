@@ -124,7 +124,26 @@ public:
      */
      bool compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize);
 
-    
+    /**
+     *@brief This function is used to enter the programming mode.
+     *@It prepares the system to accept programming commands.
+     *@returns 0 if the fuses are verified successfully.
+     */
+     bool enterprogrammingmode();
+
+    /**
+     *@brief This Function verifies the signature of the program.
+     *@It checks the validity of the signature to ensure the integrity of the program.
+     *@return = if the signature is verified successfully
+     */
+    bool verifySignature();
+
+    /**
+     *@ brief This function is responsible for verifying the fuses.
+     *@It checks the integrity of the fuse settings to ensure they are valid.
+     * return 0 if the fuses are verified successfully.
+     */
+    bool verifyFuses();
 
 private:
     /**
@@ -157,12 +176,12 @@ private:
     /**
      *@brief Array to store the commands.
      */
-     CommandInfo m_commands[6];
+     CommandInfo m_commands[7];
 
     /**
      *@brief Array to store expected Responses.
      */
-     ResponseInfo m_responses[6]; 
+     ResponseInfo m_responses[7]; 
 };
 
 #endif /* BOOTLOADERCOM_H */

@@ -70,6 +70,7 @@ m_waitingForResponse(false)
     m_commands[3] = {Zumo32U4Specification::READ_PROGRAMMER_TYPE, 1U};
     m_commands[4] = {Zumo32U4Specification::CHECK_AUTO_MEM_ADDR_INC_SUPPORT, 1U};
     m_commands[5] = {Zumo32U4Specification::CHECK_BLOCK_FLASH_SUPPORT, 1U};
+    m_commands[6] = {Zumo32U4Specification::READ_SUPPORTED_DEVICE_CODE, 1U};
 
     /*Initialize responses.*/
     m_responses[0] = {Zumo32U4Specification::EXPECTED_SOFTWARE_ID, 7U};
@@ -77,7 +78,8 @@ m_waitingForResponse(false)
     m_responses[2] = {Zumo32U4Specification::EXPECTED_HW_VERSION, 1U};
     m_responses[3] = {Zumo32U4Specification::EXPECTED_PROGRAMMER_TYPE, 1U};
     m_responses[4] = {Zumo32U4Specification::EXPECTED_SUPPORTS_AUTO_MEM_ADDR_INC, 1U};
-    m_responses[5] = {Zumo32U4Specification::EXPECTED_BLOCK_BUFFER_SIZE, 1U};
+    m_responses[5] = {Zumo32U4Specification::EXPECTED_BLOCK_BUFFER_SIZE, 3U};
+    m_responses[6] = {Zumo32U4Specification::EXPECTED_DEVICE_CODE, 2U};
 
 }
 
@@ -111,7 +113,7 @@ bool BootloaderCom::process()
         case Idle:
             /*Handle Idle state*/
             m_waitingForResponse = false;
-            if(commandIndex < 6)
+            if(commandIndex < 7)
             {
                 if(true == myFlashManager.sendCommand(currentCommand.command,currentCommand.commandsize))
                 {
@@ -129,9 +131,11 @@ bool BootloaderCom::process()
             else
             {
                 break;
+                //return false;
             }
         case ReadingResponse:
             /*Handle Complete state*/
+            LOG_DEBUG("Size of currentsize= %d", currentResponse.responseSize);
             newBytes = myFlashManager.readingStream(receiveBuffer, currentResponse.responseSize);
             if(currentResponse.responseSize == newBytes)
             {
@@ -158,8 +162,8 @@ bool BootloaderCom::process()
 
         default:
             break;
- }
- return true;
+    }
+    return true;
 }
 
 bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize)
@@ -252,6 +256,126 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
         }
 
     }
+    else if(command == Zumo32U4Specification::READ_SUPPORTED_DEVICE_CODE)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::EXPECTED_DEVICE_CODE,expectedSize))
+        {
+            LOG_INFO("Received Device Code is valid!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("Received Device Code doesn't match!");
+            return false;
+        }
+    }
+    else if(command == Zumo32U4Specification::ENTER_PROGRAMMING_MODE)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::RET_OK,expectedSize))
+        {
+            LOG_INFO("Is in Programming Mode!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("Not in Programming Mode!");
+            return false;
+
+        }
+    }
+    else if(command == Zumo32U4Specification::READ_SIGNATURE)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::EXPECTED_SIGNATURE,expectedSize))
+        {
+            LOG_INFO("Signature is valid!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("Signature is not valid!");
+            return false;
+        }
+    }
+    else if(command == Zumo32U4Specification::READ_LSB_FUSE)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::EXPECTED_LSB_FUSE_VALUE,expectedSize))
+        {
+            LOG_INFO("LSB FUSE VALUE is valid!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("LSB FUSE VALUE is not valid!");
+            return false;
+        }
+    }
+    else if(command == Zumo32U4Specification::READ_MSB_FUSE)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::EXPECTED_MSB_FUSE_VALUE,expectedSize))
+        {
+            LOG_INFO("MSB FUSE VAlue is valid!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("MSB FUSE VALUE is not valid!");
+            return false;
+        }
+    }
+    else if(command == Zumo32U4Specification:: READ_EXTENDED_FUSE)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE,expectedSize))
+        {
+            LOG_INFO("EXTENDED FUSE VALUE is valid!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("EXTENDED FUSE VALUE is not valid!");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool BootloaderCom::enterprogrammingmode()
+{
+    uint8_t mybuffer[1U];
+    Board::getInstance().process();
+    myFlashManager.sendCommand(Zumo32U4Specification::ENTER_PROGRAMMING_MODE, 1U);
+    myFlashManager.readingStream(mybuffer, 1U);
+    compareExpectedAndReceivedResponse(Zumo32U4Specification::ENTER_PROGRAMMING_MODE,mybuffer,1U,1U);
+    return true;
+}
+
+bool BootloaderCom::verifySignature()
+{
+    uint8_t mybuffer[1U];
+    Board::getInstance().process();
+    myFlashManager.sendCommand(Zumo32U4Specification::READ_SIGNATURE, 1U);
+    myFlashManager.readingStream(mybuffer, 1U);
+    compareExpectedAndReceivedResponse(Zumo32U4Specification::EXPECTED_SIGNATURE,mybuffer,1U,1U);
+    return true;
+}
+
+bool BootloaderCom::verifyFuses()
+{
+    uint8_t mybuffer[1U];
+    uint8_t thebuffer[1U];
+    uint8_t newbuffer[1U];
+    Board::getInstance().process();
+
+    myFlashManager.sendCommand(Zumo32U4Specification::READ_LSB_FUSE, 1U);
+    myFlashManager.readingStream(mybuffer, 1U);
+    compareExpectedAndReceivedResponse(Zumo32U4Specification::EXPECTED_LSB_FUSE_VALUE,mybuffer,1U,1U);
+
+    myFlashManager.sendCommand(Zumo32U4Specification::READ_MSB_FUSE, 1U);
+    myFlashManager.readingStream(thebuffer, 1U);
+    compareExpectedAndReceivedResponse(Zumo32U4Specification::EXPECTED_MSB_FUSE_VALUE,thebuffer,1U,1U);
+
+    myFlashManager.sendCommand(Zumo32U4Specification::READ_EXTENDED_FUSE, 1U);
+    myFlashManager.readingStream(newbuffer, 1U);
+    compareExpectedAndReceivedResponse(Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE,newbuffer,1U,1U);
     return true;
 }
 
