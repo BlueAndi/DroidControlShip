@@ -108,7 +108,7 @@ public:
     PositionData updateStep(KalmanParameter& kalmanParameter) final;
 
 private:
-    /** Estimated state vector [positionX, positionY, velocity, orientation]^T */
+    /** Estimated state vector [positionX in mm, positionY in mm, velocity in mm/s, orientation in mrad/s]^T */
     Eigen::Vector<float, NUMBER_OF_STATES_N> m_stateVector;
 
     /** Covariance Matrix of the state */
@@ -117,37 +117,38 @@ private:
     /** Control Input Vector u=[accelerationX, accelerationY, turnRate]^T */
     Eigen::Vector<float, NUMBER_OF_CONTROL_INPUTS_L> m_controlInputVector;
 
-    /** Measurement Vector z=[positionOdometryX, positionOdometryY, orientationOdometry]^T */
+    /** Measurement Vector z=[positionOdometryX in mm, positionOdometryY in mm, velocityOdometry in mm/s,
+     * orientationOdometry in mrad]^T */
     Eigen::Vector<float, NUMBER_OF_MEASUREMENTS_M> m_measurementVector;
 
-    /** Index of Position in x-direction in the state vector x. */
+    /** Index of Position in mm in x-direction in the state vector x. */
     static const uint8_t IDX_POSITION_X_STATE_VECTOR = 0U;
 
-    /** Index of Position in y-direction in the state vector x. */
+    /** Index of Position in mm in y-direction in the state vector x. */
     static const uint8_t IDX_POSITION_Y_STATE_VECTOR = 1U;
 
-    /** Index of the velocity in the state vector x. */
+    /** Index of the velocity in mm/s in the state vector x. */
     static const uint8_t IDX_VELOCITY_STATE_VECTOR = 2U;
 
-    /** Index of the orientation in the state vector x. */
+    /** Index of the orientation in mrad in the state vector x. */
     static const uint8_t IDX_ORIENTATION_STATE_VECTOR = 3U;
 
-    /** Index of Position in x-direction in the measurement vector z. */
+    /** Index of Position in mm in x-direction in the measurement vector z. */
     static const uint8_t IDX_POSITION_X_MEASUREMENT_VECTOR = 0U;
 
-    /** Index of Position in y-direction in the measurement vector z. */
+    /** Index of Position in mm in y-direction in the measurement vector z. */
     static const uint8_t IDX_POSITION_Y_MEASUREMENT_VECTOR = 1U;
 
-    /** Index of Velocity in the measurement vector z. */
+    /** Index of Velocity in mm/s in the measurement vector z. */
     static const uint8_t IDX_VELOCITY_MEASUREMENT_VECTOR = 2U;
 
-    /** Index of Orientation in the measurement vector z. */
+    /** Index of Orientation in mrad in the measurement vector z. */
     static const uint8_t IDX_ORIENTATION_MEASUREMENT_VECTOR = 3U;
 
-    /** Index of Acceleration in x-direction in the control input vector u. */
+    /** Index of Acceleration in mm/s^2 in x-direction in the control input vector u. */
     static const uint8_t IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR = 0U;
 
-    /** Index of Turn Rate in the control input vector u. */
+    /** Index of Turn Rate in mrad/s in the control input vector u. */
     static const uint8_t IDX_TURNRATE_CONTROL_INPUT_VECTOR = 1U;
 
     /** Initial covariance matrix (notation in literature: P). */
@@ -161,7 +162,8 @@ private:
 
     /**
      * Writes data from a KalmanParameter Struct into the Measurement Vector as a member variable m_measurementVector
-     * with structure: [positionOdometryX, positionOdometryY, orientationOdometry]^T
+     * with structure:
+     * [positionOdometryX in mm, positionOdometryY in mm, velocityOdometry in mm/s, orientationOdometry in mrad]^T
      *
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
      */
@@ -169,7 +171,7 @@ private:
 
     /**
      * Writes data from a KalmanParameter Struct into the Control Input Vector as a member variable m_controlInputVector
-     * with structure: [accelerationX, accelerationY, turnRate]^T
+     * with structure: [accelerationX in mm/s^2, turnRate in mrad/s]^T
      *
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
      */

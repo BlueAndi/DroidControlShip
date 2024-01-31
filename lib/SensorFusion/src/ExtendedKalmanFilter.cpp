@@ -102,10 +102,10 @@ void ExtendedKalmanFilter::init(KalmanParameter& initialParameter)
 void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
 {
     /* Extract individual values into variables in favor of readability. */
-    float positionX   = m_stateVector(IDX_POSITION_X_STATE_VECTOR);
-    float positionY   = m_stateVector(IDX_POSITION_Y_STATE_VECTOR);
-    float velocity    = m_stateVector(IDX_VELOCITY_STATE_VECTOR);
-    float orientation = m_stateVector(IDX_ORIENTATION_STATE_VECTOR);
+    float positionX   = m_stateVector(IDX_POSITION_X_STATE_VECTOR);  /* In mm */
+    float positionY   = m_stateVector(IDX_POSITION_Y_STATE_VECTOR);  /* In mm */
+    float velocity    = m_stateVector(IDX_VELOCITY_STATE_VECTOR);    /* In mm/s */
+    float orientation = m_stateVector(IDX_ORIENTATION_STATE_VECTOR); /* In mrad */
 
     float cosOrienation = cosf(orientation / 1000.0F);
     float sinOrienation = sinf(orientation / 1000.0F);
@@ -165,9 +165,9 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& ka
 
     /* Fill the PositionData struct  */
     PositionData currentPosition;
-    currentPosition.positionX = m_stateVector(IDX_POSITION_X_STATE_VECTOR);
-    currentPosition.positionY = m_stateVector(IDX_POSITION_Y_STATE_VECTOR);
-    currentPosition.angle     = m_stateVector(IDX_ORIENTATION_STATE_VECTOR);
+    currentPosition.positionX = m_stateVector(IDX_POSITION_X_STATE_VECTOR);  /* In mm */
+    currentPosition.positionY = m_stateVector(IDX_POSITION_Y_STATE_VECTOR);  /* In mm */
+    currentPosition.angle     = m_stateVector(IDX_ORIENTATION_STATE_VECTOR); /* In mrad */
     return currentPosition;
 }
 /******************************************************************************
@@ -179,16 +179,16 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& ka
  *****************************************************************************/
 void ExtendedKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParameter)
 {
-    m_measurementVector[IDX_POSITION_X_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryX;
-    m_measurementVector[IDX_POSITION_Y_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryY;
-    m_measurementVector[IDX_VELOCITY_MEASUREMENT_VECTOR]    = kalmanParameter.velocityOdometry;
-    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = kalmanParameter.angleOdometry;
+    m_measurementVector[IDX_POSITION_X_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryX; /* In mm */
+    m_measurementVector[IDX_POSITION_Y_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryY; /* In mm */
+    m_measurementVector[IDX_VELOCITY_MEASUREMENT_VECTOR]    = kalmanParameter.velocityOdometry;  /* In mm/s */
+    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = kalmanParameter.angleOdometry;     /* In mrad */
 }
 
 void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)
 {
-    m_controlInputVector[IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR] = kalmanParameter.accelerationX;
-    m_controlInputVector[IDX_TURNRATE_CONTROL_INPUT_VECTOR]       = kalmanParameter.turnRate;
+    m_controlInputVector[IDX_ACCELERATION_X_CONTROL_INPUT_VECTOR] = kalmanParameter.accelerationX; /* In mm/s^2 */
+    m_controlInputVector[IDX_TURNRATE_CONTROL_INPUT_VECTOR]       = kalmanParameter.turnRate;      /* In mrad/s */
 }
 
 float ExtendedKalmanFilter::wrapAngle(float inputAngle)
