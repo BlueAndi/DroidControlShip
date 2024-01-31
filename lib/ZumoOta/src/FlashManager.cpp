@@ -35,10 +35,7 @@
 #include "FlashManager.h"
 #include <LittleFS.h>
 #include <Logging.h>
-#include <string.h>
 #include <Board.h>
-#include <GPIO.h>
-#include <typeinfo>
 
 /******************************************************************************
  * Compiler Switches
@@ -47,10 +44,8 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
-/*Delay before processing the response.*/
-const uint8_t AWAIT_RESPONSE_DELAY_MS = 50;
+/*Maximum Buffer Size.*/
 const uint8_t MAX_BUFFER_SIZE = 128;
-const uint16_t USB_TIMEOUT_MS = 2000;
 
 /******************************************************************************
  * Types and classes
@@ -77,87 +72,63 @@ FlashManager::~FlashManager()
 {
 }
 
-size_t FlashManager::readingStream(uint8_t* expectedResponse)
+size_t FlashManager::readingStream(uint8_t* expectedResponse, size_t mybytes)
 {
-
+    Stream& deviceStream   = Board::getInstance().getDevice().getStream();
+    int     availableBytes = deviceStream.available();
+    /*Check if there are bytes available in the input stream.*/
+    if ( availableBytes > 0)
     {
-        Stream& deviceStream   = Board::getInstance().getDevice().getStream();
-        int     availableBytes = deviceStream.available();
         size_t totalReadBytes = 0;
-        uint8_t pReadBuffer[availableBytes];
-        uint8_t* buffer;
-
-
-        /*Check if there are bytes available in the input stream.*/
-        if ( availableBytes > 0)
+        LOG_INFO("Available size: %d ", availableBytes);
+        do
         {
-            LOG_INFO("Available size: "+ availableBytes);
-            buffer = &pReadBuffer[totalReadBytes];
-            do
-            {
-                m_bytesRead = deviceStream.readBytes(buffer, MAX_BUFFER_SIZE);
-                totalReadBytes += m_bytesRead;
-            } while (m_bytesRead != 0);
-            
-            
-            LOG_INFO("Hexadecimal Data:");
-            for (size_t idx = 0; idx < totalReadBytes; idx++)
-            {
-                Serial.print("0x");
-                if (buffer[idx] < 0x10) Serial.print("0"); 
-                Serial.print(buffer[idx], HEX);
-                Serial.print(" ");
-                expectedResponse[idx]= buffer[idx];
-            }
-            Serial.println(); 
-            
-            LOG_INFO("Binary Data:");
-            for (size_t idx = 0; idx < totalReadBytes; idx++)
-            {
-                for (int bit = 7; bit >= 0; bit--)
-                {
-                    Serial.print((buffer[idx] >> bit) & 1);
-                    
-                }
-                Serial.print(" ");
-                expectedResponse[idx]= buffer[idx];
-            }
-            Serial.println(); 
-            
-            return totalReadBytes;
-        }
-        else
+            m_bytesRead = deviceStream.readBytes(expectedResponse, mybytes - m_bytesRead);
+            totalReadBytes += m_bytesRead;
+        } while (m_bytesRead != 0);
+
+        for (size_t idx = 0; idx < totalReadBytes; idx++)
         {
-            /*Handle the case where there are no bytes available in the input stream.*/
-            LOG_INFO("Failure! No bytes available in the input stream.");
-             /*No valid response received.*/
-            return -1;
+            /*Handle the Hexadecimal.*/
+            Serial.print(expectedResponse[idx], HEX);
         }
+        Serial.println();
+        LOG_INFO("totalReadBytes ist %d", totalReadBytes);
        
-       
+        return totalReadBytes;
     }
-
-
-
-
-
+    else
+    {
+        /*Handle the case where there are no bytes available in the input stream.*/
+        LOG_ERROR("Failure! No bytes available in the input stream.");
+        return 0;
+    }
 }
 
-bool FlashManager ::sendCommand(const uint8_t command[], size_t commandsize)
+
+bool FlashManager ::sendCommand(const uint8_t* command, size_t commandsize)
 {
     {
         Stream& deviceStream   = Board::getInstance().getDevice().getStream();
-        
     
-        unsigned long startTime = 0L;
+       if(nullptr == command)
+       {
+          LOG_INFO("command is a nullptr");
+          return false;
+       }
+       else
+       {
        
         /* Send the OpCode and command data to Zumo robot. */
         size_t bytesWritten= deviceStream.write(command, commandsize);
+      
          LOG_INFO("byteswritten ist %d", bytesWritten);
     
         if(bytesWritten == commandsize)
         {
+            LOG_INFO("Send Data packet to Zumo robot");
             return true;
+           
         }
         else
         {
@@ -165,47 +136,10 @@ bool FlashManager ::sendCommand(const uint8_t command[], size_t commandsize)
            
             return false;
         }
+       }
     }
 }
 
-bool FlashManager::Check(const uint8_t command[], size_t commandSize, const uint8_t expectedResponse[], size_t expectedResponseSize)
-{
-    /*Send the Command.*/
-    if (true == sendCommand(command, commandSize))
-    {
-        /*Read the Response.*/
-        uint8_t readBuffer[expectedResponseSize];
-        size_t readBytes = 0;
-        /*Set the actually read bytes.*/
-        readBytes = readingStream(readBuffer);
-    
-        if (0 < readBytes)
-        {
-            /*Check if the received response matches the expected response.*/ 
-            if (readBytes == expectedResponseSize && memcmp(&readBuffer, &expectedResponse, expectedResponseSize) == 0)
-            {
-                LOG_INFO("Received expected response.");
-                return true;
-            }
-            else
-            {
-                LOG_ERROR("Received response does not match the expected response.");
-            }
-        }
-        else
-        {
-            LOG_ERROR("Error reading response.");
-
-        }
-        
-    }
-    else
-    {
-         LOG_ERROR("Error sending command.");
-
-    }
-    return false;
-}
 
 
 

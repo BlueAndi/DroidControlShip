@@ -18,6 +18,7 @@ BC -> FM: sendcommand()
 FM -> USBStream: write()
 USBStream --> FM: writtenbytes
 FM --> BC: true
+BC -> FM: set waitingforResponse
 BC --> App
 end alt
 

@@ -50,30 +50,18 @@ public:
     /**
      * @brief Reads a stream of data from the device's input stream.
      * @param expectedResponse Pointer to the buffer to store the expected response.
+     * @param mybytes The size of the expected Response.
      *@return The total number of bytes read from the stream.
      */
-    size_t readingStream(uint8_t* expectedResponse);
+    size_t readingStream(uint8_t* expectedResponse,size_t mybytes);
 
     /**
-     * @brief Send a command to the Zumo robot and prepare for receiving a response.
-     *
+     * @brief Send a command to the Zumo robot.
      * @param command Array containing the command to be sent.
      * @param commandSize Size of the command array.
      * @return True if the command was successfully sent, otherwise false.
      */
     bool sendCommand(const uint8_t command[], size_t commandSize);
-
-    /**
-     * @brief Checks the response against the expected response after sending a command.
-     *
-     * @param command The command to be sent.
-     * @param commandSize The size of the command.
-     * @param expectedResponse The expected response to compare against.
-     * @param expectedResponseSize The size of the expected response.
-     * @return True if the received response matches the expected response, false otherwise.
-     */
-    bool Check(const uint8_t command[], size_t commandSize, const uint8_t expectedResponse[], size_t expectedResponseSize);
-
 
 };
 

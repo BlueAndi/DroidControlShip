@@ -47,7 +47,6 @@
 #include "FileManager.h"
 #include "WebServerCustom.h"
 #include "BootloaderCom.h"
-
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -122,6 +121,7 @@ private:
      * Instance of the BootloaderCom class.
      */
     BootloaderCom m_bootloader;
+
 };
 
 #endif /* APP_H */

@@ -63,7 +63,6 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
 /** Serial interface baudrate. */
 static const uint32_t SERIAL_BAUDRATE = 115200U;
 
@@ -189,6 +188,9 @@ void App::setup()
         Board::getInstance().getGreenLed().enable(true);
         delay(100U);
         Board::getInstance().getGreenLed().enable(false);
+        Board::getInstance().getDevice().enterBootloader();
+        
+        
     }
 }
 
@@ -209,12 +211,25 @@ void App::loop()
 
         m_webServer.handleUploadRequest();
         m_isWebServerInitialized = true;
-        Board::getInstance().process();
-        m_bootloader.enterBootloader();
-        m_bootloader.process();  
     }
 
+    
+    while(false == Board::getInstance().getDevice().isInBootloaderMode())
+    {
+        if (false ==Board::getInstance().process())
+        {
+            LOG_FATAL("HAL process failed.");
+            halt();
+        }
+    }
+    LOG_INFO("In BOOTLOADER MODE!");
 
+    while(true == Board::getInstance().getDevice().isInBootloaderMode())
+    {
+        Board::getInstance().process();
+        m_bootloader.process();
+    }
+    LOG_INFO("Not in Bootloader Mode!");
 }
 
 /******************************************************************************

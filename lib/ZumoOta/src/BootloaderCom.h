@@ -44,6 +44,7 @@
  * Includes
  ******************************************************************************/
 #include "FlashManager.h"
+#include <cstdint>
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -53,6 +54,15 @@
  *****************************************************************************/
 
 /** The class manages the Bootloader Protocoll. */
+struct CommandInfo{
+    const uint8_t* command;
+    size_t commandsize;
+};
+
+struct ResponseInfo{
+    const uint8_t* expectedResponse;
+    size_t responseSize;
+};
 class BootloaderCom
 {
 public:
@@ -78,18 +88,21 @@ public:
 
    /**
     * @brief Process the flash manager state machine.
+    *return bool True if the process was successful, otherwise false.
     */
-    void process();
+    bool process();
 
     /**
      *@brief Compare the received response against the expected response after sending a command.
      *@param command The command to be sent.
-     *@param commandSize The size of the command.
      *@param expectedResponse The expected response to compare against.
-     *@param expectedResponseSize The size of the expected response.
+     *@param readbytes the number of bytes read.
+     *@param expectedSize The expected size of the response.
      *@return True if the received response matches the expected response, false otherwise.
      */
-     bool compareExpectedAndReceivedResponse(const uint8_t command[], size_t commandSize, const uint8_t expectedResponse[], size_t expectedResponseSize);
+     bool compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize);
+
+    
 
 private:
     /**
@@ -98,7 +111,6 @@ private:
     enum State
     {
         Idle,
-        Pending,
         ReadingResponse,
         Complete
     };
@@ -120,6 +132,15 @@ private:
      */
      bool m_waitingForResponse;
 
+    /**
+     *@brief Array to save the commands.
+     */
+     CommandInfo m_commands[6];
+
+    /**
+     *@brief Array to save expected Responses.
+     */
+     ResponseInfo m_responses[6]; 
 };
 
 #endif /* BOOTLOADERCOM_H */

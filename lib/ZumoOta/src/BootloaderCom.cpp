@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  FlashManager realization
+ * @brief  BootloaderCom  realization
  *
  */
 
@@ -35,8 +35,6 @@
 #include "BootloaderCom.h"
 #include <Logging.h>
 #include <Board.h>
-#include <GPIO.h>
-
 
 /******************************************************************************
  * Compiler Switches
@@ -57,10 +55,6 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-const uint16_t WAIT_TIME_MS = 500U;
-
-/** Specifies the number of bytes stored in one Zumo bootloader/flash memory page.*/
-static const uint16_t PAGE_SIZE_BYTES = 128U;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -69,6 +63,21 @@ BootloaderCom::BootloaderCom():
 m_state(Idle),
 m_waitingForResponse(false)
 {
+    /*Initialize commands and responses.*/
+    m_commands[0] = {Zumo32U4Specification::READ_SW_ID, 1U};
+    m_commands[1] = {Zumo32U4Specification::READ_SW_VERSION, 1U};
+    m_commands[2] = {Zumo32U4Specification::READ_HW_VERSION, 1U};
+    m_commands[3] = {Zumo32U4Specification::READ_PROGRAMMER_TYPE, 1U};
+    m_commands[4] = {Zumo32U4Specification::CHECK_AUTO_MEM_ADDR_INC_SUPPORT, 1U};
+    m_commands[5] = {Zumo32U4Specification::CHECK_BLOCK_FLASH_SUPPORT, 1U};
+
+    /*Initialize responses.*/
+    m_responses[0] = {Zumo32U4Specification::EXPECTED_SOFTWARE_ID, 7U};
+    m_responses[1] = {Zumo32U4Specification::EXPECTED_SW_VERSION, 2U};
+    m_responses[2] = {Zumo32U4Specification::EXPECTED_HW_VERSION, 1U};
+    m_responses[3] = {Zumo32U4Specification::EXPECTED_PROGRAMMER_TYPE, 1U};
+    m_responses[4] = {Zumo32U4Specification::EXPECTED_SUPPORTS_AUTO_MEM_ADDR_INC, 1U};
+    m_responses[5] = {Zumo32U4Specification::EXPECTED_BLOCK_BUFFER_SIZE, 1U};
 
 }
 
@@ -84,73 +93,168 @@ void BootloaderCom :: enterBootloader()
 
 void BootloaderCom::exitBootloader()
 {
-    GpioPins::resetDevicePin.write(HIGH);
-    delay(WAIT_TIME_MS);
-    GpioPins::resetDevicePin.write(LOW);
     LOG_INFO(" bootloader mode is exited");
 
 }
 
-void BootloaderCom::process()
+
+bool BootloaderCom::process()
 {
+    static uint8_t commandIndex = 0;
+    const ResponseInfo &currentResponse = m_responses[commandIndex]; 
+    const CommandInfo &currentCommand = m_commands[commandIndex]; 
+     size_t newBytes = 0; 
+    uint8_t receiveBuffer[currentResponse.responseSize];
+
     switch(m_state)
     {
-        
         case Idle:
-        /*Handle Idle state*/
-        m_waitingForResponse = false;
-        myFlashManager.sendCommand(Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID));
-        break;
-     
-        case Pending:
-        /*Handle Pending state*/
-        m_state = ReadingResponse;
-        m_waitingForResponse = true;
-        break;
-
+            /*Handle Idle state*/
+            m_waitingForResponse = false;
+            if(commandIndex < 6)
+            {
+                if(true == myFlashManager.sendCommand(currentCommand.command,currentCommand.commandsize))
+                {
+                    m_waitingForResponse = true;
+                    m_state = ReadingResponse;   
+                }
+                else
+                {
+                    LOG_ERROR("Failed to send command.");
+                    m_state = Idle;
+                }
+                break;
+            }
+    
+            else
+            {
+                break;
+            }
         case ReadingResponse:
-        /*Handle Complete state*/
-        uint8_t expectedSW[sizeof(&Zumo32U4Specification::EXPECTED_SOFTWARE_ID)];
-        myFlashManager.readingStream(expectedSW);
-        m_state = Complete;
-        m_waitingForResponse = false;
-
-        if (compareExpectedAndReceivedResponse(Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID),Zumo32U4Specification::EXPECTED_SOFTWARE_ID, sizeof(Zumo32U4Specification::EXPECTED_SOFTWARE_ID)))
+            /*Handle Complete state*/
+            newBytes = myFlashManager.readingStream(receiveBuffer, currentResponse.responseSize);
+            if(currentResponse.responseSize == newBytes)
             {
-                LOG_INFO("Received expected response.");
+                if(0 < compareExpectedAndReceivedResponse(currentCommand.command,receiveBuffer, newBytes, currentResponse.responseSize))
+                {
+                    m_state = Complete;
+                    m_waitingForResponse = false;
+                    break;
+                }
+                else
+                {
+                    LOG_ERROR("Compare is false");
+                    m_state = Complete;
+                    m_waitingForResponse = false;   
+                    break;
+                }
             }
-        else
-            {
-                LOG_ERROR("Received response does not match the expected response.");
-            }
-        break;
+           break;
 
         case Complete:
-        m_state = Idle;
-        break;
+            commandIndex++;
+            m_state = Idle;
+            break;
 
         default:
             break;
  }
+ return true;
 }
 
-bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], size_t commandSize, const uint8_t expectedResponse[], size_t expectedResponseSize)
+bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize)
 {
-    
-    myFlashManager.Check( command,  commandSize,  expectedResponse,  expectedResponseSize);
+    if(nullptr == receivedResponse)
+    {
+        LOG_ERROR("Received Response is a nullptr");
+        return false;
+    }
+    else if (command == Zumo32U4Specification::READ_SW_ID )
+    {
+        if( 0 == memcmp(receivedResponse , Zumo32U4Specification::EXPECTED_SOFTWARE_ID,expectedSize))
+        {
+            LOG_INFO("Received software ID is valid!");
+            return true; 
+        }
+        else
+        {
+            LOG_ERROR("Received software ID is not valid!");
+            return false;
+
+        }
+    } 
+
+    else if (command == Zumo32U4Specification::READ_SW_VERSION)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::EXPECTED_SW_VERSION, expectedSize))
+        {
+            LOG_INFO("Received READ_SW_VERSION is  valid!");
+            return true;        
+        }
+        else
+        {
+            LOG_ERROR("Received software Version is not valid!");
+            return false;
+        }
+
+    }
+    else if (command == Zumo32U4Specification::READ_HW_VERSION)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::EXPECTED_HW_VERSION, expectedSize))
+        {
+            LOG_INFO("Received READ_HW_VERSION is valid!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("Received READ_HW_VERSION is not valid!");
+            return false;
+        }
+    }
+    else if (command == Zumo32U4Specification::READ_PROGRAMMER_TYPE)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::EXPECTED_PROGRAMMER_TYPE, expectedSize))
+        {
+            LOG_INFO("Received Programmer Type is valid!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("Received Programmer Type is not valid!");
+            return false;
+        }
+    }
+    else if (command == Zumo32U4Specification::CHECK_AUTO_MEM_ADDR_INC_SUPPORT)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::EXPECTED_SUPPORTS_AUTO_MEM_ADDR_INC, expectedSize))
+        {
+            LOG_INFO("Received  MEM_ADDR_INC is valid!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("Received  MEM_ADDR_INC is not valid!");
+            return false;
+        }
+    }
+
+    else if (command == Zumo32U4Specification::CHECK_BLOCK_FLASH_SUPPORT)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::EXPECTED_BLOCK_BUFFER_SIZE,expectedSize))
+        {
+            LOG_INFO("Received BLOCK_FLASH_SUPPORT is valid!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("Received BLOCK_FLASH_SUPPORT doesn't match!");
+            return false;
+        }
+
+    }
     return true;
 }
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+
 
 
 

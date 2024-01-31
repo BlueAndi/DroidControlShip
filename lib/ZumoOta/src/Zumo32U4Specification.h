@@ -128,7 +128,7 @@ namespace Zumo32U4Specification
     static const uint8_t RET_OK [] = {0x0D};
 
     /** The expected bootloader ID string */
-    static const uint8_t EXPECTED_SOFTWARE_ID[] = {'C', 'A', 'T', 'E', 'R', 'I', 'N', '\0'};
+    static const uint8_t EXPECTED_SOFTWARE_ID[] = {'C', 'A', 'T', 'E', 'R', 'I', 'N'};
 
     /** The expected bootloader version */
     
