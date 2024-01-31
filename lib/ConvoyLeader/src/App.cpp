@@ -40,11 +40,10 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <Util.h>
-#include <ProcessingChainFactory.h>
-#include "LongitudinalController.h"
-#include "LongitudinalSafetyPolicy.h"
-#include "LateralController.h"
-#include "LateralSafetyPolicy.h"
+#include "StartupState.h"
+#include "IdleState.h"
+#include "DrivingState.h"
+#include "ErrorState.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -66,7 +65,9 @@
  * Prototypes
  *****************************************************************************/
 
+static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 static void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_statusChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -84,11 +85,11 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
 
+/* MQTT topic name for release messages. */
+const char* App::TOPIC_NAME_RELEASE = "release";
+
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
-
-/** Platoon leader vehicle ID. */
-static const uint8_t PLATOON_LEADER_ID = 0U;
 
 /******************************************************************************
  * Public Methods
@@ -153,88 +154,39 @@ void App::setup()
         {
             LOG_FATAL("Network configuration could not be set.");
         }
+        else if (false == setupMqttClient())
+        {
+            LOG_FATAL("Failed to setup MQTT client.");
+        }
+        else if (V2VClient::PLATOON_LEADER_ID != settings.getPlatoonVehicleId())
+        {
+            /* Correct config.json file loaded? */
+            LOG_FATAL("Platoon Vehicle ID must be 0 for the leader.");
+        }
+        else if (false == m_v2vClient.init(settings.getPlatoonPlatoonId(), settings.getPlatoonVehicleId()))
+        {
+            LOG_FATAL("Failed to initialize V2V client.");
+        }
+        else if (false == setupSerialMuxProt())
+        {
+            LOG_FATAL("Failed to setup SerialMuxProt.");
+        }
         else
         {
-            /* Setup MQTT Server, Birth and Will messages. */
-            StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
-            char                                           birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
-            String                                         birthMessage;
+            /* Initialize timers. */
+            m_sendWaypointTimer.start(SEND_WAYPOINT_TIMER_INTERVAL);
+            m_commandTimer.start(SEND_COMMANDS_TIMER_INTERVAL);
+            m_motorSpeedTimer.start(SEND_MOTOR_SPEED_TIMER_INTERVAL);
+            m_statusTimer.start(SEND_STATUS_TIMER_INTERVAL);
 
-            birthDoc["name"] = settings.getRobotName().c_str();
-            (void)serializeJson(birthDoc, birthMsgArray);
-            birthMessage = birthMsgArray;
+            m_latestVehicleData.xPos        = settings.getInitialXPosition();
+            m_latestVehicleData.yPos        = settings.getInitialYPosition();
+            m_latestVehicleData.orientation = settings.getInitialHeading();
 
-            if (false == m_mqttClient.init())
-            {
-                LOG_FATAL("Failed to initialize MQTT client.");
-            }
-            else
-            {
-                MqttSettings mqttSettings = {settings.getRobotName(),
-                                             settings.getMqttBrokerAddress(),
-                                             settings.getMqttPort(),
-                                             TOPIC_NAME_BIRTH,
-                                             birthMessage,
-                                             TOPIC_NAME_WILL,
-                                             birthMessage,
-                                             true};
+            /* Start with startup state. */
+            m_systemStateMachine.setState(&StartupState::getInstance());
 
-                if (false == m_mqttClient.setConfig(mqttSettings))
-                {
-                    LOG_FATAL("MQTT configuration could not be set.");
-                }
-                else if (PLATOON_LEADER_ID != settings.getPlatoonVehicleId())
-                {
-                    /* Correct config.json file loaded? */
-                    LOG_FATAL("Platoon Vehicle ID must be 0 for the leader.");
-                }
-                else if (false == m_v2vClient.init(settings.getPlatoonPlatoonId(), settings.getPlatoonVehicleId()))
-                {
-                    LOG_FATAL("Failed to initialize V2V client.");
-                }
-                else
-                {
-                    /* Setup SerialMuxProt Channels */
-                    m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME,
-                                                   App_currentVehicleChannelCallback);
-                    m_serialMuxProtChannelIdMotorSpeedSetpoints =
-                        m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
-
-                    if (0U == m_serialMuxProtChannelIdMotorSpeedSetpoints)
-                    {
-                        LOG_FATAL("Could not create SerialMuxProt Channel: %s.", SPEED_SETPOINT_CHANNEL_NAME);
-                    }
-                    else
-                    {
-
-                        ProcessingChainFactory& processingChainFactory = ProcessingChainFactory::getInstance();
-
-                        processingChainFactory.registerLongitudinalControllerCreateFunc(LongitudinalController::create);
-                        processingChainFactory.registerLongitudinalSafetyPolicyCreateFunc(
-                            LongitudinalSafetyPolicy::create);
-                        processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
-                        processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
-
-                        PlatoonController::InputWaypointCallback lambdaInputWaypointCallback =
-                            [this](Waypoint& waypoint) { return this->inputWaypointCallback(waypoint); };
-                        PlatoonController::OutputWaypointCallback lambdaOutputWaypointCallback =
-                            [this](const Waypoint& waypoint) { return this->outputWaypointCallback(waypoint); };
-                        PlatoonController::MotorSetpointCallback lambdaMotorSetpointCallback =
-                            [this](const int16_t left, const int16_t right)
-                        { return this->motorSetpointCallback(left, right); };
-
-                        if (false == m_platoonController.init(lambdaInputWaypointCallback, lambdaOutputWaypointCallback,
-                                                              lambdaMotorSetpointCallback))
-                        {
-                            LOG_FATAL("Could not initialize Platoon Controller.");
-                        }
-                        else
-                        {
-                            isSuccessful = true;
-                        }
-                    }
-                }
-            }
+            isSuccessful = true;
         }
     }
 
@@ -270,41 +222,42 @@ void App::loop()
     /* Process V2V Communication */
     m_v2vClient.process();
 
-    /* Process Platoon Controller */
-    m_platoonController.process(m_v2vClient.getWaypointQueueSize());
+    /* Process System State Machine */
+    m_systemStateMachine.process();
+
+    /* Process periodic tasks. */
+    processPeriodicTasks();
 }
 
-void App::currentVehicleChannelCallback(const VehicleData& vehicleData)
+void App::setLatestVehicleData(const Waypoint& waypoint)
 {
-    Waypoint vehicleDataAsWaypoint;
-
-    vehicleDataAsWaypoint.xPos        = vehicleData.xPos;
-    vehicleDataAsWaypoint.yPos        = vehicleData.yPos;
-    vehicleDataAsWaypoint.orientation = vehicleData.orientation;
-    vehicleDataAsWaypoint.left        = vehicleData.left;
-    vehicleDataAsWaypoint.right       = vehicleData.right;
-    vehicleDataAsWaypoint.center      = vehicleData.center;
-
-    m_platoonController.setLatestVehicleData(vehicleDataAsWaypoint);
+    m_latestVehicleData = waypoint;
 }
 
-bool App::inputWaypointCallback(Waypoint& waypoint)
+void App::setErrorState()
 {
-    return m_v2vClient.getNextWaypoint(waypoint);
+    m_systemStateMachine.setState(&ErrorState::getInstance());
 }
 
-bool App::outputWaypointCallback(const Waypoint& waypoint)
+void App::systemStatusCallback(SMPChannelPayload::Status status)
 {
-    return m_v2vClient.sendWaypoint(waypoint);
-}
+    switch (status)
+    {
+    case SMPChannelPayload::STATUS_FLAG_OK:
+        /* Nothing to do. All good. */
+        break;
 
-bool App::motorSetpointCallback(const int16_t left, const int16_t right)
-{
-    SpeedData payload;
-    payload.left  = left;
-    payload.right = right;
+    case SMPChannelPayload::STATUS_FLAG_ERROR:
+        LOG_DEBUG("RU Status ERROR.");
+        setErrorState();
+        m_statusTimeoutTimer.stop();
+        break;
 
-    return m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeedSetpoints, &payload, sizeof(payload));
+    default:
+        break;
+    }
+
+    m_statusTimeoutTimer.start(STATUS_TIMEOUT_TIMER_INTERVAL);
 }
 
 /******************************************************************************
@@ -326,6 +279,176 @@ void App::fatalErrorHandler()
     }
 }
 
+bool App::setupMqttClient()
+{
+    /* Setup MQTT Server, Birth and Will messages. */
+    bool                                           isSuccessful = false;
+    SettingsHandler&                               settings     = SettingsHandler::getInstance();
+    StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
+    String                                         birthMessage;
+
+    birthDoc["name"] = settings.getRobotName();
+
+    if (0U == serializeJson(birthDoc, birthMessage))
+    {
+        /* Non-fatal error. Birth message will be empty. */
+        LOG_ERROR("Failed to serialize birth message.");
+        birthMessage.clear();
+    }
+
+    MqttSettings mqttSettings = {settings.getRobotName(),
+                                 settings.getMqttBrokerAddress(),
+                                 settings.getMqttPort(),
+                                 TOPIC_NAME_BIRTH,
+                                 birthMessage,
+                                 TOPIC_NAME_WILL,
+                                 birthMessage,
+                                 true};
+
+    if (false == m_mqttClient.init())
+    {
+        LOG_FATAL("Failed to initialize MQTT client.");
+    }
+    else if (false == m_mqttClient.setConfig(mqttSettings))
+    {
+        LOG_FATAL("MQTT configuration could not be set.");
+    }
+    else
+    {
+        /* Create Callbacks. */
+        IMqttClient::TopicCallback releaseTopicCallback = [this](const String& payload)
+        { IdleState::getInstance().requestRelease(); };
+
+        IMqttClient::TopicCallback lastFollowerFeedbackCallback = [this](const String& payload)
+        {
+            Waypoint*   waypoint = Waypoint::deserialize(payload);
+            VehicleData feedback{waypoint->xPos, waypoint->yPos,  waypoint->orientation,
+                                 waypoint->left, waypoint->right, waypoint->center};
+
+            DrivingState::getInstance().setLastFollowerFeedback(feedback);
+        };
+
+        /* Register MQTT client callbacks. */
+        if (false == m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, releaseTopicCallback))
+        {
+            LOG_ERROR("Failed to subscribe to release topic.");
+        }
+        else if (false == m_mqttClient.subscribe("platoons/0/vehicles/0/feedback", false, lastFollowerFeedbackCallback))
+        {
+            LOG_ERROR("Failed to subscribe to last follower feedback topic.");
+        }
+        else
+        {
+            isSuccessful = true;
+        }
+    }
+
+    return isSuccessful;
+}
+
+bool App::setupSerialMuxProt()
+{
+    bool isSuccessful = false;
+
+    /* Channel subscription. */
+    m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
+    m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME, App_currentVehicleChannelCallback);
+    m_smpServer.subscribeToChannel(STATUS_CHANNEL_NAME, App_statusChannelCallback);
+
+    /* Channel creation. */
+    m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
+    m_serialMuxProtChannelIdMotorSpeeds =
+        m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+    m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
+
+    if ((0U != m_serialMuxProtChannelIdRemoteCtrl) && (0U != m_serialMuxProtChannelIdMotorSpeeds) &&
+        (0U != m_serialMuxProtChannelIdStatus))
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
+void App::processPeriodicTasks()
+{
+    if ((true == m_commandTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        Command payload;
+        bool    isPending = StartupState::getInstance().getPendingCommand(payload);
+
+        if (true == isPending)
+        {
+            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &payload, sizeof(payload)))
+            {
+                LOG_WARNING("Failed to send StartupState pending command to RU.");
+            }
+        }
+
+        m_commandTimer.restart();
+    }
+
+    if ((true == m_sendWaypointTimer.isTimeout()) && (true == m_mqttClient.isConnected()))
+    {
+        if (false == m_v2vClient.sendWaypoint(m_latestVehicleData))
+        {
+            LOG_WARNING("Waypoint could not be sent.");
+        }
+
+        m_sendWaypointTimer.restart();
+    }
+
+    if ((true == m_motorSpeedTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        int16_t   centerSpeed = 0;
+        SpeedData payload;
+
+        if (false == DrivingState::getInstance().getTopMotorSpeed(centerSpeed))
+        {
+            centerSpeed = 0;
+        }
+
+        payload.center = centerSpeed;
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
+        {
+            LOG_WARNING("Failed to send motor speeds to RU.");
+        }
+
+        m_motorSpeedTimer.restart();
+    }
+
+    if ((true == m_statusTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
+
+        if (true == ErrorState::getInstance().isActive())
+        {
+            payload.status = SMPChannelPayload::Status::STATUS_FLAG_ERROR;
+        }
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
+        {
+            LOG_WARNING("Failed to send current status to RU.");
+        }
+
+        m_statusTimer.restart();
+    }
+
+    if ((false == m_statusTimeoutTimer.isTimerRunning()) && (true == m_smpServer.isSynced()))
+    {
+        /* Start status timeout timer once SMP is synced the first time. */
+        m_statusTimeoutTimer.start(STATUS_TIMEOUT_TIMER_INTERVAL);
+    }
+    else if (true == m_statusTimeoutTimer.isTimeout())
+    {
+        /* Not receiving status from RU. Go to error state. */
+        LOG_DEBUG("RU Status timeout.");
+        setErrorState();
+        m_statusTimeoutTimer.stop();
+    }
+}
+
 /******************************************************************************
  * External Functions
  *****************************************************************************/
@@ -333,6 +456,44 @@ void App::fatalErrorHandler()
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
+
+/**
+ * Receives remote control command responses over SerialMuxProt channel.
+ *
+ * @param[in] payload       Command id
+ * @param[in] payloadSize   Size of command id
+ * @param[in] userData      User data
+ */
+void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+{
+    if ((nullptr != payload) && (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize) && (nullptr != userData))
+    {
+        App*                   application = reinterpret_cast<App*>(userData);
+        const CommandResponse* cmdRsp      = reinterpret_cast<const CommandResponse*>(payload);
+        LOG_DEBUG("CMD_RSP: ID: 0x%02X , RSP: 0x%02X", cmdRsp->commandId, cmdRsp->responseId);
+
+        if (SMPChannelPayload::RSP_ID_ERROR == cmdRsp->responseId)
+        {
+            /* Go to error state. */
+            application->setErrorState();
+        }
+        else if (SMPChannelPayload::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
+        {
+            LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
+            DrivingState::getInstance().setMaxMotorSpeed(cmdRsp->maxMotorSpeed);
+            StartupState::getInstance().notifyCommandProcessed();
+        }
+        else if (SMPChannelPayload::CMD_ID_SET_INIT_POS == cmdRsp->commandId)
+        {
+            StartupState::getInstance().notifyCommandProcessed();
+        }
+    }
+    else
+    {
+        LOG_WARNING("CMD_RSP: Invalid payload size. Expected: %u Received: %u", COMMAND_RESPONSE_CHANNEL_DLC,
+                    payloadSize);
+    }
+}
 
 /**
  * Receives current position and heading of the robot over SerialMuxProt channel.
@@ -347,11 +508,32 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
         App*               application        = reinterpret_cast<App*>(userData);
-        application->currentVehicleChannelCallback(*currentVehicleData);
+        Waypoint dataAsWaypoint(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
+                                currentVehicleData->left, currentVehicleData->right, currentVehicleData->center);
+
+        application->setLatestVehicleData(dataAsWaypoint);
+        DrivingState::getInstance().setVehicleData(*currentVehicleData);
     }
     else
     {
-        LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u",
-                    CURRENT_VEHICLE_DATA_CHANNEL_DLC_CHANNEL_NAME, CURRENT_VEHICLE_DATA_CHANNEL_DLC, payloadSize);
+        LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u", CURRENT_VEHICLE_DATA_CHANNEL_NAME,
+                    CURRENT_VEHICLE_DATA_CHANNEL_DLC, payloadSize);
+    }
+}
+
+/**
+ * Receives current status of the RU over SerialMuxProt channel.
+ *
+ * @param[in] payload       Status of the RU.
+ * @param[in] payloadSize   Size of the Status Flag
+ * @param[in] userData      Instance of App class.
+ */
+void App_statusChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+{
+    if ((nullptr != payload) && (STATUS_CHANNEL_DLC == payloadSize) && (nullptr != userData))
+    {
+        const Status* currentStatus = reinterpret_cast<const Status*>(payload);
+        App*          application   = reinterpret_cast<App*>(userData);
+        application->systemStatusCallback(currentStatus->status);
     }
 }

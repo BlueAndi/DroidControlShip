@@ -1,0 +1,102 @@
+@startuml DcsClassDiagram
+
+Title DCS Class Diagram
+
+class "Application" as app {
+    + setup() : void
+    + loop() : void
+    + release() : void
+    - m_serialMuxProtServer : SMPServer
+    - m_systemStateMachine : StateMachine
+    - m_remoteControlHandler : RemoteControlHandler
+    - m_safetyMonitor : SafetyMonitor
+}
+
+note right of app 
+    Callbacks for SerialMuxProtServer and MqttClient are defined here.
+    Uses the setters of each class or state to forward the data.
+    Uses the getters of each class or state to get the data that shall be sent to the RU or the V2V controller.
+end note
+
+class "V2V Controller" as v2v {
+    - m_mqttClient : MqttClient
+    - m_rxWaypointQueue : Queue
+    + init(MqttConfig) : bool
+    + process() : bool
+    + sendWaypoint(const Waypoint&) : bool
+    + getWaypoint(Waypoint&) : bool
+}
+
+class StateMachine <<control>> {
+    + setState(state : IState*) : void
+    + getState() : IState*
+    + process() : void
+}
+
+class "RemoteCommandResponseHandler" as smpHandler {
+    + processResponse(const CommandResponse&) : void
+}
+
+note right of smpHandler
+    This class is responsible for handling
+    the response from the remote command
+    sent to RU.
+    - Notifies StartupState of successful commands.
+    - Sets max speed in DrivingState.
+end note
+
+class "SafetyMonitor" as safety {
+    + process(StateMachine& sm) : void
+    + getPendingHeartbeat(const Hearbeat& hb) : bool
+    + heartbeatCallback(const Hearbeat& hb) : void
+}
+
+interface IState {
+    + {abstract} entry() : void
+    + {abstract} process(sm : StateMachine&) : void
+    + {abstract} exit() : void
+}
+
+class StartupState <<Singleton>> 
+{
+   + getPendingCommand(Command& cmd) : bool
+   + notify(Event event) : void
+}
+
+class IdleState <<Singleton>>
+
+class DrivingState <<Singleton>> {
+    - m_longitudinalController : LongitudinalController
+    + setMaxMotorSpeed(int16_t maxMotorSpeed) : void
+    + calculateTopMotorSpeed(const Waypoint& currentVehicleData): int16_t
+    + setLastFollowerFeedback(const Waypoint& feedback) : void
+    + getLatestVehicleData(Waypoint& vehicleData) : bool
+}
+
+protocol "SerialMuxChannels" as smpch {
+    + typedef SerialMuxProtServer<MAX_CHANNELS> SMPServer
+    + struct Command
+    + struct CommandReponse
+    + struct SpeedData
+    + struct VehicleData
+}
+
+app *--> v2v
+app *--> StateMachine
+app *--> smpHandler
+app *--> safety
+app ..> DrivingState: <<use>>
+app ..> StartupState: <<use>>
+app ..> smpch: <<use>>
+
+StateMachine o--> "0..1" IState
+
+IState <|.. StartupState: <<realize>>
+IState <|.. IdleState: <<realize>>
+IState <|.. DrivingState: <<realize>>
+IState <|.. ErrorState: <<realize>>
+
+smpHandler ..> StartupState: <<use>>
+smpHandler ..> DrivingState: <<use>>
+
+@enduml

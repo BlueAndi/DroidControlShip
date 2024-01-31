@@ -1,0 +1,28 @@
+{
+  "robotName": "leader",
+  "wifi": {
+    "ssid": "TheForce",
+    "pswd": "hanshotfirst"
+  },
+  "mqtt": {
+    "host": "localhost",
+    "port": 1883
+  },
+  "ap": {
+    "ssid": "DCS_AP",
+    "pswd": "hanshotfirst"
+  },
+  "webServer": {
+    "user": "admin",
+    "pswd": "admin"
+  },
+  "platoon": {
+    "platoonId": "0",
+    "vehicleId": "0"
+  },
+  "initialPosition": {
+    "x": "-250",
+    "y": "-50",
+    "heading": "1588"
+  }
+}

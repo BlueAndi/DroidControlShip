@@ -89,9 +89,11 @@ bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback
                              const OutputWaypointCallback& outputWaypointCallback,
                              const MotorSetpointCallback&  motorSetpointCallback)
 {
-    bool isSuccessful = false;
+    bool             isSuccessful    = false;
+    SettingsHandler& settingsHandler = SettingsHandler::getInstance();
 
-    if ((nullptr != inputWaypointCallback) && (nullptr != outputWaypointCallback) && (nullptr != motorSetpointCallback))
+    if ((nullptr != inputWaypointCallback) && (nullptr != outputWaypointCallback) &&
+        (nullptr != motorSetpointCallback) && (nullptr == m_processingChain))
     {
         m_processingChain = ProcessingChainFactory::getInstance().create();
 
@@ -105,6 +107,12 @@ bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback
             m_inputWaypointCallback  = inputWaypointCallback;
             m_outputWaypointCallback = outputWaypointCallback;
             m_motorSetpointCallback  = motorSetpointCallback;
+
+            m_currentVehicleData.xPos        = settingsHandler.getInitialXPosition();
+            m_currentVehicleData.yPos        = settingsHandler.getInitialYPosition();
+            m_currentVehicleData.orientation = settingsHandler.getInitialHeading();
+
+            m_currentWaypoint = m_currentVehicleData;
 
             m_processingChainTimer.start(PROCESSING_CHAIN_PERIOD);
 
@@ -213,6 +221,8 @@ void PlatoonController::setLatestVehicleData(const Waypoint& vehicleData)
 {
     m_currentVehicleData = vehicleData;
     m_isPositionKnown    = true;
+
+    m_currentVehicleData.debugPrint();
 }
 
 /******************************************************************************
