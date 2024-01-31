@@ -1,8 +1,8 @@
 {
   "robotName": "zumo_0",
   "wifi": {
-    "ssid": "",
-    "pswd": ""
+    "ssid": "TheForce",
+    "pswd": "hanshotfirst"
   },
   "mqtt": {
     "host": "localhost",
@@ -13,8 +13,8 @@
     "pswd": "hanshotfirst"
   },
   "webServer": {
-    "user": "admin",
-    "pswd": "admin"
+    "user": "",
+    "pswd": ""
   },
   "platoon": {
     "platoonId": 0,
