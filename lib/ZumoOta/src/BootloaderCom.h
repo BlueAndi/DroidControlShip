@@ -52,17 +52,31 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
-
-/** The class manages the Bootloader Protocoll. */
+/** 
+ *@brief The structure defines command information for the BootloaderCom class.*/
+ */
 struct CommandInfo{
+    /*The command buffer.*/
     const uint8_t* command;
+
+    /*The size of the command buffer.*/
     size_t commandsize;
 };
 
+/*
+ *@brief The structure defines response information for the BootloderCom class.*/
+ */
 struct ResponseInfo{
+    /*The expected response buffer.*/
     const uint8_t* expectedResponse;
+
+    /*The size of the expected response buffer.*/
     size_t responseSize;
 };
+
+/**
+ *@brief BootloaderCom class manages the bootloader protocol.
+ */
 class BootloaderCom
 {
 public:
@@ -95,7 +109,7 @@ public:
     /**
      *@brief Compare the received response against the expected response after sending a command.
      *@param command The command to be sent.
-     *@param expectedResponse The expected response to compare against.
+     *@param receivedResponse The expected response to compare against.
      *@param readbytes the number of bytes read.
      *@param expectedSize The expected size of the response.
      *@return True if the received response matches the expected response, false otherwise.
@@ -133,12 +147,12 @@ private:
      bool m_waitingForResponse;
 
     /**
-     *@brief Array to save the commands.
+     *@brief Array to store the commands.
      */
      CommandInfo m_commands[6];
 
     /**
-     *@brief Array to save expected Responses.
+     *@brief Array to store expected Responses.
      */
      ResponseInfo m_responses[6]; 
 };
