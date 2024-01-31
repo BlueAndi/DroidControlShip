@@ -387,12 +387,8 @@ void App::trafficLightColorsCallback(const String& payload)
         /** Who is sending? */
         JsonVariant from = jsonPayload["FROM"];
 
-        LOG_DEBUG("MQTT UNSERIALIZED %s", from.as<const char*>());
-
         /** what is the color ID? */
         JsonVariant color = jsonPayload["COLOR"];
-
-        LOG_DEBUG("MQTT UNSERIALIZED %d", color.as<uint8_t>());
 
         if ((false == color.isNull()) && (false == from.isNull()))
         {
