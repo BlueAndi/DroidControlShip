@@ -53,24 +53,32 @@
  * Types and Classes
  *****************************************************************************/
 /** 
- *@brief The structure defines command information for the BootloaderCom class.*/
+ *@brief The structure defines command information for the BootloaderCom class.
  */
 struct CommandInfo{
-    /*The command buffer.*/
+    /**
+     *The command buffer.
+     */
     const uint8_t* command;
 
-    /*The size of the command buffer.*/
+    /**
+     *The size of the command buffer.
+     */
     size_t commandsize;
 };
 
-/*
- *@brief The structure defines response information for the BootloderCom class.*/
+/**
+ *@brief The structure defines response information for the BootloderCom class.
  */
 struct ResponseInfo{
-    /*The expected response buffer.*/
+    /**
+     *@brief The expected response buffer.
+     */
     const uint8_t* expectedResponse;
 
-    /*The size of the expected response buffer.*/
+    /**
+     *@brief The size of the expected response buffer.
+     */
     size_t responseSize;
 };
 
