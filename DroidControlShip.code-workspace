@@ -5,32 +5,6 @@
 		}
 	],
 	"settings": {
-		"editor.formatOnSave": false,
-		"files.associations": {
-			"atomic": "cpp",
-			"*.tcc": "cpp",
-			"chrono": "cpp",
-			"deque": "cpp",
-			"list": "cpp",
-			"string": "cpp",
-			"unordered_map": "cpp",
-			"unordered_set": "cpp",
-			"vector": "cpp",
-			"iterator": "cpp",
-			"memory_resource": "cpp",
-			"optional": "cpp",
-			"string_view": "cpp",
-			"fstream": "cpp",
-			"istream": "cpp",
-			"ostream": "cpp",
-			"sstream": "cpp",
-			"streambuf": "cpp",
-			"system_error": "cpp",
-			"thread": "cpp",
-			"functional": "cpp",
-			"tuple": "cpp",
-			"compare": "cpp",
-			"cstdint": "cpp"
-		}
+		"editor.formatOnSave": true
 	}
 }
