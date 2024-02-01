@@ -117,8 +117,11 @@ private:
     /** Max topic length */
     static const uint8_t MAX_TOPIC_LENGTH = 64U;
 
-    /** Maximum number of followers. */
-    static const uint8_t MAX_FOLLOWERS = 1U;
+    /** Number of followers. */
+    static const uint8_t NUMBER_OF_FOLLOWERS = 1U;
+
+    /** MQTT subtopic name for waypoint reception. */
+    static const char* TOPIC_NAME_WAYPOINT_RX;
 
     /** MQTTClient Instance. */
     MqttClient& m_mqttClient;
@@ -134,10 +137,10 @@ private:
     std::queue<Waypoint*> m_waypointQueue;
 
     /** Topic to receive target Waypoints. */
-    String m_inputTopic;
+    String m_waypointInputTopic;
 
     /** Topic to send target Waypoints. */
-    String m_outputTopic;
+    String m_waypointOutputTopic;
 
     /** Leader flag. */
     bool m_isLeader;
@@ -149,6 +152,16 @@ private:
      * @param[in] payload   Payload of the MQTT message.
      */
     void targetWaypointTopicCallback(const String& payload);
+
+    /**
+     * Setup waypoint input and output topics.
+     *
+     * @param[in] platoonId     ID of the platoon.
+     * @param[in] vehicleId     ID of the vehicle inside the platoon.
+     *
+     * @return If the topics were setup successfully, returns true. Otherwise, false.
+     */
+    bool setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId);
 
     /**
      * Default constructor.

@@ -55,6 +55,9 @@
  * Local Variables
  *****************************************************************************/
 
+/* MQTT subtopic name for waypoint reception. */
+const char* V2VClient::TOPIC_NAME_WAYPOINT_RX = "inputWaypoint";
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -62,8 +65,8 @@
 V2VClient::V2VClient(MqttClient& mqttClient) :
     m_mqttClient(mqttClient),
     m_waypointQueue(),
-    m_inputTopic(),
-    m_outputTopic(),
+    m_waypointInputTopic(),
+    m_waypointOutputTopic(),
     m_isLeader(false)
 {
 }
@@ -74,69 +77,34 @@ V2VClient::~V2VClient()
 
 bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
 {
-    bool        isSuccessful = false;
-    char        inputTopicBuffer[MAX_TOPIC_LENGTH];
-    char        outputTopicBuffer[MAX_TOPIC_LENGTH];
-    uint8_t     followerVehicleId = vehicleId + 1U; /* Output is published to next vehicle. */
-    const char* outputSubtopic    = "targetWaypoint";
+    bool isSuccessful = false;
 
     if (PLATOON_LEADER_ID == vehicleId)
     {
         /* Its the leader. */
         m_isLeader = true;
     }
-    else if (MAX_FOLLOWERS == vehicleId)
+    else if (NUMBER_OF_FOLLOWERS == vehicleId)
     {
-        /* Last follower. Sends data to the leader. */
-        followerVehicleId = 0U;
-        outputSubtopic    = "feedback";
+        /* Last follower. */
     }
     else
     {
         ; /* Its a normal follower. Nothing to do */
     }
 
-    if (MAX_FOLLOWERS < vehicleId)
+    if (NUMBER_OF_FOLLOWERS < vehicleId)
     {
         /* Invalid ID. */
-        LOG_ERROR("Invalid vehicle ID: %d. Maximum followers: %d.", vehicleId, MAX_FOLLOWERS);
+        LOG_ERROR("Invalid vehicle ID: %d. Maximum followers: %d.", vehicleId, NUMBER_OF_FOLLOWERS);
     }
-    else if (0 >= snprintf(inputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/targetWaypoint", platoonId,
-                           vehicleId))
+    else if (false == setupWaypointTopics(platoonId, vehicleId))
     {
-        LOG_ERROR("Failed to create input topic.");
-    }
-    else if (0 >= snprintf(outputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", platoonId,
-                           followerVehicleId, outputSubtopic))
-    {
-        LOG_ERROR("Failed to create output topic.");
+        LOG_ERROR("Failed to setup waypoint topics.");
     }
     else
     {
-        /* Set topics. */
-        m_inputTopic  = inputTopicBuffer;
-        m_outputTopic = outputTopicBuffer;
-
-        LOG_DEBUG("Input Topic: %s", m_inputTopic.c_str());
-        LOG_DEBUG("Output Topic: %s", m_outputTopic.c_str());
-
-        IMqttClient::TopicCallback lambdaTargetWaypointTopicCallback = [this](const String& payload)
-        { targetWaypointTopicCallback(payload); };
-
-        if ((true == m_inputTopic.isEmpty()) || (true == m_outputTopic.isEmpty()))
-        {
-            LOG_ERROR("Failed to create Platoon MQTT topics.");
-        }
-        /* Subscribe to Input Topic. */
-        else if (false == m_mqttClient.subscribe(m_inputTopic, false, lambdaTargetWaypointTopicCallback))
-        {
-            LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_inputTopic.c_str());
-        }
-        else
-        {
-
-            isSuccessful = true;
-        }
+        isSuccessful = true;
     }
 
     return isSuccessful;
@@ -157,9 +125,9 @@ bool V2VClient::sendWaypoint(const Waypoint& waypoint)
     {
         LOG_DEBUG("Failed to serialize waypoint.");
     }
-    else if (false == m_mqttClient.publish(m_outputTopic, false, payload))
+    else if (false == m_mqttClient.publish(m_waypointOutputTopic, false, payload))
     {
-        LOG_ERROR("Failed to publish MQTT message to %s.", m_outputTopic.c_str());
+        LOG_ERROR("Failed to publish MQTT message to %s.", m_waypointOutputTopic.c_str());
     }
     else
     {
@@ -216,6 +184,58 @@ void V2VClient::targetWaypointTopicCallback(const String& payload)
     {
         m_waypointQueue.push(waypoint);
     }
+}
+
+bool V2VClient::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
+{
+    bool    isSuccessful  = false;
+    uint8_t nextVehicleId = vehicleId + 1U; /* Output is published to next vehicle. */
+    char    inputTopicBuffer[MAX_TOPIC_LENGTH];
+    char    outputTopicBuffer[MAX_TOPIC_LENGTH];
+
+    /* Input Topic. */
+    if (0 >= snprintf(inputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", platoonId, vehicleId,
+                      TOPIC_NAME_WAYPOINT_RX))
+    {
+        LOG_ERROR("Failed to create input topic.");
+    }
+    /* Output Topic. */
+    else if (0 >= snprintf(outputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", platoonId, nextVehicleId,
+                           TOPIC_NAME_WAYPOINT_RX))
+    {
+        LOG_ERROR("Failed to create output topic.");
+    }
+    else
+    {
+        /* Set topics. */
+        m_waypointInputTopic  = inputTopicBuffer;
+        m_waypointOutputTopic = outputTopicBuffer;
+
+        if ((true == m_waypointInputTopic.isEmpty()) || (true == m_waypointOutputTopic.isEmpty()))
+        {
+            LOG_ERROR("Failed to create Platoon MQTT topics.");
+        }
+        else
+        {
+            /* Create lambda callback function for the waypoint input topic. */
+            IMqttClient::TopicCallback lambdaWaypointInputTopicCallback = [this](const String& payload)
+            { this->targetWaypointTopicCallback(payload); };
+
+            /* Subscribe to Input Topic. */
+            if (false == m_mqttClient.subscribe(m_waypointInputTopic, false, lambdaWaypointInputTopicCallback))
+            {
+                LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_waypointInputTopic.c_str());
+            }
+            else
+            {
+                LOG_DEBUG("Waypoint Input Topic: %s", m_waypointInputTopic.c_str());
+                LOG_DEBUG("Waypoint Output Topic: %s", m_waypointOutputTopic.c_str());
+                isSuccessful = true;
+            }
+        }
+    }
+
+    return isSuccessful;
 }
 
 /******************************************************************************
