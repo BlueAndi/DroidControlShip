@@ -38,6 +38,12 @@
 #include <Arduino.h>
 #include <Logging.h>
 #include <SettingsHandler.h>
+#include <Board.h>
+#include <SPIFFS.h>
+#include <ArduinoJson.h>
+#include <string.h>
+
+using namespace fs;
 
 /******************************************************************************
  * Compiler Switches
@@ -161,6 +167,23 @@ void WebServerCustom::init()
             }
         });
 
+
+    server.on("/uploadFirmware", HTTP_GET, [](AsyncWebServerRequest *request)
+    {
+        request->send(LittleFS, "/firmwareupdate.html","text/html");
+    });
+
+    server.on("/listFirmwareFiles", HTTP_GET,
+              [this](AsyncWebServerRequest* request)
+              {
+                  String fileList = listFiles(true);
+                  request->send(200, "text/html", fileList);
+              });
+
+
+
+
+
     server.begin();
 }
 
@@ -174,6 +197,25 @@ void WebServerCustom::handleUploadRequest()
             upload.handleFileUpload(request, filename, index, data, len, final);
         });
 }
+
+void WebServerCustom::handleUpdateRequest()
+{
+    server.on(
+        "/performFirmwareUpdate", HTTP_POST, [this](AsyncWebServerRequest* request) {},
+        [this](AsyncWebServerRequest* request, String filename, size_t index, uint8_t* data, size_t len, bool final)
+    
+        {
+            /* Process the firmware update.*/
+            request->send(200, "text/plain", "Firmware update successful!");
+        });
+}
+
+
+
+
+
+
+
 
 /******************************************************************************
  * External Functions

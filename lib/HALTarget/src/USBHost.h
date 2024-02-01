@@ -190,7 +190,7 @@ public:
      *
      * @return If the bootloader mode is active, returns true. Otherwise, false.
      */
-    bool isBootloaderModeActive() const;
+    bool isBootloaderModeActive();
 
 private:
     /** Size of the RX Queue */

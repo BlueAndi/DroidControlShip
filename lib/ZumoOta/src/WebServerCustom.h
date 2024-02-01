@@ -19,6 +19,7 @@
 
 #include <ESPAsyncWebServer.h>
 #include "Upload.h"
+#include "FlashManager.h"
 
 /******************************************************************************
  * Macros
@@ -38,6 +39,12 @@ private:
      * The web server instance.
      */
     AsyncWebServer server{80};
+
+    /**
+     * FlashManager instance.
+     */
+    FlashManager m_flashManager;
+
 
 public:
     /**
@@ -91,6 +98,13 @@ public:
      * @return A string containing the list of files in the specified format
      */
     String listFiles(bool ishtml);
+    /**
+     *
+     * This function sets up a handler for processing HTTP POST requests to Firmware Update.
+     *
+     */
+    void handleUpdateRequest();
+    
 };
 
 #endif /* WEBSERVER_H */

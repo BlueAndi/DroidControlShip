@@ -38,6 +38,8 @@
 #include <Logging.h>
 #include <LogSinkPrinter.h>
 #include <SettingsHandler.h>
+#include <Device.h>
+#include "GPIO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -61,7 +63,6 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
 /** Serial interface baudrate. */
 static const uint32_t SERIAL_BAUDRATE = 115200U;
 
@@ -173,6 +174,7 @@ void App::setup()
         else
         {
             isSuccessful = true;
+            
         }
     }
 
@@ -186,6 +188,9 @@ void App::setup()
         Board::getInstance().getGreenLed().enable(true);
         delay(100U);
         Board::getInstance().getGreenLed().enable(false);
+        Board::getInstance().getDevice().enterBootloader();
+        
+        
     }
 }
 
@@ -203,9 +208,28 @@ void App::loop()
     if ((false == m_isWebServerInitialized) && (Board::getInstance().getNetwork().isUp()))
     {
         start();
+
         m_webServer.handleUploadRequest();
         m_isWebServerInitialized = true;
     }
+
+    
+    while(false == Board::getInstance().getDevice().isInBootloaderMode())
+    {
+        if (false ==Board::getInstance().process())
+        {
+            LOG_FATAL("HAL process failed.");
+            halt();
+        }
+    }
+    LOG_INFO("In BOOTLOADER MODE!");
+
+    while(true == Board::getInstance().getDevice().isInBootloaderMode())
+    {
+        Board::getInstance().process();
+        m_bootloader.process();
+    }
+    LOG_INFO("Not in Bootloader Mode!");
 }
 
 /******************************************************************************

@@ -46,7 +46,7 @@
 #include <Board.h>
 #include "FileManager.h"
 #include "WebServerCustom.h"
-
+#include "BootloaderCom.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -96,26 +96,32 @@ public:
 
 private:
     /**
-     * Flag: Webserver is initialized
+     * Flag: Webserver is initialized.
      */
     bool m_isWebServerInitialized;
 
     /**
-     * Instance of the FileManager class
+     * Instance of the FileManager class.
      *responsible for managing the LittleFs file System.
      */
     FileManager m_fileManager;
 
     /**
-     * Instance of the WebServerCustom class
+     * Instance of the WebServerCustom class.
      *representing a custom webserver for the application.
      */
     WebServerCustom m_webServer;
 
     /**
-     * Instance of the Upload class
+     * Instance of the Upload class.
      */
     Upload m_upload;
+
+    /**
+     * Instance of the BootloaderCom class.
+     */
+    BootloaderCom m_bootloader;
+
 };
 
 #endif /* APP_H */

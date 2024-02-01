@@ -101,7 +101,7 @@ public:
      *
      * @return If device is in bootloader mode, it will return true. Otherwise false.
      */
-    virtual bool isInBootloaderMode() const = 0;
+    virtual bool isInBootloaderMode() = 0;
 
 protected:
     /**

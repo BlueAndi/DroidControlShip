@@ -15,7 +15,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <ESPAsyncWebServer.h>
+#include "Zumo32U4Specification.h"
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -30,16 +30,39 @@
 class FlashManager
 {
 private:
+    /**
+     *Number of bytes read from the stream;
+     */
+     size_t m_bytesRead;
+
+
 public:
     /**
-     * Constructor of  MySettings.
+     * Constructor of  FlashManager.
      */
     FlashManager();
 
     /**
-     * Destructor of  MySettings.
+     * Destructor of  FlashManager.
      */
     ~FlashManager();
+
+    /**
+     * @brief Reads a stream of data from the device's input stream.
+     * @param expectedResponse Pointer to the buffer to store the expected response.
+     * @param mybytes The size of the expected Response.
+     *@return The total number of bytes read from the stream.
+     */
+    size_t readingStream(uint8_t* expectedResponse,size_t mybytes);
+
+    /**
+     * @brief Send a command to the Zumo robot.
+     * @param command Array containing the command to be sent.
+     * @param commandSize Size of the command array.
+     * @return True if the command was successfully sent, otherwise false.
+     */
+    bool sendCommand(const uint8_t command[], size_t commandSize);
+
 };
 
 #endif /* FlashManager_H */
