@@ -315,7 +315,8 @@ void App::odometryCallback(const OdometryData& odometry)
             {
                 LOG_DEBUG("Target name is invalid.");
             }
-            else if ((TrafficHandler::getInstance().getTargetName() != nullptr) && (TrafficHandler::getInstance().getTargetName() != ""))
+            else if ((TrafficHandler::getInstance().getTargetName() != nullptr) &&
+                     (TrafficHandler::getInstance().getTargetName() != ""))
             {
                 LOG_DEBUG("No longer locked onto IE, unsubbing from %s.",
                           TrafficHandler::getInstance().getTargetName().c_str());
