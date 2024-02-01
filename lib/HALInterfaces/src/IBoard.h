@@ -136,7 +136,7 @@ public:
 
     /**
      * Get the file path of the configuration (settings).
-     *
+     * 
      * @return Configuration file path
      */
     virtual const String& getConfigFilePath() const = 0;
