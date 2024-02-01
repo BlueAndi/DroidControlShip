@@ -1,23 +1,28 @@
 {
-  "robotName": "zumo_0",
+  "robotName": "",
   "wifi": {
-    "ssid": "TheForce",
-    "pswd": "hanshotfirst"
+    "ssid": "",
+    "pswd": ""
   },
   "mqtt": {
     "host": "localhost",
-    "port": 1883
+    "port": "1883"
   },
   "ap": {
     "ssid": "DCS_AP",
     "pswd": "hanshotfirst"
   },
   "webServer": {
-    "user": "",
-    "pswd": ""
+    "user": "admin",
+    "pswd": "admin"
   },
   "platoon": {
-    "platoonId": 0,
-    "vehicleId": 0
+    "platoonId": "0",
+    "vehicleId": "0"
+  },
+  "initialPosition": {
+    "x": "0",
+    "y": "0",
+    "heading": "0"
   }
 }
