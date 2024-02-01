@@ -67,7 +67,7 @@ V2VClient::V2VClient(MqttClient& mqttClient) :
     m_waypointQueue(),
     m_waypointInputTopic(),
     m_waypointOutputTopic(),
-    m_isLeader(false)
+    m_participantType(PARTICIPANT_TYPE_UNKNOWN)
 {
 }
 
@@ -79,24 +79,25 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
 {
     bool isSuccessful = false;
 
-    if (PLATOON_LEADER_ID == vehicleId)
-    {
-        /* Its the leader. */
-        m_isLeader = true;
-    }
-    else if (NUMBER_OF_FOLLOWERS == vehicleId)
-    {
-        /* Last follower. */
-    }
-    else
-    {
-        ; /* Its a normal follower. Nothing to do */
-    }
-
     if (NUMBER_OF_FOLLOWERS < vehicleId)
     {
         /* Invalid ID. */
         LOG_ERROR("Invalid vehicle ID: %d. Maximum followers: %d.", vehicleId, NUMBER_OF_FOLLOWERS);
+    }
+    else if (PLATOON_LEADER_ID == vehicleId)
+    {
+        /* Its the leader. */
+        m_participantType = PARTICIPANT_TYPE_LEADER;
+    }
+    else
+    {
+        /* Its a follower. */
+        m_participantType = PARTICIPANT_TYPE_FOLLOWER;
+    }
+
+    if (PARTICIPANT_TYPE_UNKNOWN == m_participantType)
+    {
+        LOG_ERROR("Failed to determine participant type.");
     }
     else if (false == setupWaypointTopics(platoonId, vehicleId))
     {
@@ -213,7 +214,7 @@ bool V2VClient::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
 
         if ((true == m_waypointInputTopic.isEmpty()) || (true == m_waypointOutputTopic.isEmpty()))
         {
-            LOG_ERROR("Failed to create Platoon MQTT topics.");
+            LOG_ERROR("Failed to create Waypoint MQTT topics.");
         }
         else
         {

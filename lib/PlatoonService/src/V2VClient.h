@@ -61,6 +61,14 @@ public:
     /** Platoon leader vehicle ID. */
     static const uint8_t PLATOON_LEADER_ID = 0U;
 
+    /** Type of platoon participant. */
+    enum ParticipantType : uint8_t
+    {
+        PARTICIPANT_TYPE_UNKNOWN = 0U, /**< Unknown participant type */
+        PARTICIPANT_TYPE_LEADER,       /**< Platoon leader */
+        PARTICIPANT_TYPE_FOLLOWER      /**< Platoon follower */
+    };
+
     /**
      * Constructs a V2V client.
      *
@@ -142,8 +150,9 @@ private:
     /** Topic to send target Waypoints. */
     String m_waypointOutputTopic;
 
-    /** Leader flag. */
-    bool m_isLeader;
+
+    /** Type of Platoon Participant.*/
+    ParticipantType m_participantType;
 
 private:
     /**
