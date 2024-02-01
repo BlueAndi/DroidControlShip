@@ -52,6 +52,7 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
+
 /** 
  *@brief The structure defines command information for the BootloaderCom class.
  */
@@ -80,6 +81,25 @@ struct ResponseInfo{
      *@brief The size of the expected response buffer.
      */
     size_t responseSize;
+};
+/**
+ *@class CmdProvider
+ *@brief Abstract base class for providing commands and responses for the BootloaderCom class.
+ */
+class CmdProvider {
+public:
+    /**
+     *@brief Resets the command provider to its initial state.
+     */
+    virtual void reset() = 0;
+
+    /**
+     *@brief Retrieves the next command and response pair.
+     *@param cmd Reference to a pointer to the next command.
+     *@param rsp Reference to a pointer to the next response.
+     *@return True if there is a next command and response pair, otherwise false.
+     */
+    virtual bool next(const CommandInfo *& cmd,  const ResponseInfo *& rsp) = 0;
 };
 
 /**
@@ -123,34 +143,14 @@ public:
      *@return True if the received response matches the expected response, false otherwise.
      */
      bool compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize);
-
-    /**
-     *@brief This function is used to enter the programming mode.
-     *It prepares the system to accept programming commands.
-     *returns 0 if the fuses are verified successfully.
-     */
-     bool enterprogrammingmode();
-
-    /**
-     *@brief This Function verifies the signature of the program.
-     *It checks the validity of the signature to ensure the integrity of the program.
-     *return = if the signature is verified successfully
-     */
-    bool verifySignature();
-
-    /**
-     *@ brief This function is responsible for verifying the fuses.
-     *It checks the integrity of the fuse settings to ensure they are valid.
-     *return 0 if the fuses are verified successfully.
-     */
-    bool verifyFuses();
-
+  
 private:
     /**
      *@brief Enumeration representing different states for the BootloaderCom class.
      */
     enum State
     {
+        SelectCmdProvider,
         Idle,
         ReadingResponse,
         Complete
@@ -163,9 +163,25 @@ private:
     State m_state;
 
     /**
-     * Instance of the FlashManager class
+     *@Current state of the bootloader.
      */
-     FlashManager myFlashManager;
+    uint32_t m_currentProvider;
+
+    /**
+     *@Index of the current command provider.
+     */
+    CmdProvider * m_cmdProvider;
+
+    /**
+     *@Pointer to the current response.
+     */
+    const ResponseInfo *m_currentResponse;
+
+    /**
+     *@Pointer to the current command.
+     */
+    const CommandInfo *m_currentCommand;
+
 
     /**
      * @brief Flag indicating whether the FlashManager is currently waiting for a response.
@@ -173,15 +189,16 @@ private:
      */
      bool m_waitingForResponse;
 
-    /**
-     *@brief Array to store the commands.
+
+    /** 
+     *Specifies the current memory/page address for flashing the firmware of the Zumo program flash.
      */
-     CommandInfo m_commands[7];
+    uint16_t m_currWriteMemAddr;
 
     /**
-     *@brief Array to store expected Responses.
+     *Instance of FlashManager.
      */
-     ResponseInfo m_responses[7]; 
+     FlashManager m_flashManager;
 };
 
 #endif /* BOOTLOADERCOM_H */
