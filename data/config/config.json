@@ -6,7 +6,7 @@
   },
   "mqtt": {
     "host": "localhost",
-    "post": "1883"
+    "port": "1883"
   },
   "ap": {
     "ssid": "DCS_AP",
