@@ -82,7 +82,10 @@ V2VClient::V2VClient(MqttClient& mqttClient) :
     m_participantType(PARTICIPANT_TYPE_UNKNOWN),
     m_platoonId(0U),
     m_vehicleId(0U),
-    m_followerResponseCounter(0U)
+    m_lastPlatoonHeartbeatTimestamp(0U),
+    m_followerResponseCounter(0U),
+    m_platoonHeartbeatTimer(),
+    m_vehicleHeartbeatTimeoutTimer()
 {
 }
 
