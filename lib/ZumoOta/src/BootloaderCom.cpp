@@ -47,7 +47,66 @@
 /******************************************************************************
  * Types and classes
  *****************************************************************************/
+/**
+ * @class IntProgCmdProvider
+ * @brief Implementation of the command provider for internal programming.
+ */
+class IntProgCmdProvider: public CmdProvider {
+public:
+    /**
+     * @brief Constructor for the IntProgCmdProvider class.
+     */
+    IntProgCmdProvider() :
+        m_index(0)
+    {}
 
+    /**
+     * @brief Resets the command provider to its initial state.
+     * This method resets the internal index that tracks the current command
+     * in the command sequence memory.
+     */
+    virtual void reset() { m_index = 0; }
+
+    /**
+     * @brief Retrieves the next command and the next response.
+     * This method returns the next command and its associated response
+     * from the command sequence memory.
+     * @param cmd Reference to a pointer to the next command.
+     * @param rsp Reference to a pointer to the next response.
+     * @return True if there is a next command and next response, false otherwise.
+     */
+    virtual bool next( const CommandInfo *& cmd,  const ResponseInfo *& rsp)
+    {
+        if (SEQ_LENGHT > m_index)
+        {
+
+            cmd = &m_cmds[m_index];
+            rsp = &m_responses[m_index];
+
+            ++m_index;
+            return true;
+        }
+        else
+        {
+            cmd = nullptr;
+            rsp = nullptr;
+            return false;
+        }
+    }
+
+private:
+    static const uint32_t SEQ_LENGHT = 12; /**< Length of the command sequence */
+    uint32_t m_index; /**< current index in sequence */
+    static const CommandInfo m_cmds[SEQ_LENGHT]; /**< Array of command information */
+    static const ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
+};
+
+#if 0
+class FwProgCmdProvider : public CmdProvider {
+    public:
+        FwProgCmdProvider(FileHandle * fs);
+}
+#endif
 /******************************************************************************
  * Prototypes
  *****************************************************************************/
@@ -55,32 +114,71 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+const uint16_t PAGE_SIZE_BYTES = 128;
+
+const CommandInfo IntProgCmdProvider::m_cmds[] = {
+    {Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID)},
+    {Zumo32U4Specification::READ_SW_VERSION, sizeof(Zumo32U4Specification::READ_SW_VERSION)},
+    {Zumo32U4Specification::READ_HW_VERSION, sizeof(Zumo32U4Specification::READ_HW_VERSION)},
+    {Zumo32U4Specification::READ_PROGRAMMER_TYPE, sizeof(Zumo32U4Specification::READ_PROGRAMMER_TYPE)},
+    {Zumo32U4Specification::CHECK_AUTO_MEM_ADDR_INC_SUPPORT, sizeof(Zumo32U4Specification::CHECK_AUTO_MEM_ADDR_INC_SUPPORT)},
+    {Zumo32U4Specification::CHECK_BLOCK_FLASH_SUPPORT, sizeof(Zumo32U4Specification::CHECK_BLOCK_FLASH_SUPPORT)},
+    {Zumo32U4Specification::READ_SUPPORTED_DEVICE_CODE, sizeof(Zumo32U4Specification::READ_SUPPORTED_DEVICE_CODE)},
+    {Zumo32U4Specification::ENTER_PROGRAMMING_MODE, sizeof(Zumo32U4Specification::ENTER_PROGRAMMING_MODE)},
+    {Zumo32U4Specification::READ_SIGNATURE,sizeof(Zumo32U4Specification::READ_SIGNATURE)},
+    {Zumo32U4Specification::READ_LSB_FUSE,sizeof(Zumo32U4Specification::READ_LSB_FUSE)},
+    {Zumo32U4Specification::READ_MSB_FUSE,sizeof(Zumo32U4Specification::READ_MSB_FUSE)},
+    {Zumo32U4Specification::READ_EXTENDED_FUSE,sizeof(Zumo32U4Specification::READ_EXTENDED_FUSE)}
+};
+
+const ResponseInfo IntProgCmdProvider::m_responses[] = {
+    {Zumo32U4Specification::EXPECTED_SOFTWARE_ID, sizeof(Zumo32U4Specification::EXPECTED_SOFTWARE_ID)},
+    {Zumo32U4Specification::EXPECTED_SW_VERSION,sizeof(Zumo32U4Specification::EXPECTED_SW_VERSION) },
+    {Zumo32U4Specification::EXPECTED_HW_VERSION, sizeof(Zumo32U4Specification::EXPECTED_HW_VERSION)},
+    {Zumo32U4Specification::EXPECTED_PROGRAMMER_TYPE, sizeof(Zumo32U4Specification::EXPECTED_PROGRAMMER_TYPE)},
+    {Zumo32U4Specification::EXPECTED_SUPPORTS_AUTO_MEM_ADDR_INC,sizeof(Zumo32U4Specification::EXPECTED_SUPPORTS_AUTO_MEM_ADDR_INC)},
+    {Zumo32U4Specification::EXPECTED_BLOCK_BUFFER_SIZE, sizeof(Zumo32U4Specification::EXPECTED_BLOCK_BUFFER_SIZE)},
+    {Zumo32U4Specification::EXPECTED_DEVICE_CODE, sizeof(Zumo32U4Specification::EXPECTED_DEVICE_CODE)},
+    {Zumo32U4Specification::ENTER_PROGRAMMING_MODE,sizeof(Zumo32U4Specification::ENTER_PROGRAMMING_MODE)},
+    {Zumo32U4Specification::EXPECTED_SIGNATURE,sizeof(Zumo32U4Specification::EXPECTED_SIGNATURE)},
+    {Zumo32U4Specification::EXPECTED_LSB_FUSE_VALUE,sizeof(Zumo32U4Specification::EXPECTED_LSB_FUSE_VALUE)},
+    {Zumo32U4Specification::EXPECTED_MSB_FUSE_VALUE,sizeof(Zumo32U4Specification::EXPECTED_MSB_FUSE_VALUE)},
+    {Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE,sizeof(Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE)},
+};
+
+/**
+ * @brief Static instance of the internal programming command provider.
+ * This static variable holds an instance of the IntProgCmdProvider class,
+ * which provides commands for internal programming.
+ */
+static IntProgCmdProvider m_initProvider;
+
+/**
+ * @ brief Array of command providers.
+ * This static array holds pointers to command providers. It can be used to
+ * iterate through different command providers during operation.
+ */
+static CmdProvider * cmdProviders[] = 
+{
+    &m_initProvider, /**< Pointer to the internal programming command provider.*/
+    nullptr  /**< End marker indicating the end of the array.*/
+};
+
+/** Specifies the maximum firmware payload size in bytes when the firmware is uploaded for the Zumo robot platform */
+    static const uint32_t MAX_ZUMO_FW_BLOB_SIZE_BYTE = 28672U;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
 BootloaderCom::BootloaderCom():
-m_state(Idle),
-m_waitingForResponse(false)
+m_state(SelectCmdProvider),
+m_currWriteMemAddr(0),
+m_waitingForResponse(false),
+m_cmdProvider(&m_initProvider),
+m_currentCommand(nullptr),
+m_currentResponse(nullptr),
+m_currentProvider(0)
 {
-    /*Initialize commands and responses.*/
-    m_commands[0] = {Zumo32U4Specification::READ_SW_ID, 1U};
-    m_commands[1] = {Zumo32U4Specification::READ_SW_VERSION, 1U};
-    m_commands[2] = {Zumo32U4Specification::READ_HW_VERSION, 1U};
-    m_commands[3] = {Zumo32U4Specification::READ_PROGRAMMER_TYPE, 1U};
-    m_commands[4] = {Zumo32U4Specification::CHECK_AUTO_MEM_ADDR_INC_SUPPORT, 1U};
-    m_commands[5] = {Zumo32U4Specification::CHECK_BLOCK_FLASH_SUPPORT, 1U};
-    m_commands[6] = {Zumo32U4Specification::READ_SUPPORTED_DEVICE_CODE, 1U};
-
-    /*Initialize responses.*/
-    m_responses[0] = {Zumo32U4Specification::EXPECTED_SOFTWARE_ID, 7U};
-    m_responses[1] = {Zumo32U4Specification::EXPECTED_SW_VERSION, 2U};
-    m_responses[2] = {Zumo32U4Specification::EXPECTED_HW_VERSION, 1U};
-    m_responses[3] = {Zumo32U4Specification::EXPECTED_PROGRAMMER_TYPE, 1U};
-    m_responses[4] = {Zumo32U4Specification::EXPECTED_SUPPORTS_AUTO_MEM_ADDR_INC, 1U};
-    m_responses[5] = {Zumo32U4Specification::EXPECTED_BLOCK_BUFFER_SIZE, 3U};
-    m_responses[6] = {Zumo32U4Specification::EXPECTED_DEVICE_CODE, 2U};
-
 }
 
 BootloaderCom::~BootloaderCom()
@@ -102,20 +200,36 @@ void BootloaderCom::exitBootloader()
 
 bool BootloaderCom::process()
 {
-    static uint8_t commandIndex = 0;
-    const ResponseInfo &currentResponse = m_responses[commandIndex]; 
-    const CommandInfo &currentCommand = m_commands[commandIndex]; 
-     size_t newBytes = 0; 
-    uint8_t receiveBuffer[currentResponse.responseSize];
+    size_t newBytes = 0; 
+    uint8_t receiveBuffer[8];
 
     switch(m_state)
     {
+        case SelectCmdProvider:
+            m_cmdProvider = cmdProviders[m_currentProvider];
+            if (nullptr != m_cmdProvider)
+            {
+                m_cmdProvider->reset();
+
+                ++m_currentProvider;
+                m_state = Idle;
+
+            }
+            else
+            {
+                // TODO: We are done, no more provider, signal completion to web interface
+                break;
+            }
+            break;
+
         case Idle:
             /*Handle Idle state*/
             m_waitingForResponse = false;
-            if(commandIndex < 7)
+            if(m_cmdProvider->next(m_currentCommand, m_currentResponse))
             {
-                if(true == myFlashManager.sendCommand(currentCommand.command,currentCommand.commandsize))
+                if(true == m_flashManager.sendCommand(
+                    m_currentCommand->command,
+                    m_currentCommand->commandsize))
                 {
                     m_waitingForResponse = true;
                     m_state = ReadingResponse;   
@@ -125,21 +239,21 @@ bool BootloaderCom::process()
                     LOG_ERROR("Failed to send command.");
                     m_state = Idle;
                 }
-                break;
             }
-    
             else
             {
-                break;
-                //return false;
+                m_state = SelectCmdProvider;
             }
+            break;
+
         case ReadingResponse:
             /*Handle Complete state*/
-            LOG_DEBUG("Size of currentsize= %d", currentResponse.responseSize);
-            newBytes = myFlashManager.readingStream(receiveBuffer, currentResponse.responseSize);
-            if(currentResponse.responseSize == newBytes)
+            LOG_DEBUG("Size of currentsize= %d", m_currentResponse->responseSize);
+            newBytes = m_flashManager.readingStream(receiveBuffer, m_currentResponse->responseSize);
+            if(m_currentResponse->responseSize == newBytes)
             {
-                if(0 < compareExpectedAndReceivedResponse(currentCommand.command,receiveBuffer, newBytes, currentResponse.responseSize))
+                if(0 < compareExpectedAndReceivedResponse(
+                    m_currentCommand->command,receiveBuffer, newBytes, m_currentResponse->responseSize))
                 {
                     m_state = Complete;
                     m_waitingForResponse = false;
@@ -156,7 +270,6 @@ bool BootloaderCom::process()
            break;
 
         case Complete:
-            commandIndex++;
             m_state = Idle;
             break;
 
@@ -335,47 +448,32 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
             return false;
         }
     }
-    return true;
-}
-
-bool BootloaderCom::enterprogrammingmode()
-{
-    uint8_t mybuffer[1U];
-    Board::getInstance().process();
-    myFlashManager.sendCommand(Zumo32U4Specification::ENTER_PROGRAMMING_MODE, 1U);
-    myFlashManager.readingStream(mybuffer, 1U);
-    compareExpectedAndReceivedResponse(Zumo32U4Specification::ENTER_PROGRAMMING_MODE,mybuffer,1U,1U);
-    return true;
-}
-
-bool BootloaderCom::verifySignature()
-{
-    uint8_t mybuffer[1U];
-    Board::getInstance().process();
-    myFlashManager.sendCommand(Zumo32U4Specification::READ_SIGNATURE, 1U);
-    myFlashManager.readingStream(mybuffer, 1U);
-    compareExpectedAndReceivedResponse(Zumo32U4Specification::EXPECTED_SIGNATURE,mybuffer,1U,1U);
-    return true;
-}
-
-bool BootloaderCom::verifyFuses()
-{
-    uint8_t mybuffer[1U];
-    uint8_t thebuffer[1U];
-    uint8_t newbuffer[1U];
-    Board::getInstance().process();
-
-    myFlashManager.sendCommand(Zumo32U4Specification::READ_LSB_FUSE, 1U);
-    myFlashManager.readingStream(mybuffer, 1U);
-    compareExpectedAndReceivedResponse(Zumo32U4Specification::EXPECTED_LSB_FUSE_VALUE,mybuffer,1U,1U);
-
-    myFlashManager.sendCommand(Zumo32U4Specification::READ_MSB_FUSE, 1U);
-    myFlashManager.readingStream(thebuffer, 1U);
-    compareExpectedAndReceivedResponse(Zumo32U4Specification::EXPECTED_MSB_FUSE_VALUE,thebuffer,1U,1U);
-
-    myFlashManager.sendCommand(Zumo32U4Specification::READ_EXTENDED_FUSE, 1U);
-    myFlashManager.readingStream(newbuffer, 1U);
-    compareExpectedAndReceivedResponse(Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE,newbuffer,1U,1U);
+    else if(command == Zumo32U4Specification::SET_MEMORY_ADDR)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::SET_MEMORY_ADDR,expectedSize))
+        {
+            LOG_INFO("MEMORY ADRESSE is valid!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("MEMORY ADRESSE is not valid!");
+            return false;
+        }
+    }
+    else if(command == Zumo32U4Specification:: WRITE_MEMORY_PAGE)
+    {
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::SET_MEMORY_ADDR,expectedSize))
+        {
+            LOG_INFO("Writing Data to Zumo was successfull");
+            return true;
+        }
+        else
+        {
+            LOG_INFO("Writing Data to Zumo failed!");
+            return true;
+        }
+    }
     return true;
 }
 
