@@ -131,6 +131,9 @@ private:
     /** MQTT subtopic name for waypoint reception. */
     static const char* TOPIC_NAME_WAYPOINT_RX;
 
+    /** MQTT subtopic name for platoon heartbeat. */
+    static const char* TOPIC_NAME_PLATOON_HEARTBEAT;
+
     /** MQTTClient Instance. */
     MqttClient& m_mqttClient;
 
@@ -150,6 +153,11 @@ private:
     /** Topic to send target Waypoints. */
     String m_waypointOutputTopic;
 
+    /** Topic to receive platoon heartbeat messages. */
+    String m_platoonHeartbeatTopic;
+
+    /** Topic to send vehicle heartbeat messages. */
+    String m_vehicleHeartbeatTopic;
 
     /** Type of Platoon Participant.*/
     ParticipantType m_participantType;
@@ -163,6 +171,13 @@ private:
     void targetWaypointTopicCallback(const String& payload);
 
     /**
+     * Callback for Platoon Heartbeat MQTT Topic.
+     *
+     * @param[in] payload   Payload of the MQTT message.
+     */
+    void platoonHeartbeatTopicCallback(const String& payload);
+
+    /**
      * Setup waypoint input and output topics.
      *
      * @param[in] platoonId     ID of the platoon.
@@ -171,6 +186,16 @@ private:
      * @return If the topics were setup successfully, returns true. Otherwise, false.
      */
     bool setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId);
+
+    /**
+     * Setup heartbeat input and output topics.
+     *
+     * @param[in] platoonId     ID of the platoon.
+     * @param[in] vehicleId     ID of the vehicle inside the platoon.
+     *
+     * @return If the topics were setup successfully, returns true. Otherwise, false.
+     */
+    bool setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId);
 
     /**
      * Default constructor.
