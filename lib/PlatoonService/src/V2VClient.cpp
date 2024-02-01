@@ -34,6 +34,7 @@
  *****************************************************************************/
 #include "V2VClient.h"
 #include <Logging.h>
+#include <ArduinoJson.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -61,6 +62,9 @@ const char* V2VClient::TOPIC_NAME_WAYPOINT_RX = "inputWaypoint";
 /* MQTT subtopic name for platoon heartbeat. */
 const char* V2VClient::TOPIC_NAME_PLATOON_HEARTBEAT = "heartbeat";
 
+/** Buffer size for JSON serialization of heartbeat messages. */
+static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 64U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -72,7 +76,8 @@ V2VClient::V2VClient(MqttClient& mqttClient) :
     m_waypointOutputTopic(),
     m_platoonHeartbeatTopic(),
     m_vehicleHeartbeatTopic(),
-    m_participantType(PARTICIPANT_TYPE_UNKNOWN)
+    m_participantType(PARTICIPANT_TYPE_UNKNOWN),
+    m_vehicleId(0U)
 {
 }
 
@@ -84,12 +89,14 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
 {
     bool isSuccessful = false;
 
-    if (NUMBER_OF_FOLLOWERS < vehicleId)
+    m_vehicleId = vehicleId;
+
+    if (NUMBER_OF_FOLLOWERS < m_vehicleId)
     {
         /* Invalid ID. */
-        LOG_ERROR("Invalid vehicle ID: %d. Maximum followers: %d.", vehicleId, NUMBER_OF_FOLLOWERS);
+        LOG_ERROR("Invalid vehicle ID: %d. Maximum followers: %d.", m_vehicleId, NUMBER_OF_FOLLOWERS);
     }
-    else if (PLATOON_LEADER_ID == vehicleId)
+    else if (PLATOON_LEADER_ID == m_vehicleId)
     {
         /* Its the leader. */
         m_participantType = PARTICIPANT_TYPE_LEADER;
@@ -104,11 +111,11 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
     {
         LOG_ERROR("Failed to determine participant type.");
     }
-    else if (false == setupWaypointTopics(platoonId, vehicleId))
+    else if (false == setupWaypointTopics(platoonId, m_vehicleId))
     {
         LOG_ERROR("Failed to setup waypoint topics.");
     }
-    else if (false == setupHeartbeatTopics(platoonId, vehicleId))
+    else if (false == setupHeartbeatTopics(platoonId, m_vehicleId))
     {
         LOG_ERROR("Failed to setup heartbeat topics.");
     }
@@ -198,7 +205,25 @@ void V2VClient::targetWaypointTopicCallback(const String& payload)
 
 void V2VClient::platoonHeartbeatTopicCallback(const String& payload)
 {
-    /* TODO: Receive Platoon Heartbeat, and send own vehicle heartbeat. */
+    /* Send vehicle heartbeat. */
+    StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
+    String                                      heartbeatPayload;
+
+    heartbeatDoc["id"]        = m_vehicleId;
+    heartbeatDoc["timestamp"] = millis();
+
+    if (0U == serializeJson(heartbeatDoc, heartbeatPayload))
+    {
+        LOG_ERROR("Failed to serialize heartbeat.");
+    }
+    else if (false == m_mqttClient.publish(m_vehicleHeartbeatTopic, false, heartbeatPayload))
+    {
+        LOG_ERROR("Failed to publish MQTT message to %s.", m_vehicleHeartbeatTopic.c_str());
+    }
+    else
+    {
+        LOG_DEBUG("Sent heartbeat: %s", heartbeatPayload.c_str());
+    }
 }
 
 bool V2VClient::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)

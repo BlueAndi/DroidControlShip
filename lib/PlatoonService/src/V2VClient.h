@@ -162,6 +162,9 @@ private:
     /** Type of Platoon Participant.*/
     ParticipantType m_participantType;
 
+    /** Vehicle ID. */
+    uint8_t m_vehicleId;
+
 private:
     /**
      * Callback for Position Setpoint MQTT Topic.
