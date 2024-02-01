@@ -62,6 +62,9 @@ const char* V2VClient::TOPIC_NAME_WAYPOINT_RX = "inputWaypoint";
 /* MQTT subtopic name for platoon heartbeat. */
 const char* V2VClient::TOPIC_NAME_PLATOON_HEARTBEAT = "heartbeat";
 
+/* MQTT subtopic name for platoon heartbeat. */
+const char* V2VClient::TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE = "heartbeatResponse";
+
 /** Buffer size for JSON serialization of heartbeat messages. */
 static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 64U;
 
@@ -75,7 +78,7 @@ V2VClient::V2VClient(MqttClient& mqttClient) :
     m_waypointInputTopic(),
     m_waypointOutputTopic(),
     m_platoonHeartbeatTopic(),
-    m_vehicleHeartbeatTopic(),
+    m_heartbeatResponseTopic(),
     m_participantType(PARTICIPANT_TYPE_UNKNOWN),
     m_vehicleId(0U)
 {
@@ -122,6 +125,11 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
     else
     {
         isSuccessful = true;
+    }
+
+    if ((true == isSuccessful) && (PARTICIPANT_TYPE_LEADER == m_participantType))
+    {
+        isSuccessful = setupLeaderTopics();
     }
 
     return isSuccessful;
@@ -216,14 +224,20 @@ void V2VClient::platoonHeartbeatTopicCallback(const String& payload)
     {
         LOG_ERROR("Failed to serialize heartbeat.");
     }
-    else if (false == m_mqttClient.publish(m_vehicleHeartbeatTopic, false, heartbeatPayload))
+    else if (false == m_mqttClient.publish(m_heartbeatResponseTopic, false, heartbeatPayload))
     {
-        LOG_ERROR("Failed to publish MQTT message to %s.", m_vehicleHeartbeatTopic.c_str());
+        LOG_ERROR("Failed to publish MQTT message to %s.", m_heartbeatResponseTopic.c_str());
     }
     else
     {
         LOG_DEBUG("Sent heartbeat: %s", heartbeatPayload.c_str());
     }
+}
+
+void V2VClient::vehicleHeartbeatTopicCallback(const String& payload)
+{
+    /* TODO: Leader processing of vehicle heartbeats. */
+    LOG_DEBUG("Received heartbeat from vehicle: %s", payload.c_str());
 }
 
 bool V2VClient::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
@@ -291,21 +305,21 @@ bool V2VClient::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
         LOG_ERROR("Failed to create Platoon Heartbeat topic.");
     }
     /* Heartbeat Response Topic. */
-    else if (0 >= snprintf(vehicleHeartbeatTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", platoonId,
-                           vehicleId, TOPIC_NAME_PLATOON_HEARTBEAT))
+    else if (0 >= snprintf(vehicleHeartbeatTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/%s", platoonId,
+                           TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE))
     {
         LOG_ERROR("Failed to create Heartbeat Response topic.");
     }
     else
     {
         /* Set topics. */
-        m_platoonHeartbeatTopic = platoonHeartbeatTopicBuffer;
-        m_vehicleHeartbeatTopic = vehicleHeartbeatTopicBuffer;
+        m_platoonHeartbeatTopic  = platoonHeartbeatTopicBuffer;
+        m_heartbeatResponseTopic = vehicleHeartbeatTopicBuffer;
 
         LOG_DEBUG("Platoon Heartbeat Topic: %s", m_platoonHeartbeatTopic.c_str());
-        LOG_DEBUG("Vehicle Heartbeat Topic: %s", m_vehicleHeartbeatTopic.c_str());
+        LOG_DEBUG("Vehicle Heartbeat Topic: %s", m_heartbeatResponseTopic.c_str());
 
-        if ((true == m_platoonHeartbeatTopic.isEmpty()) || (true == m_vehicleHeartbeatTopic.isEmpty()))
+        if ((true == m_platoonHeartbeatTopic.isEmpty()) || (true == m_heartbeatResponseTopic.isEmpty()))
         {
             LOG_ERROR("Failed to create Platoon Heartbeat MQTT topics.");
         }
@@ -325,6 +339,31 @@ bool V2VClient::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
                 isSuccessful = true;
             }
         }
+    }
+
+    return isSuccessful;
+}
+
+bool V2VClient::setupLeaderTopics()
+{
+    bool isSuccessful = false;
+
+    /* Participant is the leader. */
+    IMqttClient::TopicCallback lambdaVehiclesHeartbeatTopicCallback = [this](const String& payload)
+    { this->vehicleHeartbeatTopicCallback(payload); };
+
+    if (true == m_heartbeatResponseTopic.isEmpty())
+    {
+        LOG_ERROR("Failed to create Leader Heartbeat Response MQTT topic.");
+    }
+    /* Subscribe to Vehicles Heartbeat Topics. */
+    else if (false == m_mqttClient.subscribe(m_heartbeatResponseTopic, false, lambdaVehiclesHeartbeatTopicCallback))
+    {
+        LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_platoonHeartbeatTopic.c_str());
+    }
+    else
+    {
+        isSuccessful = true;
     }
 
     return isSuccessful;

@@ -134,6 +134,9 @@ private:
     /** MQTT subtopic name for platoon heartbeat. */
     static const char* TOPIC_NAME_PLATOON_HEARTBEAT;
 
+    /** MQTT subtopic name for platoon heartbeat reponse. */
+    static const char* TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE;
+
     /** MQTTClient Instance. */
     MqttClient& m_mqttClient;
 
@@ -157,10 +160,13 @@ private:
     String m_platoonHeartbeatTopic;
 
     /** Topic to send vehicle heartbeat messages. */
-    String m_vehicleHeartbeatTopic;
+    String m_heartbeatResponseTopic;
 
     /** Type of Platoon Participant.*/
     ParticipantType m_participantType;
+
+    /** Platoon ID. */
+    uint8_t m_platoonId;
 
     /** Vehicle ID. */
     uint8_t m_vehicleId;
@@ -181,6 +187,13 @@ private:
     void platoonHeartbeatTopicCallback(const String& payload);
 
     /**
+     * Callback for Vehicle Heartbeat MQTT Topic. Only used by the leader.
+     *
+     * @param[in] payload   Payload of the MQTT message.
+     */
+    void vehicleHeartbeatTopicCallback(const String& payload);
+
+    /**
      * Setup waypoint input and output topics.
      *
      * @param[in] platoonId     ID of the platoon.
@@ -199,6 +212,13 @@ private:
      * @return If the topics were setup successfully, returns true. Otherwise, false.
      */
     bool setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId);
+
+    /**
+     * Leader-specific setup. Sets up the topics for the leader, which must take care of its followers.
+     *
+     * @return If the topics were setup successfully, returns true. Otherwise, false.
+     */
+    bool setupLeaderTopics();
 
     /**
      * Default constructor.
