@@ -4,9 +4,8 @@
     "description": "SignalReceiver application",
     "authors": [
         {
-            "name": "Gabryel Reyes",
-            "email": "gabryelrdiaz@gmail.com",
-            "url": "https://github.com/gabryelreyes",
+            "name": "Paul Gramescu",
+            "email": "paul.gramescu@gmail.com",
             "maintainer": true
         }
     ],
