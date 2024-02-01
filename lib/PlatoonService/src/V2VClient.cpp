@@ -66,7 +66,7 @@ const char* V2VClient::TOPIC_NAME_PLATOON_HEARTBEAT = "heartbeat";
 const char* V2VClient::TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE = "heartbeatResponse";
 
 /** Buffer size for JSON serialization of heartbeat messages. */
-static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 64U;
+static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 128U;
 
 /******************************************************************************
  * Public Methods
@@ -80,7 +80,9 @@ V2VClient::V2VClient(MqttClient& mqttClient) :
     m_platoonHeartbeatTopic(),
     m_heartbeatResponseTopic(),
     m_participantType(PARTICIPANT_TYPE_UNKNOWN),
-    m_vehicleId(0U)
+    m_platoonId(0U),
+    m_vehicleId(0U),
+    m_followerResponseCounter(0U)
 {
 }
 
@@ -130,6 +132,7 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
     if ((true == isSuccessful) && (PARTICIPANT_TYPE_LEADER == m_participantType))
     {
         isSuccessful = setupLeaderTopics();
+        m_platoonHeartbeatTimer.start(PLATOON_HEARTBEAT_TIMER_INTERVAL);
     }
 
     return isSuccessful;
@@ -137,7 +140,42 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
 
 void V2VClient::process()
 {
-    /* Nothing to do here yet. */
+    /* Send Platoon Heartbeat. Only active as leader. */
+    if (true == m_platoonHeartbeatTimer.isTimeout())
+    {
+        /* Send Platoon Heartbeat */
+        if (false == sendPlatoonHeartbeat())
+        {
+            LOG_ERROR("Failed to send platoon heartbeat.");
+        }
+        else
+        {
+            /* Start timeout timer. */
+            m_vehicleHeartbeatTimeoutTimer.start(VEHICLE_HEARTBEAT_TIMEOUT_TIMER_INTERVAL);
+
+            /* Reset follower response counter. */
+            m_followerResponseCounter = 0U;
+        }
+
+        /* Reset timer. */
+        m_platoonHeartbeatTimer.restart();
+    }
+
+    /* Check participants heartbeats. Only active as leader. */
+    if (true == m_vehicleHeartbeatTimeoutTimer.isTimeout())
+    {
+        if (NUMBER_OF_FOLLOWERS != m_followerResponseCounter)
+        {
+            LOG_ERROR("Not all participants responded to heartbeat.");
+        }
+        else
+        {
+            LOG_DEBUG("All participants responded to heartbeat.");
+        }
+
+        /* Stop timer. */
+        m_vehicleHeartbeatTimeoutTimer.stop();
+    }
 }
 
 bool V2VClient::sendWaypoint(const Waypoint& waypoint)
@@ -213,31 +251,77 @@ void V2VClient::targetWaypointTopicCallback(const String& payload)
 
 void V2VClient::platoonHeartbeatTopicCallback(const String& payload)
 {
-    /* Send vehicle heartbeat. */
-    StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
-    String                                      heartbeatPayload;
+    /* Deserialize payload. */
+    StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> jsonPayload;
+    DeserializationError                        error = deserializeJson(jsonPayload, payload.c_str());
 
-    heartbeatDoc["id"]        = m_vehicleId;
-    heartbeatDoc["timestamp"] = millis();
-
-    if (0U == serializeJson(heartbeatDoc, heartbeatPayload))
+    if (DeserializationError::Ok != error)
     {
-        LOG_ERROR("Failed to serialize heartbeat.");
-    }
-    else if (false == m_mqttClient.publish(m_heartbeatResponseTopic, false, heartbeatPayload))
-    {
-        LOG_ERROR("Failed to publish MQTT message to %s.", m_heartbeatResponseTopic.c_str());
+        LOG_ERROR("JSON Deserialization Error %d.", error);
     }
     else
     {
-        LOG_DEBUG("Sent heartbeat: %s", heartbeatPayload.c_str());
+        /* Send vehicle heartbeat. */
+        JsonVariant                                 jsonTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
+        StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
+        String                                      heartbeatPayload;
+
+        if (false == jsonTimestamp.isNull())
+        {
+            heartbeatDoc["id"]        = m_vehicleId;
+            heartbeatDoc["timestamp"] = jsonTimestamp.as<uint32_t>();
+
+            if (0U == serializeJson(heartbeatDoc, heartbeatPayload))
+            {
+                LOG_ERROR("Failed to serialize heartbeat.");
+            }
+            else if (false == m_mqttClient.publish(m_heartbeatResponseTopic, false, heartbeatPayload))
+            {
+                LOG_ERROR("Failed to publish MQTT message to %s.", m_heartbeatResponseTopic.c_str());
+            }
+            else
+            {
+                LOG_DEBUG("Sent heartbeat: %s", heartbeatPayload.c_str());
+            }
+        }
     }
 }
 
 void V2VClient::vehicleHeartbeatTopicCallback(const String& payload)
 {
-    /* TODO: Leader processing of vehicle heartbeats. */
-    LOG_DEBUG("Received heartbeat from vehicle: %s", payload.c_str());
+    /* Deserialize payload. */
+    StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> jsonPayload;
+    DeserializationError                        error = deserializeJson(jsonPayload, payload.c_str());
+
+    if (DeserializationError::Ok != error)
+    {
+        LOG_ERROR("JSON Deserialization Error %d.", error);
+    }
+    else
+    {
+        JsonVariant jsonId        = jsonPayload["id"];        /* Vehicle ID. */
+        JsonVariant jsonTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
+
+        if ((false == jsonId.isNull()) && (false == jsonTimestamp.isNull()))
+        {
+            uint8_t  id        = jsonId.as<uint8_t>();
+            uint32_t timestamp = jsonTimestamp.as<uint32_t>();
+
+            if (m_vehicleId == id)
+            {
+                /* This is me, the leader! */
+            }
+            else if (timestamp != m_lastPlatoonHeartbeatTimestamp)
+            {
+                LOG_ERROR("Received heartbeat from vehicle %d with timestamp %d, expected %d.", id, timestamp,
+                          m_lastPlatoonHeartbeatTimestamp);
+            }
+            else
+            {
+                ++m_followerResponseCounter;
+            }
+        }
+    }
 }
 
 bool V2VClient::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
@@ -364,6 +448,35 @@ bool V2VClient::setupLeaderTopics()
     else
     {
         isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
+bool V2VClient::sendPlatoonHeartbeat()
+{
+    bool isSuccessful = false;
+
+    /* Send platoon heartbeat. */
+    StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
+    String                                      heartbeatPayload;
+    uint32_t                                    timestamp = millis();
+
+    heartbeatDoc["timestamp"] = timestamp;
+
+    if (0U == serializeJson(heartbeatDoc, heartbeatPayload))
+    {
+        LOG_ERROR("Failed to serialize heartbeat.");
+    }
+    else if (false == m_mqttClient.publish(m_platoonHeartbeatTopic, false, heartbeatPayload))
+    {
+        LOG_ERROR("Failed to publish MQTT message to %s.", m_platoonHeartbeatTopic.c_str());
+    }
+    else
+    {
+        LOG_DEBUG("Sent platoon heartbeat: %s", heartbeatPayload.c_str());
+        isSuccessful                    = true;
+        m_lastPlatoonHeartbeatTimestamp = timestamp;
     }
 
     return isSuccessful;

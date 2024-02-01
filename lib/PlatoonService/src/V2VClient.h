@@ -45,6 +45,7 @@
 #include <MqttClient.h>
 #include <Waypoint.h>
 #include <queue>
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
@@ -128,6 +129,12 @@ private:
     /** Number of followers. */
     static const uint8_t NUMBER_OF_FOLLOWERS = 1U;
 
+    /** Vehicle heartbeat timeout timer interval in ms. */
+    static const uint32_t VEHICLE_HEARTBEAT_TIMEOUT_TIMER_INTERVAL = 1000U;
+
+    /** Send platoon heartbeat timer interval in ms. */
+    static const uint32_t PLATOON_HEARTBEAT_TIMER_INTERVAL = 2U * VEHICLE_HEARTBEAT_TIMEOUT_TIMER_INTERVAL;
+
     /** MQTT subtopic name for waypoint reception. */
     static const char* TOPIC_NAME_WAYPOINT_RX;
 
@@ -170,6 +177,18 @@ private:
 
     /** Vehicle ID. */
     uint8_t m_vehicleId;
+
+    /** Last Platoon heartbeat timestamp. */
+    uint32_t m_lastPlatoonHeartbeatTimestamp;
+
+    /** Follower response counter. */
+    uint8_t m_followerResponseCounter;
+
+    /** Platoon Heartbeat timer. */
+    SimpleTimer m_platoonHeartbeatTimer;
+
+    /** Vehicle heartbeat timeout timer. */
+    SimpleTimer m_vehicleHeartbeatTimeoutTimer;
 
 private:
     /**
@@ -219,6 +238,13 @@ private:
      * @return If the topics were setup successfully, returns true. Otherwise, false.
      */
     bool setupLeaderTopics();
+
+    /**
+     * Send the platoon heartbeat message.
+     *
+     * @return If the message was sent successfully, returns true. Otherwise, false.
+     */
+    bool sendPlatoonHeartbeat();
 
     /**
      * Default constructor.
