@@ -163,22 +163,22 @@ private:
     State m_state;
 
     /**
-     *@Current state of the bootloader.
+     *Current state of the bootloader.
      */
     uint32_t m_currentProvider;
 
     /**
-     *@Index of the current command provider.
+     *Index of the current command provider.
      */
     CmdProvider * m_cmdProvider;
 
     /**
-     *@Pointer to the current response.
+     *Pointer to the current response.
      */
     const ResponseInfo *m_currentResponse;
 
     /**
-     *@Pointer to the current command.
+     *Pointer to the current command.
      */
     const CommandInfo *m_currentCommand;
 

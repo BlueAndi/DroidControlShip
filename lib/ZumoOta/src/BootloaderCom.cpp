@@ -57,15 +57,15 @@ public:
      * @brief Constructor for the IntProgCmdProvider class.
      */
     IntProgCmdProvider() :
-        m_index(0u)
+        m_index(0)
     {}
 
     /**
-     * @breif Resets the command provider to its initial state.
+     * @brief Resets the command provider to its initial state.
      * This method resets the internal index that tracks the current command
      * in the command sequence memory.
      */
-    virtual void reset() { m_index = 0u; }
+    virtual void reset() { m_index = 0; }
 
     /**
      * @brief Retrieves the next command and the next response.
