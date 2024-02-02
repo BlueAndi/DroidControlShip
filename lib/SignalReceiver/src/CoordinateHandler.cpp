@@ -80,7 +80,7 @@ bool CoordinateHandler::process(const String& ieName, int32_t ieOrientation, int
 
         if (true == CoordinateHandler::getInstance().checkOrientation(ieOrientation))
         {
-            // LOG_DEBUG("Robot pointing towards %s.", ieName.c_str());            
+            // LOG_DEBUG("Robot pointing towards %s.", ieName.c_str());
 
             /** Robot is moving towards the IE AND has matching orientation, lock in! */
             m_currentStatus = STATUS_LOCKED_IN;
@@ -136,7 +136,7 @@ bool CoordinateHandler::isMovingTowards(int32_t currentDistance, int32_t previou
     if (currentDistance <= 700)
     {
 
-        if (currentDistance < previousDistance)
+        if (currentDistance <= previousDistance)
         {
             /** Distance is decreasing, robot is moving towards. */
             isTrue = true;
