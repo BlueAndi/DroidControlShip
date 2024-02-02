@@ -48,7 +48,7 @@
 #include <MqttClient.h>
 #include <SimpleTimer.hpp>
 #include <StateMachine.h>
-#include <V2VClient.h>
+#include <V2VCommManager.h>
 #include "SerialMuxChannels.h"
 
 /******************************************************************************
@@ -72,7 +72,7 @@ public:
         m_serialMuxProtChannelIdStatus(0U),
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
         m_mqttClient(),
-        m_v2vClient(m_mqttClient),
+        m_v2vCommManager(m_mqttClient),
         m_systemStateMachine(),
         m_sendWaypointTimer(),
         m_commandTimer(),
@@ -166,9 +166,9 @@ private:
     MqttClient m_mqttClient;
 
     /**
-     * V2V client instance.
+     * V2V communication manager instance.
      */
-    V2VClient m_v2vClient;
+    V2VCommManager m_v2vCommManager;
 
     /**
      * The system state machine.

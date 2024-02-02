@@ -25,14 +25,14 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Vehicle to Vehicle (V2V) communication client.
+ * @brief  Vehicle to Vehicle (V2V) communication manager.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "V2VClient.h"
+#include "V2VCommManager.h"
 #include <Logging.h>
 #include <ArduinoJson.h>
 
@@ -57,13 +57,13 @@
  *****************************************************************************/
 
 /* MQTT subtopic name for waypoint reception. */
-const char* V2VClient::TOPIC_NAME_WAYPOINT_RX = "inputWaypoint";
+const char* V2VCommManager::TOPIC_NAME_WAYPOINT_RX = "inputWaypoint";
 
 /* MQTT subtopic name for platoon heartbeat. */
-const char* V2VClient::TOPIC_NAME_PLATOON_HEARTBEAT = "heartbeat";
+const char* V2VCommManager::TOPIC_NAME_PLATOON_HEARTBEAT = "heartbeat";
 
 /* MQTT subtopic name for platoon heartbeat. */
-const char* V2VClient::TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE = "heartbeatResponse";
+const char* V2VCommManager::TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE = "heartbeatResponse";
 
 /** Buffer size for JSON serialization of heartbeat messages. */
 static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 128U;
@@ -72,7 +72,7 @@ static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 128U;
  * Public Methods
  *****************************************************************************/
 
-V2VClient::V2VClient(MqttClient& mqttClient) :
+V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_mqttClient(mqttClient),
     m_waypointQueue(),
     m_waypointInputTopic(),
@@ -89,11 +89,11 @@ V2VClient::V2VClient(MqttClient& mqttClient) :
 {
 }
 
-V2VClient::~V2VClient()
+V2VCommManager::~V2VCommManager()
 {
 }
 
-bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
+bool V2VCommManager::init(uint8_t platoonId, uint8_t vehicleId)
 {
     bool isSuccessful = false;
 
@@ -141,7 +141,7 @@ bool V2VClient::init(uint8_t platoonId, uint8_t vehicleId)
     return isSuccessful;
 }
 
-void V2VClient::process()
+void V2VCommManager::process()
 {
     /* Send Platoon Heartbeat. Only active as leader. */
     if (true == m_platoonHeartbeatTimer.isTimeout())
@@ -181,7 +181,7 @@ void V2VClient::process()
     }
 }
 
-bool V2VClient::sendWaypoint(const Waypoint& waypoint)
+bool V2VCommManager::sendWaypoint(const Waypoint& waypoint)
 {
     bool   isSuccessful = false;
     String payload;
@@ -203,7 +203,7 @@ bool V2VClient::sendWaypoint(const Waypoint& waypoint)
     return isSuccessful;
 }
 
-bool V2VClient::getNextWaypoint(Waypoint& waypoint)
+bool V2VCommManager::getNextWaypoint(Waypoint& waypoint)
 {
     bool isSuccessful = false;
 
@@ -225,7 +225,7 @@ bool V2VClient::getNextWaypoint(Waypoint& waypoint)
     return isSuccessful;
 }
 
-size_t V2VClient::getWaypointQueueSize() const
+size_t V2VCommManager::getWaypointQueueSize() const
 {
     return m_waypointQueue.size();
 }
@@ -238,7 +238,7 @@ size_t V2VClient::getWaypointQueueSize() const
  * Private Methods
  *****************************************************************************/
 
-void V2VClient::targetWaypointTopicCallback(const String& payload)
+void V2VCommManager::targetWaypointTopicCallback(const String& payload)
 {
     Waypoint* waypoint = Waypoint::deserialize(payload);
 
@@ -252,7 +252,7 @@ void V2VClient::targetWaypointTopicCallback(const String& payload)
     }
 }
 
-void V2VClient::platoonHeartbeatTopicCallback(const String& payload)
+void V2VCommManager::platoonHeartbeatTopicCallback(const String& payload)
 {
     /* Deserialize payload. */
     StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> jsonPayload;
@@ -290,7 +290,7 @@ void V2VClient::platoonHeartbeatTopicCallback(const String& payload)
     }
 }
 
-void V2VClient::vehicleHeartbeatTopicCallback(const String& payload)
+void V2VCommManager::vehicleHeartbeatTopicCallback(const String& payload)
 {
     /* Deserialize payload. */
     StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> jsonPayload;
@@ -327,7 +327,7 @@ void V2VClient::vehicleHeartbeatTopicCallback(const String& payload)
     }
 }
 
-bool V2VClient::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
+bool V2VCommManager::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
 {
     bool    isSuccessful  = false;
     uint8_t nextVehicleId = vehicleId + 1U; /* Output is published to next vehicle. */
@@ -379,7 +379,7 @@ bool V2VClient::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
     return isSuccessful;
 }
 
-bool V2VClient::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
+bool V2VCommManager::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
 {
     bool isSuccessful = false;
     char platoonHeartbeatTopicBuffer[MAX_TOPIC_LENGTH];
@@ -431,7 +431,7 @@ bool V2VClient::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
     return isSuccessful;
 }
 
-bool V2VClient::setupLeaderTopics()
+bool V2VCommManager::setupLeaderTopics()
 {
     bool isSuccessful = false;
 
@@ -456,7 +456,7 @@ bool V2VClient::setupLeaderTopics()
     return isSuccessful;
 }
 
-bool V2VClient::sendPlatoonHeartbeat()
+bool V2VCommManager::sendPlatoonHeartbeat()
 {
     bool isSuccessful = false;
 

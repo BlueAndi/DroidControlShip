@@ -158,12 +158,12 @@ void App::setup()
         {
             LOG_FATAL("Failed to setup MQTT client.");
         }
-        else if (V2VClient::PLATOON_LEADER_ID == settings.getPlatoonVehicleId())
+        else if (V2VCommManager::PLATOON_LEADER_ID == settings.getPlatoonVehicleId())
         {
             /* Correct config.json file loaded? */
             LOG_FATAL("Platoon Vehicle ID must not be 0 for a follower.");
         }
-        else if (false == m_v2vClient.init(settings.getPlatoonPlatoonId(), settings.getPlatoonVehicleId()))
+        else if (false == m_v2vCommManager.init(settings.getPlatoonPlatoonId(), settings.getPlatoonVehicleId()))
         {
             LOG_FATAL("Failed to initialize V2V client.");
         }
@@ -216,7 +216,7 @@ void App::loop()
     m_mqttClient.process();
 
     /* Process V2V Communication */
-    m_v2vClient.process();
+    m_v2vCommManager.process();
 
     /* Process System State Machine */
     m_systemStateMachine.process();
@@ -225,12 +225,12 @@ void App::loop()
     processPeriodicTasks();
 
     /* Process V2V event queue. */
-    while (0U < m_v2vClient.getWaypointQueueSize())
+    while (0U < m_v2vCommManager.getWaypointQueueSize())
     {
         /* Waypoints are pending. */
         Waypoint waypoint;
 
-        if (false == m_v2vClient.getNextWaypoint(waypoint))
+        if (false == m_v2vCommManager.getNextWaypoint(waypoint))
         {
             LOG_WARNING("Failed to get next waypoint from V2V client.");
         }
@@ -412,7 +412,7 @@ void App::processPeriodicTasks()
         {
             LOG_WARNING("Failed to get waypoint from driving state.");
         }
-        else if (false == m_v2vClient.sendWaypoint(payload))
+        else if (false == m_v2vCommManager.sendWaypoint(payload))
         {
             LOG_WARNING("Waypoint could not be sent.");
         }

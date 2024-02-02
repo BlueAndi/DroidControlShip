@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Vehicle to Vehicle (V2V) communication client.
+ * @brief  Vehicle to Vehicle (V2V) communication manager.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup PlatoonService
  *
  * @{
  */
-#ifndef V2V_CLIENT_H
-#define V2V_CLIENT_H
+#ifndef V2V_COMM_MANAGER_H
+#define V2V_COMM_MANAGER_H
 
 /******************************************************************************
  * Compile Switches
@@ -55,8 +55,8 @@
  * Types and Classes
  *****************************************************************************/
 
-/** V2V Client for external communication in the platooning context. */
-class V2VClient
+/** V2V Communication Manager for external communication in the platooning context. */
+class V2VCommManager
 {
 public:
     /** Platoon leader vehicle ID. */
@@ -71,29 +71,29 @@ public:
     };
 
     /**
-     * Constructs a V2V client.
+     * Constructs a V2V manager.
      *
      * @param[in] mqttClient    MQTT client instance.
      */
-    V2VClient(MqttClient&);
+    V2VCommManager(MqttClient&);
 
     /**
      * Default destructor.
      */
-    ~V2VClient();
+    ~V2VCommManager();
 
     /**
-     * Initialize the V2V client.
+     * Initialize the V2V communication manager.
      *
      * @param[in] platoonId     ID of the platoon.
      * @param[in] vehicleId     ID of the vehicle inside the platoon.
      *
-     * @return If the V2V client was initialized successfully, returns true. Otherwise, false.
+     * @return If the V2V communication manager was initialized successfully, returns true. Otherwise, false.
      */
     bool init(uint8_t platoonId, uint8_t vehicleId);
 
     /**
-     * Process the V2V client.
+     * Process the V2V communication manager.
      */
     void process();
 
@@ -107,7 +107,7 @@ public:
     bool sendWaypoint(const Waypoint& waypoint);
 
     /**
-     * Get the next recevied Waypoint from the V2V client.
+     * Get the next recevied Waypoint from the V2V communication manager.
      *
      * @param[out] waypoint  Next waypoint to receive.
      *
@@ -249,22 +249,22 @@ private:
     /**
      * Default constructor.
      */
-    V2VClient();
+    V2VCommManager();
 
     /**
      * Copy constructor.
      */
-    V2VClient(const V2VClient&);
+    V2VCommManager(const V2VCommManager&);
 
     /**
      * Assignment operator.
      */
-    V2VClient& operator=(const V2VClient&);
+    V2VCommManager& operator=(const V2VCommManager&);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* V2V_CLIENT_H */
+#endif /* V2V_COMM_MANAGER_H */
 /** @} */
