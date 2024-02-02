@@ -35,6 +35,7 @@
 #include "BootloaderCom.h"
 #include <Logging.h>
 #include <Board.h>
+#include <FileHandler.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -101,12 +102,57 @@ private:
     static const ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
 };
 
-#if 0
 class FwProgCmdProvider : public CmdProvider {
     public:
-        FwProgCmdProvider(FileHandle * fs);
-}
-#endif
+        FwProgCmdProvider(FileHandler * fs) :
+        m_index(0),
+        m_fileSystem(fs)
+    {}
+
+    virtual void reset() { m_index = 0; }
+
+    virtual bool next(const CommandInfo *& cmd, const ResponseInfo *& rsp)
+    {
+        static const uint32_t CHUNK_SIZE = 128U;
+        /*Determine the current chunk start address*/
+        uint32_t chunkStartAddress = m_index * CHUNK_SIZE;
+
+        /*Read 128 bytes from the file system*/
+        char buffer[CHUNK_SIZE];
+        String fileName = " "; /**< Bin File to be flashed.*/
+        size_t bytesRead = m_fileSystem->readFile(fileName, buffer, chunkStartAddress);
+
+        /*If no bytes were read, there are no more chunks left*/
+        if (0 == bytesRead) {
+            cmd = nullptr;
+            rsp = nullptr;
+            return false;
+        }
+        
+        /*Determine the command and response for the current chunk*/
+        uint32_t commandIndex = m_index % SEQ_LENGHT;
+        cmd = &m_cmds[commandIndex];
+        if(cmd->command == Zumo32U4Specification::WRITE_MEMORY_PAGE)
+        {
+            cmd += *buffer;
+        }
+        rsp = &m_responses[commandIndex];
+
+        /* Move to the next chunk*/
+        ++m_index;
+
+        return true;
+    }
+
+private:
+    uint32_t m_index; /**< current index in sequence.*/
+    FileHandler *m_fileSystem; /**< Instance of FileHandler.*/
+    static const CommandInfo m_cmds[]; /**< Array of command information.*/
+    static const ResponseInfo m_responses[]; /**< Array of response information.*/
+    static const uint32_t SEQ_LENGHT = 2U; /**< Length of the command sequence.*/
+
+};
+
 /******************************************************************************
  * Prototypes
  *****************************************************************************/
@@ -146,12 +192,29 @@ const ResponseInfo IntProgCmdProvider::m_responses[] = {
     {Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE,sizeof(Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE)},
 };
 
+const CommandInfo FwProgCmdProvider::m_cmds[] = {
+            {Zumo32U4Specification::SET_MEMORY_ADDR, sizeof(Zumo32U4Specification::SET_MEMORY_ADDR)},
+            {Zumo32U4Specification::WRITE_MEMORY_PAGE, sizeof(Zumo32U4Specification::WRITE_MEMORY_PAGE)}
+};
+
+const ResponseInfo FwProgCmdProvider::m_responses[] = {
+            {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)},
+            {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)}
+};
+
 /**
  * @brief Static instance of the internal programming command provider.
  * This static variable holds an instance of the IntProgCmdProvider class,
  * which provides commands for internal programming.
  */
 static IntProgCmdProvider m_initProvider;
+
+/**
+ * @brief Static instance of the internal programming command provider.
+ * This static variable holds an instance of the FwProgCmdProvider class,
+ * which provides commands for internal programming.
+ */
+static FwProgCmdProvider m_fwProvider(new FileHandler);
 
 /**
  * @ brief Array of command providers.
@@ -161,11 +224,10 @@ static IntProgCmdProvider m_initProvider;
 static CmdProvider * cmdProviders[] = 
 {
     &m_initProvider, /**< Pointer to the internal programming command provider.*/
+    &m_fwProvider,
     nullptr  /**< End marker indicating the end of the array.*/
 };
 
-/** Specifies the maximum firmware payload size in bytes when the firmware is uploaded for the Zumo robot platform */
-    static const uint32_t MAX_ZUMO_FW_BLOB_SIZE_BYTE = 28672U;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -197,7 +259,6 @@ void BootloaderCom::exitBootloader()
 
 }
 
-
 bool BootloaderCom::process()
 {
     size_t newBytes = 0; 
@@ -213,7 +274,6 @@ bool BootloaderCom::process()
 
                 ++m_currentProvider;
                 m_state = Idle;
-
             }
             else
             {
@@ -232,7 +292,7 @@ bool BootloaderCom::process()
                     m_currentCommand->commandsize))
                 {
                     m_waitingForResponse = true;
-                    m_state = ReadingResponse;   
+                    m_state = ReadingResponse;
                 }
                 else
                 {
@@ -248,7 +308,7 @@ bool BootloaderCom::process()
 
         case ReadingResponse:
             /*Handle Complete state*/
-            LOG_DEBUG("Size of currentsize= %d", m_currentResponse->responseSize);
+            LOG_DEBUG("Size of currentresponse= %d", m_currentResponse->responseSize);
             newBytes = m_flashManager.readingStream(receiveBuffer, m_currentResponse->responseSize);
             if(m_currentResponse->responseSize == newBytes)
             {
@@ -263,7 +323,7 @@ bool BootloaderCom::process()
                 {
                     LOG_ERROR("Compare is false");
                     m_state = Complete;
-                    m_waitingForResponse = false;   
+                    m_waitingForResponse = false;
                     break;
                 }
             }
