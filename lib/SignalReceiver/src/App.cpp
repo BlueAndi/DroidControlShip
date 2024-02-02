@@ -218,6 +218,13 @@ void App::setup()
                     }
                     else
                     {
+                        m_commandTimer.start(SEND_COMMANDS_TIMER_INTERVAL);
+                        m_motorSpeedTimer.start(SEND_MOTOR_SPEED_TIMER_INTERVAL);
+                        m_statusTimer.start(SEND_STATUS_TIMER_INTERVAL);
+
+                        /* Start with startup state. */
+                        m_systemStateMachine.setState(&StartupState::getInstance());
+
                         isSuccessful = true;
                     }
                 }
@@ -254,6 +261,12 @@ void App::loop()
 
     /** Process MQTT Communication */
     m_mqttClient.process();
+
+    /* Process System State Machine */
+    m_systemStateMachine.process();
+
+    /* Process periodic tasks. */
+    processPeriodicTasks();
 
     /** Send color once. */
     if ((true == gIsListening) && (oldColorId.colorId != clr.colorId))
@@ -337,10 +350,32 @@ void App::odometryCallback(const OdometryData& odometry)
                 LOG_DEBUG("Nothing to unsubscribe to.");
             }
 
-            gIsListening  = false;
-            gIsSubscribed = false;
-        }
+}
+
+void App::setErrorState()
+{
+    m_systemStateMachine.setState(&ErrorState::getInstance());
+}
+
+void App::systemStatusCallback(SMPChannelPayload::Status status)
+{
+    switch (status)
+    {
+    case SMPChannelPayload::STATUS_FLAG_OK:
+        /* Nothing to do. All good. */
+        break;
+
+    case SMPChannelPayload::STATUS_FLAG_ERROR:
+        LOG_DEBUG("RU Status ERROR.");
+        setErrorState();
+        m_statusTimeoutTimer.stop();
+        break;
+
+    default:
+        break;
     }
+
+    m_statusTimeoutTimer.start(STATUS_TIMEOUT_TIMER_INTERVAL);
 }
 
 void App::sendCurrentColor()
@@ -373,6 +408,75 @@ void App::fatalErrorHandler()
     while (true)
     {
         ;
+    }
+}
+
+void App::processPeriodicTasks()
+{
+    if ((true == m_commandTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        Command payload;
+        bool    isPending = StartupState::getInstance().getPendingCommand(payload);
+
+        if (true == isPending)
+        {
+            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &payload, sizeof(payload)))
+            {
+                LOG_WARNING("Failed to send StartupState pending command to RU.");
+            }
+        }
+
+        m_commandTimer.restart();
+    }
+
+    if ((true == m_motorSpeedTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        int16_t   centerSpeed = 0;
+        SpeedData payload;
+
+        if (false == DrivingState::getInstance().getTopMotorSpeed(centerSpeed))
+        {
+            centerSpeed = 0;
+        }
+
+        payload.center = centerSpeed;
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
+        {
+            LOG_WARNING("Failed to send motor speeds to RU.");
+        }
+
+        m_motorSpeedTimer.restart();
+    }
+
+    if ((true == m_statusTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
+
+        if (true == ErrorState::getInstance().isActive())
+        {
+            payload.status = SMPChannelPayload::Status::STATUS_FLAG_ERROR;
+        }
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
+        {
+            LOG_WARNING("Failed to send current status to RU.");
+        }
+
+        m_statusTimer.restart();
+    }
+
+    if ((false == m_statusTimeoutTimer.isTimerRunning()) && (true == m_smpServer.isSynced()))
+    {
+        /* Start status timeout timer once SMP is synced the first time. */
+        m_statusTimeoutTimer.start(STATUS_TIMEOUT_TIMER_INTERVAL);
+    }
+    else if (true == m_statusTimeoutTimer.isTimeout())
+    {
+        /* Not receiving status from RU. Go to error state. */
+        LOG_DEBUG("RU Status timeout.");
+        setErrorState();
+        m_statusTimeoutTimer.stop();
     }
 }
 
@@ -477,6 +581,7 @@ void App::settingsCallback(const String& payload)
         }
     }
 }
+
 /******************************************************************************
  * External Functions
  *****************************************************************************/
