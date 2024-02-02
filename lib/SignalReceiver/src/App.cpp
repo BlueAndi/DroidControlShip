@@ -200,15 +200,21 @@ void App::setup()
                 else
                 {
                     /** Setup SMP channels. */
-                    m_smpServer.subscribeToChannel(ODOMETRY_CHANNEL_NAME, App_odometryChannelCallback);
+                    m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME,
+                                                   App_currentVehicleChannelCallback);
+                    m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
+                    m_smpServer.subscribeToChannel(STATUS_CHANNEL_NAME, App_statusChannelCallback);
 
-                    /* Setup SerialMuxProt Channels */
-                    m_serialMuxProtChannelIdTrafficLightColors =
-                        m_smpServer.createChannel(TRAFFIC_LIGHT_COLORS_CHANNEL_NAME, TRAFFIC_LIGHT_COLORS_CHANNEL_DLC);
+                    m_serialMuxProtChannelIdRemoteCtrl =
+                        m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
+                    m_serialMuxProtChannelIdMotorSpeeds =
+                        m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+                    m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
 
-                    if (0U == m_serialMuxProtChannelIdTrafficLightColors)
+                    if ((0U == m_serialMuxProtChannelIdRemoteCtrl) && (0U == m_serialMuxProtChannelIdMotorSpeeds) &&
+                        (0U == m_serialMuxProtChannelIdStatus))
                     {
-                        LOG_FATAL("Could not create SerialMuxProt Channel: %s.", TRAFFIC_LIGHT_COLORS_CHANNEL_NAME);
+                        LOG_FATAL("Could not create SerialMuxProt Channels.");
                     }
                     else
                     {
