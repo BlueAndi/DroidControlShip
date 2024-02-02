@@ -273,6 +273,76 @@ void App::loop()
     /* Process periodic tasks. */
     processPeriodicTasks();
 
+    /** TODO: processTraffic() method */
+
+    /** Process traffic only when robot is driving. */
+    if ((true == DrivingState::getInstance().isActive()))
+    {
+        if (true == TrafficHandler::getInstance().process())
+        {
+            if (true == TrafficHandler::getInstance().checkLockIn())
+            {
+                /** Check the subscribe-once flag. */
+                if (false == gIsSubscribed)
+                {
+                    if (TrafficHandler::getInstance().getTargetName() != nullptr)
+                    {
+                        lockedOnto = TrafficHandler::getInstance().getTargetName();
+
+                        if (true == m_mqttClient.subscribe(TrafficHandler::getInstance().getTargetName(), false,
+                                                           [this](const String& payload)
+                                                           { trafficLightColorsCallback(payload); }))
+                        {
+                            LOG_DEBUG("Subscribed to Channel:%s.",
+                                      TrafficHandler::getInstance().getTargetName().c_str());
+                        }
+
+                        gIsSubscribed = true;
+                    }
+                }
+                else
+                {
+                    LOG_WARNING("Already subscribed to %s", TrafficHandler::getInstance().getTargetName().c_str());
+                }
+
+                /** If near, listen to signals. */
+                if (true == TrafficHandler::getInstance().isNear())
+                {
+                    LOG_DEBUG("Near IE, listening for signals from topic %s.",
+                              TrafficHandler::getInstance().getTargetName().c_str());
+                    gIsListening = true;
+                }
+                else
+                {
+                    LOG_DEBUG("Robot has more driving towards %s to do.",
+                              TrafficHandler::getInstance().getTargetName().c_str());
+                    gIsListening = false;
+                }
+            }
+            else
+            {
+                /** Unsub from IE. */
+                if (TrafficHandler::getInstance().getTargetName() == nullptr)
+                {
+                    LOG_DEBUG("Target name is invalid.");
+                }
+                else if ((TrafficHandler::getInstance().getTargetName() != nullptr) &&
+                         (TrafficHandler::getInstance().getTargetName() != ""))
+                {
+                    LOG_DEBUG("No longer locked onto IE, unsubbing from %s.",
+                              TrafficHandler::getInstance().getTargetName().c_str());
+                    m_mqttClient.unsubscribe(lockedOnto, false);
+                }
+                else
+                {
+                    LOG_DEBUG("Nothing to unsubscribe to.");
+                }
+
+                gIsListening  = false;
+                gIsSubscribed = false;
+            }
+        }
+    }
     /** Send color once. */
     if ((true == gIsListening) && (oldColorId.colorId != clr.colorId))
     {
@@ -292,71 +362,6 @@ void App::odometryCallback(const VehicleData& odometry)
     /** Set new coordinates in for processing. */
     CoordinateHandler::getInstance().setCurrentOrientation(odometry.orientation);
     CoordinateHandler::getInstance().setCurrentCoordinates(odometry.xPos, odometry.yPos);
-
-    /** Process list only when receiving new coordinates. */
-    if (true == TrafficHandler::getInstance().process())
-    {
-        if (true == TrafficHandler::getInstance().checkLockIn())
-        {
-            /** Check the subscribe-once flag. */
-            if (false == gIsSubscribed)
-            {
-                if (TrafficHandler::getInstance().getTargetName() != nullptr)
-                {
-                    lockedOnto = TrafficHandler::getInstance().getTargetName();
-
-                    if (true == m_mqttClient.subscribe(TrafficHandler::getInstance().getTargetName(), false,
-                                                       [this](const String& payload)
-                                                       { trafficLightColorsCallback(payload); }))
-                    {
-                        LOG_DEBUG("Subscribed to Channel:%s.", TrafficHandler::getInstance().getTargetName().c_str());
-                    }
-
-                    gIsSubscribed = true;
-                }
-            }
-            else
-            {
-                LOG_WARNING("Already subscribed to %s", TrafficHandler::getInstance().getTargetName().c_str());
-            }
-
-            /** If near, listen to signals. */
-            if (true == TrafficHandler::getInstance().isNear())
-            {
-                LOG_DEBUG("Near IE, listening for signals from topic %s.",
-                          TrafficHandler::getInstance().getTargetName().c_str());
-                gIsListening = true;
-            }
-            else
-            {
-                LOG_DEBUG("Robot has more driving towards %s to do.",
-                          TrafficHandler::getInstance().getTargetName().c_str());
-                gIsListening = false;
-            }
-        }
-        else
-        {
-            /** Unsub from IE. */
-            if (TrafficHandler::getInstance().getTargetName() == nullptr)
-            {
-                LOG_DEBUG("Target name is invalid.");
-            }
-            else if ((TrafficHandler::getInstance().getTargetName() != nullptr) &&
-                     (TrafficHandler::getInstance().getTargetName() != ""))
-            {
-                LOG_DEBUG("No longer locked onto IE, unsubbing from %s.",
-                          TrafficHandler::getInstance().getTargetName().c_str());
-                m_mqttClient.unsubscribe(lockedOnto, false);
-            }
-            else
-            {
-                LOG_DEBUG("Nothing to unsubscribe to.");
-            }
-
-            gIsListening  = false;
-            gIsSubscribed = false;
-        }
-    }
 }
 
 void App::setErrorState()

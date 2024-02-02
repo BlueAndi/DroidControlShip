@@ -121,6 +121,16 @@ public:
      */
     void setLastFollowerFeedback(const VehicleData& feedback);
 
+    /**
+     * Is state active?
+     *
+     * @return If state is active, it will return true otherwise false.
+     */
+    bool isActive() const
+    {
+        return m_isActive;
+    }
+
 protected:
 private:
     /** Flag: State is active. */
