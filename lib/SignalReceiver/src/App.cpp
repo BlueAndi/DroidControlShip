@@ -67,7 +67,9 @@
  * Prototypes
  *****************************************************************************/
 
-static void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
+static void App_statusChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -478,8 +480,46 @@ void App::settingsCallback(const String& payload)
  *****************************************************************************/
 
 /**
+ * Receives remote control command responses over SerialMuxProt channel.
+ *
+ * @param[in] payload       Command id
+ * @param[in] payloadSize   Size of command id
+ * @param[in] userData      User data
+ */
+void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+{
+    if ((nullptr != payload) && (COMMAND_RESPONSE_CHANNEL_DLC == payloadSize) && (nullptr != userData))
+    {
+        App*                   application = reinterpret_cast<App*>(userData);
+        const CommandResponse* cmdRsp      = reinterpret_cast<const CommandResponse*>(payload);
+        LOG_DEBUG("CMD_RSP: ID: 0x%02X , RSP: 0x%02X", cmdRsp->commandId, cmdRsp->responseId);
+
+        if (SMPChannelPayload::RSP_ID_ERROR == cmdRsp->responseId)
+        {
+            /* Go to error state. */
+            application->setErrorState();
+        }
+        else if (SMPChannelPayload::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
+        {
+            LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
+            DrivingState::getInstance().setMaxMotorSpeed(cmdRsp->maxMotorSpeed);
+            StartupState::getInstance().notifyCommandProcessed();
+        }
+        else if (SMPChannelPayload::CMD_ID_SET_INIT_POS == cmdRsp->commandId)
+        {
+            StartupState::getInstance().notifyCommandProcessed();
+        }
+    }
+    else
+    {
+        LOG_WARNING("CMD_RSP: Invalid payload size. Expected: %u Received: %u", COMMAND_RESPONSE_CHANNEL_DLC,
+                    payloadSize);
+    }
+}
+
+/**
  * Type: Rx SMP
- * Name: odometryChannelCallback
+ * Name: currentVehicleChannelCallback
  *
  * Receives current position and heading of the robot over SerialMuxProt channel.
  *
@@ -487,18 +527,37 @@ void App::settingsCallback(const String& payload)
  * @param[in] payloadSize   Size of two coordinates and one orientation.
  * @param[in] userData      Instance of App class.
  */
-void App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
     (void)userData;
-    if ((nullptr != payload) && (ODOMETRY_CHANNEL_DLC == payloadSize) && (nullptr != userData))
+    if ((nullptr != payload) && (CURRENT_VEHICLE_DATA_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
-        const OdometryData* odometryData = reinterpret_cast<const OdometryData*>(payload);
-        App*                application  = reinterpret_cast<App*>(userData);
+        const VehicleData* odometryData = reinterpret_cast<const VehicleData*>(payload);
+        App*               application  = reinterpret_cast<App*>(userData);
 
         application->odometryCallback(*odometryData);
     }
     else
     {
-        LOG_WARNING("ODOMETRY: Invalid payload size. Expected: %u Received: %u", ODOMETRY_CHANNEL_DLC, payloadSize);
+        LOG_WARNING("ODOMETRY: Invalid payload size. Expected: %u Received: %u", CURRENT_VEHICLE_DATA_CHANNEL_DLC,
+                    payloadSize);
+    }
+}
+
+/**
+ * Receives current status of the RU over SerialMuxProt channel.
+ *
+ * @param[in] payload       Status of the RU.
+ * @param[in] payloadSize   Size of the Status Flag
+ * @param[in] userData      Instance of App class.
+ */
+void App_statusChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+{
+    if ((nullptr != payload) && (STATUS_CHANNEL_DLC == payloadSize) && (nullptr != userData))
+    {
+        LOG_DEBUG("Status received.");
+        const Status* currentStatus = reinterpret_cast<const Status*>(payload);
+        App*          application   = reinterpret_cast<App*>(userData);
+        application->systemStatusCallback(currentStatus->status);
     }
 }
