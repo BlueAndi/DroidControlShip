@@ -46,8 +46,8 @@
 #include <Arduino.h>
 #include <Board.h>
 #include <MqttClient.h>
-#include <SerialMuxProtServer.hpp>
 #include "SerialMuxChannels.h"
+#include <StateMachine.h>
 
 /******************************************************************************
  * Macros
@@ -65,11 +65,17 @@ public:
      * Construct the Remote Control application.
      */
     App() :
+        m_serialMuxProtChannelIdRemoteCtrl(0U),
+        m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_serialMuxProtChannelIdStatus(0U),
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
-        m_serialMuxProtChannelIdCoordinates(0U),
         m_serialMuxProtChannelIdTrafficLightColors(0U),
         m_mqttClient(),
-        m_sendPackageTimer(),
+        m_systemStateMachine(),
+        m_commandTimer(),
+        m_motorSpeedTimer(),
+        m_statusTimer(),
+        m_statusTimeoutTimer(),
         clr(),
         oldColorId()
     {
@@ -93,11 +99,23 @@ public:
     void loop();
 
     /**
+     * Set error state.
+     */
+    void setErrorState();
+
+    /**
+     * System Status callback.
+     *
+     * @param[in] status    System status
+     */
+    void systemStatusCallback(SMPChannelPayload::Status status);
+
+    /**
      * Odometry Callback
      *
      * @param[in] odometry  Odometry data.
      */
-    void odometryCallback(const OdometryData& odometry);
+    void odometryCallback(const VehicleData& odometry);
 
     /**
      * Sends colorId through SMP.
@@ -107,6 +125,18 @@ public:
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
+
+    /** Send commands timer interval in ms. */
+    static const uint32_t SEND_COMMANDS_TIMER_INTERVAL = 100U;
+
+    /** Send motor speed timer interval in ms. */
+    static const uint32_t SEND_MOTOR_SPEED_TIMER_INTERVAL = 100U;
+
+    /** Send status timer interval in ms. */
+    static const uint32_t SEND_STATUS_TIMER_INTERVAL = 1000U;
+
+    /** Status timeout timer interval in ms. */
+    static const uint32_t STATUS_TIMEOUT_TIMER_INTERVAL = 2U * SEND_STATUS_TIMER_INTERVAL;
 
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
@@ -120,29 +150,54 @@ private:
     /** MQTT topic name for receiving settings. */
     static const char* TOPIC_NAME_SETTINGS;
 
-    /** SerialMuxProt Channel id receiving coordinates. */
-    uint8_t m_serialMuxProtChannelIdCoordinates;
+    /** SerialMuxProt Channel id for sending remote control commands. */
+    uint8_t m_serialMuxProtChannelIdRemoteCtrl;
+
+    /** SerialMuxProt Channel id for sending motor speeds. */
+    uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+
+    /** SerialMuxProt Channel id for sending system status. */
+    uint8_t m_serialMuxProtChannelIdStatus;
 
     /** SerialMuxProt Channel id sending current traffic light color ID. */
     uint8_t m_serialMuxProtChannelIdTrafficLightColors;
 
     /**
      * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
-    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
+    SMPServer m_smpServer;
 
     /**
      * MQTTClient Instance
      */
     MqttClient m_mqttClient;
 
-private:
-    /** Timer for sending coordinate sets. */
-    SimpleTimer m_sendPackageTimer;
+    /**
+     * The system state machine.
+     */
+    StateMachine m_systemStateMachine;
 
-    /** Sending coordinate Id only once in trigger area. */
+    /**
+     * Timer for sending initial commands.
+     */
+    SimpleTimer m_commandTimer;
+
+    /**
+     * Timer for sending motor speed to RU.
+     */
+    SimpleTimer m_motorSpeedTimer;
+
+    /**
+     * Timer for sending system status to RU.
+     */
+    SimpleTimer m_statusTimer;
+
+    /**
+     * Timer for timeout of system status of RU.
+     */
+    SimpleTimer m_statusTimeoutTimer;
+
+    /** Sending color Id only when near IE. */
     bool gIsListening = false;
 
     /** Used for unique subscription. */
@@ -161,6 +216,11 @@ private:
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();
+
+    /**
+     * Process periodic tasks.
+     */
+    void processPeriodicTasks();
 
     /**
      * Callback for Traffic Light Colors MQTT Topic.
