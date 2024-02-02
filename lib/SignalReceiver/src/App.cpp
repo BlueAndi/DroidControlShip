@@ -45,6 +45,11 @@
 #include <TrafficElement.h>
 #include <TrafficHandler.h>
 
+#include "StartupState.h"
+#include "IdleState.h"
+#include "DrivingState.h"
+#include "ErrorState.h"
+
 #include <math.h>
 
 /******************************************************************************
