@@ -102,34 +102,61 @@ private:
     static const ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
 };
 
+/**
+ * @class FwProgCmdProvider
+ * @brief Implementation of the command provider for firmware programming.
+ *
+ * This class provides commands for firmware programming, specifically tailored
+ * for the Zumo32U4 device.
+ */
 class FwProgCmdProvider : public CmdProvider {
     public:
+        /**
+         * @brief Constructor for the FwProgCmdProvider class.
+         * @param fs A pointer to the FileHandler object for handling file operations.
+         */
         FwProgCmdProvider(FileHandler * fs) :
         m_index(0),
         m_fileSystem(fs)
     {}
 
+    /**
+     * @brief Resets the command provider to its initial state.
+     *
+     * This method resets the internal index that tracks the current command
+     * in the command sequence memory.
+     */
     virtual void reset() { m_index = 0; }
 
+    /**
+     * @brief Retrieves the next command and the next response.
+     *
+     * This method returns the next command and its associated response
+     * from the command sequence memory.
+     *
+     * @param cmd Reference to a pointer to the next command.
+     * @param rsp Reference to a pointer to the next response.
+     * @return True if there is a next command and next response, false otherwise.
+     */
     virtual bool next(const CommandInfo *& cmd, const ResponseInfo *& rsp)
     {
         static const uint32_t CHUNK_SIZE = 128U;
-        /*Determine the current chunk start address*/
+        /*Determine the current chunk start address.*/
         uint32_t chunkStartAddress = m_index * CHUNK_SIZE;
 
-        /*Read 128 bytes from the file system*/
+        /*Read 128 bytes from the file system.*/
         char buffer[CHUNK_SIZE];
         String fileName = " "; /**< Bin File to be flashed.*/
         size_t bytesRead = m_fileSystem->readFile(fileName, buffer, chunkStartAddress);
 
-        /*If no bytes were read, there are no more chunks left*/
+        /*If no bytes were read, there are no more chunks left.*/
         if (0 == bytesRead) {
             cmd = nullptr;
             rsp = nullptr;
             return false;
         }
         
-        /*Determine the command and response for the current chunk*/
+        /*Determine the command and response for the current chunk.*/
         uint32_t commandIndex = m_index % SEQ_LENGHT;
         cmd = &m_cmds[commandIndex];
         if(cmd->command == Zumo32U4Specification::WRITE_MEMORY_PAGE)
@@ -138,7 +165,7 @@ class FwProgCmdProvider : public CmdProvider {
         }
         rsp = &m_responses[commandIndex];
 
-        /* Move to the next chunk*/
+        /* Move to the next chunk.*/
         ++m_index;
 
         return true;
