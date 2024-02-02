@@ -282,7 +282,7 @@ void App::loop()
     }
 }
 
-void App::odometryCallback(const OdometryData& odometry)
+void App::odometryCallback(const VehicleData& odometry)
 {
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
     char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
@@ -347,14 +347,16 @@ void App::odometryCallback(const OdometryData& odometry)
                 LOG_DEBUG("No longer locked onto IE, unsubbing from %s.",
                           TrafficHandler::getInstance().getTargetName().c_str());
                 m_mqttClient.unsubscribe(lockedOnto, false);
-
-                // TrafficHandler::getInstance().clearTarget();
             }
             else
             {
                 LOG_DEBUG("Nothing to unsubscribe to.");
             }
 
+            gIsListening  = false;
+            gIsSubscribed = false;
+        }
+    }
 }
 
 void App::setErrorState()
