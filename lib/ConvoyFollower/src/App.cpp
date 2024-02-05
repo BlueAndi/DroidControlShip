@@ -216,7 +216,7 @@ void App::loop()
     m_mqttClient.process();
 
     /* Process V2V Communication */
-    m_v2vCommManager.process(V2VCommManager::VEHICLE_STATUS_ERROR);
+    processV2VCommunication();
 
     /* Process System State Machine */
     m_systemStateMachine.process();
