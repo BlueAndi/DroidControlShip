@@ -46,6 +46,7 @@
 #include <Waypoint.h>
 #include <queue>
 #include <SimpleTimer.hpp>
+#include "Follower.h"
 
 /******************************************************************************
  * Macros
@@ -73,10 +74,19 @@ public:
     /** V2VCommunication Manager Status. */
     enum V2VStatus : uint8_t
     {
-        V2V_STATUS_OK = 0U,       /**< Status OK */
-        V2V_STATUS_NOT_INIT,      /**< Not initialized */
-        V2V_STATUS_LOST_FOLLOWER, /**< Lost follower */
-        V2V_STATUS_GENERAL_ERROR  /**< General error */
+        V2V_STATUS_OK = 0U,        /**< Status OK */
+        V2V_STATUS_NOT_INIT,       /**< Not initialized */
+        V2V_STATUS_LOST_FOLLOWER,  /**< Lost follower */
+        V2V_STATUS_FOLLOWER_ERROR, /**< Follower error */
+        V2V_STATUS_GENERAL_ERROR   /**< General error */
+    };
+
+    /** Vehicle Status. */
+    enum VehicleStatus : uint8_t
+    {
+        VEHICLE_STATUS_UNKNOWN = 0U, /**< Vehicle status unknown */
+        VEHICLE_STATUS_OK,           /**< Vehicle status OK */
+        VEHICLE_STATUS_ERROR         /**< Vehicle status error */
     };
 
     /**
@@ -104,9 +114,11 @@ public:
     /**
      * Process the V2V communication manager.
      *
+     * @param[in] status    Vehicle status.
+     *
      * @return V2VCommManager Status.
      */
-    V2VStatus process();
+    V2VStatus process(VehicleStatus status);
 
     /**
      * Send a Waypoint to the next vehicle in the platoon.
@@ -202,7 +214,13 @@ private:
     SimpleTimer m_vehicleHeartbeatTimeoutTimer;
 
     /** Current Status. */
-    V2VStatus m_status;
+    V2VStatus m_v2vStatus;
+
+    /** Vehicle Status. */
+    VehicleStatus m_vehicleStatus;
+
+    /** Followers. */
+    Follower m_followers[NUMBER_OF_FOLLOWERS];
 
 private:
     /**

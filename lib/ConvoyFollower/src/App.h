@@ -200,6 +200,11 @@ private:
      */
     SimpleTimer m_statusTimeoutTimer;
 
+    /**
+     * Process V2V communication.
+     */
+    void processV2VCommunication();
+
 private:
     /**
      * Handler of fatal errors in the Application.

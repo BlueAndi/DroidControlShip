@@ -216,7 +216,7 @@ void App::loop()
     m_mqttClient.process();
 
     /* Process V2V Communication */
-    m_v2vCommManager.process();
+    m_v2vCommManager.process(V2VCommManager::VEHICLE_STATUS_ERROR);
 
     /* Process System State Machine */
     m_systemStateMachine.process();
@@ -475,6 +475,44 @@ void App::processPeriodicTasks()
         LOG_DEBUG("RU Status timeout.");
         setErrorState();
         m_statusTimeoutTimer.stop();
+    }
+}
+
+void App::processV2VCommunication()
+{
+    V2VCommManager::V2VStatus     v2vStatus     = V2VCommManager::V2V_STATUS_OK;
+    V2VCommManager::VehicleStatus vehicleStatus = V2VCommManager::VEHICLE_STATUS_OK;
+
+    if (true == ErrorState::getInstance().isActive())
+    {
+        vehicleStatus = V2VCommManager::VEHICLE_STATUS_ERROR;
+    }
+
+    v2vStatus = m_v2vCommManager.process(vehicleStatus);
+
+    switch (v2vStatus)
+    {
+    case V2VCommManager::V2V_STATUS_OK:
+        /* All good. Nothing to do. */
+        break;
+
+    case V2VCommManager::V2V_STATUS_NOT_INIT:
+        LOG_WARNING("V2V not initialized.");
+        break;
+
+    case V2VCommManager::V2V_STATUS_LOST_FOLLOWER:
+    case V2VCommManager::V2V_STATUS_FOLLOWER_ERROR:
+        LOG_ERROR("Follower Error");
+        setErrorState();
+        break;
+
+    case V2VCommManager::V2V_STATUS_GENERAL_ERROR:
+        LOG_ERROR("V2V Communication error.");
+        setErrorState();
+        break;
+
+    default:
+        break;
     }
 }
 

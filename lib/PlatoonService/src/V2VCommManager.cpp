@@ -86,7 +86,9 @@ V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_followerResponseCounter(0U),
     m_platoonHeartbeatTimer(),
     m_vehicleHeartbeatTimeoutTimer(),
-    m_status(V2V_STATUS_NOT_INIT)
+    m_v2vStatus(V2V_STATUS_NOT_INIT),
+    m_vehicleStatus(),
+    m_followers{}
 {
 }
 
@@ -141,16 +143,18 @@ bool V2VCommManager::init(uint8_t platoonId, uint8_t vehicleId)
 
     if (true == isSuccessful)
     {
-        m_status = V2V_STATUS_OK;
+        m_v2vStatus = V2V_STATUS_OK;
     }
 
     return isSuccessful;
 }
 
-V2VCommManager::V2VStatus V2VCommManager::process()
+V2VCommManager::V2VStatus V2VCommManager::process(VehicleStatus status)
 {
+    m_vehicleStatus = status;
+
     /* Is MQTT client connected? */
-    if (true == m_mqttClient.isConnected())
+    if ((true == m_mqttClient.isConnected()) && (V2V_STATUS_OK == m_v2vStatus))
     {
         /* Send Platoon Heartbeat. Only active as leader. */
         if (true == m_platoonHeartbeatTimer.isTimeout())
@@ -159,7 +163,7 @@ V2VCommManager::V2VStatus V2VCommManager::process()
             if (false == sendPlatoonHeartbeat())
             {
                 LOG_ERROR("Failed to send platoon heartbeat.");
-                m_status = V2V_STATUS_GENERAL_ERROR;
+                m_v2vStatus = V2V_STATUS_GENERAL_ERROR;
             }
             else
             {
@@ -180,12 +184,12 @@ V2VCommManager::V2VStatus V2VCommManager::process()
             if (NUMBER_OF_FOLLOWERS != m_followerResponseCounter)
             {
                 LOG_ERROR("Not all participants responded to heartbeat.");
-                m_status = V2V_STATUS_LOST_FOLLOWER;
+                m_v2vStatus = V2V_STATUS_LOST_FOLLOWER;
             }
             else
             {
                 LOG_DEBUG("All participants responded to heartbeat.");
-                m_status = V2V_STATUS_OK;
+                m_v2vStatus = V2V_STATUS_OK;
             }
 
             /* Stop timer. */
@@ -193,7 +197,7 @@ V2VCommManager::V2VStatus V2VCommManager::process()
         }
     }
 
-    return m_status;
+    return m_v2vStatus;
 }
 
 bool V2VCommManager::sendWaypoint(const Waypoint& waypoint)
@@ -288,6 +292,7 @@ void V2VCommManager::platoonHeartbeatTopicCallback(const String& payload)
         {
             heartbeatDoc["id"]        = m_vehicleId;
             heartbeatDoc["timestamp"] = jsonTimestamp.as<uint32_t>();
+            heartbeatDoc["status"]    = m_vehicleStatus;
 
             if (0U == serializeJson(heartbeatDoc, heartbeatPayload))
             {
@@ -319,13 +324,15 @@ void V2VCommManager::vehicleHeartbeatTopicCallback(const String& payload)
     {
         JsonVariant jsonId        = jsonPayload["id"];        /* Vehicle ID. */
         JsonVariant jsonTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
+        JsonVariant jsonStatus    = jsonPayload["status"];    /* Vehicle status. */
 
-        if ((false == jsonId.isNull()) && (false == jsonTimestamp.isNull()))
+        if ((false == jsonId.isNull()) && (false == jsonTimestamp.isNull()) && (false == jsonStatus.isNull()))
         {
             uint8_t  id        = jsonId.as<uint8_t>();
             uint32_t timestamp = jsonTimestamp.as<uint32_t>();
+            uint8_t  status    = jsonStatus.as<uint8_t>();
 
-            if (m_vehicleId == id)
+            if (PLATOON_LEADER_ID == id)
             {
                 /* This is me, the leader! */
             }
@@ -340,7 +347,21 @@ void V2VCommManager::vehicleHeartbeatTopicCallback(const String& payload)
             }
             else
             {
+                uint8_t   followerArrayIndex = id - 1U; /*Already checked id != 0U */
+                Follower& follower           = m_followers[followerArrayIndex];
+
+                /* Update follower. */
+                follower.setLastHeartbeatTimestamp(timestamp);
+                follower.setStatus(status);
+
                 ++m_followerResponseCounter;
+
+                /* Check follower status. */
+                if (VEHICLE_STATUS_OK != status)
+                {
+                    LOG_ERROR("Follower %d status: %d.", id, status);
+                    m_v2vStatus = V2V_STATUS_FOLLOWER_ERROR;
+                }
             }
         }
     }

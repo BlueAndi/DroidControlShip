@@ -451,9 +451,17 @@ void App::processPeriodicTasks()
 
 void App::processV2VCommunication()
 {
-    V2VCommManager::V2VStatus status = m_v2vCommManager.process();
+    V2VCommManager::V2VStatus     v2vStatus     = V2VCommManager::V2V_STATUS_OK;
+    V2VCommManager::VehicleStatus vehicleStatus = V2VCommManager::VEHICLE_STATUS_OK;
 
-    switch (status)
+    if (true == ErrorState::getInstance().isActive())
+    {
+        vehicleStatus = V2VCommManager::VEHICLE_STATUS_ERROR;
+    }
+
+    v2vStatus = m_v2vCommManager.process(vehicleStatus);
+
+    switch (v2vStatus)
     {
     case V2VCommManager::V2V_STATUS_OK:
         /* All good. Nothing to do. */
@@ -464,7 +472,8 @@ void App::processV2VCommunication()
         break;
 
     case V2VCommManager::V2V_STATUS_LOST_FOLLOWER:
-        LOG_ERROR("Lost follower.");
+    case V2VCommManager::V2V_STATUS_FOLLOWER_ERROR:
+        LOG_ERROR("Follower Error");
         setErrorState();
         break;
 
