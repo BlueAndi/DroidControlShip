@@ -85,7 +85,8 @@ V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_lastPlatoonHeartbeatTimestamp(0U),
     m_followerResponseCounter(0U),
     m_platoonHeartbeatTimer(),
-    m_vehicleHeartbeatTimeoutTimer()
+    m_vehicleHeartbeatTimeoutTimer(),
+    m_status(V2V_STATUS_NOT_INIT)
 {
 }
 
@@ -138,47 +139,61 @@ bool V2VCommManager::init(uint8_t platoonId, uint8_t vehicleId)
         m_platoonHeartbeatTimer.start(PLATOON_HEARTBEAT_TIMER_INTERVAL);
     }
 
+    if (true == isSuccessful)
+    {
+        m_status = V2V_STATUS_OK;
+    }
+
     return isSuccessful;
 }
 
-void V2VCommManager::process()
+V2VCommManager::V2VStatus V2VCommManager::process()
 {
-    /* Send Platoon Heartbeat. Only active as leader. */
-    if (true == m_platoonHeartbeatTimer.isTimeout())
+    /* Is MQTT client connected? */
+    if (true == m_mqttClient.isConnected())
     {
-        /* Send Platoon Heartbeat */
-        if (false == sendPlatoonHeartbeat())
+        /* Send Platoon Heartbeat. Only active as leader. */
+        if (true == m_platoonHeartbeatTimer.isTimeout())
         {
-            LOG_ERROR("Failed to send platoon heartbeat.");
+            /* Send Platoon Heartbeat */
+            if (false == sendPlatoonHeartbeat())
+            {
+                LOG_ERROR("Failed to send platoon heartbeat.");
+                m_status = V2V_STATUS_GENERAL_ERROR;
+            }
+            else
+            {
+                /* Start timeout timer. */
+                m_vehicleHeartbeatTimeoutTimer.start(VEHICLE_HEARTBEAT_TIMEOUT_TIMER_INTERVAL);
+
+                /* Reset follower response counter. */
+                m_followerResponseCounter = 0U;
+            }
+
+            /* Reset timer. */
+            m_platoonHeartbeatTimer.restart();
         }
-        else
+
+        /* Check participants heartbeats. Only active as leader. */
+        if (true == m_vehicleHeartbeatTimeoutTimer.isTimeout())
         {
-            /* Start timeout timer. */
-            m_vehicleHeartbeatTimeoutTimer.start(VEHICLE_HEARTBEAT_TIMEOUT_TIMER_INTERVAL);
+            if (NUMBER_OF_FOLLOWERS != m_followerResponseCounter)
+            {
+                LOG_ERROR("Not all participants responded to heartbeat.");
+                m_status = V2V_STATUS_LOST_FOLLOWER;
+            }
+            else
+            {
+                LOG_DEBUG("All participants responded to heartbeat.");
+                m_status = V2V_STATUS_OK;
+            }
 
-            /* Reset follower response counter. */
-            m_followerResponseCounter = 0U;
+            /* Stop timer. */
+            m_vehicleHeartbeatTimeoutTimer.stop();
         }
-
-        /* Reset timer. */
-        m_platoonHeartbeatTimer.restart();
     }
 
-    /* Check participants heartbeats. Only active as leader. */
-    if (true == m_vehicleHeartbeatTimeoutTimer.isTimeout())
-    {
-        if (NUMBER_OF_FOLLOWERS != m_followerResponseCounter)
-        {
-            LOG_ERROR("Not all participants responded to heartbeat.");
-        }
-        else
-        {
-            LOG_DEBUG("All participants responded to heartbeat.");
-        }
-
-        /* Stop timer. */
-        m_vehicleHeartbeatTimeoutTimer.stop();
-    }
+    return m_status;
 }
 
 bool V2VCommManager::sendWaypoint(const Waypoint& waypoint)

@@ -70,6 +70,15 @@ public:
         PARTICIPANT_TYPE_FOLLOWER      /**< Platoon follower */
     };
 
+    /** V2VCommunication Manager Status. */
+    enum V2VStatus : uint8_t
+    {
+        V2V_STATUS_OK = 0U,       /**< Status OK */
+        V2V_STATUS_NOT_INIT,      /**< Not initialized */
+        V2V_STATUS_LOST_FOLLOWER, /**< Lost follower */
+        V2V_STATUS_GENERAL_ERROR  /**< General error */
+    };
+
     /**
      * Constructs a V2V manager.
      *
@@ -94,8 +103,10 @@ public:
 
     /**
      * Process the V2V communication manager.
+     *
+     * @return V2VCommManager Status.
      */
-    void process();
+    V2VStatus process();
 
     /**
      * Send a Waypoint to the next vehicle in the platoon.
@@ -189,6 +200,9 @@ private:
 
     /** Vehicle heartbeat timeout timer. */
     SimpleTimer m_vehicleHeartbeatTimeoutTimer;
+
+    /** Current Status. */
+    V2VStatus m_status;
 
 private:
     /**

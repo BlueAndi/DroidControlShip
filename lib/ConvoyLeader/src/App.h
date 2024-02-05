@@ -231,6 +231,11 @@ private:
      */
     void processPeriodicTasks();
 
+    /**
+     * Process V2V communication.
+     */
+    void processV2VCommunication();
+
 private:
     /* Not allowed. */
     App(const App& app);            /**< Copy construction of an instance. */

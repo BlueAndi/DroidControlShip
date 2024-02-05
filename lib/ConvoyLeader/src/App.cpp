@@ -220,7 +220,7 @@ void App::loop()
     m_mqttClient.process();
 
     /* Process V2V Communication */
-    m_v2vCommManager.process();
+    processV2VCommunication();
 
     /* Process System State Machine */
     m_systemStateMachine.process();
@@ -446,6 +446,35 @@ void App::processPeriodicTasks()
         LOG_DEBUG("RU Status timeout.");
         setErrorState();
         m_statusTimeoutTimer.stop();
+    }
+}
+
+void App::processV2VCommunication()
+{
+    V2VCommManager::V2VStatus status = m_v2vCommManager.process();
+
+    switch (status)
+    {
+    case V2VCommManager::V2V_STATUS_OK:
+        /* All good. Nothing to do. */
+        break;
+
+    case V2VCommManager::V2V_STATUS_NOT_INIT:
+        LOG_WARNING("V2V not initialized.");
+        break;
+
+    case V2VCommManager::V2V_STATUS_LOST_FOLLOWER:
+        LOG_ERROR("Lost follower.");
+        setErrorState();
+        break;
+
+    case V2VCommManager::V2V_STATUS_GENERAL_ERROR:
+        LOG_ERROR("V2V Communication error.");
+        setErrorState();
+        break;
+
+    default:
+        break;
     }
 }
 
