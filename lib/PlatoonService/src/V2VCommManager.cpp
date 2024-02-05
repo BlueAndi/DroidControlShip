@@ -329,6 +329,10 @@ void V2VCommManager::vehicleHeartbeatTopicCallback(const String& payload)
             {
                 /* This is me, the leader! */
             }
+            else if (id > NUMBER_OF_FOLLOWERS)
+            {
+                LOG_ERROR("Received heartbeat from unknown vehicle %d.", id);
+            }
             else if (timestamp != m_lastPlatoonHeartbeatTimestamp)
             {
                 LOG_ERROR("Received heartbeat from vehicle %d with timestamp %d, expected %d.", id, timestamp,
