@@ -94,6 +94,12 @@ V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
 
 V2VCommManager::~V2VCommManager()
 {
+    while (0U != m_waypointQueue.size())
+    {
+        Waypoint* nextWaypoint = m_waypointQueue.front();
+        m_waypointQueue.pop();
+        delete nextWaypoint;
+    }
 }
 
 bool V2VCommManager::init(uint8_t platoonId, uint8_t vehicleId)
@@ -284,14 +290,16 @@ void V2VCommManager::platoonHeartbeatTopicCallback(const String& payload)
     else
     {
         /* Send vehicle heartbeat. */
-        JsonVariant                                 jsonTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
-        StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
-        String                                      heartbeatPayload;
+        JsonVariant jsonTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
 
         if (false == jsonTimestamp.isNull())
         {
+            StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
+            String                                      heartbeatPayload;
+
+            /* Timestamp is sent back to acknowledge synchronization. */
+            heartbeatDoc["timestamp"] = jsonTimestamp.as<uint32_t>(); /* Timestamp [ms]. */
             heartbeatDoc["id"]        = m_vehicleId;
-            heartbeatDoc["timestamp"] = jsonTimestamp.as<uint32_t>();
             heartbeatDoc["status"]    = m_vehicleStatus;
 
             if (0U == serializeJson(heartbeatDoc, heartbeatPayload))
@@ -518,7 +526,9 @@ bool V2VCommManager::sendPlatoonHeartbeat()
     else
     {
         LOG_DEBUG("Sent platoon heartbeat: %s", heartbeatPayload.c_str());
-        isSuccessful                    = true;
+        isSuccessful = true;
+
+        /* Save last timestamp in which the follower heartbeat was present. May be used for debugging in the future. */
         m_lastPlatoonHeartbeatTimestamp = timestamp;
     }
 
