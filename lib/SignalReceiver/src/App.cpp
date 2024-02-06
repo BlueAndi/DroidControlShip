@@ -390,20 +390,6 @@ void App::systemStatusCallback(SMPChannelPayload::Status status)
     m_statusTimeoutTimer.start(STATUS_TIMEOUT_TIMER_INTERVAL);
 }
 
-void App::sendCurrentColor()
-{
-    /** if signal matches lockOn target, send the color. */
-
-    if (true == m_smpServer.sendData(m_serialMuxProtChannelIdTrafficLightColors, &clr, sizeof(clr)))
-    {
-        LOG_DEBUG("Color %d sent.", clr.colorId);
-    }
-    else
-    {
-        LOG_WARNING("Did not send color %d.", clr.colorId);
-    }
-}
-
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/
