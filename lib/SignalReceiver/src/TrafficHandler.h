@@ -161,7 +161,7 @@ public:
     }
 
     /** Traffic handler constructor. */
-    TrafficHandler()
+    TrafficHandler() : m_colorID(0U)
     {
     }
 
