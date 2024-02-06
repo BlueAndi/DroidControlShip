@@ -134,7 +134,7 @@ private:
     static const uint32_t PROCESS_TRAFFIC_TIMER_INTERVAL = 96U;
 
     /** Status timeout timer interval in ms. */
-    static const uint32_t STATUS_TIMEOUT_TIMER_INTERVAL = 2U * SEND_STATUS_TIMER_INTERVAL;
+    static const uint32_t STATUS_TIMEOUT_TIMER_INTERVAL = 4U * SEND_STATUS_TIMER_INTERVAL;
 
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
@@ -201,10 +201,10 @@ private:
     SimpleTimer m_statusTimeoutTimer;
 
     /** Sending color Id only when near IE. */
-    bool gIsListening = false;
+    bool m_isListening = false;
 
     /** Used for unique subscription. */
-    bool gIsSubscribed = false;
+    bool m_isSubscribed = false;
 
     /** Save current deserialized value of COLOR ID. */
     Color clr;
@@ -224,6 +224,13 @@ private:
      * Process periodic tasks.
      */
     void processPeriodicTasks();
+
+    /**
+     * Process traffic. This function will trigger
+     * subcriptions and unsubscriptions to IE topics based on
+     * distance between the robot and IEs.
+     */
+    void processTraffic();
 
     /**
      * Callback for Traffic Light Colors MQTT Topic.
