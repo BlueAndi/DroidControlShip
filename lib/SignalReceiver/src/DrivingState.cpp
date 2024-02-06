@@ -62,6 +62,9 @@
 void DrivingState::entry()
 {
     m_isActive = true;
+
+    /* Limit top speed for increased precision and reaction time. */
+    m_maxMotorSpeed = 1000;
 }
 
 void DrivingState::process(StateMachine& sm)
@@ -73,13 +76,6 @@ void DrivingState::process(StateMachine& sm)
     }
     else
     {
-        /* Limit top speed for increased precision and reaction time. */
-        m_maxMotorSpeed = 1000;
-
-        /** TODO SWITCH CASE OF VARIOUS COLORS AND REACTIONS BASED ON COLORS. */
-
-        
-
         /* Calculate top motor speed. */
         m_topMotorSpeed = m_maxMotorSpeed;
     }
