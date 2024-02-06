@@ -515,12 +515,12 @@ void App::trafficLightColorsCallback(const String& payload)
             if (oldColorId.colorId != color.as<uint8_t>())
             {
                 clr.colorId = color.as<uint8_t>();
+                TrafficHandler::getInstance().setColorID(clr.colorId);
+                LOG_DEBUG("COLOR_ID: %d", clr.colorId);
             }
             else
             {
             }
-
-            LOG_DEBUG("COLOR_ID: %d", clr.colorId);
         }
         else
         {

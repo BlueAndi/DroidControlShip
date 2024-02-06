@@ -37,6 +37,7 @@
 
 #include <Board.h>
 #include <MqttClient.h>
+#include <DrivingState.h>
 
 #include <Logging.h>
 #include <CoordinateHandler.cpp>
@@ -66,6 +67,59 @@
  *****************************************************************************/
 
 bool TrafficHandler::process()
+{
+    bool isSuccessful = false;
+
+    if (true == processList())
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
+void TrafficHandler::processColor()
+{
+    /* Trigger different functions based on what color the robot received. */
+    switch (m_colorID)
+    {
+    case 0:
+    {
+        /* No new color received. */
+        break;
+    }
+    case 1:
+    {
+        LOG_DEBUG("COLOR 1");
+        DrivingState::getInstance().setMaxMotorSpeed(0);
+        break;
+    }
+    case 2:
+    {
+        LOG_DEBUG("COLOR 2");
+        /* Keep driving. */
+        DrivingState::getInstance().setMaxMotorSpeed(1000);
+        break;
+    }
+    case 3:
+    {
+        LOG_DEBUG("COLOR 3");
+        DrivingState::getInstance().setMaxMotorSpeed(500);
+        break;
+    }
+    case 4:
+    {
+        LOG_DEBUG("COLOR 4");
+        DrivingState::getInstance().setMaxMotorSpeed(500);
+        break;
+    }
+    default:
+        /* Fatal error */
+        break;
+    }
+}
+
+bool TrafficHandler::processList()
 {
     bool isProcessed;
 
@@ -150,7 +204,7 @@ bool TrafficHandler::checkLockIn()
             if (listOfElements[i].getTopicName() != nullptr)
             {
                 lockedOnto = listOfElements[i].getTopicName();
-    
+
                 LOG_DEBUG("Locked onto %s", listOfElements[i].getIEName().c_str());
                 isTrue = true;
                 break;

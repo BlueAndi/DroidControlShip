@@ -74,11 +74,18 @@ public:
     }
 
     /**
-     * Process list by cycling IEs.
+     * Process traffic.
      *
-     * @returns true if robot-IE traffic successfully processed.
+     * @returns true if processing is successful.
      */
     bool process();
+
+    /**
+     * Process list of IEs.
+     *
+     * @returns true if the IE list is successfully processed.
+     */
+    bool processList();
 
     /**
      * Add new IE to the list of traffic participants.
@@ -91,13 +98,35 @@ public:
      * @param[in] defaultPreviousDistanceAsParameter is set to 0 as default.
      * @param[in] topicNameAsParameter is the MQTT topic to subscribe to.
      */
-    bool setNewInfrastructureElement(const String& nameAsParameter, 
-                                     int32_t orientationAsParameter, 
-                                     int32_t xPosAsParameter,
-                                     int32_t yPosAsParameter, 
-                                     int32_t defaultDistanceAsParameter,
-                                     int32_t defaultPreviousDistanceAsParameter, 
+    bool setNewInfrastructureElement(const String& nameAsParameter, int32_t orientationAsParameter,
+                                     int32_t xPosAsParameter, int32_t yPosAsParameter,
+                                     int32_t defaultDistanceAsParameter, int32_t defaultPreviousDistanceAsParameter,
                                      const String& topicNameAsParameter);
+
+    /**
+     * Set the value of received color.
+     *
+     * @param[in] receivedColor is the value of the color.
+     */
+    void setColorID(uint8_t receivedColor)
+    {
+        m_colorID = receivedColor;
+    }
+
+    /**
+     * Get the latest color ID.
+     *
+     * @returns the value of the color ID.
+     */
+    uint8_t getColorID()
+    {
+        return m_colorID;
+    }
+
+    /**
+     * Changes motor speeds based on the received color.
+     */
+    void processColor();
 
     /**
      * Check if robot-IE status is LOCKED_IN.
@@ -125,7 +154,7 @@ public:
 
     /**
      * Clears the target name.
-    */
+     */
     void clearTarget()
     {
         lockedOnto = "";
@@ -144,6 +173,9 @@ public:
 private:
     /** List of infrastructure elements. */
     TrafficElement listOfElements[10];
+
+    /** The value of the received color. */
+    uint8_t m_colorID;
 
     /** Max number of elements in the list. */
     uint8_t MAX_ELEMENTS = 10;
