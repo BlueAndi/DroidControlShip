@@ -117,11 +117,6 @@ public:
      */
     void odometryCallback(const VehicleData& odometry);
 
-    /**
-     * Sends colorId through SMP.
-     */
-    void sendCurrentColor();
-
 private:
     /** Minimum battery level in percent. */
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
@@ -134,6 +129,9 @@ private:
 
     /** Send status timer interval in ms. */
     static const uint32_t SEND_STATUS_TIMER_INTERVAL = 1000U;
+
+    /** Process traffic timer interval in ms. */
+    static const uint32_t PROCESS_TRAFFIC_TIMER_INTERVAL = 96U;
 
     /** Status timeout timer interval in ms. */
     static const uint32_t STATUS_TIMEOUT_TIMER_INTERVAL = 2U * SEND_STATUS_TIMER_INTERVAL;
@@ -186,6 +184,11 @@ private:
      * Timer for sending motor speed to RU.
      */
     SimpleTimer m_motorSpeedTimer;
+
+    /**
+     * Time for processing trffic.
+     */
+    SimpleTimer m_processTrafficTimer;
 
     /**
      * Timer for sending system status to RU.

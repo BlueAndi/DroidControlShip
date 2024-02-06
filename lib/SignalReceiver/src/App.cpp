@@ -227,6 +227,15 @@ void App::setup()
                         m_motorSpeedTimer.start(SEND_MOTOR_SPEED_TIMER_INTERVAL);
                         m_statusTimer.start(SEND_STATUS_TIMER_INTERVAL);
 
+                        /**
+                         * Asyncronous time amount to avoid a syncronization (a time amount equal to a multiple
+                         * of 5) between the RU odometry callback and traffic processing.
+                         *
+                         * If they are synced, there will be a cycle that will register old
+                         * and new distance as equal, which is false.
+                         */
+                        m_processTrafficTimer.start(PROCESS_TRAFFIC_TIMER_INTERVAL);
+
                         /* Start with startup state. */
                         m_systemStateMachine.setState(&StartupState::getInstance());
 
@@ -272,84 +281,6 @@ void App::loop()
 
     /* Process periodic tasks. */
     processPeriodicTasks();
-
-    /** TODO: processTraffic() method */
-
-    /** Process traffic only when robot is driving. */
-    if ((true == DrivingState::getInstance().isActive()))
-    {
-        if (true == TrafficHandler::getInstance().process())
-        {
-            if (true == TrafficHandler::getInstance().checkLockIn())
-            {
-                /** Check the subscribe-once flag. */
-                if (false == gIsSubscribed)
-                {
-                    if (TrafficHandler::getInstance().getTargetName() != nullptr)
-                    {
-                        lockedOnto = TrafficHandler::getInstance().getTargetName();
-
-                        if (true == m_mqttClient.subscribe(TrafficHandler::getInstance().getTargetName(), false,
-                                                           [this](const String& payload)
-                                                           { trafficLightColorsCallback(payload); }))
-                        {
-                            LOG_DEBUG("Subscribed to Channel:%s.",
-                                      TrafficHandler::getInstance().getTargetName().c_str());
-                        }
-
-                        gIsSubscribed = true;
-                    }
-                }
-                else
-                {
-                    LOG_WARNING("Already subscribed to %s", TrafficHandler::getInstance().getTargetName().c_str());
-                }
-
-                /** If near, listen to signals. */
-                if (true == TrafficHandler::getInstance().isNear())
-                {
-                    LOG_DEBUG("Near IE, listening for signals from topic %s.",
-                              TrafficHandler::getInstance().getTargetName().c_str());
-                    gIsListening = true;
-                }
-                else
-                {
-                    LOG_DEBUG("Robot has more driving towards %s to do.",
-                              TrafficHandler::getInstance().getTargetName().c_str());
-                    gIsListening = false;
-                }
-            }
-            else
-            {
-                /** Unsub from IE. */
-                if (TrafficHandler::getInstance().getTargetName() == nullptr)
-                {
-                    LOG_DEBUG("Target name is invalid.");
-                }
-                else if ((TrafficHandler::getInstance().getTargetName() != nullptr) &&
-                         (TrafficHandler::getInstance().getTargetName() != ""))
-                {
-                    LOG_DEBUG("No longer locked onto IE, unsubbing from %s.",
-                              TrafficHandler::getInstance().getTargetName().c_str());
-                    m_mqttClient.unsubscribe(lockedOnto, false);
-                }
-                else
-                {
-                    LOG_DEBUG("Nothing to unsubscribe to.");
-                }
-
-                gIsListening  = false;
-                gIsSubscribed = false;
-            }
-        }
-    }
-    /** Send color once. */
-    if ((true == gIsListening) && (oldColorId.colorId != clr.colorId))
-    {
-        oldColorId.colorId = clr.colorId;
-
-        sendCurrentColor();
-    }
 }
 
 void App::odometryCallback(const VehicleData& odometry)
@@ -462,6 +393,83 @@ void App::processPeriodicTasks()
         }
 
         m_statusTimer.restart();
+    }
+
+    if (true == m_processTrafficTimer.isTimeout())
+    {
+        /** TODO: processTraffic() method */
+        /** Process traffic only when robot is driving. */
+        if ((true == DrivingState::getInstance().isActive()))
+        {
+            if (true == TrafficHandler::getInstance().process())
+            {
+                if (true == TrafficHandler::getInstance().checkLockIn())
+                {
+                    /** Check the subscribe-once flag. */
+                    if (false == gIsSubscribed)
+                    {
+                        if (TrafficHandler::getInstance().getTargetName() != nullptr)
+                        {
+                            lockedOnto = TrafficHandler::getInstance().getTargetName();
+
+                            if (true == m_mqttClient.subscribe(TrafficHandler::getInstance().getTargetName(), false,
+                                                               [this](const String& payload)
+                                                               { trafficLightColorsCallback(payload); }))
+                            {
+                                LOG_DEBUG("Subscribed to Channel:%s.",
+                                          TrafficHandler::getInstance().getTargetName().c_str());
+                            }
+
+                            gIsSubscribed = true;
+                        }
+                    }
+                    else
+                    {
+                        LOG_WARNING("Already subscribed to %s", TrafficHandler::getInstance().getTargetName().c_str());
+                    }
+
+                    /** If near, listen to signals. */
+                    if (true == TrafficHandler::getInstance().isNear())
+                    {
+                        LOG_DEBUG("Near IE, listening for signals from topic %s.",
+                                  TrafficHandler::getInstance().getTargetName().c_str());
+
+                        /* Processing color (= controlling motor speeds) only when near the IE. */
+                        TrafficHandler::getInstance().processColor();
+                    }
+                    else
+                    {
+                        LOG_DEBUG("Robot has more driving towards %s to do.",
+                                  TrafficHandler::getInstance().getTargetName().c_str());
+                        gIsListening = false;
+                    }
+                }
+                else
+                {
+                    /** Unsub from IE. */
+                    if (TrafficHandler::getInstance().getTargetName() == nullptr)
+                    {
+                        LOG_DEBUG("Target name is invalid.");
+                    }
+                    else if ((TrafficHandler::getInstance().getTargetName() != nullptr) &&
+                             (TrafficHandler::getInstance().getTargetName() != ""))
+                    {
+                        LOG_DEBUG("No longer locked onto IE, unsubbing from %s.",
+                                  TrafficHandler::getInstance().getTargetName().c_str());
+                        m_mqttClient.unsubscribe(lockedOnto, false);
+                    }
+                    else
+                    {
+                        LOG_DEBUG("Nothing to unsubscribe to.");
+                    }
+
+                    gIsListening  = false;
+                    gIsSubscribed = false;
+                }
+            }
+        }
+
+        m_processTrafficTimer.restart();
     }
 
     if ((false == m_statusTimeoutTimer.isTimerRunning()) && (true == m_smpServer.isSynced()))
