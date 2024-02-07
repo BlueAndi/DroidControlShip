@@ -92,7 +92,8 @@ V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_vehicleHeartbeatTimeoutTimer(),
     m_v2vStatus(V2V_STATUS_NOT_INIT),
     m_vehicleStatus(),
-    m_followers{}
+    m_followers{},
+    m_lastWaypointTimestamp(0U)
 {
 }
 
@@ -325,10 +326,17 @@ void V2VCommManager::eventCallback(const String& payload)
                 if (nullptr == eventData)
                 {
                     LOG_ERROR("Failed to create Waypoint from JSON.");
+                    m_v2vStatus = V2V_STATUS_GENERAL_ERROR;
+                }
+                else if (eventTimestamp == m_lastWaypointTimestamp)
+                {
+                    LOG_ERROR("Received waypoint with same timestamp: %d.", eventTimestamp);
+                    m_v2vStatus = V2V_STATUS_OLD_WAYPOINT;
                 }
                 else
                 {
-                    pushEventToQueue = true;
+                    pushEventToQueue        = true;
+                    m_lastWaypointTimestamp = eventTimestamp;
                 }
 
                 break;

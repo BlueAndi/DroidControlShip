@@ -470,6 +470,7 @@ void App::processV2VCommunication()
 
     case V2VCommManager::V2V_STATUS_LOST_FOLLOWER:
     case V2VCommManager::V2V_STATUS_FOLLOWER_ERROR:
+    case V2VCommManager::V2V_STATUS_OLD_WAYPOINT:
         LOG_ERROR("Follower Error");
         setErrorState();
         break;

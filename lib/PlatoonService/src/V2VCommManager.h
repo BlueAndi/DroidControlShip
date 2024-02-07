@@ -80,6 +80,7 @@ public:
         V2V_STATUS_NOT_INIT,       /**< Not initialized */
         V2V_STATUS_LOST_FOLLOWER,  /**< Lost follower */
         V2V_STATUS_FOLLOWER_ERROR, /**< Follower error */
+        V2V_STATUS_OLD_WAYPOINT,   /**< Old waypoint received*/
         V2V_STATUS_GENERAL_ERROR   /**< General error */
     };
 
@@ -227,6 +228,9 @@ private:
 
     /** Followers. */
     Follower m_followers[NUMBER_OF_FOLLOWERS];
+
+    /** Timestamp of last received waypoint. */
+    uint32_t m_lastWaypointTimestamp;
 
 private:
     /**
