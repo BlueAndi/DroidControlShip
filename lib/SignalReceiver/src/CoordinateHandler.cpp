@@ -76,40 +76,33 @@ bool CoordinateHandler::process(const String& ieName, int32_t ieOrientation, int
     if (true == CoordinateHandler::getInstance().isMovingTowards(distanceToIE, previousDistanceToIE))
     {
         m_currentStatus = STATUS_TOWARDS;
-        // LOG_DEBUG("Robot is moving towards %s.", ieName.c_str());
 
         if (true == CoordinateHandler::getInstance().checkOrientation(ieOrientation))
         {
-            // LOG_DEBUG("Robot pointing towards %s.", ieName.c_str());
-
             /** Robot is moving towards the IE AND has matching orientation, lock in! */
             m_currentStatus = STATUS_LOCKED_IN;
 
             if (m_distance < 150)
             {
                 m_currentStatus = STATUS_NEAR;
-                // LOG_DEBUG("Robot is near %s, listening for signals.", ieName.c_str());
-                isSuccessful = true;
+                isSuccessful    = true;
             }
             else
             {
                 m_currentStatus = STATUS_LOCKED_IN;
-                // LOG_DEBUG("Robot has some more driving to do.");
-                isSuccessful = false;
+                isSuccessful    = false;
             }
         }
         else
         {
             m_currentStatus = STATUS_TOWARDS;
-            // LOG_DEBUG("Robot isn't pointing towards %s.", ieName.c_str());
-            isSuccessful = false;
+            isSuccessful    = false;
         }
     }
     else
     {
         m_currentStatus = STATUS_PASSED;
-        // LOG_DEBUG("Robot is moving away from %s.", ieName.c_str());
-        isSuccessful = false;
+        isSuccessful    = false;
     }
 
     return isSuccessful;
