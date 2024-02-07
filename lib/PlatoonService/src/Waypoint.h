@@ -45,6 +45,7 @@
 
 #include <stdint.h>
 #include <WString.h>
+#include <ArduinoJson.h>
 
 /******************************************************************************
  * Macros
@@ -99,11 +100,21 @@ public:
      * Deserialize a waypoint.
      * The waypoint is created on the heap and must be deleted by the caller.
      *
-     * @param[in]   serializedWaypoint  Serialized waypoint.
+     * @param[in] serializedWaypoint  Serialized waypoint.
      *
      * @return Pointer to a waypoint object. In case of an error, it returns nullptr.
      */
     static Waypoint* deserialize(const String& serializedWaypoint);
+
+    /**
+     * Extract a waypoint form a JSON object.
+     * The waypoint is created on the heap and must be deleted by the caller.
+     *
+     * @param[in] jsonWaypoint JSON object.
+     *
+     * @return Pointer to a waypoint object. In case of an error, it returns nullptr.
+     */
+    static Waypoint* fromJsonObject(const JsonObject& jsonWaypoint);
 
     /**
      * Serialize the waypoint.
