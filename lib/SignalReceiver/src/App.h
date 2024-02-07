@@ -75,10 +75,14 @@ public:
         m_systemStateMachine(),
         m_commandTimer(),
         m_motorSpeedTimer(),
+        m_processTrafficTimer(),
         m_statusTimer(),
         m_statusTimeoutTimer(),
+        m_isListening(false),
+        m_isSubscribed(false),
         clr(),
-        oldColorId()
+        oldColorId(),
+        lockedOnto()
     {
     }
 
