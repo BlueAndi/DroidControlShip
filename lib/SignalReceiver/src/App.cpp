@@ -224,7 +224,7 @@ void App::setup()
                         m_motorSpeedTimer.start(SEND_MOTOR_SPEED_TIMER_INTERVAL);
                         m_statusTimer.start(SEND_STATUS_TIMER_INTERVAL);
 
-                        /**
+                        /*
                          * Asyncronous time amount to avoid a syncronization (a time amount equal to a multiple
                          * of 5) between the RU odometry callback and traffic processing.
                          *
