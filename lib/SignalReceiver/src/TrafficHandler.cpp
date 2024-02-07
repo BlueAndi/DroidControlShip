@@ -124,7 +124,7 @@ bool TrafficHandler::processList()
     bool isProcessed;
 
     /** Process the list of IEs. */
-    for (int i = 0; i < NR_OF_ELEMENTS; i++)
+    for (int i = 0; i < m_IECounter; i++)
     {
         /** Recalculate distances. */
         listOfElements[i].setPreviousDistance(listOfElements[i].getDistance());
@@ -176,7 +176,7 @@ bool TrafficHandler::setNewInfrastructureElement(const String& nameAsParameter, 
             LOG_DEBUG("Listed %s", listOfElements[CURRENT_ELEMENT].getIEName().c_str());
 
             isSuccessful = true;
-            NR_OF_ELEMENTS++;
+            m_IECounter++;
             break;
         }
         else
@@ -197,7 +197,7 @@ bool TrafficHandler::checkLockIn()
 {
     bool isTrue = false;
 
-    for (int i = 0; i < NR_OF_ELEMENTS; i++)
+    for (int i = 0; i < m_IECounter; i++)
     {
         if ((listOfElements[i].getStatus() == 2) || (listOfElements[i].getStatus() == 3))
         {
@@ -227,7 +227,7 @@ bool TrafficHandler::isNear()
 {
     bool isTrue = false;
 
-    for (int i = 0; i < NR_OF_ELEMENTS; i++)
+    for (int i = 0; i < m_IECounter; i++)
     {
         if (listOfElements[i].getStatus() == 3)
         {

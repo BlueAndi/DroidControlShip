@@ -171,20 +171,20 @@ public:
     }
 
 private:
-    /** List of infrastructure elements. */
-    TrafficElement listOfElements[10];
+    /** Max number of elements in the list. */
+    static const uint8_t MAX_ELEMENTS = 10;
+
+    /** Number of enlisted IEs. */
+    uint8_t m_IECounter = 0;
 
     /** The value of the received color. */
     uint8_t m_colorID;
 
-    /** Max number of elements in the list. */
-    uint8_t MAX_ELEMENTS = 10;
-
-    /** Number of enlisted IEs. */
-    uint8_t NR_OF_ELEMENTS = 0;
-
     /** Current IE that robot is locked onto. */
     String lockedOnto = "";
+
+    /** List of infrastructure elements. */
+    TrafficElement listOfElements[MAX_ELEMENTS];
 
     TrafficHandler(const TrafficHandler& state);            /**< Copy construction of an instance. */
     TrafficHandler& operator=(const TrafficHandler& state); /**< Assignment of an instance. */
