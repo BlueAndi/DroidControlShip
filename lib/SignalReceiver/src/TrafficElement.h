@@ -30,7 +30,7 @@
  *
  * @addtogroup Application
  *
- * NOTE: traffic element and IE (infrastructure element) used interchangeably
+ * @note Traffic element and IE (infrastructure element) used interchangeably
  *
  * @{
  */
