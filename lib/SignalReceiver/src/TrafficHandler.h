@@ -158,16 +158,6 @@ public:
         lockedOnto = "";
     }
 
-    /** Traffic handler constructor. */
-    TrafficHandler() : m_colorID(0U)
-    {
-    }
-
-    /** Traffic handler deconstructor. */
-    ~TrafficHandler()
-    {
-    }
-
 private:
     /** Max number of elements in the list. */
     static const uint8_t MAX_ELEMENTS = 10;
@@ -183,6 +173,16 @@ private:
 
     /** List of infrastructure elements. */
     TrafficElement listOfElements[MAX_ELEMENTS];
+
+    /** Traffic handler constructor. */
+    TrafficHandler() : m_colorID(0U)
+    {
+    }
+
+    /** Traffic handler deconstructor. */
+    ~TrafficHandler()
+    {
+    }
 
     TrafficHandler(const TrafficHandler& state);            /**< Copy construction of an instance. */
     TrafficHandler& operator=(const TrafficHandler& state); /**< Assignment of an instance. */
