@@ -110,7 +110,12 @@ bool CoordinateHandler::process(const String& ieName, int32_t ieOrientation, int
 
 int32_t CoordinateHandler::calculateDistance(int32_t xPos, int32_t yPos)
 {
-    m_distance = pow(pow((xPos - m_currentX), 2) + pow((yPos - m_currentY), 2), 0.5);
+    int32_t segmentX = xPos - m_currentX;
+    int32_t segmentY = yPos - m_currentY;
+
+    float distanceFloat = sqrtf((segmentX * segmentX) + (segmentY * segmentY)) + 0.5F;
+
+    m_distance = static_cast<int32_t>(distanceFloat);
 
     return m_distance;
 }
