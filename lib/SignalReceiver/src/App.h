@@ -58,12 +58,12 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Remote Control application. */
+/** The signal receiver application. */
 class App
 {
 public:
     /**
-     * Construct the Remote Control application.
+     * Construct the signal receiver application.
      */
     App() :
         m_serialMuxProtChannelIdRemoteCtrl(0U),
@@ -87,7 +87,7 @@ public:
     }
 
     /**
-     * Destroy the Remote Control application.
+     * Destroy the signal receiver application.
      */
     ~App()
     {

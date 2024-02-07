@@ -59,7 +59,7 @@
  *****************************************************************************/
 
 /**
- * The traffic element.
+ * The traffic element class.
  */
 class TrafficElement
 {
