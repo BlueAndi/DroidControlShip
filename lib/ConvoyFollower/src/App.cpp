@@ -223,30 +223,6 @@ void App::loop()
 
     /* Process periodic tasks. */
     processPeriodicTasks();
-
-    /* Process V2V event queue. */
-    while (0U < m_v2vCommManager.getWaypointQueueSize())
-    {
-        /* Waypoints are pending. */
-        Waypoint waypoint;
-
-        if (false == m_v2vCommManager.getNextWaypoint(waypoint))
-        {
-            LOG_WARNING("Failed to get next waypoint from V2V client.");
-        }
-        if (false == DrivingState::getInstance().isActive())
-        {
-            /* Not in the correct state. Do nothing. Waypoint can be safely ignored for now. */
-        }
-        else if (false == DrivingState::getInstance().pushWaypoint(waypoint))
-        {
-            LOG_WARNING("Failed to push waypoint into driving state.");
-        }
-        else
-        {
-            /* Nothing to do. */
-        }
-    }
 }
 
 void App::setErrorState()
@@ -333,15 +309,6 @@ bool App::setupMqttClient()
         /* Create Callbacks. */
         IMqttClient::TopicCallback releaseTopicCallback = [this](const String& payload)
         { IdleState::getInstance().requestRelease(); };
-
-        IMqttClient::TopicCallback lastFollowerFeedbackCallback = [this](const String& payload)
-        {
-            Waypoint*   waypoint = Waypoint::deserialize(payload);
-            VehicleData feedback{waypoint->xPos, waypoint->yPos,  waypoint->orientation,
-                                 waypoint->left, waypoint->right, waypoint->center};
-
-            DrivingState::getInstance().setLastFollowerFeedback(feedback);
-        };
 
         /* Register MQTT client callbacks. */
         if (false == m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, releaseTopicCallback))
@@ -482,6 +449,7 @@ void App::processV2VCommunication()
 {
     V2VCommManager::V2VStatus     v2vStatus     = V2VCommManager::V2V_STATUS_OK;
     V2VCommManager::VehicleStatus vehicleStatus = V2VCommManager::VEHICLE_STATUS_OK;
+    V2VEvent                      event;
 
     if (true == ErrorState::getInstance().isActive())
     {
@@ -513,6 +481,45 @@ void App::processV2VCommunication()
 
     default:
         break;
+    }
+
+    /* Process V2V events. */
+    if (true == m_v2vCommManager.getEvent(event))
+    {
+        switch (event.type)
+        {
+        case V2VEventType::V2V_EVENT_WAYPOINT:
+            if (false == DrivingState::getInstance().isActive())
+            {
+                /* Not in the correct state. Do nothing. Waypoint can be safely ignored for now. */
+            }
+            else if (nullptr == event.data)
+            {
+                LOG_WARNING("Received V2V_EVENT_WAYPOINT with nullptr data.");
+            }
+            else if (false == DrivingState::getInstance().pushWaypoint(static_cast<Waypoint*>(event.data)))
+            {
+                LOG_WARNING("Failed to push waypoint into driving state.");
+            }
+            else
+            {
+                /* Nothing to do. */
+            }
+
+            break;
+
+        case V2VEventType::V2V_EVENT_FEEDBACK:
+            LOG_WARNING("Follower received a V2V_EVENT_FEEDBACK. Is this expected?");
+            break;
+
+        case V2VEventType::V2V_EVENT_EMERGENCY:
+            LOG_DEBUG("V2V_EVENT_EMERGENCY");
+            break;
+
+        default:
+            LOG_WARNING("Unknown V2V event type.");
+            break;
+        }
     }
 }
 
