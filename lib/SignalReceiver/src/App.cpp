@@ -485,10 +485,7 @@ void App::processTraffic()
         }
     }
 }
-/**
- * Type: Rx MQTT & Tx SMP
- * Name: trafficLightColorsCallback
- */
+
 void App::trafficLightColorsCallback(const String& payload)
 {
     /* JSON library initialization. */
@@ -531,10 +528,6 @@ void App::trafficLightColorsCallback(const String& payload)
     }
 }
 
-/**
- * Type: Rx MQTT
- * Name: settingsCallback
- */
 void App::settingsCallback(const String& payload)
 {
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
@@ -637,9 +630,6 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
 }
 
 /**
- * Type: Rx SMP
- * Name: currentVehicleChannelCallback
- *
  * Receives current position and heading of the robot over SerialMuxProt channel.
  *
  * @param[in] payload       Odometry data. Two coordinates and one orientation.
