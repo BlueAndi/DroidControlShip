@@ -62,7 +62,11 @@
 class CoordinateHandler
 {
 public:
-    /** The CoordinateHandler instance. */
+    /**
+     * Get the coordinate handler instance.
+     *
+     * @return the instance of coordinate handler.
+     */
     static CoordinateHandler& getInstance()
     {
         static CoordinateHandler instance;
