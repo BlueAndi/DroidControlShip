@@ -123,7 +123,7 @@ bool TrafficHandler::processList()
 {
     bool isProcessed;
 
-    /** Process the list of IEs. */
+    /* Process the list of IEs. */
     for (int i = 0; i < m_IECounter; i++)
     {
         /** Recalculate distances. */
@@ -131,15 +131,15 @@ bool TrafficHandler::processList()
         listOfElements[i].setDistance(CoordinateHandler::getInstance().calculateDistance(
             listOfElements[i].getEntryX(), listOfElements[i].getEntryY()));
 
-        /** Process new coordinates. */
+        /* Process new coordinates. */
         CoordinateHandler::getInstance().process(
             listOfElements[i].getIEName(), listOfElements[i].getRequiredOrientation(), listOfElements[i].getDistance(),
             listOfElements[i].getPreviousDistance());
 
-        /** Set new robot-IE status after processing. */
+        /* Set new robot-IE status after processing. */
         listOfElements[i].setStatus(CoordinateHandler::getInstance().getStatus());
 
-        /** Log status, distances and what IE has been processed. */
+        /* Log status, distances and what IE has been processed. */
         LOG_DEBUG("Status %d | Distance %d & Old Distance %d to %s", listOfElements[i].getStatus(),
                   listOfElements[i].getDistance(), listOfElements[i].getPreviousDistance(),
                   listOfElements[i].getIEName().c_str());
@@ -158,10 +158,10 @@ bool TrafficHandler::setNewInfrastructureElement(const String& nameAsParameter, 
 {
     bool isSuccessful = false;
 
-    /** Setting a new IE if unique and increasing the list for each new IE settings received. */
+    /* Setting a new IE if unique and increasing the list for each new IE settings received. */
     for (int CURRENT_ELEMENT = 0; CURRENT_ELEMENT < MAX_ELEMENTS; CURRENT_ELEMENT++)
     {
-        /** If IE name isn't empty, add it to the list. */
+        /* If IE name isn't empty, add it to the list. */
         if (true == listOfElements[CURRENT_ELEMENT].isEmpty())
         {
             listOfElements[CURRENT_ELEMENT].setIEName(nameAsParameter);
@@ -169,14 +169,14 @@ bool TrafficHandler::setNewInfrastructureElement(const String& nameAsParameter, 
             listOfElements[CURRENT_ELEMENT].setRequiredOrientation(orientationAsParameter);
             listOfElements[CURRENT_ELEMENT].setEntryValues(xPosAsParameter, yPosAsParameter);
 
-            /** Distances should be 0 when first listed. */
+            /* Distances should be 0 when first listed. */
             listOfElements[CURRENT_ELEMENT].setDistance(defaultDistanceAsParameter);
             listOfElements[CURRENT_ELEMENT].setPreviousDistance(defaultPreviousDistanceAsParameter);
 
             LOG_DEBUG("Listed %s", listOfElements[CURRENT_ELEMENT].getIEName().c_str());
 
-            isSuccessful = true;
             m_IECounter++;
+            isSuccessful = true;
             break;
         }
         else
@@ -199,6 +199,7 @@ bool TrafficHandler::checkLockIn()
 
     for (int i = 0; i < m_IECounter; i++)
     {
+        /* Lock in is considered for status 2 and 3. */
         if ((listOfElements[i].getStatus() == 2) || (listOfElements[i].getStatus() == 3))
         {
             if (listOfElements[i].getTopicName() != nullptr)

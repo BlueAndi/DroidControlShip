@@ -70,7 +70,7 @@ bool CoordinateHandler::process(const String& ieName, int32_t ieOrientation, int
 {
     bool isSuccessful;
 
-    /** The default status. */
+    /* The default status. */
     m_currentStatus = STATUS_IDLE;
 
     if (true == CoordinateHandler::getInstance().isMovingTowards(distanceToIE, previousDistanceToIE))
@@ -79,7 +79,7 @@ bool CoordinateHandler::process(const String& ieName, int32_t ieOrientation, int
 
         if (true == CoordinateHandler::getInstance().checkOrientation(ieOrientation))
         {
-            /** Robot is moving towards the IE AND has matching orientation, lock in! */
+            /* Robot is moving towards the IE AND has matching orientation, lock in! */
             m_currentStatus = STATUS_LOCKED_IN;
 
             if (m_distance < 150)
@@ -136,18 +136,18 @@ bool CoordinateHandler::isMovingTowards(int32_t currentDistance, int32_t previou
 
         if (currentDistance <= previousDistance)
         {
-            /** Distance is decreasing, robot is moving towards. */
+            /* Distance is decreasing, robot is moving towards. */
             isTrue = true;
         }
         else
         {
-            /** Distance is increasing, robot is moving away. */
+            /* Distance is increasing, robot is moving away. */
             isTrue = false;
         }
     }
     else
     {
-        /** Robot is too far away. */
+        /* Robot is too far away. */
         isTrue = false;
     }
 
@@ -171,7 +171,7 @@ bool CoordinateHandler::checkOrientation(int32_t orientationIE)
     }
     else
     {
-        /** If there is no orientation set, set it to always be true. */
+        /* If there is no orientation set, set it to always be true. */
         isTrue = true;
     }
 

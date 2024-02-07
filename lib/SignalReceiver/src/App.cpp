@@ -204,7 +204,7 @@ void App::setup()
                 }
                 else
                 {
-                    /** Setup SMP channels. */
+                    /* Setup SMP channels. */
                     m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME,
                                                    App_currentVehicleChannelCallback);
                     m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
@@ -290,7 +290,7 @@ void App::odometryCallback(const VehicleData& odometry)
 
     LOG_DEBUG("RECEIVED ODOMETRY: x: %d y: %d ORIENTATION:  %d", odometry.xPos, odometry.yPos, odometry.orientation);
 
-    /** Set new coordinates in for processing. */
+    /* Set new coordinates in for processing. */
     CoordinateHandler::getInstance().setCurrentOrientation(odometry.orientation);
     CoordinateHandler::getInstance().setCurrentCoordinates(odometry.xPos, odometry.yPos);
 }
@@ -417,14 +417,14 @@ void App::processPeriodicTasks()
 
 void App::processTraffic()
 {
-    /** Process traffic only when robot is driving. */
+    /* Process traffic only when robot is driving. */
     if ((true == DrivingState::getInstance().isActive()))
     {
         if (true == TrafficHandler::getInstance().process())
         {
             if (true == TrafficHandler::getInstance().checkLockIn())
             {
-                /** Check the subscribe-once flag. */
+                /* Check the subscribe-once flag. */
                 if (false == m_isSubscribed)
                 {
                     if (TrafficHandler::getInstance().getTargetName() != nullptr)
@@ -447,7 +447,7 @@ void App::processTraffic()
                     LOG_WARNING("Already subscribed to %s", TrafficHandler::getInstance().getTargetName().c_str());
                 }
 
-                /** If near, listen to signals. */
+                /* If near, listen to signals. */
                 if (true == TrafficHandler::getInstance().isNear())
                 {
                     LOG_DEBUG("Near IE, listening for signals from topic %s.",
@@ -465,7 +465,7 @@ void App::processTraffic()
             }
             else
             {
-                /** Unsub from IE. */
+                /* Unsub from IE. */
                 if (TrafficHandler::getInstance().getTargetName() == nullptr)
                 {
                     LOG_DEBUG("Target name is invalid.");
@@ -494,8 +494,7 @@ void App::processTraffic()
  */
 void App::trafficLightColorsCallback(const String& payload)
 {
-    /** Save deserialized JSON value somewhere. */
-    /** call TxSMP function later in loop() once gIsListening is true. */
+    /* JSON library initialization. */
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
     DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
 
@@ -505,15 +504,15 @@ void App::trafficLightColorsCallback(const String& payload)
     }
     else
     {
-        /** Who is sending? */
+        /* Who is sending? */
         JsonVariant from = jsonPayload["FROM"];
 
-        /** what is the color ID? */
+        /* what is the color ID? */
         JsonVariant color = jsonPayload["COLOR"];
 
         if ((false == color.isNull()) && (false == from.isNull()))
         {
-            /** If a new color has been received, deserialize it! */
+            /* If a new color has been received, deserialize it! */
             if (oldColorId.colorId != color.as<uint8_t>())
             {
                 clr.colorId = color.as<uint8_t>();
@@ -525,7 +524,7 @@ void App::trafficLightColorsCallback(const String& payload)
             }
             else
             {
-                /** Received the same color due to periodic publishing of IE. It won't be deserialized. */
+                /* Received the same color due to periodic publishing of IE. It won't be deserialized. */
             }
         }
         else
@@ -544,7 +543,7 @@ void App::settingsCallback(const String& payload)
     StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
     DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
 
-    /** Used to create topic of IE. */
+    /* Used to create topic of IE. */
     char   topic[64U];
     String topicString;
 
@@ -571,13 +570,13 @@ void App::settingsCallback(const String& payload)
         if ((false == xEntryValue.isNull()) && (false == yEntryValue.isNull()))
         {
             IEname              = name.as<const char*>();
-            receivedOrientation = orientationValue.as<int32_t>() /** * (1000 * (PI / 180)) */;
+            receivedOrientation = orientationValue.as<int32_t>();
             receivedEntryX      = xEntryValue.as<int32_t>();
             receivedEntryY      = yEntryValue.as<int32_t>();
             distance            = 0;
             previousDistance    = 0;
 
-            /** Create the topic of received IE. */
+            /* Create the topic of received IE. */
             if (0 <= snprintf(topic, 64U, "%s/trafficLightColors", IEname.c_str()))
             {
                 topicString = topic;
