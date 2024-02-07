@@ -58,7 +58,7 @@
  *****************************************************************************/
 
 /**
- * The green light phase.
+ * The coordinate handler class.
  */
 class CoordinateHandler
 {
