@@ -248,7 +248,7 @@ private:
      *
      * @param[in] payload Payload of the MQTT message.
      */
-    void settingsCallback(const String& paylaod);
+    void settingsCallback(const String& payload);
 
 private:
     /* Not allowed. */
