@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Keys of the JSON structure of the configuration file.
+ * @brief  Follower class for V2V communication.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Service
+ * @addtogroup PlatoonService
  *
  * @{
  */
-#ifndef CONFIGURAION_KEYS_H
-#define CONFIGURAION_KEYS_H
+#ifndef FOLLOWER_H
+#define FOLLOWER_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,6 +43,8 @@
  * Includes
  *****************************************************************************/
 
+#include <stdint.h>
+
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -51,66 +53,75 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Configuration keys found in the config file.
- */
-namespace ConfigurationKeys
+/** Follower class. */
+class Follower
 {
-    /** Robot name */
-    static const char ROBOT_NAME[] = "robotName";
+public:
+    /**
+     * Follower Constructor.
+     */
+    Follower() : m_lastHeartbeatTimestamp(0U), m_status(0U)
+    {
+    }
 
-    /** WiFi */
-    static const char WIFI[] = "wifi";
+    /**
+     * Follower Destructor.
+     */
+    ~Follower()
+    {
+    }
 
-    /** MQTT */
-    static const char MQTT[] = "mqtt";
+    /**
+     * Get the last heartbeat timestamp.
+     *
+     * @return Last heartbeat timestamp.
+     */
+    uint32_t getLastHeartbeatTimestamp() const
+    {
+        return m_lastHeartbeatTimestamp;
+    }
 
-    /** Access point */
-    static const char AP[] = "ap";
+    /**
+     * Set the last heartbeat timestamp.
+     *
+     * @param[in] timestamp    Last heartbeat timestamp.
+     */
+    void setLastHeartbeatTimestamp(uint32_t timestamp)
+    {
+        m_lastHeartbeatTimestamp = timestamp;
+    }
 
-    /** WebServer */
-    static const char WEBSERVER[] = "webServer";
+    /**
+     * Get the status.
+     *
+     * @return Status.
+     */
+    uint8_t getStatus() const
+    {
+        return m_status;
+    }
 
-    /** Platoon */
-    static const char PLATOON[] = "platoon";
+    /**
+     * Set the status.
+     *
+     * @param[in] status    Status.
+     */
+    void setStatus(uint8_t status)
+    {
+        m_status = status;
+    }
 
-    /** SSID */
-    static const char SSID[] = "ssid";
+private:
+    /** Last heartbeat timestamp. */
+    uint32_t m_lastHeartbeatTimestamp;
 
-    /** Passphrase */
-    static const char PASSWORD[] = "pswd";
-
-    /** Host */
-    static const char HOST[] = "host";
-
-    /** Port */
-    static const char PORT[] = "port";
-
-    /** User */
-    static const char USER[] = "user";
-
-    /** Platoon ID */
-    static const char PLATOON_ID[] = "platoonId";
-
-    /** Vehicle ID */
-    static const char VEHICLE_ID[] = "vehicleId";
-
-    /** Initial Position */
-    static const char INITIAL_POSITION[] = "initialPosition";
-
-    /** Initial X Position */
-    static const char INITIAL_X_POSITION[] = "x";
-
-    /** Initial Y Position */
-    static const char INITIAL_Y_POSITION[] = "y";
-
-    /** Initial Heading */
-    static const char INITIAL_HEADING[] = "heading";
-} // namespace ConfigurationKeys
+    /** Status. */
+    uint8_t m_status;
+};
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* CONFIGURAION_KEYS_H */
+#endif /* FOLLOWER_H */
 /** @} */
