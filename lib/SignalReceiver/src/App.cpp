@@ -32,6 +32,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
+
 #include "App.h"
 #include <Board.h>
 #include <Logging.h>
@@ -41,16 +42,12 @@
 #include <WiFi.h>
 #include <Util.h>
 #include <CoordinateHandler.h>
-
 #include <TrafficElement.h>
 #include <TrafficHandler.h>
-
 #include "StartupState.h"
 #include "IdleState.h"
 #include "DrivingState.h"
 #include "ErrorState.h"
-
-#include <math.h>
 
 /******************************************************************************
  * Compiler Switches

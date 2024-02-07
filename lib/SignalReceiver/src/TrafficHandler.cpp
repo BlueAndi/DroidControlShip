@@ -33,12 +33,11 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "TrafficHandler.h"
 
+#include "TrafficHandler.h"
 #include <Board.h>
 #include <MqttClient.h>
 #include <DrivingState.h>
-
 #include <Logging.h>
 #include <CoordinateHandler.cpp>
 
