@@ -206,10 +206,10 @@ private:
     SimpleTimer m_statusTimeoutTimer;
 
     /** Sending color Id only when near IE. */
-    bool m_isListening = false;
+    bool m_isListening;
 
     /** Used for unique subscription. */
-    bool m_isSubscribed = false;
+    bool m_isSubscribed;
 
     /** Save current deserialized value of COLOR ID. */
     Color clr;
