@@ -151,7 +151,7 @@ public:
      * @param[in] ieOrientation is orientation of IE to be processed.
      * @param[in] distanceToIE is current robot-IE distance to be processed.
      * @param[in] previousDistanceToIE is older robot-IE distance to be processed.
-     * 
+     *
      * @returns true if robot is successfully driving towards IE
      */
     bool process(const String& ieName, int32_t ieOrientation, int32_t distanceToIE, int32_t previousDistanceToIE);
@@ -162,7 +162,7 @@ public:
      *
      * @param[in] xPos is position of IE on x axis.
      * @param[in] yPos is position of IE on y axis.
-     * 
+     *
      * @returns the calculated distance.
      */
     int32_t calculateDistance(int32_t xPos, int32_t yPos);
@@ -183,7 +183,7 @@ private:
      */
     enum CurrentStatus
     {
-        STATUS_IDLE = 0,  /**< robot isn't moving towards and not pointing towards IE.  */
+        STATUS_IDLE = 0U, /**< robot isn't moving towards and not pointing towards IE.  */
         STATUS_TOWARDS,   /**< robot is moing towards, but not pointing to IE. */
         STATUS_LOCKED_IN, /**< robot is moving towards, and pointing to IE. */
         STATUS_NEAR,      /**< robot is near IE, listen to signals.  */
@@ -214,7 +214,7 @@ private:
      *
      * @param[in] currentDistance current distance between robot and IE.
      * @param[in] previousDistance older distance between robot and IE.
-     * 
+     *
      * @returns true if driving towards
      */
     bool isMovingTowards(int32_t currentDistance, int32_t previousDistance);
