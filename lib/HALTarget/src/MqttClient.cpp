@@ -305,16 +305,11 @@ void MqttClient::unsubscribe(const String& topic, const bool useClientIdAsBaseTo
                 {
                     Subscriber* subscriber = *it;
 
-                    if (false == m_mqttClient.unsubscribe(subscriber->topic.c_str()))
-                    {
-                        LOG_ERROR("Failed to unsubscribe from topic %s", subscriber->topic.c_str());
-                    }
-                    else
-                    {
-                        (void)m_subscriberList.erase(it);
-                        delete subscriber;
-                    }
-                    
+                    m_mqttClient.unsubscribe(subscriber->topic.c_str());
+
+                    (void)m_subscriberList.erase(it);
+                    delete subscriber;
+
                     break;
                 }
             }
