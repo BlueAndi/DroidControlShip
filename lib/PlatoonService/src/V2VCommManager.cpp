@@ -68,17 +68,20 @@ const char* V2VCommManager::TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE = "heartbeatRe
 /** Buffer size for JSON serialization of heartbeat messages. */
 static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 128U;
 
+/** Default size of the JSON Document for parsing. */
+static const uint32_t JSON_DOC_DEFAULT_SIZE = 512U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
 V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_mqttClient(mqttClient),
-    m_waypointQueue(),
     m_waypointInputTopic(),
     m_waypointOutputTopic(),
     m_platoonHeartbeatTopic(),
     m_heartbeatResponseTopic(),
+    m_feedbackTopic(),
     m_participantType(PARTICIPANT_TYPE_UNKNOWN),
     m_platoonId(0U),
     m_vehicleId(0U),
@@ -94,11 +97,29 @@ V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
 
 V2VCommManager::~V2VCommManager()
 {
-    while (0U != m_waypointQueue.size())
+    /* Empty the queue. */
+    while (0U != m_eventQueue.size())
     {
-        Waypoint* nextWaypoint = m_waypointQueue.front();
-        m_waypointQueue.pop();
-        delete nextWaypoint;
+        V2VEvent event = m_eventQueue.front();
+        m_eventQueue.pop();
+
+        if (nullptr != event.data)
+        {
+            switch (event.type)
+            {
+            case V2V_EVENT_WAYPOINT:
+            case V2V_EVENT_FEEDBACK:
+            {
+                Waypoint* waypoint = static_cast<Waypoint*>(event.data);
+                delete waypoint;
+                break;
+            }
+            default:
+                /* Should never be called!. */
+                LOG_FATAL("Danger! Unknown pointer cannot be deleted!");
+                break;
+            }
+        }
     }
 }
 
@@ -108,7 +129,12 @@ bool V2VCommManager::init(uint8_t platoonId, uint8_t vehicleId)
 
     m_vehicleId = vehicleId;
 
-    if (NUMBER_OF_FOLLOWERS < m_vehicleId)
+    if (UINT8_MAX == NUMBER_OF_FOLLOWERS)
+    {
+        /* Invalid number of followers. */
+        LOG_ERROR("Invalid number of followers: %d.", NUMBER_OF_FOLLOWERS);
+    }
+    else if (NUMBER_OF_FOLLOWERS < m_vehicleId)
     {
         /* Invalid ID. */
         LOG_ERROR("Invalid vehicle ID: %d. Maximum followers: %d.", m_vehicleId, NUMBER_OF_FOLLOWERS);
@@ -117,6 +143,11 @@ bool V2VCommManager::init(uint8_t platoonId, uint8_t vehicleId)
     {
         /* Its the leader. */
         m_participantType = PARTICIPANT_TYPE_LEADER;
+    }
+    else if (NUMBER_OF_FOLLOWERS == m_vehicleId)
+    {
+        /* Its the last follower. */
+        m_participantType = PARTICIPANT_TYPE_LAST_FOLLOWER;
     }
     else
     {
@@ -162,6 +193,24 @@ V2VCommManager::V2VStatus V2VCommManager::process(VehicleStatus status)
     /* Is MQTT client connected? */
     if ((true == m_mqttClient.isConnected()) && (V2V_STATUS_OK == m_v2vStatus))
     {
+        /* Check participants heartbeats. Only active as leader. */
+        if (true == m_vehicleHeartbeatTimeoutTimer.isTimeout())
+        {
+            if (NUMBER_OF_FOLLOWERS != m_followerResponseCounter)
+            {
+                LOG_ERROR("Not all participants responded to heartbeat.");
+                m_v2vStatus = V2V_STATUS_LOST_FOLLOWER;
+            }
+            else
+            {
+                LOG_DEBUG("All participants responded to heartbeat.");
+                m_v2vStatus = V2V_STATUS_OK;
+            }
+
+            /* Stop timer. */
+            m_vehicleHeartbeatTimeoutTimer.stop();
+        }
+
         /* Send Platoon Heartbeat. Only active as leader. */
         if (true == m_platoonHeartbeatTimer.isTimeout())
         {
@@ -183,24 +232,6 @@ V2VCommManager::V2VStatus V2VCommManager::process(VehicleStatus status)
             /* Reset timer. */
             m_platoonHeartbeatTimer.restart();
         }
-
-        /* Check participants heartbeats. Only active as leader. */
-        if (true == m_vehicleHeartbeatTimeoutTimer.isTimeout())
-        {
-            if (NUMBER_OF_FOLLOWERS != m_followerResponseCounter)
-            {
-                LOG_ERROR("Not all participants responded to heartbeat.");
-                m_v2vStatus = V2V_STATUS_LOST_FOLLOWER;
-            }
-            else
-            {
-                LOG_DEBUG("All participants responded to heartbeat.");
-                m_v2vStatus = V2V_STATUS_OK;
-            }
-
-            /* Stop timer. */
-            m_vehicleHeartbeatTimeoutTimer.stop();
-        }
     }
 
     return m_v2vStatus;
@@ -208,17 +239,23 @@ V2VCommManager::V2VStatus V2VCommManager::process(VehicleStatus status)
 
 bool V2VCommManager::sendWaypoint(const Waypoint& waypoint)
 {
-    bool   isSuccessful = false;
-    String payload;
+    bool         isSuccessful = false;
+    V2VEventType type         = V2V_EVENT_WAYPOINT;
+    String       payload;
     waypoint.serialize(payload);
+
+    if (PARTICIPANT_TYPE_LAST_FOLLOWER == m_participantType)
+    {
+        type = V2V_EVENT_FEEDBACK;
+    }
 
     if (true == payload.isEmpty())
     {
         LOG_DEBUG("Failed to serialize waypoint.");
     }
-    else if (false == m_mqttClient.publish(m_waypointOutputTopic, false, payload))
+    else if (false == publishEvent(m_waypointOutputTopic, type, payload))
     {
-        LOG_ERROR("Failed to publish MQTT message to %s.", m_waypointOutputTopic.c_str());
+        LOG_ERROR("Failed to publish Waypoint Event");
     }
     else
     {
@@ -228,31 +265,20 @@ bool V2VCommManager::sendWaypoint(const Waypoint& waypoint)
     return isSuccessful;
 }
 
-bool V2VCommManager::getNextWaypoint(Waypoint& waypoint)
+bool V2VCommManager::getEvent(V2VEvent& event)
 {
     bool isSuccessful = false;
 
-    if (false == m_waypointQueue.empty())
+    if (false == m_eventQueue.empty())
     {
-        /* Retrieve next waypoint. */
-        Waypoint* nextWaypoint = m_waypointQueue.front();
-        m_waypointQueue.pop();
-
-        /* Copy waypoint. */
-        waypoint = *nextWaypoint;
-
-        /* Delete queued waypoint. */
-        delete nextWaypoint;
+        /* Retrieve next event. */
+        event = m_eventQueue.front();
+        m_eventQueue.pop();
 
         isSuccessful = true;
     }
 
     return isSuccessful;
-}
-
-size_t V2VCommManager::getWaypointQueueSize() const
-{
-    return m_waypointQueue.size();
 }
 
 /******************************************************************************
@@ -263,25 +289,11 @@ size_t V2VCommManager::getWaypointQueueSize() const
  * Private Methods
  *****************************************************************************/
 
-void V2VCommManager::targetWaypointTopicCallback(const String& payload)
-{
-    Waypoint* waypoint = Waypoint::deserialize(payload);
-
-    if (nullptr == waypoint)
-    {
-        LOG_ERROR("Failed to deserialize received waypoint.");
-    }
-    else
-    {
-        m_waypointQueue.push(waypoint);
-    }
-}
-
-void V2VCommManager::platoonHeartbeatTopicCallback(const String& payload)
+void V2VCommManager::eventCallback(const String& payload)
 {
     /* Deserialize payload. */
-    StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> jsonPayload;
-    DeserializationError                        error = deserializeJson(jsonPayload, payload.c_str());
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
 
     if (DeserializationError::Ok != error)
     {
@@ -289,87 +301,141 @@ void V2VCommManager::platoonHeartbeatTopicCallback(const String& payload)
     }
     else
     {
-        /* Send vehicle heartbeat. */
-        JsonVariant jsonTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
+        JsonVariant jsonEventVehicleId = jsonPayload["id"];        /* Vehicle ID. */
+        JsonVariant jsonEventType      = jsonPayload["type"];      /* Event type. */
+        JsonVariant jsonEventTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
+        JsonVariant jsonEventData      = jsonPayload["data"];      /* Event data. */
 
-        if (false == jsonTimestamp.isNull())
+        if ((false == jsonEventVehicleId.isNull()) && (false == jsonEventType.isNull()) &&
+            (false == jsonEventTimestamp.isNull()) && (false == jsonEventData.isNull()))
         {
-            StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
-            String                                      heartbeatPayload;
+            bool         pushEventToQueue = false;
+            uint8_t      eventVehicleId   = jsonEventVehicleId.as<uint8_t>();
+            V2VEventType eventType        = jsonEventType.as<V2VEventType>();
+            uint32_t     eventTimestamp   = jsonEventTimestamp.as<uint32_t>();
+            JsonObject   eventDataAsJson  = jsonEventData.as<JsonObject>();
+            void*        eventData        = nullptr;
 
-            /* Timestamp is sent back to acknowledge synchronization. */
-            heartbeatDoc["timestamp"] = jsonTimestamp.as<uint32_t>(); /* Timestamp [ms]. */
-            heartbeatDoc["id"]        = m_vehicleId;
-            heartbeatDoc["status"]    = m_vehicleStatus;
-
-            if (0U == serializeJson(heartbeatDoc, heartbeatPayload))
+            switch (eventType)
             {
-                LOG_ERROR("Failed to serialize heartbeat.");
-            }
-            else if (false == m_mqttClient.publish(m_heartbeatResponseTopic, false, heartbeatPayload))
-            {
-                LOG_ERROR("Failed to publish MQTT message to %s.", m_heartbeatResponseTopic.c_str());
-            }
-            else
-            {
-                LOG_DEBUG("Sent heartbeat: %s", heartbeatPayload.c_str());
-            }
-        }
-    }
-}
-
-void V2VCommManager::vehicleHeartbeatTopicCallback(const String& payload)
-{
-    /* Deserialize payload. */
-    StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> jsonPayload;
-    DeserializationError                        error = deserializeJson(jsonPayload, payload.c_str());
-
-    if (DeserializationError::Ok != error)
-    {
-        LOG_ERROR("JSON Deserialization Error %d.", error);
-    }
-    else
-    {
-        JsonVariant jsonId        = jsonPayload["id"];        /* Vehicle ID. */
-        JsonVariant jsonTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
-        JsonVariant jsonStatus    = jsonPayload["status"];    /* Vehicle status. */
-
-        if ((false == jsonId.isNull()) && (false == jsonTimestamp.isNull()) && (false == jsonStatus.isNull()))
-        {
-            uint8_t  id        = jsonId.as<uint8_t>();
-            uint32_t timestamp = jsonTimestamp.as<uint32_t>();
-            uint8_t  status    = jsonStatus.as<uint8_t>();
-
-            if (PLATOON_LEADER_ID == id)
-            {
-                /* This is me, the leader! */
-            }
-            else if (id > NUMBER_OF_FOLLOWERS)
-            {
-                LOG_ERROR("Received heartbeat from unknown vehicle %d.", id);
-            }
-            else if (timestamp != m_lastPlatoonHeartbeatTimestamp)
-            {
-                LOG_ERROR("Received heartbeat from vehicle %d with timestamp %d, expected %d.", id, timestamp,
-                          m_lastPlatoonHeartbeatTimestamp);
-            }
-            else
-            {
-                uint8_t   followerArrayIndex = id - 1U; /*Already checked id != 0U */
-                Follower& follower           = m_followers[followerArrayIndex];
-
-                /* Update follower. */
-                follower.setLastHeartbeatTimestamp(timestamp);
-                follower.setStatus(status);
-
-                ++m_followerResponseCounter;
-
-                /* Check follower status. */
-                if (VEHICLE_STATUS_OK != status)
+            case V2V_EVENT_WAYPOINT:
+            case V2V_EVENT_FEEDBACK:
+                eventData = Waypoint::fromJsonObject(eventDataAsJson);
+                if (nullptr == eventData)
                 {
-                    LOG_ERROR("Follower %d status: %d.", id, status);
-                    m_v2vStatus = V2V_STATUS_FOLLOWER_ERROR;
+                    LOG_ERROR("Failed to create Waypoint from JSON.");
                 }
+                else
+                {
+                    pushEventToQueue = true;
+                }
+
+                break;
+
+            case V2V_EVENT_EMERGENCY:
+                /* TODO: Implement Emergency */
+                break;
+
+            case V2V_EVENT_VEHICLE_HEARTBEAT:
+                if (PLATOON_LEADER_ID == eventVehicleId)
+                {
+                    /* This is me, the leader! */
+                }
+                else if (eventVehicleId > NUMBER_OF_FOLLOWERS)
+                {
+                    LOG_ERROR("Received heartbeat from unknown vehicle %d.", eventVehicleId);
+                }
+                else
+                {
+                    JsonVariant jsonEventDataStatus    = eventDataAsJson["status"];    /* Vehicle status. */
+                    JsonVariant jsonEventDataTimestamp = eventDataAsJson["timestamp"]; /* Timestamp [ms]. */
+
+                    if ((false == jsonEventDataStatus.isNull()) && (false == jsonEventDataTimestamp.isNull()))
+                    {
+                        uint8_t  eventDataStatus    = jsonEventDataStatus.as<uint8_t>();
+                        uint32_t eventDataTimestamp = jsonEventDataTimestamp.as<uint32_t>();
+
+                        if (eventDataTimestamp != m_lastPlatoonHeartbeatTimestamp)
+                        {
+                            LOG_ERROR("Received heartbeat from vehicle %d with timestamp %d, expected %d.",
+                                      eventVehicleId, eventDataTimestamp, m_lastPlatoonHeartbeatTimestamp);
+                        }
+                        else
+                        {
+                            uint8_t   followerArrayIndex = eventVehicleId - 1U; /*Already checked id != 0U */
+                            Follower& follower           = m_followers[followerArrayIndex];
+
+                            /* Update follower. */
+                            follower.setLastHeartbeatTimestamp(eventDataTimestamp);
+                            follower.setStatus(eventDataStatus);
+
+                            /* Increment counter regardless of the status. */
+                            ++m_followerResponseCounter;
+
+                            /* Check follower status. */
+                            if (VEHICLE_STATUS_OK != eventDataStatus)
+                            {
+                                LOG_ERROR("Follower %d status: %d.", eventVehicleId, eventDataStatus);
+                                m_v2vStatus = V2V_STATUS_FOLLOWER_ERROR;
+                            }
+                            else
+                            {
+                                LOG_DEBUG("Follower %d Ok", eventVehicleId);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        LOG_ERROR("Null value in heartbeat from vehicle %d.", eventVehicleId);
+                    }
+                }
+                break;
+
+            case V2V_EVENT_PLATOON_HEARTBEAT:
+                if (PLATOON_LEADER_ID != m_vehicleId)
+                {
+                    JsonVariant jsonEventDataTimestamp = eventDataAsJson["timestamp"]; /* Timestamp [ms]. */
+
+                    if (false == jsonEventDataTimestamp.isNull())
+                    {
+                        /* Timestamp is sent back to acknowledge synchronization. */
+                        uint32_t eventDataTimestamp = jsonEventDataTimestamp.as<uint32_t>();
+                        StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
+                        heartbeatDoc["timestamp"] = eventDataTimestamp;
+                        heartbeatDoc["status"]    = m_vehicleStatus;
+
+                        if (false == publishEvent(m_heartbeatResponseTopic, V2V_EVENT_VEHICLE_HEARTBEAT,
+                                                  heartbeatDoc.as<JsonObject>()))
+                        {
+                            LOG_ERROR("Failed to publish MQTT message to %s.", m_heartbeatResponseTopic.c_str());
+                        }
+                        else
+                        {
+                            LOG_DEBUG("Sent vehicle heartbeat: %d", eventDataTimestamp);
+                        }
+                    }
+                }
+                break;
+
+            case V2V_EVENT_TYPE_UNKNOWN:
+            default:
+                LOG_ERROR("Unknown event type: %d.", eventType);
+                break;
+            }
+
+            if (false == pushEventToQueue)
+            {
+                /* Do nothing. */
+            }
+            else if (MAX_EVENT_QUEUE_SIZE <= m_eventQueue.size())
+            {
+                LOG_ERROR("Event queue is full.");
+            }
+            else
+            {
+                /* Create and push event. */
+                V2VEvent event(eventVehicleId, eventType, eventTimestamp, eventData);
+                m_eventQueue.push(event);
             }
         }
     }
@@ -377,10 +443,12 @@ void V2VCommManager::vehicleHeartbeatTopicCallback(const String& payload)
 
 bool V2VCommManager::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
 {
-    bool    isSuccessful  = false;
-    uint8_t nextVehicleId = vehicleId + 1U; /* Output is published to next vehicle. */
+    bool    isSuccessful         = false;
+    uint8_t nextVehicleId        = vehicleId + 1U;           /* Output is published to next vehicle. */
+    uint8_t lastFollowerOutputId = NUMBER_OF_FOLLOWERS + 1U; /* Output is published to next vehicle. */
     char    inputTopicBuffer[MAX_TOPIC_LENGTH];
     char    outputTopicBuffer[MAX_TOPIC_LENGTH];
+    char    feedbackTopicBuffer[MAX_TOPIC_LENGTH];
 
     /* Input Topic. */
     if (0 >= snprintf(inputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", platoonId, vehicleId,
@@ -394,13 +462,21 @@ bool V2VCommManager::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
     {
         LOG_ERROR("Failed to create output topic.");
     }
+    /* Feedback Topic. */
+    if (0 >= snprintf(feedbackTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", m_platoonId,
+                      lastFollowerOutputId, TOPIC_NAME_WAYPOINT_RX))
+    {
+        LOG_ERROR("Failed to create feedback topic.");
+    }
     else
     {
         /* Set topics. */
         m_waypointInputTopic  = inputTopicBuffer;
         m_waypointOutputTopic = outputTopicBuffer;
+        m_feedbackTopic       = feedbackTopicBuffer;
 
-        if ((true == m_waypointInputTopic.isEmpty()) || (true == m_waypointOutputTopic.isEmpty()))
+        if ((true == m_waypointInputTopic.isEmpty()) || (true == m_waypointOutputTopic.isEmpty()) ||
+            (true == m_feedbackTopic.isEmpty()))
         {
             LOG_ERROR("Failed to create Waypoint MQTT topics.");
         }
@@ -408,7 +484,7 @@ bool V2VCommManager::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
         {
             /* Create lambda callback function for the waypoint input topic. */
             IMqttClient::TopicCallback lambdaWaypointInputTopicCallback = [this](const String& payload)
-            { this->targetWaypointTopicCallback(payload); };
+            { this->eventCallback(payload); };
 
             /* Subscribe to Input Topic. */
             if (false == m_mqttClient.subscribe(m_waypointInputTopic, false, lambdaWaypointInputTopicCallback))
@@ -462,7 +538,7 @@ bool V2VCommManager::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
         {
             /* Create lambda callback function for the platoon heartbeat topic. */
             IMqttClient::TopicCallback lambdaHeartbeatInputTopicCallback = [this](const String& payload)
-            { this->platoonHeartbeatTopicCallback(payload); };
+            { this->eventCallback(payload); };
 
             /* Subscribe to platoon heartbeat Topic. */
             if (false == m_mqttClient.subscribe(m_platoonHeartbeatTopic, false, lambdaHeartbeatInputTopicCallback))
@@ -484,17 +560,25 @@ bool V2VCommManager::setupLeaderTopics()
     bool isSuccessful = false;
 
     /* Participant is the leader. */
-    IMqttClient::TopicCallback lambdaVehiclesHeartbeatTopicCallback = [this](const String& payload)
-    { this->vehicleHeartbeatTopicCallback(payload); };
+    IMqttClient::TopicCallback lambdaEventCallback = [this](const String& payload) { this->eventCallback(payload); };
 
     if (true == m_heartbeatResponseTopic.isEmpty())
     {
         LOG_ERROR("Failed to create Leader Heartbeat Response MQTT topic.");
     }
+    else if (true == m_feedbackTopic.isEmpty())
+    {
+        LOG_ERROR("Failed to create Leader Feedback MQTT topic.");
+    }
     /* Subscribe to Vehicles Heartbeat Topics. */
-    else if (false == m_mqttClient.subscribe(m_heartbeatResponseTopic, false, lambdaVehiclesHeartbeatTopicCallback))
+    else if (false == m_mqttClient.subscribe(m_heartbeatResponseTopic, false, lambdaEventCallback))
     {
         LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_platoonHeartbeatTopic.c_str());
+    }
+    /* Subscribe to Last Vehicle Feedback Topic. */
+    else if (false == m_mqttClient.subscribe(m_feedbackTopic, false, lambdaEventCallback))
+    {
+        LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_feedbackTopic.c_str());
     }
     else
     {
@@ -519,17 +603,65 @@ bool V2VCommManager::sendPlatoonHeartbeat()
     {
         LOG_ERROR("Failed to serialize heartbeat.");
     }
-    else if (false == m_mqttClient.publish(m_platoonHeartbeatTopic, false, heartbeatPayload))
+    else if (false == publishEvent(m_platoonHeartbeatTopic, V2V_EVENT_PLATOON_HEARTBEAT, heartbeatPayload))
+    // else if (false == m_mqttClient.publish(m_platoonHeartbeatTopic, false, heartbeatPayload))
     {
         LOG_ERROR("Failed to publish MQTT message to %s.", m_platoonHeartbeatTopic.c_str());
     }
     else
     {
-        LOG_DEBUG("Sent platoon heartbeat: %s", heartbeatPayload.c_str());
-        isSuccessful = true;
-
         /* Save last timestamp in which the follower heartbeat was present. May be used for debugging in the future. */
         m_lastPlatoonHeartbeatTimestamp = timestamp;
+        isSuccessful                    = true;
+        LOG_DEBUG("Sent platoon heartbeat: %d", m_lastPlatoonHeartbeatTimestamp);
+    }
+
+    return isSuccessful;
+}
+
+bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const String& data)
+{
+    bool isSuccessful = false;
+
+    /* Create JSON document. */
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    String                                    payload;
+
+    jsonPayload["id"]        = m_vehicleId;
+    jsonPayload["type"]      = type;
+    jsonPayload["timestamp"] = millis();
+    jsonPayload["data"]      = serialized(data);
+
+    if (0U == serializeJson(jsonPayload, payload))
+    {
+        LOG_ERROR("Failed to serialize event %d for topic %s.", type, topic.c_str());
+    }
+    else if (false == m_mqttClient.publish(topic, false, payload))
+    {
+        LOG_ERROR("Failed to publish V2V Event to %s.", topic.c_str());
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
+bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const JsonObject& data)
+{
+    bool   isSuccessful = false;
+    String payload;
+
+    serializeJson(data, payload);
+
+    if (0U == payload.length())
+    {
+        LOG_ERROR("Failed to serialize event %d for topic %s.", type, topic.c_str());
+    }
+    else
+    {
+        isSuccessful = publishEvent(topic, type, payload);
     }
 
     return isSuccessful;

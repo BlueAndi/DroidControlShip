@@ -47,6 +47,7 @@
 #include <queue>
 #include <SimpleTimer.hpp>
 #include "Follower.h"
+#include "V2VEvent.h"
 
 /******************************************************************************
  * Macros
@@ -68,7 +69,8 @@ public:
     {
         PARTICIPANT_TYPE_UNKNOWN = 0U, /**< Unknown participant type */
         PARTICIPANT_TYPE_LEADER,       /**< Platoon leader */
-        PARTICIPANT_TYPE_FOLLOWER      /**< Platoon follower */
+        PARTICIPANT_TYPE_FOLLOWER,     /**< Platoon follower */
+        PARTICIPANT_TYPE_LAST_FOLLOWER /**< Last platoon follower */
     };
 
     /** V2VCommunication Manager Status. */
@@ -130,20 +132,18 @@ public:
     bool sendWaypoint(const Waypoint& waypoint);
 
     /**
-     * Get the next recevied Waypoint from the V2V communication manager.
+     * Get the next recevied V2V Event from the V2V communication manager.
+     * The V2V Event is a generic event that can be used to send any type of event.
+     * The event type is defined by the V2VEventType enum.
+     * The event data is a pointer to the data of the event.
+     * The event data must be casted to the correct type according to the event type.
+     * The event data must be deleted after use by the user.
      *
-     * @param[out] waypoint  Next waypoint to receive.
+     * @param[out] event  Next event to receive.
      *
-     * @return If a waypoint was successfully received, returns true. Otherwise, false.
+     * @return If an event was successfully received, returns true. Otherwise, false.
      */
-    bool getNextWaypoint(Waypoint& waypoint);
-
-    /**
-     * Get the number of waypoints in the queue.
-     *
-     * @return Number of waypoints in the queue.
-     */
-    size_t getWaypointQueueSize() const;
+    bool getEvent(V2VEvent& event);
 
 private:
     /** Max topic length */
@@ -167,18 +167,21 @@ private:
     /** MQTT subtopic name for platoon heartbeat reponse. */
     static const char* TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE;
 
+    /** Maximum number of events to queue. */
+    static const size_t MAX_EVENT_QUEUE_SIZE = 20U;
+
     /** MQTTClient Instance. */
     MqttClient& m_mqttClient;
 
     /**
-     * Queue for the received waypoints.
-     * Stores pointers to the waypoints in the queue when received in the callback.
-     * The queue is emptied by the getNextWaypoint() method.
-     * The queue is filled by the targetWaypointTopicCallback() method.
+     * Queue for the received V2V events.
+     * Stores the received V2V events in the queue when received in the callback.
+     * The queue is emptied by the getEvent() method.
+     * The queue is filled by MQTT topic callbacks.
      *
-     * @tparam Waypoint*    Pointer to a Waypoint.
+     * @tparam V2VEvent    V2V Event.
      */
-    std::queue<Waypoint*> m_waypointQueue;
+    std::queue<V2VEvent> m_eventQueue;
 
     /** Topic to receive target Waypoints. */
     String m_waypointInputTopic;
@@ -191,6 +194,9 @@ private:
 
     /** Topic to send vehicle heartbeat messages. */
     String m_heartbeatResponseTopic;
+
+    /** Topic to receive las follower feedback waypoints. */
+    String m_feedbackTopic;
 
     /** Type of Platoon Participant.*/
     ParticipantType m_participantType;
@@ -224,25 +230,11 @@ private:
 
 private:
     /**
-     * Callback for Position Setpoint MQTT Topic.
+     * Callback for V2V Events.
      *
      * @param[in] payload   Payload of the MQTT message.
      */
-    void targetWaypointTopicCallback(const String& payload);
-
-    /**
-     * Callback for Platoon Heartbeat MQTT Topic.
-     *
-     * @param[in] payload   Payload of the MQTT message.
-     */
-    void platoonHeartbeatTopicCallback(const String& payload);
-
-    /**
-     * Callback for Vehicle Heartbeat MQTT Topic. Only used by the leader.
-     *
-     * @param[in] payload   Payload of the MQTT message.
-     */
-    void vehicleHeartbeatTopicCallback(const String& payload);
+    void eventCallback(const String& payload);
 
     /**
      * Setup waypoint input and output topics.
@@ -277,6 +269,28 @@ private:
      * @return If the message was sent successfully, returns true. Otherwise, false.
      */
     bool sendPlatoonHeartbeat();
+
+    /**
+     * Publish an event to the specified topic.
+     *
+     * @param[in] topic     Topic to publish the event.
+     * @param[in] type      Event type.
+     * @param[in] data      String with the serialized JSON object with the event data.
+     *
+     * @return If the event was published successfully, returns true. Otherwise, false.
+     */
+    bool publishEvent(const String& topic, V2VEventType type, const String& data);
+
+    /**
+     * Publish an event to the specified topic.
+     *
+     * @param[in] topic     Topic to publish the event.
+     * @param[in] type      Event type.
+     * @param[in] data      JSON Object with the event data.
+     *
+     * @return If the event was published successfully, returns true. Otherwise, false.
+     */
+    bool publishEvent(const String& topic, V2VEventType type, const JsonObject& data);
 
     /**
      * Default constructor.
