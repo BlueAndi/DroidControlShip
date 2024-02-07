@@ -25,8 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  RemoteControl application
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  SignalReceiver application
+ * @author Paul Gramescu <paul.gramescu@gmail.com>
  *
  * @addtogroup Application
  *

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief The green light phase realization.
+ * @brief The traffic handler realization.
  * @author Paul Gramescu <paul.gramescu@gmail.com>
  *
  * @addtogroup Application
