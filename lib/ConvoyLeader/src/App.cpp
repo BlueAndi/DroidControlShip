@@ -248,7 +248,7 @@ void App::systemStatusCallback(SMPChannelPayload::Status status)
         break;
 
     case SMPChannelPayload::STATUS_FLAG_ERROR:
-        LOG_DEBUG("RU Status ERROR.");
+        LOG_ERROR("RU Status ERROR.");
         setErrorState();
         m_statusTimeoutTimer.stop();
         break;

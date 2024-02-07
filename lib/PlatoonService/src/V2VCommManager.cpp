@@ -202,7 +202,6 @@ V2VCommManager::V2VStatus V2VCommManager::process(VehicleStatus status)
             }
             else
             {
-                LOG_DEBUG("All participants responded to heartbeat.");
                 m_v2vStatus = V2V_STATUS_OK;
             }
 
@@ -250,7 +249,7 @@ bool V2VCommManager::sendWaypoint(const Waypoint& waypoint)
 
     if (true == payload.isEmpty())
     {
-        LOG_DEBUG("Failed to serialize waypoint.");
+        LOG_ERROR("Failed to serialize waypoint.");
     }
     else if (false == publishEvent(m_waypointOutputTopic, type, payload))
     {
@@ -391,7 +390,7 @@ void V2VCommManager::eventCallback(const String& payload)
                         }
                         else
                         {
-                            LOG_DEBUG("Sent vehicle heartbeat: %d", eventDataTimestamp);
+                            /* Nothing to do. */
                         }
                     }
                 }
@@ -507,9 +506,6 @@ bool V2VCommManager::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
         m_platoonHeartbeatTopic  = platoonHeartbeatTopicBuffer;
         m_heartbeatResponseTopic = vehicleHeartbeatTopicBuffer;
 
-        LOG_DEBUG("Platoon Heartbeat Topic: %s", m_platoonHeartbeatTopic.c_str());
-        LOG_DEBUG("Vehicle Heartbeat Topic: %s", m_heartbeatResponseTopic.c_str());
-
         if ((true == m_platoonHeartbeatTopic.isEmpty()) || (true == m_heartbeatResponseTopic.isEmpty()))
         {
             LOG_ERROR("Failed to create Platoon Heartbeat MQTT topics.");
@@ -593,7 +589,6 @@ bool V2VCommManager::sendPlatoonHeartbeat()
         /* Save last timestamp in which the follower heartbeat was present. May be used for debugging in the future. */
         m_lastPlatoonHeartbeatTimestamp = timestamp;
         isSuccessful                    = true;
-        LOG_DEBUG("Sent platoon heartbeat: %d", m_lastPlatoonHeartbeatTimestamp);
     }
 
     return isSuccessful;
@@ -675,7 +670,7 @@ void V2VCommManager::processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t e
         }
         else
         {
-            LOG_DEBUG("Follower %d Ok", eventVehicleId);
+            /* Nothing to do. */
         }
     }
 }
