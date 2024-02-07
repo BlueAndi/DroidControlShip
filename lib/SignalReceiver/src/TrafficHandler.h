@@ -163,19 +163,19 @@ private:
     static const uint8_t MAX_ELEMENTS = 10;
 
     /** Number of enlisted IEs. */
-    uint8_t m_IECounter = 0;
+    uint8_t m_IECounter;
 
     /** The value of the received color. */
     uint8_t m_colorID;
 
     /** Current IE that robot is locked onto. */
-    String lockedOnto = "";
+    String lockedOnto;
 
     /** List of infrastructure elements. */
     TrafficElement listOfElements[MAX_ELEMENTS];
 
     /** Traffic handler constructor. */
-    TrafficHandler() : m_colorID(0U)
+    TrafficHandler() : m_IECounter(0U), m_colorID(0U), lockedOnto()
     {
     }
 

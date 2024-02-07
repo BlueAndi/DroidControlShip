@@ -234,9 +234,9 @@ private:
     CoordinateHandler() :
         m_distance(0),
         m_oldDistance(0),
-        m_currentOrientation(0),
         m_currentX(0),
         m_currentY(0),
+        m_currentOrientation(0),
         m_currentStatus(STATUS_IDLE)
     {
     }
