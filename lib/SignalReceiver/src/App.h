@@ -116,7 +116,7 @@ public:
     void systemStatusCallback(SMPChannelPayload::Status status);
 
     /**
-     * Odometry Callback
+     * Odometry Callback to receive robot position and orientation.
      *
      * @param[in] odometry  Odometry data.
      */
