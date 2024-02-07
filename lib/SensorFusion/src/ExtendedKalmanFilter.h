@@ -151,8 +151,8 @@ private:
     /** Index of Turn Rate in mrad/s in the control input vector u. */
     static const uint8_t IDX_TURNRATE_CONTROL_INPUT_VECTOR = 1U;
 
-    /** Initial covariance matrix (notation in literature: P). */
-    static const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> INITIAL_COVARIANCE_MATRIX_P;
+    /** The covariance matrix of the process noise Matrix (notation in literature: Q). */
+    static const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> PROCESS_COVARIANCE_MATRIX_Q;
 
     /** The observation model Matrix (notation in literature: H). */
     static const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> OBSERVATION_MATRIX_H;

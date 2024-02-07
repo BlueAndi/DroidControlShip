@@ -54,21 +54,20 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-/* TODO: TD124 Determine the right Parameters for LKF and EKF. */
+/** Standard Deviation of the Acceleration. The value has been determined by standstill measurements. */
+constexpr float ACCELERATION_STD = 20.0F;
 
-constexpr float ACCELERATION_STD      = 80.0F;              /**< Standard Deviation of the Acceleration. */
-constexpr float TURNRATE_STD          = 1.0F;               /**< Standard Deviation of the Turn Rate. */
-constexpr float ODOMETRY_POSITION_STD = 4.0F;               /**< Standard Deviation of the Odometry Position. */
-constexpr float ODOMETRY_STD_ANGLE    = 100.0F;             /**< Standard Deviation of the Odometry Orientation. */
-constexpr float INIT_VELOCITY_STD     = 1.0;                /**< Standard Deviation of the initial Velocity. */
-constexpr float INIT_ANGLE_STD        = 1.0 / 180.0 * M_PI; /**< Standard Deviation of the initial Angle. */
+/** Standard Deviation of the Turn Rate. The value has been determined by standstill measurements. */
+constexpr float TURNRATE_STD = 4.0F;
 
-/** Initial covariance matrix (notation in literature: P). */
-const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> ExtendedKalmanFilter::INITIAL_COVARIANCE_MATRIX_P{
-    {ODOMETRY_POSITION_STD * ODOMETRY_POSITION_STD, 0.0F, 0.0F, 0.0F},
-    {0.0F, ODOMETRY_POSITION_STD* ODOMETRY_POSITION_STD, 0.0F, 0.0F},
-    {0.0F, 0.0F, INIT_VELOCITY_STD* INIT_VELOCITY_STD, 0.0F},
-    {0.0F, 0.0F, 0.0F, INIT_ANGLE_STD* INIT_ANGLE_STD}};
+/** Standard Deviation of the Odometry Position. Determined empirically. */
+constexpr float ODOMETRY_POSITION_STD = 10.0F;
+
+/** Standard Deviation of the Odometry Velocity. Determined empirically. */
+constexpr float ODOMETRY_VELOCITY_STD = 30.0F;
+
+/** Standard Deviation of the Odometry Angle. Determined empirically. */
+constexpr float ODOMETRY_STD_ANGLE = 100.0F;
 
 /** The observation model Matrix (notation in literature: H). */
 const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> ExtendedKalmanFilter::OBSERVATION_MATRIX_H{
@@ -79,10 +78,17 @@ const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> Extende
 
 /** The covariance of the observation noise Matrix (notation in literature: R). */
 const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M>
-    ExtendedKalmanFilter::OBSERVATION_NOISE_MATRIX_R{{ODOMETRY_POSITION_STD * ODOMETRY_POSITION_STD, 0.0F, 0.0F, 0.0F},
-                                                     {0.0F, ODOMETRY_POSITION_STD* ODOMETRY_POSITION_STD, 0.0F, 0.0F},
-                                                     {0.0F, 0.0F, ODOMETRY_POSITION_STD* ODOMETRY_POSITION_STD, 0.0F},
-                                                     {0.0F, 0.0F, 0.0F, ODOMETRY_STD_ANGLE* ODOMETRY_STD_ANGLE}};
+    ExtendedKalmanFilter::OBSERVATION_NOISE_MATRIX_R{{ODOMETRY_POSITION_STD, 0.0F, 0.0F, 0.0F},
+                                                     {0.0F, ODOMETRY_POSITION_STD, 0.0F, 0.0F},
+                                                     {0.0F, 0.0F, ODOMETRY_VELOCITY_STD, 0.0F},
+                                                     {0.0F, 0.0F, 0.0F, ODOMETRY_STD_ANGLE}};
+
+/** The covariance matrix of the process noise Matrix (notation in literature: Q). */
+const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> ExtendedKalmanFilter::PROCESS_COVARIANCE_MATRIX_Q{
+    {ODOMETRY_POSITION_STD, 0.0F, 0.0F, 0.0F},
+    {0.0F, ODOMETRY_POSITION_STD, 0.0F, 0.0F},
+    {0.0F, 0.0F, ACCELERATION_STD, 0.0F},
+    {0.0F, 0.0F, 0.0F, TURNRATE_STD}};
 
 /******************************************************************************
  * Public Methods
@@ -94,7 +100,6 @@ void ExtendedKalmanFilter::init(KalmanParameter& initialParameter)
     m_stateVector(IDX_POSITION_Y_STATE_VECTOR)  = initialParameter.positionOdometryY;
     m_stateVector(IDX_VELOCITY_STATE_VECTOR)    = 0.0F;
     m_stateVector(IDX_ORIENTATION_STATE_VECTOR) = initialParameter.angleOdometry;
-    m_covarianceMatrix                          = INITIAL_COVARIANCE_MATRIX_P;
     updateControlInputVector(initialParameter);
     updateMeasurementVector(initialParameter);
 }
@@ -125,18 +130,7 @@ void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
     jacobianMatrix << 1, 0, duration * cosOrienation, -duration * velocity * sinOrienation, 0, 1,
         duration * sinOrienation, duration * velocity * cosOrienation, 0, 0, 1, 0, 0, 0, 0, 1;
 
-    /* Generate Process Covariance Matrix Q */
-    Eigen::MatrixXf processCovarianceMatrixQ = Eigen::MatrixXf::Zero(NUMBER_OF_STATES_N, NUMBER_OF_STATES_N);
-    processCovarianceMatrixQ(IDX_POSITION_X_STATE_VECTOR, IDX_POSITION_X_STATE_VECTOR) =
-        duration * duration * ODOMETRY_POSITION_STD * ODOMETRY_POSITION_STD;
-    processCovarianceMatrixQ(IDX_POSITION_Y_STATE_VECTOR, IDX_POSITION_Y_STATE_VECTOR) =
-        duration * duration * ODOMETRY_POSITION_STD * ODOMETRY_POSITION_STD;
-    processCovarianceMatrixQ(IDX_VELOCITY_STATE_VECTOR, IDX_VELOCITY_STATE_VECTOR) =
-        duration * duration * ACCELERATION_STD * ACCELERATION_STD;
-    processCovarianceMatrixQ(IDX_ORIENTATION_STATE_VECTOR, IDX_ORIENTATION_STATE_VECTOR) =
-        duration * duration * TURNRATE_STD * TURNRATE_STD;
-
-    m_covarianceMatrix = jacobianMatrix * m_covarianceMatrix * jacobianMatrix.transpose() + processCovarianceMatrixQ;
+    m_covarianceMatrix = jacobianMatrix * m_covarianceMatrix * jacobianMatrix.transpose() + PROCESS_COVARIANCE_MATRIX_Q;
 }
 
 IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& kalmanParameter)
