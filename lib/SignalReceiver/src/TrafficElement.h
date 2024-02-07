@@ -250,12 +250,12 @@ public:
     /** Traffic element constructor. */
     TrafficElement() :
         m_nameElement(),
-        m_orientation(0U),
-        m_entryX(0U),
-        m_entryY(0U),
-        m_distance(0U),
-        m_previousDistance(0U),
-        m_topicName(""),
+        m_orientation(0),
+        m_entryX(0),
+        m_entryY(0),
+        m_distance(0),
+        m_previousDistance(0),
+        m_topicName(),
         m_trafficStatus(0U)
     {
     }

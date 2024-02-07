@@ -229,11 +229,11 @@ private:
 
     /** Coordinate handler constructor. */
     CoordinateHandler() :
-        m_distance(0U),
-        m_oldDistance(0U),
-        m_currentOrientation(0U),
-        m_currentX(0U),
-        m_currentY(0U),
+        m_distance(0),
+        m_oldDistance(0),
+        m_currentOrientation(0),
+        m_currentX(0),
+        m_currentY(0),
         m_currentStatus(STATUS_IDLE)
     {
     }
