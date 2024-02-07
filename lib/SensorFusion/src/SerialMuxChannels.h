@@ -78,9 +78,6 @@ typedef struct _SensorData
     /** Orientation in mrad calculated by odometry. */
     int32_t orientationOdometry;
 
-    /** Velocity in mm/s calculated by odometry. */
-    int16_t velocityOdometry;
-
     /** Acceleration in x direction as a raw sensor value in digits.
      * It can be converted into a physical acceleration value in mm/s^2 via the
      * multiplication with a sensitivity factor in mm/s^2/digit.
@@ -95,6 +92,9 @@ typedef struct _SensorData
 
     /** Time passed since the last sensor value in milliseconds. */
     uint16_t timePeriod;
+
+    /** Indicates whether the Robot is standing still (true) or is moving (false). Determined via Odometry. */
+    bool isStandStill;
 } __attribute__((packed)) SensorData;
 
 /** Struct of the End Line Detection payload. */

@@ -112,7 +112,7 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
 
         /* If the robot moves slowly, the odometry might not be updated in the scope of one iteration.
         The velocity would be falsely assumed to be 0. In this case, the last Velocity shall be used.  */
-        if (0.0F == meanVelocityOdometry)
+        if ((0.0F == meanVelocityOdometry) && (newSensorData.isStandStill == false))
         {
             meanVelocityOdometry = m_lastOdometryVelocity;
         }
