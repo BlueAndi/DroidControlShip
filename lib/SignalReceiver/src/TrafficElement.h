@@ -249,7 +249,7 @@ public:
 
     /** Traffic element constructor. */
     TrafficElement() :
-        m_nameElement(""),
+        m_nameElement(),
         m_orientation(0U),
         m_entryX(0U),
         m_entryY(0U),
