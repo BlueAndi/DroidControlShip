@@ -41,9 +41,9 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <Util.h>
-#include <CoordinateHandler.h>
-#include <TrafficElement.h>
-#include <TrafficHandler.h>
+#include "CoordinateHandler.h"
+#include "TrafficHandler.h"
+#include "TrafficElement.h"
 #include "StartupState.h"
 #include "IdleState.h"
 #include "DrivingState.h"
@@ -287,7 +287,7 @@ void App::odometryCallback(const VehicleData& odometry)
 
     LOG_DEBUG("RECEIVED ODOMETRY: x: %d y: %d ORIENTATION:  %d", odometry.xPos, odometry.yPos, odometry.orientation);
 
-    /* Set new coordinates in for processing. */
+    /* Set new coordinates for processing. */
     CoordinateHandler::getInstance().setCurrentOrientation(odometry.orientation);
     CoordinateHandler::getInstance().setCurrentCoordinates(odometry.xPos, odometry.yPos);
 }
