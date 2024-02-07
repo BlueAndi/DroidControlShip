@@ -77,6 +77,7 @@ static const uint32_t JSON_DOC_DEFAULT_SIZE = 512U;
 
 V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_mqttClient(mqttClient),
+    m_eventQueue(),
     m_waypointInputTopic(),
     m_waypointOutputTopic(),
     m_platoonHeartbeatTopic(),
