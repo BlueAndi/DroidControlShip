@@ -5,23 +5,46 @@ title SignalReceiver app
 package "Application" as appLayer {
 
     class App {
-        - bool gIsListening
+        - static const uint8_t MIN_BATTERY_LEVEL 
+        - static const uint32_t SEND_COMMANDS_TIMER_INTERVAL
+        - static const uint32_t SEND_MOTOR_SPEED_TIMER_INTERVAL
+        - static const uint32_t SEND_STATUS_TIMER_INTERVAL
+        - static const uint32_t PROCESS_TRAFFIC_TIMER_INTERVAL
+        - static const uint32_t STATUS_TIMEOUT_TIMER_INTERVAL
+        - static const char TOPIC_NAME_BIRTH
+        - static const char TOPIC_NAME_WILL
+        - static const char TOPIC_NAME_SETTINGS
+        - uint8_t m_serialMuxProtChannelIdRemoteCtrl
+        - uint8_t m_serialMuxProtChannelIdMotorSpeeds
+        - uint8_t m_serialMuxProtChannelIdStatus
+        - SMPServer m_smpServer
+        - MqttClient m_mqttClient
+        - StateMachine m_systemStateMachine
+        - SimpleTimer m_commandTimer
+        - SimpleTimer m_motorSpeedTimer 
+        - SimpleTimer m_processTrafficTimer 
+        - SimpleTimer m_statusTimer
+        - SimpleTimer m_statusTimeoutTimer 
+        - bool m_isSubscribed
         - Color clr 
         - Color oldClr
         + setup() : void
         + loop() : void
-        + sendCurrentColor() : void
-        + App_odometryChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData) : void
+        + setErrorState() : void 
+        + systemStatusCallback(SMPChannelPayload::Status status) : void
+        + odometryChannelCallback(const VehicleData& odometry) : void
         + trafficLightColorsCallback(const String& payload) : void
         + settingsCallback(const String& payload) : void
+        - fatalErrorHandler() : void
+        - processPeriodicTasks() : void 
+        - processTraffic() : void 
     }
 
-    note left of App::gIsListening
-        Once conditions are fullfilled, gIsListening is set as true and
-        the robot receives the relevant color ID through SMP/USB.
+    note left of App::m_isSubscribed
+        Flag to subscribe only once, once status is LOCKED_IN.
     end note
 
-    note left of App::App_odometryChannelCallback
+    note left of App::odometryChannelCallback
         Receives and deserializes odometry information from RadonUlzer. 
     end note
 
@@ -36,6 +59,10 @@ package "Application" as appLayer {
         * Type: {"FROM": , "TOWARDS": , "EX": , "EY": }
     end note
 
+    note left of App::processPeriodicTasks()
+        Here are various functions called once the timers are done. 
+    end note 
+
     class "TrafficElement" as te 
     {
         -String m_nameElement
@@ -46,6 +73,7 @@ package "Application" as appLayer {
         -int32_t m_previousDistance
         -String m_topicName
         -uint8_t m_trafficStatus
+        +getInstance() : TrafficElement
         +setIEName(String name) : void
         +getIEName() : String
         +setRequiredOrientation(int32_t requiredOrientation) : void
@@ -74,17 +102,23 @@ package "Application" as appLayer {
     class "TrafficHandler" as th 
     {
         -uint8_t MAX_ELEMENTS
-        -uint8_t NR_OF_ELEMENTS
+        -uint8_t m_IECounter
+        -uint8_t m_colorID
         -String lockedOnto
-        -TrafficElement listOfElements[10]
-        +process() : bool
+        -TrafficElement listOfElements[MAX_ELEMENTS]
+        +getInstance() : TrafficHandler 
+        +processList() : bool
         +setNewInfrastructureElement() : bool
+        +setColorID(uint8_t receivedColor) : void 
+        +getColorID() : uint8_t
+        +processColor() : void 
         +checkLockIn() : bool
         +isNear() : bool
         +getTargetName() : String
+        +clearTarget() : void 
     }
 
-    note top of th
+    note right of th
         * Adds new IEs to the list once it receives relevant settings.
         * Processes this list and outputs a status between the robot and each IE.
         * Important statuses are checked using checkLockIn() and isNear()
@@ -98,15 +132,16 @@ package "Application" as appLayer {
     class "CoordinateHandler" as ch 
     {
         -enum CurrentStatus
-        -CurrentStatus m_currentStatus
         -int32_t m_distance
         -int32_t m_oldDistance
         -int32_t m_currentX
         -int32_t m_currentY
         -int32_t m_currentOrientation
+        -CurrentStatus m_currentStatus
+        +getInstance() : CoordinateHandler 
         +setCurrentCoordinates(int32_t xPos, int32_t yPos) : void
         +getCurrentXCoord() : int32_t 
-        +getCurrentYCorrd() : int32_t
+        +getCurrentYCoord() : int32_t
         +setCurrentOrientation() : void
         +getCurrentOrientation() : int32_t
         +getCurrentDistance() : int32_t
