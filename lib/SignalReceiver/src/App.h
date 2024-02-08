@@ -80,8 +80,7 @@ public:
         m_statusTimeoutTimer(),
         m_isSubscribed(false),
         clr(),
-        oldColorId(),
-        lockedOnto()
+        oldColorId()
     {
     }
 
@@ -212,9 +211,6 @@ private:
 
     /** Sending color only on change. */
     Color oldColorId;
-
-    /** The topic name of the IE the robot is locked onto.*/
-    String lockedOnto;
 
     /**
      * Handler of fatal errors in the Application.

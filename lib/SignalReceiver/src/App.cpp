@@ -426,8 +426,6 @@ void App::processTraffic()
                 {
                     if (TrafficHandler::getInstance().getTargetName() != nullptr)
                     {
-                        lockedOnto = TrafficHandler::getInstance().getTargetName();
-
                         if (true == m_mqttClient.subscribe(TrafficHandler::getInstance().getTargetName(), false,
                                                            [this](const String& payload)
                                                            { trafficLightColorsCallback(payload); }))
@@ -471,7 +469,7 @@ void App::processTraffic()
                 {
                     LOG_DEBUG("No longer locked onto IE, unsubbing from %s.",
                               TrafficHandler::getInstance().getTargetName().c_str());
-                    m_mqttClient.unsubscribe(lockedOnto, false);
+                    m_mqttClient.unsubscribe(TrafficHandler::getInstance().getTargetName(), false);
                 }
                 else
                 {
