@@ -78,7 +78,6 @@ public:
         m_processTrafficTimer(),
         m_statusTimer(),
         m_statusTimeoutTimer(),
-        m_isListening(false),
         m_isSubscribed(false),
         clr(),
         oldColorId(),
@@ -204,9 +203,6 @@ private:
      * Timer for timeout of system status of RU.
      */
     SimpleTimer m_statusTimeoutTimer;
-
-    /** Sending color Id only when near IE. */
-    bool m_isListening;
 
     /** Used for unique subscription. */
     bool m_isSubscribed;

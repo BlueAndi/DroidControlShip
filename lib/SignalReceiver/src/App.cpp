@@ -457,7 +457,6 @@ void App::processTraffic()
                 {
                     LOG_DEBUG("Robot has more driving towards %s to do.",
                               TrafficHandler::getInstance().getTargetName().c_str());
-                    m_isListening = false;
                 }
             }
             else
@@ -479,7 +478,6 @@ void App::processTraffic()
                     LOG_DEBUG("Nothing to unsubscribe to.");
                 }
 
-                m_isListening  = false;
                 m_isSubscribed = false;
             }
         }
