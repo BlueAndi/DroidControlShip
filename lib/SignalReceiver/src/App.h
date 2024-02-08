@@ -145,9 +145,6 @@ private:
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
 
-    /** MQTT topic name for receiving traffic light color IDs. */
-    static const char* TOPIC_NAME_TRAFFIC_LIGHT_COLORS;
-
     /** MQTT topic name for receiving settings. */
     static const char* TOPIC_NAME_SETTINGS;
 

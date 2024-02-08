@@ -89,9 +89,6 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
 
-/* MQTT topic name for receiving traffic light color IDs. */
-const char* App::TOPIC_NAME_TRAFFIC_LIGHT_COLORS = "trafficLightColors";
-
 /* MQTT topic name for receiving settings. */
 const char* App::TOPIC_NAME_SETTINGS = "settings";
 
