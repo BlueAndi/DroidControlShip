@@ -194,7 +194,7 @@ void App::setup()
                 else if (false == m_mqttClient.subscribe(TOPIC_NAME_SETTINGS, false,
                                                          [this](const String& payload) { settingsCallback(payload); }))
                 {
-                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_TRAFFIC_LIGHT_COLORS);
+                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_SETTINGS);
                 }
                 else
                 {

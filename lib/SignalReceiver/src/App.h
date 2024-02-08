@@ -70,7 +70,6 @@ public:
         m_serialMuxProtChannelIdMotorSpeeds(0U),
         m_serialMuxProtChannelIdStatus(0U),
         m_smpServer(Board::getInstance().getDevice().getStream(), this),
-        m_serialMuxProtChannelIdTrafficLightColors(0U),
         m_mqttClient(),
         m_systemStateMachine(),
         m_commandTimer(),
@@ -156,9 +155,6 @@ private:
 
     /** SerialMuxProt Channel id for sending system status. */
     uint8_t m_serialMuxProtChannelIdStatus;
-
-    /** SerialMuxProt Channel id sending current traffic light color ID. */
-    uint8_t m_serialMuxProtChannelIdTrafficLightColors;
 
     /**
      * SerialMuxProt Server Instance
