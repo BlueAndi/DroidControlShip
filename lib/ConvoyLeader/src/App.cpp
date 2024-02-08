@@ -319,23 +319,10 @@ bool App::setupMqttClient()
         IMqttClient::TopicCallback releaseTopicCallback = [this](const String& payload)
         { IdleState::getInstance().requestRelease(); };
 
-        IMqttClient::TopicCallback lastFollowerFeedbackCallback = [this](const String& payload)
-        {
-            Waypoint*   waypoint = Waypoint::deserialize(payload);
-            VehicleData feedback{waypoint->xPos, waypoint->yPos,  waypoint->orientation,
-                                 waypoint->left, waypoint->right, waypoint->center};
-
-            DrivingState::getInstance().setLastFollowerFeedback(feedback);
-        };
-
         /* Register MQTT client callbacks. */
         if (false == m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, releaseTopicCallback))
         {
             LOG_ERROR("Failed to subscribe to release topic.");
-        }
-        else if (false == m_mqttClient.subscribe("platoons/0/vehicles/0/feedback", false, lastFollowerFeedbackCallback))
-        {
-            LOG_ERROR("Failed to subscribe to last follower feedback topic.");
         }
         else
         {
@@ -453,14 +440,18 @@ void App::processV2VCommunication()
 {
     V2VCommManager::V2VStatus     v2vStatus     = V2VCommManager::V2V_STATUS_OK;
     V2VCommManager::VehicleStatus vehicleStatus = V2VCommManager::VEHICLE_STATUS_OK;
+    V2VEvent                      event;
 
+    /* Set vehicle state. */
     if (true == ErrorState::getInstance().isActive())
     {
         vehicleStatus = V2VCommManager::VEHICLE_STATUS_ERROR;
     }
 
+    /* Process V2V Communication. */
     v2vStatus = m_v2vCommManager.process(vehicleStatus);
 
+    /* Process V2V status. */
     switch (v2vStatus)
     {
     case V2VCommManager::V2V_STATUS_OK:
@@ -473,6 +464,7 @@ void App::processV2VCommunication()
 
     case V2VCommManager::V2V_STATUS_LOST_FOLLOWER:
     case V2VCommManager::V2V_STATUS_FOLLOWER_ERROR:
+    case V2VCommManager::V2V_STATUS_OLD_WAYPOINT:
         LOG_ERROR("Follower Error");
         setErrorState();
         break;
@@ -484,6 +476,37 @@ void App::processV2VCommunication()
 
     default:
         break;
+    }
+
+    /* Process V2V events. */
+    if (true == m_v2vCommManager.getEvent(event))
+    {
+        switch (event.type)
+        {
+        case V2VEventType::V2V_EVENT_WAYPOINT:
+            LOG_WARNING("Leader received a V2V_EVENT_WAYPOINT. Is this expected?");
+            break;
+
+        case V2VEventType::V2V_EVENT_FEEDBACK:
+            if (nullptr != event.data)
+            {
+                Waypoint*   waypoint = static_cast<Waypoint*>(event.data);
+                VehicleData feedback{waypoint->xPos, waypoint->yPos,  waypoint->orientation,
+                                     waypoint->left, waypoint->right, waypoint->center};
+
+                DrivingState::getInstance().setLastFollowerFeedback(feedback);
+                delete waypoint;
+                break;
+            }
+
+        case V2VEventType::V2V_EVENT_EMERGENCY:
+            LOG_DEBUG("V2V_EVENT_EMERGENCY");
+            break;
+
+        default:
+            LOG_WARNING("Unknown V2V event type.");
+            break;
+        }
     }
 }
 
