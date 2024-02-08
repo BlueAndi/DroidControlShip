@@ -362,34 +362,7 @@ void V2VCommManager::eventCallback(const String& payload)
                         uint8_t  eventDataStatus    = jsonEventDataStatus.as<uint8_t>();
                         uint32_t eventDataTimestamp = jsonEventDataTimestamp.as<uint32_t>();
 
-                        if (eventDataTimestamp != m_lastPlatoonHeartbeatTimestamp)
-                        {
-                            LOG_ERROR("Received heartbeat from vehicle %d with timestamp %d, expected %d.",
-                                      eventVehicleId, eventDataTimestamp, m_lastPlatoonHeartbeatTimestamp);
-                        }
-                        else
-                        {
-                            uint8_t   followerArrayIndex = eventVehicleId - 1U; /*Already checked id != 0U */
-                            Follower& follower           = m_followers[followerArrayIndex];
-
-                            /* Update follower. */
-                            follower.setLastHeartbeatTimestamp(eventDataTimestamp);
-                            follower.setStatus(eventDataStatus);
-
-                            /* Increment counter regardless of the status. */
-                            ++m_followerResponseCounter;
-
-                            /* Check follower status. */
-                            if (VEHICLE_STATUS_OK != eventDataStatus)
-                            {
-                                LOG_ERROR("Follower %d status: %d.", eventVehicleId, eventDataStatus);
-                                m_v2vStatus = V2V_STATUS_FOLLOWER_ERROR;
-                            }
-                            else
-                            {
-                                LOG_DEBUG("Follower %d Ok", eventVehicleId);
-                            }
-                        }
+                        processFollowerHeartbeat(eventVehicleId, eventDataTimestamp, eventDataStatus);
                     }
                     else
                     {
@@ -672,6 +645,39 @@ bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const 
     }
 
     return isSuccessful;
+}
+
+void V2VCommManager::processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t eventDataTimestamp,
+                                              uint8_t eventDataStatus)
+{
+    if (eventDataTimestamp != m_lastPlatoonHeartbeatTimestamp)
+    {
+        LOG_ERROR("Received heartbeat from vehicle %d with timestamp %d, expected %d.", eventVehicleId,
+                  eventDataTimestamp, m_lastPlatoonHeartbeatTimestamp);
+    }
+    else
+    {
+        uint8_t   followerArrayIndex = eventVehicleId - 1U; /*Already checked id != 0U */
+        Follower& follower           = m_followers[followerArrayIndex];
+
+        /* Update follower. */
+        follower.setLastHeartbeatTimestamp(eventDataTimestamp);
+        follower.setStatus(eventDataStatus);
+
+        /* Increment counter regardless of the status. */
+        ++m_followerResponseCounter;
+
+        /* Check follower status. */
+        if (VEHICLE_STATUS_OK != eventDataStatus)
+        {
+            LOG_ERROR("Follower %d status: %d.", eventVehicleId, eventDataStatus);
+            m_v2vStatus = V2V_STATUS_FOLLOWER_ERROR;
+        }
+        else
+        {
+            LOG_DEBUG("Follower %d Ok", eventVehicleId);
+        }
+    }
 }
 
 /******************************************************************************

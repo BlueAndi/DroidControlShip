@@ -297,6 +297,15 @@ private:
     bool publishEvent(const String& topic, V2VEventType type, const JsonObject& data);
 
     /**
+     * Process the vehicle heartbeat of a follower.
+     *
+     * @param[in] eventVehicleId       ID of the vehicle that sent the heartbeat.
+     * @param[in] eventDataTimestamp   Timestamp of the heartbeat.
+     * @param[in] eventDataStatus      Status of the vehicle.
+     */
+    void processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t eventDataTimestamp, uint8_t eventDataStatus);
+
+    /**
      * Default constructor.
      */
     V2VCommManager();
