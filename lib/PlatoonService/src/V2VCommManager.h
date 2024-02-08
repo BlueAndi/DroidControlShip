@@ -196,7 +196,7 @@ private:
     /** Topic to send vehicle heartbeat messages. */
     String m_heartbeatResponseTopic;
 
-    /** Topic to receive las follower feedback waypoints. */
+    /** Topic to receive last follower feedback waypoints. */
     String m_feedbackTopic;
 
     /** Type of Platoon Participant.*/

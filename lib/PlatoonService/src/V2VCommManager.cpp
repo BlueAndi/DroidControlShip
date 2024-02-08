@@ -110,12 +110,14 @@ V2VCommManager::~V2VCommManager()
             switch (event.type)
             {
             case V2V_EVENT_WAYPOINT:
+                /* Fallthrough */
             case V2V_EVENT_FEEDBACK:
             {
                 Waypoint* waypoint = static_cast<Waypoint*>(event.data);
                 delete waypoint;
                 break;
             }
+
             default:
                 /* Should never be called!. */
                 LOG_FATAL("Danger! Unknown pointer cannot be deleted!");
@@ -131,12 +133,7 @@ bool V2VCommManager::init(uint8_t platoonId, uint8_t vehicleId)
 
     m_vehicleId = vehicleId;
 
-    if (UINT8_MAX == NUMBER_OF_FOLLOWERS)
-    {
-        /* Invalid number of followers. */
-        LOG_ERROR("Invalid number of followers: %d.", NUMBER_OF_FOLLOWERS);
-    }
-    else if (NUMBER_OF_FOLLOWERS < m_vehicleId)
+    if (NUMBER_OF_FOLLOWERS < m_vehicleId)
     {
         /* Invalid ID. */
         LOG_ERROR("Invalid vehicle ID: %d. Maximum followers: %d.", m_vehicleId, NUMBER_OF_FOLLOWERS);
@@ -321,6 +318,7 @@ void V2VCommManager::eventCallback(const String& payload)
             switch (eventType)
             {
             case V2V_EVENT_WAYPOINT:
+                /* Fallthrough */
             case V2V_EVENT_FEEDBACK:
                 eventData = Waypoint::fromJsonObject(eventDataAsJson);
                 if (nullptr == eventData)
