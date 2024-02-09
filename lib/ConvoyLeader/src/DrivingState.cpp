@@ -73,12 +73,18 @@ void DrivingState::process(StateMachine& sm)
     }
     else
     {
+        int16_t maxPossibleSpeed = m_maxMotorSpeed;
+
         /* TODO: Check limits. */
 
         /* TODO: Check follower feedback. Calculate platoon length and react accordingly */
 
+        /* Limit speed based on the proximity sensors. */
+        /* m_vehicleData.proximity goes from 0 to NUM_PROXIMITY_SENSOR_RANGES */
+        maxPossibleSpeed = m_maxMotorSpeed - (m_vehicleData.proximity * m_rangeFactor);
+
         /* Calculate top motor speed. */
-        m_topMotorSpeed = m_maxMotorSpeed;
+        m_topMotorSpeed = constrain(m_topMotorSpeed, 0, maxPossibleSpeed);
     }
 }
 
@@ -90,6 +96,7 @@ void DrivingState::exit()
 void DrivingState::setMaxMotorSpeed(int16_t maxSpeed)
 {
     m_maxMotorSpeed = maxSpeed;
+    m_rangeFactor   = m_maxMotorSpeed / NUM_PROXIMITY_SENSOR_RANGES;
 }
 
 bool DrivingState::getTopMotorSpeed(int16_t& topMotorSpeed) const
