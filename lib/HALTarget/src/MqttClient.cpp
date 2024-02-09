@@ -191,7 +191,6 @@ bool MqttClient::isConnected() const
 bool MqttClient::publish(const String& topic, const bool useClientIdAsBaseTopic, const String& message)
 {
     bool isSuccess = false;
-    LOG_DEBUG("Publishing message to topic %s", topic.c_str());
 
     if ((true == isConnected()) && (false == topic.isEmpty()))
     {
@@ -502,8 +501,6 @@ void MqttClient::onMessageCallback(char* topic, uint8_t* payload, uint32_t lengt
     SubscriberList::const_iterator it;
     const char*                    payloadCStr = reinterpret_cast<char*>(payload);
     const String                   payloadStr  = String(payloadCStr, length);
-
-    LOG_DEBUG("MQTT Rx in topic %s: %s", topic, payloadStr.c_str());
 
     for (it = m_subscriberList.begin(); it != m_subscriberList.end(); ++it)
     {
