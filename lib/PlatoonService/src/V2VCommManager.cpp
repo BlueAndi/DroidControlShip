@@ -580,7 +580,6 @@ bool V2VCommManager::sendPlatoonHeartbeat()
         LOG_ERROR("Failed to serialize heartbeat.");
     }
     else if (false == publishEvent(m_platoonHeartbeatTopic, V2V_EVENT_PLATOON_HEARTBEAT, heartbeatPayload))
-    // else if (false == m_mqttClient.publish(m_platoonHeartbeatTopic, false, heartbeatPayload))
     {
         LOG_ERROR("Failed to publish MQTT message to %s.", m_platoonHeartbeatTopic.c_str());
     }
