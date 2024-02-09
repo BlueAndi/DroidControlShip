@@ -164,6 +164,9 @@ public:
 
 protected:
 private:
+    /** Maximum invalid waypoints allowed before going into error state. */
+    static const uint8_t MAX_INVALID_WAYPOINTS = 3U;
+
     /** Flag: State is active. */
     bool m_isActive;
 

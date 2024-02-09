@@ -107,6 +107,14 @@ void DrivingState::process(StateMachine& sm)
 
             /* Process PlatoonController. */
             m_platoonController.process(m_inputWaypointQueue.size());
+
+            /* Get invalid waypoint count. */
+            if (MAX_INVALID_WAYPOINTS <= m_platoonController.getInvalidWaypointCounter())
+            {
+                /* Go to Error state. Too many invalid waypoints received. Are we going in the right direction? */
+                LOG_ERROR("Too many invalid waypoints received. Going into error state.");
+                sm.setState(&ErrorState::getInstance());
+            }
         }
     }
 }
