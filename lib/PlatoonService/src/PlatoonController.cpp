@@ -163,7 +163,13 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
             else
             {
                 LOG_ERROR("Invalid target waypoint (%d, %d)", m_nextWaypoint.xPos, m_nextWaypoint.yPos);
-                ++m_invalidWaypointCounter;
+
+                /* Prevent wrap-around. */
+                if (UINT8_MAX > m_invalidWaypointCounter)
+                {
+                    /* Increase counter. */
+                    ++m_invalidWaypointCounter;
+                }
             }
         }
     }
