@@ -631,7 +631,6 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
  */
 void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
-    (void)userData;
     if ((nullptr != payload) && (CURRENT_VEHICLE_DATA_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
         const VehicleData* odometryData = reinterpret_cast<const VehicleData*>(payload);
@@ -641,8 +640,8 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     }
     else
     {
-        LOG_WARNING("ODOMETRY: Invalid payload size. Expected: %u Received: %u", CURRENT_VEHICLE_DATA_CHANNEL_DLC,
-                    payloadSize);
+        LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u", CURRENT_VEHICLE_DATA_CHANNEL_NAME,
+                    CURRENT_VEHICLE_DATA_CHANNEL_DLC, payloadSize);
     }
 }
 
