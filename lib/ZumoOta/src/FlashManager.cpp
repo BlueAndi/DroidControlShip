@@ -108,7 +108,7 @@ size_t FlashManager::readingStream(uint8_t* expectedResponse, size_t mybytes)
 }
 
 
-bool FlashManager ::sendCommand(const uint8_t* command, size_t commandsize)
+bool FlashManager::sendCommand(const uint8_t* command, size_t commandsize)
 {
     {
         Stream& deviceStream   = Board::getInstance().getDevice().getStream();
@@ -141,6 +141,7 @@ bool FlashManager ::sendCommand(const uint8_t* command, size_t commandsize)
        }
     }
 }
+
 
 
 

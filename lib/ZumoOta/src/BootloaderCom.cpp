@@ -36,6 +36,9 @@
 #include <Logging.h>
 #include <Board.h>
 #include <FileHandler.h>
+#include "FileManager.h"
+#include <cstring>
+
 
 /******************************************************************************
  * Compiler Switches
@@ -76,8 +79,9 @@ public:
      * @param rsp Reference to a pointer to the next response.
      * @return True if there is a next command and next response, false otherwise.
      */
-    virtual bool next( const CommandInfo *& cmd,  const ResponseInfo *& rsp)
+    virtual bool next(  CommandInfo *& cmd,   ResponseInfo *& rsp)
     {
+        
         if (SEQ_LENGHT > m_index)
         {
 
@@ -98,8 +102,8 @@ public:
 private:
     static const uint32_t SEQ_LENGHT = 12; /**< Length of the command sequence */
     uint32_t m_index; /**< current index in sequence */
-    static const CommandInfo m_cmds[SEQ_LENGHT]; /**< Array of command information */
-    static const ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
+    static  CommandInfo m_cmds[SEQ_LENGHT]; /**< Array of command information */
+    static  ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
 };
 
 /**
@@ -115,9 +119,9 @@ class FwProgCmdProvider : public CmdProvider {
          * @brief Constructor for the FwProgCmdProvider class.
          * @param fs A pointer to the FileHandler object for handling file operations.
          */
-        FwProgCmdProvider(FileHandler * fs) :
-        m_index(0),
-        m_fileSystem(fs)
+         FwProgCmdProvider(const std::string& fileName):
+            m_index(0),
+            m_fileName(fileName)
     {}
 
     /**
@@ -126,7 +130,7 @@ class FwProgCmdProvider : public CmdProvider {
      * This method resets the internal index that tracks the current command
      * in the command sequence memory.
      */
-    virtual void reset() { m_index = 0; }
+    virtual void reset() { m_index = 0;}
 
     /**
      * @brief Retrieves the next command and the next response.
@@ -138,30 +142,30 @@ class FwProgCmdProvider : public CmdProvider {
      * @param rsp Reference to a pointer to the next response.
      * @return True if there is a next command and next response, false otherwise.
      */
-    virtual bool next(const CommandInfo *& cmd, const ResponseInfo *& rsp)
+    virtual bool next( CommandInfo *& cmd, ResponseInfo *& rsp)
     {
-        static const uint32_t CHUNK_SIZE = 128U;
-        /*Determine the current chunk start address.*/
-        uint32_t chunkStartAddress = m_index * CHUNK_SIZE;
-
-        /*Read 128 bytes from the file system.*/
-        char buffer[CHUNK_SIZE];
-        String fileName = " "; /**< Bin File to be flashed.*/
-        size_t bytesRead = m_fileSystem->readFile(fileName, buffer, chunkStartAddress);
-
-        /*If no bytes were read, there are no more chunks left.*/
-        if (0 == bytesRead) {
-            cmd = nullptr;
-            rsp = nullptr;
-            return false;
-        }
-        
         /*Determine the command and response for the current chunk.*/
         uint32_t commandIndex = m_index % SEQ_LENGHT;
         cmd = &m_cmds[commandIndex];
-        if(cmd->command == Zumo32U4Specification::WRITE_MEMORY_PAGE)
+
+        if(cmd->command == Zumo32U4Specification::SET_MEMORY_ADDR)
         {
-            cmd += *buffer;
+            cmd->commandsize = FinalLength;
+        }
+        else if(cmd->command == Zumo32U4Specification::WRITE_MEMORY_PAGE)
+        {
+            size_t bytesRead = m_fileManager.read128Bytes(m_fileName.c_str(), m_buffer);
+            /*If no bytes were read, there are no more chunks left.*/
+            if (0 == bytesRead)
+            {
+                cmd = nullptr;
+                rsp = nullptr;
+                return false;
+            }
+            else
+            {
+                cmd->commandsize += bytesRead;
+            }
         }
         rsp = &m_responses[commandIndex];
 
@@ -171,13 +175,16 @@ class FwProgCmdProvider : public CmdProvider {
         return true;
     }
 
-private:
-    uint32_t m_index; /**< current index in sequence.*/
-    FileHandler *m_fileSystem; /**< Instance of FileHandler.*/
-    static const CommandInfo m_cmds[]; /**< Array of command information.*/
-    static const ResponseInfo m_responses[]; /**< Array of response information.*/
-    static const uint32_t SEQ_LENGHT = 2U; /**< Length of the command sequence.*/
+    FileManager m_fileManager; /**< Instance of Filemanger class.*/
+    const size_t FinalLength = 3;/**< Final Size of the updated Command.*/
 
+private:
+    uint8_t m_index; /**< current index in sequence.*/
+    FileHandler *m_fileSystem; /**< Instance of FileHandler.*/
+    static  CommandInfo m_cmds[]; /**< Array of command information.*/
+    static  ResponseInfo m_responses[]; /**< Array of response information.*/
+    std::string m_fileName = "/zumo_firmware.bin"; /**< Name of the file to be read.*/
+    static const uint32_t SEQ_LENGHT = 2U; /**< Length of the command sequence.*/
 };
 
 /******************************************************************************
@@ -187,9 +194,12 @@ private:
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-const uint16_t PAGE_SIZE_BYTES = 128;
+std::string fileName = "/zumo_firmware.bin";
+uint8_t* CmdProvider::m_buffer = nullptr;
+uint16_t BootloaderCom:: m_currWriteMemAddr = 0x0000; 
 
-const CommandInfo IntProgCmdProvider::m_cmds[] = {
+
+ CommandInfo IntProgCmdProvider::m_cmds[] = {
     {Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID)},
     {Zumo32U4Specification::READ_SW_VERSION, sizeof(Zumo32U4Specification::READ_SW_VERSION)},
     {Zumo32U4Specification::READ_HW_VERSION, sizeof(Zumo32U4Specification::READ_HW_VERSION)},
@@ -204,7 +214,7 @@ const CommandInfo IntProgCmdProvider::m_cmds[] = {
     {Zumo32U4Specification::READ_EXTENDED_FUSE,sizeof(Zumo32U4Specification::READ_EXTENDED_FUSE)}
 };
 
-const ResponseInfo IntProgCmdProvider::m_responses[] = {
+ ResponseInfo IntProgCmdProvider::m_responses[] = {
     {Zumo32U4Specification::EXPECTED_SOFTWARE_ID, sizeof(Zumo32U4Specification::EXPECTED_SOFTWARE_ID)},
     {Zumo32U4Specification::EXPECTED_SW_VERSION,sizeof(Zumo32U4Specification::EXPECTED_SW_VERSION) },
     {Zumo32U4Specification::EXPECTED_HW_VERSION, sizeof(Zumo32U4Specification::EXPECTED_HW_VERSION)},
@@ -219,12 +229,12 @@ const ResponseInfo IntProgCmdProvider::m_responses[] = {
     {Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE,sizeof(Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE)},
 };
 
-const CommandInfo FwProgCmdProvider::m_cmds[] = {
+ CommandInfo FwProgCmdProvider::m_cmds[] = {
             {Zumo32U4Specification::SET_MEMORY_ADDR, sizeof(Zumo32U4Specification::SET_MEMORY_ADDR)},
             {Zumo32U4Specification::WRITE_MEMORY_PAGE, sizeof(Zumo32U4Specification::WRITE_MEMORY_PAGE)}
 };
 
-const ResponseInfo FwProgCmdProvider::m_responses[] = {
+ ResponseInfo FwProgCmdProvider::m_responses[] = {
             {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)},
             {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)}
 };
@@ -241,7 +251,7 @@ static IntProgCmdProvider m_initProvider;
  * This static variable holds an instance of the FwProgCmdProvider class,
  * which provides commands for internal programming.
  */
-static FwProgCmdProvider m_fwProvider(new FileHandler);
+static FwProgCmdProvider m_fwProvider(fileName);
 
 /**
  * @ brief Array of command providers.
@@ -261,7 +271,6 @@ static CmdProvider * cmdProviders[] =
 
 BootloaderCom::BootloaderCom():
 m_state(SelectCmdProvider),
-m_currWriteMemAddr(0),
 m_waitingForResponse(false),
 m_cmdProvider(&m_initProvider),
 m_currentCommand(nullptr),
@@ -314,13 +323,63 @@ bool BootloaderCom::process()
             m_waitingForResponse = false;
             if(m_cmdProvider->next(m_currentCommand, m_currentResponse))
             {
-                if(true == m_flashManager.sendCommand(
+                if(m_currentCommand->command == Zumo32U4Specification::SET_MEMORY_ADDR)
+                {
+                    size_t newSize = m_currentCommand->commandsize;
+                    uint8_t newCommand[newSize];
+                    std::memcpy(newCommand, m_currentCommand->command, m_currentCommand->commandsize);
+                    // Rufen Sie die Funktion zur Aktualisierung des Befehls auf
+                    updateCommand(newCommand);
+                    // Senden Sie den aktualisierten Befehl
+                    if (true == m_flashManager.sendCommand(newCommand, newSize))
+                    {
+                        m_waitingForResponse = true;
+                        m_state = ReadingResponse;
+                    }
+                    else
+                    {
+                        LOG_ERROR("Failed to send command.");
+                        m_state = Idle;
+                    }
+                }
+                else if(m_currentCommand->command == Zumo32U4Specification::WRITE_MEMORY_PAGE)
+                {
+                    size_t newSize = m_currentCommand->commandsize;
+                    if (newSize > sizeof(Zumo32U4Specification::WRITE_MEMORY_PAGE))
+                    {
+                        uint8_t newCommand[newSize];
+                        uint8_t* newbuffer = m_cmdProvider->m_buffer;
+
+                        /*Call the function to update the command.*/
+                        update2Command(newCommand, newbuffer, newSize);
+
+                        /*Send the updated command.*/
+                        if (true == m_flashManager.sendCommand(newCommand, newSize))
+                        {
+                            m_currentProvider -= 2;
+                        }
+                        else
+                        {
+                            LOG_ERROR("Failed to send command.");
+                            m_state = Idle;
+                        }
+
+                    }
+                    else
+                    {
+                        m_waitingForResponse = true;
+                        m_state = ReadingResponse;
+                    }
+
+                }
+                else if (true == m_flashManager.sendCommand(
                     m_currentCommand->command,
                     m_currentCommand->commandsize))
-                {
-                    m_waitingForResponse = true;
-                    m_state = ReadingResponse;
-                }
+                    {
+                        m_waitingForResponse = true;
+                        m_state = ReadingResponse;
+                    }
+
                 else
                 {
                     LOG_ERROR("Failed to send command.");
@@ -564,8 +623,45 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
     return true;
 }
 
+ void BootloaderCom:: updateCommand(uint8_t newCommand[])
+{
+    if (nullptr != newCommand)
+    {
+        newCommand[0] = 0x41;  /**< The first value is always 0x41.*/
+        newCommand[1] = (m_currWriteMemAddr >> 8) & 0xFF; /**<Higher 8 bits of m_currWriteMemAddr.*/
+        newCommand[2] = m_currWriteMemAddr & 0xFF; //**<Lower 8 bits of m_currWriteMemAddr.*/
 
+        /*Increase m_currWriteMemAddr by 64 for the next command.*/
+        m_currWriteMemAddr += 64U;
+    }
+    else
+    {
+        LOG_ERROR("newCommand is a nullptr!");
+    }
 
+}
+
+void BootloaderCom:: update2Command(uint8_t newCommand[], uint8_t* buffer, size_t bufferSize)
+{
+    if (nullptr != newCommand)
+    {
+        newCommand[0] = 0x42; /**<Command identifier for writing memory pages.*/
+        newCommand[1] = 0x00; /**<Command identifier for writing memory pages.*/
+        newCommand[2] = 0x80; /**<Command identifier for writing memory pages.*/
+        newCommand[3] = 0x46; /**<Command identifier for writing memory pages.*/
+
+        /*Copy data from the buffer into the command starting from index 4.*/
+        for (size_t i = 0; i < bufferSize; ++i)
+        {
+            newCommand[4 + i] = buffer[i];
+        }
+    }
+    else
+    {
+        LOG_ERROR("newCommand is a nullptr!");
+    }
+    
+}
 
 
 
