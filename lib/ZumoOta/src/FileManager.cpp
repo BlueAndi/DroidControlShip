@@ -37,6 +37,7 @@
 #include <Arduino.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
+#include <FS.h>
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -58,7 +59,7 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
+uint8_t FileManager::m_filePosition = 0;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -79,4 +80,33 @@ bool FileManager::init()
         return false;
     }
     return true;
+}
+
+size_t FileManager::read128Bytes(const char* firmwareName, uint8_t* buffer)
+{
+    /*Number of bytes to read.*/
+    const size_t BYTES_TO_READ = 128;
+    int16_t readBytes = 0;
+
+    /*Open the File with the given firmware name in LittleFS.*/
+    File firmwareFile = LittleFS.open(firmwareName, "r");
+
+    if (firmwareFile)
+    {
+        /*Set the file's read position to the current position.*/
+        firmwareFile.seek(m_filePosition);
+        /*Read the specified number of bytes from the file.*/
+        readBytes = firmwareFile.read(buffer, BYTES_TO_READ);
+        /*Update the current file position for the next call.*/
+        m_filePosition = firmwareFile.position();
+        /*Close the file.*/
+        firmwareFile.close();
+    }
+    /*File completely read!*/
+    if (readBytes == 0)
+    {
+        m_filePosition = 0;
+    }
+
+    return readBytes;
 }
