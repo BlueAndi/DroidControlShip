@@ -90,10 +90,13 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
             static_cast<float>(newSensorData.positionOdometryY) - m_lastOdometryPosition.positionY; /* In mm */
         float euclideanDistance = sqrtf(powf(deltaXOdometry, 2.0F) + powf(deltaYOdometry, 2.0F));   /* In mm */
 
+        /* Compute the change in angle based on odometry data. Determine the current angle by adding this change to the
+         * previously estimated angle. */
         float deltaAngleOdometry =
-            static_cast<float>(newSensorData.orientationOdometry) - m_lastOdometryPosition.angle; /* In mrad */
-        float updatedOrientationOdometry = m_estimatedPosition.angle + deltaAngleOdometry;        /* In mrad */
-        float duration = static_cast<float>(newSensorData.timePeriod) / 1000.0F; /* In seconds */
+            static_cast<float>(newSensorData.orientationOdometry) - m_lastOdometryPosition.angle;  /* In mrad */
+        float updatedOrientationOdometry = m_estimatedPosition.angle + deltaAngleOdometry;         /* In mrad */
+        
+        float duration                   = static_cast<float>(newSensorData.timePeriod) / 1000.0F; /* In seconds */
 
         /* Calculate the mean velocity since the last Iteration instead of using the momentary Speed.
         Correct the sign of the distance via the measured velocity if the velocity is negative, hence the robot drives
