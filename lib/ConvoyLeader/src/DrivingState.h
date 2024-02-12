@@ -125,7 +125,7 @@ public:
 protected:
 private:
     /** Number of proximity Sensor ranges. */
-    static const uint8_t NUM_PROXIMITY_SENSOR_RANGES = 6U;
+    static const uint8_t NUM_PROXIMITY_SENSOR_RANGES = SMPChannelPayload::RANGE_0_5;
 
     /** Flag: State is active. */
     bool m_isActive;
