@@ -137,11 +137,11 @@ public:
     /**
      * Push the next waypoint into the queue.
      *
-     * @param[in] waypoint  Next waypoint.
+     * @param[in] waypoint  Pointer to next waypoint.
      *
      * @return If successful returns true, otherwise false.
      */
-    bool pushWaypoint(const Waypoint& waypoint);
+    bool pushWaypoint(Waypoint* waypoint);
 
     /**
      * Get latest waypoint to be sent to follower.
@@ -164,6 +164,9 @@ public:
 
 protected:
 private:
+    /** Maximum invalid waypoints allowed before going into error state. */
+    static const uint8_t MAX_INVALID_WAYPOINTS = 3U;
+
     /** Flag: State is active. */
     bool m_isActive;
 

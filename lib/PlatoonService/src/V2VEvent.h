@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Definition of a Waypoint.
+ * @brief  V2V Events definition.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup PlatoonService
  *
  * @{
  */
-#ifndef WAYPOINT_H
-#define WAYPOINT_H
+#ifndef V2V_EVENT_H
+#define V2V_EVENT_H
 
 /******************************************************************************
  * Compile Switches
@@ -44,8 +44,6 @@
  *****************************************************************************/
 
 #include <stdint.h>
-#include <WString.h>
-#include <ArduinoJson.h>
 
 /******************************************************************************
  * Macros
@@ -55,84 +53,52 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Waypoint structure definition.
- * Defines the position of a waypoint in the map and the speed at which is to be reached.
- */
-struct Waypoint
+/** V2V Event type. */
+enum V2VEventType : uint8_t
 {
-public:
-    int32_t xPos;        /**< X position [mm]. */
-    int32_t yPos;        /**< Y position [mm]. */
-    int32_t orientation; /**< Orientation [mrad]. */
-    int16_t left;        /**< Left motor speed [steps/s]. */
-    int16_t right;       /**< Right motor speed [steps/s]. */
-    int16_t center;      /**< Center speed [steps/s]. */
+    V2V_EVENT_TYPE_UNKNOWN = 0,  /**< Unknown event type. */
+    V2V_EVENT_WAYPOINT,          /**< Waypoint event. */
+    V2V_EVENT_FEEDBACK,          /**< Feedback event. */
+    V2V_EVENT_EMERGENCY,         /**< Emergency event. */
+    V2V_EVENT_VEHICLE_HEARTBEAT, /**< Vehicle heartbeat event. */
+    V2V_EVENT_PLATOON_HEARTBEAT  /**< Platoon heartbeat event. */
+};
+
+/** V2V Event definition. */
+struct V2VEvent
+{
+    uint8_t      vehicleId; /**< Vehicle ID. */
+    V2VEventType type;      /**< Event type. */
+    uint32_t     timestamp; /**< Timestamp. */
+    void*        data;      /**< Pointer to event data. */
 
     /**
-     * Default constructor.
+     * Construct a V2V event.
+     *
+     * @param[in] vehicleId Vehicle ID.
+     * @param[in] type      Event type.
+     * @param[in] timestamp Timestamp.
+     * @param[in] data      Pointer to event data.
      */
-    Waypoint() : Waypoint(0, 0, 0, 0, 0, 0)
+    V2VEvent(uint8_t vehicleId, V2VEventType type, uint32_t timestamp, void* data) :
+        vehicleId(vehicleId),
+        type(type),
+        timestamp(timestamp),
+        data(data)
     {
     }
 
     /**
-     * Constructor
-     *
-     * @param[in] xPos          X position [mm].
-     * @param[in] yPos          Y position [mm].
-     * @param[in] orientation   Orientation [mrad].
-     * @param[in] left          Left motor speed [steps/s].
-     * @param[in] right         Right motor speed [steps/s].
-     * @param[in] center        Center speed [steps/s].
+     * Construct a V2V event.
      */
-    Waypoint(int32_t xPos, int32_t yPos, int32_t orientation, int16_t left, int16_t right, int16_t center) :
-        xPos(xPos),
-        yPos(yPos),
-        orientation(orientation),
-        left(left),
-        right(right),
-        center(center)
+    V2VEvent() : V2VEvent(0, V2V_EVENT_TYPE_UNKNOWN, 0, nullptr)
     {
     }
-
-    /**
-     * Deserialize a waypoint.
-     * The waypoint is created on the heap and must be deleted by the caller.
-     *
-     * @param[in] serializedWaypoint  Serialized waypoint.
-     *
-     * @return Pointer to a waypoint object. In case of an error, it returns nullptr.
-     */
-    static Waypoint* deserialize(const String& serializedWaypoint);
-
-    /**
-     * Extract a waypoint form a JSON object.
-     * The waypoint is created on the heap and must be deleted by the caller.
-     *
-     * @param[in] jsonWaypoint JSON object.
-     *
-     * @return Pointer to a waypoint object. In case of an error, it returns nullptr.
-     */
-    static Waypoint* fromJsonObject(const JsonObject& jsonWaypoint);
-
-    /**
-     * Serialize the waypoint.
-     *
-     * @param[out] serializedWaypoint Serialized waypoint. Writes an empty string in case of an error.
-     */
-    void serialize(String& serializedWaypoint) const;
-
-    /**
-     * Print waypoint data to the serial console.
-     * Uses the LOG_DEBUG macro, so it can be deactivated.
-     */
-    void debugPrint() const;
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* WAYPOINT_H */
+#endif /* V2V_EVENT_H */
 /** @} */

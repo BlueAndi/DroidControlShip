@@ -107,6 +107,14 @@ void DrivingState::process(StateMachine& sm)
 
             /* Process PlatoonController. */
             m_platoonController.process(m_inputWaypointQueue.size());
+
+            /* Get invalid waypoint count. */
+            if (MAX_INVALID_WAYPOINTS <= m_platoonController.getInvalidWaypointCounter())
+            {
+                /* Go to Error state. Too many invalid waypoints received. Are we going in the right direction? */
+                LOG_ERROR("Too many invalid waypoints received. Going into error state.");
+                sm.setState(&ErrorState::getInstance());
+            }
         }
     }
 }
@@ -147,23 +155,20 @@ void DrivingState::setLastFollowerFeedback(const VehicleData& feedback)
     m_followerFeedback = feedback;
 }
 
-bool DrivingState::pushWaypoint(const Waypoint& waypoint)
+bool DrivingState::pushWaypoint(Waypoint* waypoint)
 {
     bool isSuccessful = false;
 
     /* Check if the state is active. */
     if (true == m_isActive)
     {
-        /* Push waypoint into the queue. */
-        Waypoint* newWaypoint = new (std::nothrow) Waypoint(waypoint);
-
-        if (nullptr == newWaypoint)
+        if (nullptr == waypoint)
         {
-            LOG_ERROR("Failed to allocate memory for waypoint.");
+            LOG_ERROR("Waypoint is nullptr.");
         }
         else
         {
-            m_inputWaypointQueue.push(newWaypoint);
+            m_inputWaypointQueue.push(waypoint);
             isSuccessful = true;
         }
     }

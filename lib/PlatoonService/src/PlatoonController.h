@@ -119,6 +119,13 @@ public:
      */
     void setLatestVehicleData(const Waypoint& vehicleData);
 
+    /**
+     * Get the invalid waypoint counter.
+     *
+     * @return The invalid waypoint counter.
+     */
+    uint8_t getInvalidWaypointCounter() const;
+
 private:
     /**
      * Period in ms for processing chain.
@@ -201,6 +208,9 @@ private:
      * Flag to indicate the release of the processing chain.
      */
     bool m_processingChainRelease;
+
+    /** Counter of invalid waypoints. */
+    uint8_t m_invalidWaypointCounter;
 
 private:
     /**

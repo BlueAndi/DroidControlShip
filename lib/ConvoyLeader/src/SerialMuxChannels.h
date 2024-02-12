@@ -89,7 +89,7 @@ namespace SMPChannelPayload
     /** Remote control commands. */
     typedef enum : uint8_t
     {
-        CMD_ID_IDLE = 0,                /**< Nothing to do. */
+        CMD_ID_IDLE = 0U,               /**< Nothing to do. */
         CMD_ID_START_LINE_SENSOR_CALIB, /**< Start line sensor calibration. */
         CMD_ID_START_MOTOR_SPEED_CALIB, /**< Start motor speed calibration. */
         CMD_ID_REINIT_BOARD,            /**< Re-initialize the board. Required for webots simulation. */
@@ -102,7 +102,7 @@ namespace SMPChannelPayload
     /** Remote control command responses. */
     typedef enum : uint8_t
     {
-        RSP_ID_OK = 0,  /**< Command successful executed. */
+        RSP_ID_OK = 0U, /**< Command successful executed. */
         RSP_ID_PENDING, /**< Command is pending. */
         RSP_ID_ERROR    /**< Command failed. */
 
@@ -111,8 +111,8 @@ namespace SMPChannelPayload
     /** Status flags. */
     typedef enum : uint8_t
     {
-        STATUS_FLAG_OK = 0, /**< Everything is fine. */
-        STATUS_FLAG_ERROR   /**< Something is wrong. */
+        STATUS_FLAG_OK = 0U, /**< Everything is fine. */
+        STATUS_FLAG_ERROR    /**< Something is wrong. */
 
     } Status; /**< Status flag */
 

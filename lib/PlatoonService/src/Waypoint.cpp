@@ -34,7 +34,6 @@
  *****************************************************************************/
 
 #include "Waypoint.h"
-#include <ArduinoJson.h>
 #include <Logging.h>
 
 /******************************************************************************
@@ -76,12 +75,26 @@ Waypoint* Waypoint::deserialize(const String& serializedWaypoint)
     }
     else
     {
-        JsonVariant jsonXPos        = jsonPayload["X"];           /* X position [mm]. */
-        JsonVariant jsonYPos        = jsonPayload["Y"];           /* Y position [mm]. */
-        JsonVariant jsonOrientation = jsonPayload["Orientation"]; /* Orientation [mrad]. */
-        JsonVariant jsonLeft        = jsonPayload["Left"];        /* Left motor speed [steps/s]. */
-        JsonVariant jsonRight       = jsonPayload["Right"];       /* Right motor speed [steps/s]. */
-        JsonVariant jsonCenter      = jsonPayload["Center"];      /* Center speed [steps/s]. */
+        JsonObject jsonWaypointObject = jsonPayload.as<JsonObject>();
+        waypoint                      = fromJsonObject(jsonWaypointObject);
+    }
+
+    return waypoint;
+}
+
+Waypoint* Waypoint::fromJsonObject(const JsonObject& jsonWaypoint)
+{
+    Waypoint* waypoint = nullptr;
+
+    if (jsonWaypoint.containsKey("X") && jsonWaypoint.containsKey("Y") && jsonWaypoint.containsKey("Orientation") &&
+        jsonWaypoint.containsKey("Left") && jsonWaypoint.containsKey("Right") && jsonWaypoint.containsKey("Center"))
+    {
+        JsonVariant jsonXPos        = jsonWaypoint["X"];           /* X position [mm]. */
+        JsonVariant jsonYPos        = jsonWaypoint["Y"];           /* Y position [mm]. */
+        JsonVariant jsonOrientation = jsonWaypoint["Orientation"]; /* Orientation [mrad]. */
+        JsonVariant jsonLeft        = jsonWaypoint["Left"];        /* Left motor speed [steps/s]. */
+        JsonVariant jsonRight       = jsonWaypoint["Right"];       /* Right motor speed [steps/s]. */
+        JsonVariant jsonCenter      = jsonWaypoint["Center"];      /* Center speed [steps/s]. */
 
         if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()) && (false == jsonOrientation.isNull()) &&
             (false == jsonLeft.isNull()) && (false == jsonRight.isNull()) && (false == jsonCenter.isNull()))

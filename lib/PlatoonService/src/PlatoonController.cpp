@@ -72,7 +72,8 @@ PlatoonController::PlatoonController() :
     m_processingChainTimer(),
     m_processingChain(nullptr),
     m_isPositionKnown(false),
-    m_processingChainRelease(false)
+    m_processingChainRelease(false),
+    m_invalidWaypointCounter(0U)
 {
 }
 
@@ -155,10 +156,20 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
                 /* Update current waypoint. */
                 m_currentWaypoint = m_nextWaypoint;
                 LOG_DEBUG("New Waypoint: (%d, %d)", m_currentWaypoint.xPos, m_currentWaypoint.yPos);
+
+                /* Reset counter once a valid waypoint is received. */
+                m_invalidWaypointCounter = 0U;
             }
             else
             {
                 LOG_ERROR("Invalid target waypoint (%d, %d)", m_nextWaypoint.xPos, m_nextWaypoint.yPos);
+
+                /* Prevent wrap-around. */
+                if (UINT8_MAX > m_invalidWaypointCounter)
+                {
+                    /* Increase counter. */
+                    ++m_invalidWaypointCounter;
+                }
             }
         }
     }
@@ -221,8 +232,11 @@ void PlatoonController::setLatestVehicleData(const Waypoint& vehicleData)
 {
     m_currentVehicleData = vehicleData;
     m_isPositionKnown    = true;
+}
 
-    m_currentVehicleData.debugPrint();
+uint8_t PlatoonController::getInvalidWaypointCounter() const
+{
+    return m_invalidWaypointCounter;
 }
 
 /******************************************************************************
