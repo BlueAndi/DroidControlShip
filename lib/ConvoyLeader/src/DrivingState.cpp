@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 #include "DrivingState.h"
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -83,8 +84,14 @@ void DrivingState::process(StateMachine& sm)
         /* m_vehicleData.proximity goes from 0 to NUM_PROXIMITY_SENSOR_RANGES */
         maxPossibleSpeed = m_maxMotorSpeed - (m_vehicleData.proximity * m_rangeFactor);
 
+        /* Ensure that the robot stops when an obstable is too near. */
+        if (SMPChannelPayload::Range::RANGE_0_5 == m_vehicleData.proximity)
+        {
+            maxPossibleSpeed = 0;
+        }
+
         /* Calculate top motor speed. */
-        m_topMotorSpeed = constrain(m_topMotorSpeed, 0, maxPossibleSpeed);
+        m_topMotorSpeed = constrain(maxPossibleSpeed, 0, m_maxMotorSpeed);
     }
 }
 
