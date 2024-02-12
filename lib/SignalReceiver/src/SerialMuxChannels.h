@@ -80,12 +80,6 @@
 /** DLC of Status Channel */
 #define STATUS_CHANNEL_DLC (sizeof(Status))
 
-/** Name of Channel to send Traffic Light Color IDs to. */
-#define TRAFFIC_LIGHT_COLORS_CHANNEL_NAME "TL_COLORS"
-
-/** DLC of Traffic Light Channel */
-#define TRAFFIC_LIGHT_COLORS_CHANNEL_DLC (sizeof(Color))
-
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
