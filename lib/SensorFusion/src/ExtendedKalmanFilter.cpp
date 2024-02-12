@@ -173,10 +173,10 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& ka
  *****************************************************************************/
 void ExtendedKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParameter)
 {
-    m_measurementVector[IDX_POSITION_X_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryX; /* In mm */
-    m_measurementVector[IDX_POSITION_Y_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryY; /* In mm */
-    m_measurementVector[IDX_VELOCITY_MEASUREMENT_VECTOR]    = kalmanParameter.velocityOdometry;  /* In mm/s */
-    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = kalmanParameter.angleOdometry;     /* In mrad */
+    m_measurementVector[IDX_POSITION_X_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryX;        /* In mm */
+    m_measurementVector[IDX_POSITION_Y_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryY;        /* In mm */
+    m_measurementVector[IDX_VELOCITY_MEASUREMENT_VECTOR]    = kalmanParameter.velocityOdometry;         /* In mm/s */
+    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = wrapAngle(kalmanParameter.angleOdometry); /* In mrad */
 }
 
 void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)
