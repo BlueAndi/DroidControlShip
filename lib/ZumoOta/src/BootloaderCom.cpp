@@ -117,7 +117,9 @@ class FwProgCmdProvider : public CmdProvider {
     public:
         /**
          * @brief Constructor for the FwProgCmdProvider class.
-         * @param fs A pointer to the FileHandler object for handling file operations.
+         * @param fileName The name of the file to be used for firmware programming.
+         * Initializes a new instance of the FwProgCmdProvider class with the provided file name.
+         * @remarks The file specified by fileName should contain the firmware to be programmed.
          */
          FwProgCmdProvider(const std::string& fileName):
             m_index(0),
@@ -180,7 +182,6 @@ class FwProgCmdProvider : public CmdProvider {
 
 private:
     uint8_t m_index; /**< current index in sequence.*/
-    FileHandler *m_fileSystem; /**< Instance of FileHandler.*/
     static  CommandInfo m_cmds[]; /**< Array of command information.*/
     static  ResponseInfo m_responses[]; /**< Array of response information.*/
     std::string m_fileName = "/zumo_firmware.bin"; /**< Name of the file to be read.*/
@@ -194,10 +195,27 @@ private:
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+/**
+ * @brief Name of the firmware file to be used for programming. 
+ * This variable holds the name of the firmware file ("/zumo_firmware.bin")
+ * that will be used for programming the device.
+ */
 std::string fileName = "/zumo_firmware.bin";
-uint8_t* CmdProvider::m_buffer = nullptr;
-uint16_t BootloaderCom:: m_currWriteMemAddr = 0x0000; 
 
+/**
+ * @brief Buffer for storing data to be sent in commands.
+ * This buffer is used by command providers to store data that will be sent
+ * in commands during the bootloader communication process.
+ */
+uint8_t* CmdProvider::m_buffer = nullptr;
+
+/**
+ * @brief Current memory address for writing data during firmware programming. 
+ * This variable represents the current memory address where data will be written
+ * during the firmware programming process. It is used to keep track of the
+ * memory address for sequential data writes.
+ */
+uint16_t BootloaderCom:: m_currWriteMemAddr = 0x0000; 
 
  CommandInfo IntProgCmdProvider::m_cmds[] = {
     {Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID)},

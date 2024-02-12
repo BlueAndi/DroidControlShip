@@ -103,7 +103,9 @@ public:
      */
     virtual bool next( CommandInfo *& cmd,   ResponseInfo *& rsp) = 0;
 
-    /*Read 128 bytes from the file system.*/
+    /**
+     *@brief Read 128 bytes from the file system.
+     */
     static uint8_t* m_buffer;
 };
 
