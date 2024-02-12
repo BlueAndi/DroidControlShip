@@ -54,20 +54,24 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-/** Standard Deviation of the Acceleration. The value has been determined by standstill measurements. */
-constexpr float ACCELERATION_STD = 20.0F;
+/** The Variance of the Acceleration.
+ *  The standard deviation value 20.0F has been determined by standstill measurements.
+ *  The factor 0.025 respresents the time period of 25 ms. */
+constexpr float ACCELERATION_VARIANCE = 20.0F * 20.0F * 0.025F * 0.025F;
 
-/** Standard Deviation of the Turn Rate. The value has been determined by standstill measurements. */
-constexpr float TURNRATE_STD = 4.0F;
+/** Variance of the Turn Rate.
+ *  The standard deviation value 4.0F has been determined by standstill measurements.
+ *  The factor 0.025 respresents the time period of 25 ms. */
+constexpr float TURNRATE_VARIANCE = 4.0F * 4.0F * 0.025F * 0.025F;
 
-/** Standard Deviation of the Odometry Position. Determined empirically. */
-constexpr float ODOMETRY_POSITION_STD = 10.0F;
+/** Variance of the Odometry Position. Determined empirically. */
+constexpr float ODOMETRY_POSITION_VARIANCE = 2.0F / 1000.0F;
 
-/** Standard Deviation of the Odometry Velocity. Determined empirically. */
-constexpr float ODOMETRY_VELOCITY_STD = 30.0F;
+/** Variance of the Odometry Velocity. Determined empirically. */
+constexpr float ODOMETRY_VELOCITY_VARIANCE = 3.0F / 1000.0F;
 
-/** Standard Deviation of the Odometry Angle. Determined empirically. */
-constexpr float ODOMETRY_STD_ANGLE = 100.0F;
+/** Variance of the Odometry Angle. Determined empirically. */
+constexpr float ODOMETRY_ANGLE_VARIANCE = 1.0F;
 
 /** The observation model Matrix (notation in literature: H). */
 const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> ExtendedKalmanFilter::OBSERVATION_MATRIX_H{
@@ -78,17 +82,17 @@ const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> Extende
 
 /** The covariance of the observation noise Matrix (notation in literature: R). */
 const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M>
-    ExtendedKalmanFilter::OBSERVATION_NOISE_MATRIX_R{{ODOMETRY_POSITION_STD, 0.0F, 0.0F, 0.0F},
-                                                     {0.0F, ODOMETRY_POSITION_STD, 0.0F, 0.0F},
-                                                     {0.0F, 0.0F, ODOMETRY_VELOCITY_STD, 0.0F},
-                                                     {0.0F, 0.0F, 0.0F, ODOMETRY_STD_ANGLE}};
+    ExtendedKalmanFilter::OBSERVATION_NOISE_MATRIX_R{{ODOMETRY_POSITION_VARIANCE, 0.0F, 0.0F, 0.0F},
+                                                     {0.0F, ODOMETRY_POSITION_VARIANCE, 0.0F, 0.0F},
+                                                     {0.0F, 0.0F, ODOMETRY_VELOCITY_VARIANCE, 0.0F},
+                                                     {0.0F, 0.0F, 0.0F, ODOMETRY_ANGLE_VARIANCE}};
 
 /** The covariance matrix of the process noise Matrix (notation in literature: Q). */
 const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> ExtendedKalmanFilter::PROCESS_COVARIANCE_MATRIX_Q{
-    {ODOMETRY_POSITION_STD, 0.0F, 0.0F, 0.0F},
-    {0.0F, ODOMETRY_POSITION_STD, 0.0F, 0.0F},
-    {0.0F, 0.0F, ACCELERATION_STD, 0.0F},
-    {0.0F, 0.0F, 0.0F, TURNRATE_STD}};
+    {0.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 0.0F, 0.0F, 0.0F},
+    {0.0F, 0.0F, ACCELERATION_VARIANCE, 0.0F},
+    {0.0F, 0.0F, 0.0F, TURNRATE_VARIANCE}};
 
 /******************************************************************************
  * Public Methods

@@ -67,8 +67,7 @@ public:
         m_kalmanFilter(),
         m_estimatedPosition{0.0F, 0.0F, 0.0F},
         m_lastOdometryPosition{0.0F, 0.0F, 0.0F},
-        m_isFirstIteration(true),
-        m_lastOdometryVelocity(0.0F)
+        m_isFirstIteration(true)
     {
     }
 
@@ -105,8 +104,6 @@ private:
         m_lastOdometryPosition; /**< Variable where the previous odometry Position is saved in. */
 
     bool m_isFirstIteration; /**< Flag if the current Iteration is the first one */
-
-    float m_lastOdometryVelocity = 0.0F; /**< The velocity calculated via Odometry of the last iteration. */
 };
 
 /******************************************************************************

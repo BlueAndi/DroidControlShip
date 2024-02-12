@@ -93,7 +93,6 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         float deltaAngleOdometry =
             static_cast<float>(newSensorData.orientationOdometry) - m_lastOdometryPosition.angle; /* In mrad */
         float updatedOrientationOdometry = m_estimatedPosition.angle + deltaAngleOdometry;        /* In mrad */
-
         float duration = static_cast<float>(newSensorData.timePeriod) / 1000.0F; /* In seconds */
 
         /* Calculate the mean velocity since the last Iteration instead of using the momentary Speed.
@@ -109,14 +108,6 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
             directionCorrection = -1.0F;
         }
         float meanVelocityOdometry = directionCorrection * euclideanDistance / duration; /* In mm/s */
-
-        /* If the robot moves slowly, the odometry might not be updated in the scope of one iteration.
-        The velocity would be falsely assumed to be 0. In this case, the last Velocity shall be used.  */
-        if ((0.0F == meanVelocityOdometry) && (newSensorData.isStandStill == false))
-        {
-            meanVelocityOdometry = m_lastOdometryVelocity;
-        }
-        m_lastOdometryVelocity = meanVelocityOdometry; /* In mm/s */
 
         /* Update the measured position assuming the robot drives in the estimated Direction.
         Use the Correction Factor in case the robot drives Backwards. */
