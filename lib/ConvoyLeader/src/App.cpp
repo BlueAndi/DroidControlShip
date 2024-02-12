@@ -210,7 +210,7 @@ void App::loop()
     {
         /* Log and Handle Board processing error */
         LOG_FATAL("HAL process failed.");
-        fatalErrorHandler();
+        setErrorState();
     }
 
     /* Process SerialMuxProt. */
@@ -236,7 +236,11 @@ void App::setLatestVehicleData(const Waypoint& waypoint)
 
 void App::setErrorState()
 {
-    m_systemStateMachine.setState(&ErrorState::getInstance());
+    if (&ErrorState::getInstance() != m_systemStateMachine.getState())
+    {
+        m_systemStateMachine.setState(&ErrorState::getInstance());
+        m_v2vCommManager.triggerEmergencyStop();
+    }
 }
 
 void App::systemStatusCallback(SMPChannelPayload::Status status)
@@ -463,9 +467,15 @@ void App::processV2VCommunication()
         break;
 
     case V2VCommManager::V2V_STATUS_LOST_FOLLOWER:
+        /* Fallthrough */
     case V2VCommManager::V2V_STATUS_FOLLOWER_ERROR:
+        /* Fallthrough */
     case V2VCommManager::V2V_STATUS_OLD_WAYPOINT:
         LOG_ERROR("Follower Error");
+        setErrorState();
+        break;
+
+    case V2VCommManager::V2V_STATUS_EMERGENCY:
         setErrorState();
         break;
 
