@@ -67,14 +67,15 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         static_cast<float>(newSensorData.turnRate) * SensorConstants::GYRO_SENSITIVITY_FACTOR; /* In mrad/s */
 
     KalmanParameter kalmanParameter;
+    kalmanParameter.turnRate      = physicalTurnRate;      /* In mrad/s */
+    kalmanParameter.accelerationX = physicalAccelerationX; /* In mm/s^2 */
+
     if (true == m_isFirstIteration)
     {
         /* Directely use the Position calculated via Odometry in the first iteration */
         kalmanParameter.positionOdometryX = static_cast<float>(newSensorData.positionOdometryX);   /* In mm */
         kalmanParameter.positionOdometryY = static_cast<float>(newSensorData.positionOdometryY);   /* In mm */
         kalmanParameter.angleOdometry     = static_cast<float>(newSensorData.orientationOdometry); /* In mrad */
-        kalmanParameter.turnRate          = physicalTurnRate;                                      /* In mrad/s */
-        kalmanParameter.accelerationX     = physicalAccelerationX;                                 /* In mm/s^2 */
         kalmanParameter.velocityOdometry  = 0.0F;                                                  /* In mm/s */
         m_kalmanFilter.init(kalmanParameter);
         m_estimatedPosition = {kalmanParameter.positionOdometryX, kalmanParameter.positionOdometryY,
@@ -93,18 +94,21 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         /* Compute the change in angle based on odometry data. Determine the current angle by adding this change to the
          * previously estimated angle. */
         float deltaAngleOdometry =
-            static_cast<float>(newSensorData.orientationOdometry) - m_lastOdometryPosition.angle;  /* In mrad */
-        float updatedOrientationOdometry = m_estimatedPosition.angle + deltaAngleOdometry;         /* In mrad */
-        
-        float duration                   = static_cast<float>(newSensorData.timePeriod) / 1000.0F; /* In seconds */
+            static_cast<float>(newSensorData.orientationOdometry) - m_lastOdometryPosition.angle; /* In mrad */
+        float updatedOrientationOdometry = m_estimatedPosition.angle + deltaAngleOdometry;        /* In mrad */
+
+        float CONVERSION_MS_TO_S = 0.001F;
+        float duration           = static_cast<float>(newSensorData.timePeriod) * CONVERSION_MS_TO_S; /* In seconds */
 
         /* Calculate the mean velocity since the last Iteration instead of using the momentary Speed.
         Correct the sign of the distance via the measured velocity if the velocity is negative, hence the robot drives
         backwards.
         For the correction of the sign, the dot product is used. If the robot moves forward, the dot product is
         positive. Otherwise, negative. */
-        float dotProduct = deltaXOdometry * cosf(static_cast<float>(newSensorData.orientationOdometry) / 1000.0F) +
-                           deltaYOdometry * sinf(static_cast<float>(newSensorData.orientationOdometry) / 1000.0F);
+        float CONVERSION_MRAD_TO_RAD = 0.001F;
+        float dotProduct =
+            deltaXOdometry * cosf(static_cast<float>(newSensorData.orientationOdometry) * CONVERSION_MRAD_TO_RAD) +
+            deltaYOdometry * sinf(static_cast<float>(newSensorData.orientationOdometry) * CONVERSION_MRAD_TO_RAD);
         float directionCorrection = 1.0F;
         if (dotProduct < 0.0F)
         {
@@ -115,15 +119,15 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         /* Update the measured position assuming the robot drives in the estimated Direction.
         Use the Correction Factor in case the robot drives Backwards. */
         kalmanParameter.positionOdometryX =
-            m_estimatedPosition.positionX +
-            directionCorrection * cosf(m_estimatedPosition.angle / 1000.0F) * euclideanDistance; /* In mm */
+            m_estimatedPosition.positionX + directionCorrection *
+                                                cosf(m_estimatedPosition.angle * CONVERSION_MRAD_TO_RAD) *
+                                                euclideanDistance; /* In mm */
         kalmanParameter.positionOdometryY =
-            m_estimatedPosition.positionY +
-            directionCorrection * sinf(m_estimatedPosition.angle / 1000.0F) * euclideanDistance; /* In mm */
-        kalmanParameter.angleOdometry    = updatedOrientationOdometry;                           /* In mrad */
-        kalmanParameter.turnRate         = physicalTurnRate;                                     /* In mrad/s */
-        kalmanParameter.velocityOdometry = meanVelocityOdometry;                                 /* In mm/s */
-        kalmanParameter.accelerationX    = physicalAccelerationX;                                /* In mm/s^2 */
+            m_estimatedPosition.positionY + directionCorrection *
+                                                sinf(m_estimatedPosition.angle * CONVERSION_MRAD_TO_RAD) *
+                                                euclideanDistance;     /* In mm */
+        kalmanParameter.angleOdometry    = updatedOrientationOdometry; /* In mrad */
+        kalmanParameter.velocityOdometry = meanVelocityOdometry;       /* In mm/s */
 
         /* Perform the Prediction Step and the Update Step of the Kalman Filter. */
         m_kalmanFilter.predictionStep(newSensorData.timePeriod);

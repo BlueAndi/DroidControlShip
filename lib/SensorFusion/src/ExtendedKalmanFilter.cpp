@@ -54,15 +54,19 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+/** The expected Duration of one Cycle.
+ *  It does not neccessary be precise since it is only used for a rough estimation of the Variance. */
+constexpr float EXPECTED_DURATION_IN_S = 0.025F;
+
 /** The Variance of the Acceleration.
  *  The standard deviation value 20.0F has been determined by standstill measurements.
- *  The factor 0.025 respresents the time period of 25 ms. */
-constexpr float ACCELERATION_VARIANCE = 20.0F * 20.0F * 0.025F * 0.025F;
+ *  The variance then needs to be multiplied with the expected duration of one cycle. */
+constexpr float ACCELERATION_VARIANCE = 20.0F * 20.0F * EXPECTED_DURATION_IN_S * EXPECTED_DURATION_IN_S;
 
 /** Variance of the Turn Rate.
  *  The standard deviation value 4.0F has been determined by standstill measurements.
- *  The factor 0.025 respresents the time period of 25 ms. */
-constexpr float TURNRATE_VARIANCE = 4.0F * 4.0F * 0.025F * 0.025F;
+ *  The variance then needs to be multiplied with the expected duration of one cycle. */
+constexpr float TURNRATE_VARIANCE = 4.0F * 4.0F * EXPECTED_DURATION_IN_S * EXPECTED_DURATION_IN_S;
 
 /** Variance of the Odometry Position. Determined empirically. */
 constexpr float ODOMETRY_POSITION_VARIANCE = 2.0F / 1000.0F;
@@ -116,10 +120,12 @@ void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
     float velocity    = m_stateVector(IDX_VELOCITY_STATE_VECTOR);    /* In mm/s */
     float orientation = m_stateVector(IDX_ORIENTATION_STATE_VECTOR); /* In mrad */
 
-    float cosOrienation = cosf(orientation / 1000.0F);
-    float sinOrienation = sinf(orientation / 1000.0F);
+    float CONVERSION_MRAD_TO_RAD = 0.001F;
+    float cosOrienation          = cosf(orientation * CONVERSION_MRAD_TO_RAD);
+    float sinOrienation          = sinf(orientation * CONVERSION_MRAD_TO_RAD);
 
-    float duration = static_cast<float>(timeStep) / 1000.0F;
+    float CONVERSION_MS_TO_S = 0.001F;
+    float duration           = static_cast<float>(timeStep) * CONVERSION_MS_TO_S; /* In seconds */
 
     /* Perform the prediction step of the state vector according to the State Model */
     m_stateVector[IDX_POSITION_X_STATE_VECTOR] = positionX + duration * velocity * cosOrienation;
@@ -191,11 +197,16 @@ void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParam
 
 float ExtendedKalmanFilter::wrapAngle(float inputAngle)
 {
-    if (inputAngle < -1000.0F * M_PI)
+    const float pi          = 1000.0F * M_PI; /* 1 Pi in mrad converted from rad to mrad. */
+    const float twoPi       = 2.0F * pi;      /* Two Pi in mrad */
+    float       outputAngle = 0.0F;
+
+    if (inputAngle < -pi)
     {
-        inputAngle += 2000.0F * M_PI;
+        inputAngle += twoPi;
     }
-    float outputAngle = fmodf(inputAngle + 1000.0F * M_PI, 2000.0F * M_PI) - 1000.0F * M_PI;
+
+    outputAngle = fmodf(inputAngle + pi, twoPi) - pi;
     return outputAngle;
 }
 /******************************************************************************
