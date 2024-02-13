@@ -29,7 +29,7 @@
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *
  * @addtogroup Application
- * 
+ *
  * @{
  */
 
@@ -45,7 +45,7 @@
  *****************************************************************************/
 
 #include "SerialMuxChannels.h"
-#include "LinearKalmanFilter.h"
+#include "ExtendedKalmanFilter.h"
 #include <stdint.h>
 #include <SensorConstants.h>
 /******************************************************************************
@@ -63,7 +63,11 @@ public:
     /**
      * Constructs the SensorFusion Algorithm.
      */
-    SensorFusion() : m_linearKalmanFilter(), m_estimatedPosition{0, 0, 0}
+    SensorFusion() :
+        m_kalmanFilter(),
+        m_estimatedPosition{0.0F, 0.0F, 0.0F},
+        m_lastOdometryPosition{0.0F, 0.0F, 0.0F},
+        m_isFirstIteration(true)
     {
     }
 
@@ -73,11 +77,6 @@ public:
     ~SensorFusion()
     {
     }
-
-    /**
-     * Initialize the Sensor Fusion.
-     */
-    void init();
 
     /**
      * Perform an update of the Estimated State.
@@ -97,19 +96,14 @@ public:
     }
 
 private:
-    LinearKalmanFilter m_linearKalmanFilter; /**< An Instance of the Kalman Filter algorithm class. */
+    ExtendedKalmanFilter m_kalmanFilter; /**< An Instance of the Kalman Filter algorithm class. */
 
     IKalmanFilter::PositionData m_estimatedPosition; /**< Variable where the current estimated Position is saved in. */
 
-    /**
-     * Transform the local acceleration vector [acc_x, acc_y] into a global vector using the provided angle.
-     *
-     * @param[in] globalResult                  The array to store the transformed vector [result_x, result_y].
-     * @param[in] localVectorToTransform        The local acceleration vector [acc_x, acc_y] to be transformed.
-     * @param[in] rotationAngle                 The angle used for the transformation, given in mrad.
-     */
-    void transformLocalToGlobal(int16_t* globalResult, const int16_t* localVectorToTransform,
-                                const int16_t& rotationAngle);
+    IKalmanFilter::PositionData
+        m_lastOdometryPosition; /**< Variable where the previous odometry Position is saved in. */
+
+    bool m_isFirstIteration; /**< Flag if the current Iteration is the first one */
 };
 
 /******************************************************************************

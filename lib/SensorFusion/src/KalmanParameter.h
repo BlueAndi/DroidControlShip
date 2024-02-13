@@ -29,7 +29,7 @@
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
  *
  *  @addtogroup Application
- * 
+ *
  * @{
  */
 
@@ -51,12 +51,12 @@
 /** Struct of Data used in the Kalman Filter. */
 typedef struct _KalmanParameter
 {
-    int16_t accelerationX;     /**< Acceleration in x direction in mm/s^2. */
-    int16_t accelerationY;     /**< Acceleration in y direction in mm/s^2. */
-    int32_t positionOdometryX; /**< Position calculated by Odometry in x direction in mm. */
-    int32_t positionOdometryY; /**< Position calculated by Odometry in y direction in mm. */
-    int32_t angleOdometry;     /**< Orientation calculated by Odometry in mrad. */
-    int16_t turnRate;          /**< Turn rate in mrad/s. */
+    float accelerationX;     /**< Acceleration in x direction in mm/s^2 in the Robots Coordinate System. */
+    float positionOdometryX; /**< Position calculated by Odometry in x direction in mm. */
+    float positionOdometryY; /**< Position calculated by Odometry in y direction in mm. */
+    float angleOdometry;     /**< Orientation calculated by Odometry in mrad. */
+    float velocityOdometry;  /**< Velocity calculated by Odometry in mm/s. */
+    float turnRate;          /**< Turn rate in mrad/s. */
 } __attribute__((packed)) KalmanParameter;
 
 /******************************************************************************

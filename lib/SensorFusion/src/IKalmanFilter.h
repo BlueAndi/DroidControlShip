@@ -60,15 +60,17 @@ public:
     /** Results of the Sensor Fusion Algorithm. */
     typedef struct _PositionData
     {
-        int32_t positionX; /**< Current Position in x direction in mm. */
-        int32_t positionY; /**< Current Position in y direction in mm. */
-        int32_t angle;     /**< Current Orientation in in mrad. */
+        float positionX; /**< Current Position in x direction in mm. */
+        float positionY; /**< Current Position in y direction in mm. */
+        float angle;     /**< Current Orientation in in mrad. */
     } PositionData;
 
     /**
      * Initializes the variables of the Kalman Filter.
+     *
+     * @param[in] initialParameter Parameters which should be used to initialize the filter.
      */
-    virtual void init() = 0;
+    virtual void init(KalmanParameter& initialParameter) = 0;
 
     /**
      * Prediction of the covariance and the state of the Kalman Filter.

@@ -29,7 +29,7 @@
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *
  * @addtogroup Application
- * 
+ *
  * @{
  */
 
@@ -60,10 +60,13 @@ namespace SensorConstants
      * Converts a raw accelerometer value in digits to mm/s^2. The value 0.061 is defined in the Data sheets of the
      * LSM303D and the LSM6DS33 accelerometer. Then the value is converted from mg into mm/s^2. */
     static const float ACCELEROMETER_SENSITIVITY_FACTOR = 0.061F * 9.81F;
-    /** Sensitivity Factor of the L3GD20H and LSM6DS33 gyro in mrad/s/digit at Range of +/- 245 dps (degrees per
-     * second). Converts a raw gyroscope value in digits to mrad/s. The sensitivity factor 8.75 is defined in the Data
-     * sheets of the L3GD20H and the LSM6DS33 gyro. Then the value is converted from mdps/digit into mrad/s/digit. */
-    static const float GYRO_SENSITIVITY_FACTOR = 8.75F * 2.0F * M_PI / 360.0F;
+
+    /** Sensitivity Factor of the L3GD20H and LSM6DS33 gyro in mrad/s/digit at Range of +/- 500 dps (degrees per
+     * second). Converts a raw gyroscope value in digits to mrad/s. The sensitivity factor 20.825 mdps/digit is defined
+     * in the Data sheets of the L3GD20H and the LSM6DS33 gyro. Then the value is converted from mdps/digit into
+     * mrad/s/digit.
+     */
+    static const float GYRO_SENSITIVITY_FACTOR = 20.825 * 2.0F * M_PI / 360.0F;
 }; // namespace SensorConstants
 
 /******************************************************************************
