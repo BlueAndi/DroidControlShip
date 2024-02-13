@@ -245,20 +245,26 @@ void App::setErrorState()
 
 void App::systemStatusCallback(SMPChannelPayload::Status status)
 {
-    switch (status)
+    if (m_lastRUStatus != status)
     {
-    case SMPChannelPayload::STATUS_FLAG_OK:
-        /* Nothing to do. All good. */
-        break;
+        /* Save last status. */
+        m_lastRUStatus = status;
 
-    case SMPChannelPayload::STATUS_FLAG_ERROR:
-        LOG_ERROR("RU Status ERROR.");
-        setErrorState();
-        m_statusTimeoutTimer.stop();
-        break;
+        switch (status)
+        {
+        case SMPChannelPayload::STATUS_FLAG_OK:
+            /* Nothing to do. All good. */
+            break;
 
-    default:
-        break;
+        case SMPChannelPayload::STATUS_FLAG_ERROR:
+            LOG_ERROR("RU Status ERROR.");
+            setErrorState();
+            m_statusTimeoutTimer.stop();
+            break;
+
+        default:
+            break;
+        }
     }
 
     m_statusTimeoutTimer.start(STATUS_TIMEOUT_TIMER_INTERVAL);
@@ -455,37 +461,43 @@ void App::processV2VCommunication()
     /* Process V2V Communication. */
     v2vStatus = m_v2vCommManager.process(vehicleStatus);
 
-    /* Process V2V status. */
-    switch (v2vStatus)
+    if (m_lastV2VStatus != v2vStatus)
     {
-    case V2VCommManager::V2V_STATUS_OK:
-        /* All good. Nothing to do. */
-        break;
+        /* Save last status. */
+        m_lastV2VStatus = v2vStatus;
 
-    case V2VCommManager::V2V_STATUS_NOT_INIT:
-        LOG_WARNING("V2V not initialized.");
-        break;
+        /* Process V2V status. */
+        switch (v2vStatus)
+        {
+        case V2VCommManager::V2V_STATUS_OK:
+            /* All good. Nothing to do. */
+            break;
 
-    case V2VCommManager::V2V_STATUS_LOST_FOLLOWER:
-        /* Fallthrough */
-    case V2VCommManager::V2V_STATUS_FOLLOWER_ERROR:
-        /* Fallthrough */
-    case V2VCommManager::V2V_STATUS_OLD_WAYPOINT:
-        LOG_ERROR("Follower Error");
-        setErrorState();
-        break;
+        case V2VCommManager::V2V_STATUS_NOT_INIT:
+            LOG_WARNING("V2V not initialized.");
+            break;
 
-    case V2VCommManager::V2V_STATUS_EMERGENCY:
-        setErrorState();
-        break;
+        case V2VCommManager::V2V_STATUS_LOST_FOLLOWER:
+            /* Fallthrough */
+        case V2VCommManager::V2V_STATUS_FOLLOWER_ERROR:
+            /* Fallthrough */
+        case V2VCommManager::V2V_STATUS_OLD_WAYPOINT:
+            LOG_ERROR("Follower Error");
+            setErrorState();
+            break;
 
-    case V2VCommManager::V2V_STATUS_GENERAL_ERROR:
-        LOG_ERROR("V2V Communication error.");
-        setErrorState();
-        break;
+        case V2VCommManager::V2V_STATUS_EMERGENCY:
+            setErrorState();
+            break;
 
-    default:
-        break;
+        case V2VCommManager::V2V_STATUS_GENERAL_ERROR:
+            LOG_ERROR("V2V Communication error.");
+            setErrorState();
+            break;
+
+        default:
+            break;
+        }
     }
 
     /* Process V2V events. */
