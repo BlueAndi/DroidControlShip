@@ -130,12 +130,13 @@ class FwProgCmdProvider : public CmdProvider {
          * Initializes a new instance of the FwProgCmdProvider class with the provided file name.
          * @remarks The file specified by fileName should contain the firmware to be programmed.
          */
-         FwProgCmdProvider(const char* fileName):
+        FwProgCmdProvider(const char* fileName):
             m_fileName(fileName),
+            m_updatedCmd({nullptr, 0}), 
             m_updatedCmdBuffer(nullptr),
             m_updatedCmdBufferSize(0),
             m_currWriteMemAddr(0x0000)
-    {}
+        {}
 
     /**
      * @brief Resets the command provider to its initial state.
@@ -210,11 +211,27 @@ private:
     static  CommandInfo m_cmds[]; /**< Array of command information.*/
     static  ResponseInfo m_responses[]; /**< Array of response information.*/
     const char* m_fileName = "/zumo_firmware.bin"; /**< Name of the file to be read.*/
-    enum ProgCmds {FLSPRG_SET_ADDR, FLSPRG_WRITE_BLOCK};
+
+    /**
+     * @brief Enumeration of programming commands.
+     * This enumeration defines the various programming commands used during firmware programming.
+     * It includes commands for setting memory addresses and writing data blocks.
+     */
+   enum ProgCmds {
+    FLSPRG_SET_ADDR,    /**< Command to set the memory address. */
+    FLSPRG_WRITE_BLOCK  /**< Command to write a data block to memory. */
+};
+
+    /** 
+    * @brief The next programming command to be executed. 
+    * This variable represents the next programming command to be executed in the sequence.
+    * It initializes with FLSPRG_SET_ADDR, typically used to set the memory address first.
+    */
     ProgCmds nextCmd = FLSPRG_SET_ADDR;
     CommandInfo m_updatedCmd; /**<Intermediate storage for updated commands.*/
     uint8_t* m_updatedCmdBuffer; /**<Buffer for updated commands.*/
     size_t m_updatedCmdBufferSize; /**<Size of the buffer.*/
+
     /**
      * @brief Current memory address for writing data during firmware programming. 
      * This variable represents the current memory address where data will be written
