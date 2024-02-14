@@ -85,6 +85,18 @@ struct ResponseInfo{
 };
 
 /**
+ * Enumeration defining different command types.
+ * - INIT: Initialization command type.
+ * - FW_PROG: Firmware programming command type.
+ * - Add additional command types here if necessary.
+ */
+enum CMD_TYPE {
+    INIT,
+    FW_PROG,
+    // Add more command types here if needed
+};
+
+/**
  *@class CmdProvider
  *@brief Abstract base class for providing commands and responses for the BootloaderCom class.
  */
@@ -101,12 +113,22 @@ public:
      *@param rsp Reference to a pointer to the next response.
      *@return True if there is a next command and response pair, otherwise false.
      */
-    virtual bool next( CommandInfo *& cmd,   ResponseInfo *& rsp) = 0;
+    virtual bool next( const CommandInfo *& cmd, const ResponseInfo *& rsp) = 0;
 
     /**
      *@brief Read 128 bytes from the file system.
      */
     static uint8_t* m_buffer;
+
+    /**
+     * @brief Get the type of command.
+     * 
+     * This method is a pure virtual function that must be implemented by derived classes.
+     * It returns the type of command represented by an enumeration value.
+     * 
+     * @return The type of command.
+     */
+    virtual CMD_TYPE getCmdType() const = 0;
 };
 
 /**
@@ -151,26 +173,6 @@ public:
      */
      bool compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize);
 
-    /**
-     * @brief Updates the command for setting the memory address.
-     * This function updates the provided command array with the appropriate values
-     * for setting the memory address. It follows a specific format expected by the
-     * bootloader protocol.
-     *
-     * @param newCommand The command array to be updated.
-     */
-     void  updateCommand(uint8_t newCommand[]);
-
-    /**
-     * @brief Updates the command for writing memory pages.
-     * This function updates the provided command array with the appropriate values
-     * for writing memory pages. It includes the data from the buffer into the command.
-     * @param newCommand The command array to be updated.
-     * @param buffer The buffer containing the data to be written to memory.
-     * @param bufferSize The size of the data buffer.
-     */
-     void update2Command(uint8_t newCommand[], uint8_t* buffer,size_t bufferSize);
-  
 private:
     /**
      *@brief Enumeration representing different states for the BootloaderCom class.
@@ -202,12 +204,12 @@ private:
     /**
      *Pointer to the current response.
      */
-     ResponseInfo *m_currentResponse;
+    const ResponseInfo *m_currentResponse;
 
     /**
      *Pointer to the current command.
      */
-     CommandInfo *m_currentCommand;
+    const CommandInfo *m_currentCommand;
 
 
     /**
