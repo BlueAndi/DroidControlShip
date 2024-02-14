@@ -43,7 +43,7 @@
  * Includes
  *****************************************************************************/
 
-#include "Waypoint.h"
+#include "Telemetry.h"
 
 /******************************************************************************
  * Macros
@@ -73,13 +73,13 @@ public:
     /**
      * Calculates the motor speeds for the next step.
      *
-     * @param[in]   currentWaypoint         Current waypoint where the vehicle is found.
+     * @param[in]   currentVehicleData      Current vehicle data.
      * @param[in]   targetWaypoint          Target waypoint to drive to.
      * @param[out]  centerSpeedSetpoint     Center speed setpoint [steps/s].
      *
      * @return If successful, returns true otherwise false.
      */
-    virtual bool calculateLongitudinalMovement(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
+    virtual bool calculateLongitudinalMovement(const Telemetry& currentVehicleData, const Waypoint& targetWaypoint,
                                                int16_t& centerSpeedSetpoint) = 0;
 
 protected:

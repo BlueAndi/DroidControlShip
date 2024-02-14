@@ -47,6 +47,7 @@
 #include "ILongitudinalSafetyPolicy.h"
 #include "ILateralController.h"
 #include "ILateralSafetyPolicy.h"
+#include "Telemetry.h"
 
 /******************************************************************************
  * Macros
@@ -82,14 +83,14 @@ public:
     /**
      * Calculates the motor speeds for the next step.
      *
-     * @param[in]   currentWaypoint         Current waypoint where the vehicle is found.
+     * @param[in]   currentVehicleData      Current vehicle data.
      * @param[in]   targetWaypoint          Target waypoint to drive to.
      * @param[out]  leftMotorSpeedSetpoint  Left motor speed setpoint [steps/s].
      * @param[out]  rightMotorSpeedSetpoint Right motor speed setpoint [steps/s].
      *
      * @return If successful, returns true. Otherwise false.
      */
-    bool calculateMotorSetpoints(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
+    bool calculateMotorSetpoints(const Telemetry& currentVehicleData, const Waypoint& targetWaypoint,
                                  int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint);
 
 private:

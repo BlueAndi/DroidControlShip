@@ -69,11 +69,11 @@ LongitudinalController::~LongitudinalController()
 {
 }
 
-bool LongitudinalController::calculateLongitudinalMovement(const Waypoint& currentWaypoint,
+bool LongitudinalController::calculateLongitudinalMovement(const Telemetry& currentVehicleData,
                                                            const Waypoint& targetWaypoint, int16_t& centerSpeedSetpoint)
 {
     bool    isSuccessful = true;
-    int32_t distance     = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentWaypoint);
+    int32_t distance     = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentVehicleData.asWaypoint());
 
     if (0 == distance)
     {

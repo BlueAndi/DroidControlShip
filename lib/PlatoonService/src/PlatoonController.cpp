@@ -203,9 +203,8 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
             int16_t rightMotorSpeedSetpoint = 0;
             bool    calculationSuccessful   = true;
 
-            if (false == m_processingChain->calculateMotorSetpoints(m_currentVehicleData.asWaypoint(),
-                                                                    m_currentWaypoint, leftMotorSpeedSetpoint,
-                                                                    rightMotorSpeedSetpoint))
+            if (false == m_processingChain->calculateMotorSetpoints(m_currentVehicleData, m_currentWaypoint,
+                                                                    leftMotorSpeedSetpoint, rightMotorSpeedSetpoint))
             {
                 LOG_ERROR("Failed to calculate motor setpoints.");
                 calculationSuccessful = false;

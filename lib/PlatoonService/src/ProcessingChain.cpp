@@ -78,7 +78,7 @@ ProcessingChain::~ProcessingChain()
     delete &m_lateralSafetyPolicy;
 }
 
-bool ProcessingChain::calculateMotorSetpoints(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
+bool ProcessingChain::calculateMotorSetpoints(const Telemetry& currentVehicleData, const Waypoint& targetWaypoint,
                                               int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint)
 {
     bool    isSuccessful        = false;
@@ -86,7 +86,7 @@ bool ProcessingChain::calculateMotorSetpoints(const Waypoint& currentWaypoint, c
 
     /* Calculate longitudinal movement. */
     if (false ==
-        m_longitudinalController.calculateLongitudinalMovement(currentWaypoint, targetWaypoint, centerSpeedSetpoint))
+        m_longitudinalController.calculateLongitudinalMovement(currentVehicleData, targetWaypoint, centerSpeedSetpoint))
     {
         LOG_ERROR("Failed to calculate longitudinal movement.");
     }
@@ -94,8 +94,9 @@ bool ProcessingChain::calculateMotorSetpoints(const Waypoint& currentWaypoint, c
     {
         LOG_ERROR("Failed to check longitudinal safety policy.");
     }
-    else if (false == m_lateralController.calculateLateralMovement(currentWaypoint, targetWaypoint, centerSpeedSetpoint,
-                                                                   leftMotorSpeedSetpoint, rightMotorSpeedSetpoint))
+    else if (false == m_lateralController.calculateLateralMovement(currentVehicleData, targetWaypoint,
+                                                                   centerSpeedSetpoint, leftMotorSpeedSetpoint,
+                                                                   rightMotorSpeedSetpoint))
     {
         LOG_ERROR("Failed to calculate lateral movement.");
     }

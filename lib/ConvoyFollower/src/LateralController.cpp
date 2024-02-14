@@ -68,13 +68,13 @@ LateralController::~LateralController()
 {
 }
 
-bool LateralController::calculateLateralMovement(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
+bool LateralController::calculateLateralMovement(const Telemetry& currentVehicleData, const Waypoint& targetWaypoint,
                                                  const int16_t centerSpeedSetpoint, int16_t& leftMotorSpeedSetpoint,
                                                  int16_t& rightMotorSpeedSetpoint)
 {
     bool isSuccessful = true;
 
-    m_headingFinder.setOdometryData(currentWaypoint.xPos, currentWaypoint.yPos, currentWaypoint.orientation);
+    m_headingFinder.setOdometryData(currentVehicleData.xPos, currentVehicleData.yPos, currentVehicleData.orientation);
     m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
     m_headingFinder.setTargetHeading(targetWaypoint.xPos, targetWaypoint.yPos);
 
