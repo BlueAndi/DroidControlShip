@@ -110,35 +110,27 @@ size_t FlashManager::readingStream(uint8_t* expectedResponse, size_t mybytes)
 
 bool FlashManager::sendCommand(const uint8_t* command, size_t commandsize)
 {
+    Stream& deviceStream   = Board::getInstance().getDevice().getStream();
+    if(nullptr == command)
     {
-        Stream& deviceStream   = Board::getInstance().getDevice().getStream();
-    
-       if(nullptr == command)
-       {
-          LOG_INFO("command is a nullptr");
-          return false;
-       }
-       else
-       {
-       
+        LOG_INFO("command is a nullptr");
+        return false;
+    }
+    else
+    {
         /* Send the OpCode and command data to Zumo robot. */
         size_t bytesWritten= deviceStream.write(command, commandsize);
-      
-         LOG_INFO("byteswritten ist %d", bytesWritten);
-    
+        LOG_INFO("byteswritten ist %d", bytesWritten);
         if(bytesWritten == commandsize)
         {
             LOG_INFO("Send Data packet to Zumo robot");
             return true;
-           
         }
         else
         {
             LOG_ERROR("Could not send data packet to Zumo robot FlashManager. Aborting now");
-           
             return false;
         }
-       }
     }
 }
 
