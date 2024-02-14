@@ -34,7 +34,6 @@
  *****************************************************************************/
 #include "FileManager.h"
 #include <LittleFS.h>
-#include <Arduino.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
 #include <FS.h>
@@ -82,7 +81,7 @@ bool FileManager::init()
     return true;
 }
 
-size_t FileManager::read128Bytes(const char* firmwareName, uint8_t* buffer)
+size_t FileManager::readBytes(const char* firmwareName, uint8_t* buffer)
 {
     /*Number of bytes to read.*/
     const size_t BYTES_TO_READ = 128;
@@ -99,13 +98,19 @@ size_t FileManager::read128Bytes(const char* firmwareName, uint8_t* buffer)
         readBytes = firmwareFile.read(buffer, BYTES_TO_READ);
         /*Update the current file position for the next call.*/
         m_filePosition = firmwareFile.position();
-        /*Close the file.*/
+        /*Close the file. */
         firmwareFile.close();
     }
-    /*File completely read!*/
-    if (readBytes == 0)
+
+    /*Perform actions if readBytes is less than 128 bytes.*/
+    if ((BYTES_TO_READ > readBytes) && (0 != readBytes))
     {
-        m_filePosition = 0;
+        /*If the number of bytes read is less than 128, fill the remaining space with a pattern (e.g., 0xFF).*/
+        for (size_t i = readBytes; i < BYTES_TO_READ; ++i)
+        {
+            buffer[i] = 0xFF; /**<Use any suitable pattern here, like 0xFF or 0x00.*/
+        }
+        m_filePosition = 0; /**<Reset the file position if the file is completely read.*/
     }
 
     return readBytes;

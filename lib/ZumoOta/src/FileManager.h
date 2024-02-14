@@ -15,7 +15,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
+ #include <cstdint>
+ #include <cstddef>
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -56,7 +57,7 @@ public:
      * @param buffer       The buffer to store the read bytes. 
      * @return The number of bytes read, or -1 if an error occurred.
      */
-    size_t read128Bytes(const char* firmwareName, uint8_t* buffer);
+    size_t readBytes(const char* firmwareName, uint8_t* buffer);
 };
 
 #endif /* FileManager_H */
