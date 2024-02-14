@@ -100,10 +100,11 @@ void DrivingState::process(StateMachine& sm)
         else
         {
             /* Set latest vehicle data. */
-            Waypoint vehicleDataAsWaypoint(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation,
-                                           m_vehicleData.left, m_vehicleData.right, m_vehicleData.center);
+            Telemetry vehicleDataAsTelemetry(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation,
+                                             m_vehicleData.left, m_vehicleData.right, m_vehicleData.center,
+                                             m_vehicleData.proximity);
 
-            m_platoonController.setLatestVehicleData(vehicleDataAsWaypoint);
+            m_platoonController.setLatestVehicleData(vehicleDataAsTelemetry);
 
             /* Process PlatoonController. */
             m_platoonController.process(m_inputWaypointQueue.size());

@@ -46,6 +46,7 @@
 #include <functional>
 #include <SimpleTimer.hpp>
 #include "Waypoint.h"
+#include "Telemetry.h"
 #include "ProcessingChain.h"
 #include "ProcessingChainFactory.h"
 #include <SettingsHandler.h>
@@ -115,9 +116,9 @@ public:
     /**
      * Set lastest vehicle data.
      *
-     * @param[in] vehicleData  Lastest vehicle data in the form of a waypoint.
+     * @param[in] vehicleData  Lastest vehicle data.
      */
-    void setLatestVehicleData(const Waypoint& vehicleData);
+    void setLatestVehicleData(const Telemetry& vehicleData);
 
     /**
      * Get the invalid waypoint counter.
@@ -179,9 +180,9 @@ private:
     Waypoint m_nextWaypoint;
 
     /**
-     * Current vehicle data in the form of a waypoint.
+     * Current vehicle data.
      */
-    Waypoint m_currentVehicleData;
+    Telemetry m_currentVehicleData;
 
     /**
      * Last sent waypoint to the next platoon participant.

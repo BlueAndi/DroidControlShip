@@ -113,7 +113,7 @@ bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback
             m_currentVehicleData.yPos        = settingsHandler.getInitialYPosition();
             m_currentVehicleData.orientation = settingsHandler.getInitialHeading();
 
-            m_currentWaypoint = m_currentVehicleData;
+            m_currentWaypoint = m_currentVehicleData.asWaypoint();
 
             m_processingChainTimer.start(PROCESSING_CHAIN_PERIOD);
 
@@ -145,7 +145,8 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
         {
             /* Sanitize the Waypoint. */
             int32_t headingDelta = 0;
-            if (false == PlatoonUtils::calculateRelativeHeading(m_nextWaypoint, m_currentVehicleData, headingDelta))
+            if (false ==
+                PlatoonUtils::calculateRelativeHeading(m_nextWaypoint, m_currentVehicleData.asWaypoint(), headingDelta))
             {
                 LOG_ERROR("Failed to calculate relative heading for (%d, %d)", m_nextWaypoint.xPos,
                           m_nextWaypoint.yPos);
@@ -175,15 +176,16 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
     }
 
     /* Send current position as waypoint in a constant distance interval. */
-    if (WAYPOINT_DISTANCE_INTERVAL < PlatoonUtils::calculateAbsoluteDistance(m_lastSentWaypoint, m_currentVehicleData))
+    if (WAYPOINT_DISTANCE_INTERVAL <
+        PlatoonUtils::calculateAbsoluteDistance(m_lastSentWaypoint, m_currentVehicleData.asWaypoint()))
     {
-        if (false == m_outputWaypointCallback(m_currentVehicleData))
+        if (false == m_outputWaypointCallback(m_currentVehicleData.asWaypoint()))
         {
             LOG_ERROR("Failed to send waypoint to next vehicle.");
         }
         else
         {
-            m_lastSentWaypoint = m_currentVehicleData;
+            m_lastSentWaypoint = m_currentVehicleData.asWaypoint();
         }
     }
 
@@ -201,8 +203,9 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
             int16_t rightMotorSpeedSetpoint = 0;
             bool    calculationSuccessful   = true;
 
-            if (false == m_processingChain->calculateMotorSetpoints(m_currentVehicleData, m_currentWaypoint,
-                                                                    leftMotorSpeedSetpoint, rightMotorSpeedSetpoint))
+            if (false == m_processingChain->calculateMotorSetpoints(m_currentVehicleData.asWaypoint(),
+                                                                    m_currentWaypoint, leftMotorSpeedSetpoint,
+                                                                    rightMotorSpeedSetpoint))
             {
                 LOG_ERROR("Failed to calculate motor setpoints.");
                 calculationSuccessful = false;
@@ -228,7 +231,7 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
     }
 }
 
-void PlatoonController::setLatestVehicleData(const Waypoint& vehicleData)
+void PlatoonController::setLatestVehicleData(const Telemetry& vehicleData)
 {
     m_currentVehicleData = vehicleData;
     m_isPositionKnown    = true;
@@ -249,7 +252,8 @@ uint8_t PlatoonController::getInvalidWaypointCounter() const
 
 bool PlatoonController::targetWaypointReached() const
 {
-    return PlatoonUtils::areWaypointsEqual(m_currentWaypoint, m_currentVehicleData, TARGET_WAYPOINT_ERROR_MARGIN);
+    return PlatoonUtils::areWaypointsEqual(m_currentWaypoint, m_currentVehicleData.asWaypoint(),
+                                           TARGET_WAYPOINT_ERROR_MARGIN);
 }
 
 /******************************************************************************
