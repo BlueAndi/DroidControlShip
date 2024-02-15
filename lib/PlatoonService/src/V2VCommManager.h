@@ -64,6 +64,9 @@ public:
     /** Platoon leader vehicle ID. */
     static const uint8_t PLATOON_LEADER_ID = 0U;
 
+    /** Number of followers. */
+    static const uint8_t NUMBER_OF_FOLLOWERS = 1U;
+
     /** Type of platoon participant. */
     enum ParticipantType : uint8_t
     {
@@ -155,9 +158,6 @@ public:
 private:
     /** Max topic length */
     static const uint8_t MAX_TOPIC_LENGTH = 64U;
-
-    /** Number of followers. */
-    static const uint8_t NUMBER_OF_FOLLOWERS = 1U;
 
     /** Vehicle heartbeat timeout timer interval in ms. */
     static const uint32_t VEHICLE_HEARTBEAT_TIMEOUT_TIMER_INTERVAL = 1000U;
