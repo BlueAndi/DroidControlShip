@@ -80,7 +80,7 @@ public:
         m_motorSpeedTimer(),
         m_statusTimer(),
         m_statusTimeoutTimer(),
-        m_lastV2VStatus(V2VCommManager::V2VStatus::V2V_STATUS_OK),
+        m_lastV2VStatus(V2VCommManager::V2VStatus::V2V_STATUS_NOT_INIT),
         m_lastRUStatus(SMPChannelPayload::Status::STATUS_FLAG_OK)
     {
     }

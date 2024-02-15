@@ -250,20 +250,11 @@ void App::systemStatusCallback(SMPChannelPayload::Status status)
         /* Save last status. */
         m_lastRUStatus = status;
 
-        switch (status)
+        if (SMPChannelPayload::STATUS_FLAG_ERROR == status)
         {
-        case SMPChannelPayload::STATUS_FLAG_OK:
-            /* Nothing to do. All good. */
-            break;
-
-        case SMPChannelPayload::STATUS_FLAG_ERROR:
             LOG_ERROR("RU Status ERROR.");
             setErrorState();
             m_statusTimeoutTimer.stop();
-            break;
-
-        default:
-            break;
         }
     }
 
@@ -487,6 +478,7 @@ void App::processV2VCommunication()
             break;
 
         case V2VCommManager::V2V_STATUS_EMERGENCY:
+            LOG_ERROR("V2V Emergency triggered");
             setErrorState();
             break;
 

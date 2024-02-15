@@ -143,13 +143,6 @@ private:
     VehicleData m_followerFeedback;
 
     /**
-     * Factor of the max motor speed substracted per proximity sensor range.
-     * The closer an object is, the slower the vehicle should drive.
-     * Factor is multiplied with the proximity sensor range.
-     */
-    int16_t m_rangeFactor;
-
-    /**
      * Default constructor.
      */
     DrivingState() :
@@ -158,8 +151,7 @@ private:
         m_maxMotorSpeed(0),
         m_topMotorSpeed(0),
         m_vehicleData{0},
-        m_followerFeedback{0},
-        m_rangeFactor(0)
+        m_followerFeedback{0}
     {
     }
 
