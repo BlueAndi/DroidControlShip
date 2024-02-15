@@ -128,14 +128,20 @@ class FwProgCmdProvider : public CmdProvider {
          */
         FwProgCmdProvider(const char* fileName):
             m_fileName(fileName),
+            m_firmwareBytesRead(0),
+            m_updatedCmd(),
+            m_firmwareBuffer(),
+            m_firmwareFile(),
+            m_updatedCmdBuffer{},
             m_currWriteMemAddr(0x0000)
         {}
 
     /**
      * @brief Resets the command provider to its initial state.
-     *
-     * This method resets the internal index that tracks the current command
-     * in the command sequence memory.
+     * This method resets the internal state of the command provider.
+     * It checks if the firmware file is open and closes it if necessary.
+     * Then, it attempts to open the firmware file with read access.
+     * @return True if the firmware file is successfully opened, false otherwise.
      */
     virtual bool reset()
     {
@@ -148,7 +154,6 @@ class FwProgCmdProvider : public CmdProvider {
         /*If the file is not yet open, open it.*/
         m_firmwareFile = LittleFS.open(m_fileName, "r");
         return false != m_firmwareFile;
-
 }
 
     /**
@@ -156,7 +161,6 @@ class FwProgCmdProvider : public CmdProvider {
      *
      * This method returns the next command and its associated response
      * from the command sequence memory.
-     *
      * @param cmd Reference to a pointer to the next command.
      * @param rsp Reference to a pointer to the next response.
      * @return True if there is a next command and next response, false otherwise.
@@ -195,8 +199,18 @@ class FwProgCmdProvider : public CmdProvider {
     }   
 
 private:
-
+    /**
+     * @brief Length of a flash memory block in bytes.
+     * This constant defines the length of a flash memory block in bytes.
+     * It is used to specify the size of the blocks when reading or writing data to flash memory.
+     */
     static const size_t FLASH_BLOCK_LENGTH = 128U;
+
+    /**
+     * @brief Length of a write block command in bytes.
+     * This constant defines the length of a write block command in bytes.
+     * It is used to specify the size of the command for writing a block of data to memory.
+     */
     static const size_t WRITE_BLOCK_CMD_LENGTH = 4U;
 
     static  CommandInfo m_cmds[]; /**< Array of command information.*/
@@ -252,8 +266,6 @@ private:
     {
         if (m_nextCmd == FLSPRG_SET_ADDR)
         {
-            /**<Create a buffer for the updated information.*/
-            m_updatedCmdBuffer[3];/**< Final Size of the updated command for SET_MEMORY_ADR.*/
             /*Perform the required updates.*/
             m_updatedCmdBuffer[0] = 0x41;  /**< The first value is always 0x41.*/
             m_updatedCmdBuffer[1] = (m_currWriteMemAddr >> 8) & 0xFF; /**<Higher 8 bits of m_currWriteMemAddr.*/
