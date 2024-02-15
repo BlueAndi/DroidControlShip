@@ -251,8 +251,7 @@ private:
     uint16_t  m_currWriteMemAddr; 
 
    /**
-    * @brief Updates the command according to specific requirements.
-    *
+    * @brief Updates the command.
     * This method updates the provided command based on specific requirements
     * before it is sent for execution. It modifies the command buffer and size
     * to reflect the changes required by the bootloader communication protocol.
