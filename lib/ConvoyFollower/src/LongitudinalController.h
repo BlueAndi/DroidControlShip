@@ -44,6 +44,7 @@
  *****************************************************************************/
 #include <ILongitudinalController.h>
 #include <new>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -107,6 +108,9 @@ private:
 
     /** Ramp factor. */
     static const int16_t RAMP_FACTOR = MAX_MOTOR_SPEED / MIN_DISTANCE_TO_MAX_SPEED;
+
+    /** Number of proximity Sensor ranges. Equals the closest range. */
+    static const uint8_t NUM_PROXIMITY_SENSOR_RANGES = SMPChannelPayload::RANGE_0_5;
 };
 
 /******************************************************************************

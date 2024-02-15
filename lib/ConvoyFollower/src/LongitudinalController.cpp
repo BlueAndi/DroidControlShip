@@ -36,6 +36,7 @@
 #include "LongitudinalController.h"
 #include "PlatoonUtils.h"
 #include <Arduino.h>
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -72,18 +73,37 @@ LongitudinalController::~LongitudinalController()
 bool LongitudinalController::calculateLongitudinalMovement(const Telemetry& currentVehicleData,
                                                            const Waypoint& targetWaypoint, int16_t& centerSpeedSetpoint)
 {
-    bool    isSuccessful = true;
-    int32_t distance     = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentVehicleData.asWaypoint());
+    bool    isSuccessful            = true;
+    uint8_t closestProximityAllowed = SMPChannelPayload::RANGE_15_20;
 
-    if (0 == distance)
+    /* Ensure that the robot stops when an obstable is too near. */
+    if (closestProximityAllowed <= currentVehicleData.proximity)
     {
-        /* Target reached. */
         centerSpeedSetpoint = 0;
     }
     else
     {
-        /* Calculate speed using ramp factor. */
-        centerSpeedSetpoint = constrain(((distance * RAMP_FACTOR) + OFFSET_SPEED), -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+        int16_t maxPossibleSpeed = MAX_MOTOR_SPEED;
+        int32_t distance = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentVehicleData.asWaypoint());
+
+        /* Limit speed based on the proximity sensors. */
+        /* currentVehicleData.proximity goes from 0 to NUM_PROXIMITY_SENSOR_RANGES */
+        maxPossibleSpeed =
+            MAX_MOTOR_SPEED - (currentVehicleData.proximity * MAX_MOTOR_SPEED / NUM_PROXIMITY_SENSOR_RANGES);
+
+        /* TODO: Check limits. */
+
+        if (0 == distance)
+        {
+            /* Target reached. */
+            centerSpeedSetpoint = 0;
+        }
+        else
+        {
+            /* Calculate speed using ramp factor. */
+            centerSpeedSetpoint =
+                constrain(((distance * RAMP_FACTOR) + OFFSET_SPEED), -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+        }
     }
 
     return isSuccessful;
