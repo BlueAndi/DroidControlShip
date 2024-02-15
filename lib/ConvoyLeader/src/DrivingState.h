@@ -122,10 +122,26 @@ public:
      */
     void setLastFollowerFeedback(const VehicleData& feedback);
 
+    /**
+     * Is state active?
+     *
+     * @return If state is active, it will return true otherwise false.
+     */
+    bool isActive() const
+    {
+        return m_isActive;
+    }
+
 protected:
 private:
     /** Number of proximity Sensor ranges. */
     static const uint8_t NUM_PROXIMITY_SENSOR_RANGES = SMPChannelPayload::RANGE_0_5;
+
+    /** Vehicle length in mm. */
+    static const uint8_t VEHICLE_LENGTH = 100;
+
+    /** Minimum inter vehicle space in mm. */
+    static const uint16_t MIN_INTER_VEHICLE_SPACE = VEHICLE_LENGTH;
 
     /** Flag: State is active. */
     bool m_isActive;
@@ -142,6 +158,9 @@ private:
     /** Last follower feedback. */
     VehicleData m_followerFeedback;
 
+    /** Inter Vehicle Space in mm. */
+    uint16_t m_interVehicleSpace;
+
     /**
      * Default constructor.
      */
@@ -151,7 +170,8 @@ private:
         m_maxMotorSpeed(0),
         m_topMotorSpeed(0),
         m_vehicleData{0},
-        m_followerFeedback{0}
+        m_followerFeedback{0},
+        m_interVehicleSpace(MIN_INTER_VEHICLE_SPACE)
     {
     }
 

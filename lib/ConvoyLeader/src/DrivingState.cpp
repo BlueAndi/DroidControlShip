@@ -34,6 +34,8 @@
  *****************************************************************************/
 
 #include "DrivingState.h"
+#include <Logging.h>
+#include <V2VCommManager.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -82,16 +84,30 @@ void DrivingState::process(StateMachine& sm)
         }
         else
         {
-            int16_t maxPossibleSpeed = m_maxMotorSpeed;
+            int16_t maxPossibleSpeed         = m_maxMotorSpeed;
+            int32_t distanceToLast           = 0;
+            int16_t maxPossiblePlatoonLength = 0;
 
             /* Limit speed based on the proximity sensors. */
             /* m_vehicleData.proximity goes from 0 to NUM_PROXIMITY_SENSOR_RANGES */
             maxPossibleSpeed =
                 m_maxMotorSpeed - (m_vehicleData.proximity * m_maxMotorSpeed / NUM_PROXIMITY_SENSOR_RANGES);
 
-            /* TODO: Check limits. */
+            /* Check follower feedback. */
+            distanceToLast = (abs((m_vehicleData.xPos - m_followerFeedback.xPos)) +
+                              abs(m_vehicleData.yPos - m_followerFeedback.yPos));
 
-            /* TODO: Check follower feedback. Calculate platoon length and react accordingly */
+            /* Calculate inter vehicle space. */
+            m_interVehicleSpace = constrain(m_interVehicleSpace, MIN_INTER_VEHICLE_SPACE, m_interVehicleSpace);
+
+            /* Calculate platoon length and react accordingly. */
+            maxPossiblePlatoonLength = (V2VCommManager::NUMBER_OF_FOLLOWERS * (VEHICLE_LENGTH + m_interVehicleSpace));
+
+            if (distanceToLast > maxPossiblePlatoonLength)
+            {
+                maxPossibleSpeed =
+                    maxPossibleSpeed - (distanceToLast * maxPossibleSpeed / (maxPossiblePlatoonLength * 2));
+            }
 
             /* Calculate top motor speed. */
             m_topMotorSpeed = constrain(maxPossibleSpeed, 0, m_maxMotorSpeed);
