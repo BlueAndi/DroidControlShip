@@ -93,6 +93,7 @@ public:
 
     /**
      * Set maximum motor speed.
+     * This also sets the range factor as is dependent on the maximum motor speed.
      *
      * @param[in] maxSpeed Maximum motor speed.
      */
@@ -123,6 +124,9 @@ public:
 
 protected:
 private:
+    /** Number of proximity Sensor ranges. */
+    static const uint8_t NUM_PROXIMITY_SENSOR_RANGES = SMPChannelPayload::RANGE_0_5;
+
     /** Flag: State is active. */
     bool m_isActive;
 

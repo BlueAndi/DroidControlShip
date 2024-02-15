@@ -81,6 +81,7 @@ public:
         V2V_STATUS_LOST_FOLLOWER,  /**< Lost follower */
         V2V_STATUS_FOLLOWER_ERROR, /**< Follower error */
         V2V_STATUS_OLD_WAYPOINT,   /**< Old waypoint received*/
+        V2V_STATUS_EMERGENCY,      /**< Emergency stop */
         V2V_STATUS_GENERAL_ERROR   /**< General error */
     };
 
@@ -146,6 +147,11 @@ public:
      */
     bool getEvent(V2VEvent& event);
 
+    /**
+     * Trigger emergency stop of the platoon.
+     */
+    void triggerEmergencyStop();
+
 private:
     /** Max topic length */
     static const uint8_t MAX_TOPIC_LENGTH = 64U;
@@ -167,6 +173,9 @@ private:
 
     /** MQTT subtopic name for platoon heartbeat reponse. */
     static const char* TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE;
+
+    /** MQTT subtopic name for platoon emergency stop. */
+    static const char* TOPIC_NAME_EMERGENCY;
 
     /** Maximum number of events to queue. */
     static const size_t MAX_EVENT_QUEUE_SIZE = 20U;

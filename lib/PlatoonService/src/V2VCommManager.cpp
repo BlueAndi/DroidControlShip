@@ -65,6 +65,9 @@ const char* V2VCommManager::TOPIC_NAME_PLATOON_HEARTBEAT = "heartbeat";
 /* MQTT subtopic name for platoon heartbeat. */
 const char* V2VCommManager::TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE = "heartbeatResponse";
 
+/* MQTT subtopic name for platoon emergency stop. */
+const char* V2VCommManager::TOPIC_NAME_EMERGENCY = "emergency";
+
 /** Buffer size for JSON serialization of heartbeat messages. */
 static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 128U;
 
@@ -279,6 +282,16 @@ bool V2VCommManager::getEvent(V2VEvent& event)
     return isSuccessful;
 }
 
+void V2VCommManager::triggerEmergencyStop()
+{
+    if (V2V_STATUS_EMERGENCY != m_v2vStatus)
+    {
+        LOG_INFO("Emergency Stop triggered.");
+        m_v2vStatus = V2V_STATUS_EMERGENCY;
+        publishEvent(TOPIC_NAME_EMERGENCY, V2V_EVENT_EMERGENCY, "{}");
+    }
+}
+
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/
@@ -339,7 +352,15 @@ void V2VCommManager::eventCallback(const String& payload)
                 break;
 
             case V2V_EVENT_EMERGENCY:
-                /* TODO: Implement Emergency */
+                if (m_vehicleId == eventVehicleId)
+                {
+                    /* This is me! */
+                }
+                else if (V2V_STATUS_EMERGENCY != m_v2vStatus)
+                {
+                    LOG_INFO("Emergency Stop sent by vehicle %u", eventVehicleId);
+                    m_v2vStatus = V2V_STATUS_EMERGENCY;
+                }
                 break;
 
             case V2V_EVENT_VEHICLE_HEARTBEAT:
@@ -397,6 +418,7 @@ void V2VCommManager::eventCallback(const String& payload)
                 break;
 
             case V2V_EVENT_TYPE_UNKNOWN:
+                /* Fallthrough */
             default:
                 LOG_ERROR("Unknown event type: %d.", eventType);
                 break;
@@ -520,6 +542,11 @@ bool V2VCommManager::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
             if (false == m_mqttClient.subscribe(m_platoonHeartbeatTopic, false, lambdaHeartbeatInputTopicCallback))
             {
                 LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_platoonHeartbeatTopic.c_str());
+            }
+            /* Subscribe to emergency topic. */
+            else if (false == m_mqttClient.subscribe(TOPIC_NAME_EMERGENCY, false, lambdaHeartbeatInputTopicCallback))
+            {
+                LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_EMERGENCY);
             }
             else
             {

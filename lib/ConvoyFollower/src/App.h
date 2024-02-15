@@ -78,7 +78,9 @@ public:
         m_commandTimer(),
         m_motorSpeedTimer(),
         m_statusTimer(),
-        m_statusTimeoutTimer()
+        m_statusTimeoutTimer(),
+        m_lastV2VStatus(V2VCommManager::V2VStatus::V2V_STATUS_NOT_INIT),
+        m_lastRUStatus(SMPChannelPayload::Status::STATUS_FLAG_OK)
     {
     }
 
@@ -200,10 +202,11 @@ private:
      */
     SimpleTimer m_statusTimeoutTimer;
 
-    /**
-     * Process V2V communication.
-     */
-    void processV2VCommunication();
+    /** Last V2V Communication Manager status. */
+    V2VCommManager::V2VStatus m_lastV2VStatus;
+
+    /** Last system status of RU. */
+    SMPChannelPayload::Status m_lastRUStatus;
 
 private:
     /**
@@ -229,6 +232,11 @@ private:
      * Process periodic tasks.
      */
     void processPeriodicTasks();
+
+    /**
+     * Process V2V communication.
+     */
+    void processV2VCommunication();
 
 private:
     /* Not allowed. */
