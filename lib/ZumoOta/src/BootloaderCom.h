@@ -85,18 +85,6 @@ struct ResponseInfo{
 };
 
 /**
- * Enumeration defining different command types.
- * - INIT: Initialization command type.
- * - FW_PROG: Firmware programming command type.
- * - Add additional command types here if necessary.
- */
-enum CMD_TYPE {
-    INIT,
-    FW_PROG,
-    // Add more command types here if needed
-};
-
-/**
  *@class CmdProvider
  *@brief Abstract base class for providing commands and responses for the BootloaderCom class.
  */
@@ -105,7 +93,7 @@ public:
     /**
      *@brief Resets the command provider to its initial state.
      */
-    virtual void reset() = 0;
+    virtual bool reset() = 0;
 
     /**
      *@brief Retrieves the next command and response pair.
@@ -119,16 +107,6 @@ public:
      *@brief Read 128 bytes from the file system.
      */
     static uint8_t* m_buffer;
-
-    /**
-     * @brief Get the type of command.
-     * 
-     * This method is a pure virtual function that must be implemented by derived classes.
-     * It returns the type of command represented by an enumeration value.
-     * 
-     * @return The type of command.
-     */
-    virtual CMD_TYPE getCmdType() const = 0;
 };
 
 /**
