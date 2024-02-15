@@ -58,7 +58,6 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-uint8_t FileManager::m_filePosition = 0;
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -79,39 +78,4 @@ bool FileManager::init()
         return false;
     }
     return true;
-}
-
-size_t FileManager::readBytes(const char* firmwareName, uint8_t* buffer)
-{
-    /*Number of bytes to read.*/
-    const size_t BYTES_TO_READ = 128;
-    int16_t readBytes = 0;
-
-    /*Open the File with the given firmware name in LittleFS.*/
-    File firmwareFile = LittleFS.open(firmwareName, "r");
-
-    if (firmwareFile)
-    {
-        /*Set the file's read position to the current position.*/
-        firmwareFile.seek(m_filePosition);
-        /*Read the specified number of bytes from the file.*/
-        readBytes = firmwareFile.read(buffer, BYTES_TO_READ);
-        /*Update the current file position for the next call.*/
-        m_filePosition = firmwareFile.position();
-        /*Close the file. */
-        firmwareFile.close();
-    }
-
-    /*Perform actions if readBytes is less than 128 bytes.*/
-    if ((BYTES_TO_READ > readBytes) && (0 != readBytes))
-    {
-        /*If the number of bytes read is less than 128, fill the remaining space with a pattern (e.g., 0xFF).*/
-        for (size_t i = readBytes; i < BYTES_TO_READ; ++i)
-        {
-            buffer[i] = 0xFF; /**<Use any suitable pattern here, like 0xFF or 0x00.*/
-        }
-        m_filePosition = 0; /**<Reset the file position if the file is completely read.*/
-    }
-
-    return readBytes;
 }
