@@ -97,8 +97,9 @@ int16_t HeadingFinder::process(int16_t& targetSpeedLeft, int16_t& targetSpeedRig
 {
     int16_t pidDelta = 0;
 
-    /* Process PID controller when timer is done and new data is found. */
-    if ((true == m_pidProcessTime.isTimeout()) && (true == m_newOdometryData) && (true == m_newMotorSpeedData))
+    /* Process PID controller when timer is done, new data is found, and the motors have a setpoint greater than 0. */
+    if ((true == m_pidProcessTime.isTimeout()) && (true == m_newOdometryData) &&
+        (true == m_newMotorSpeedData) & (0 != m_data.currentSpeedLeft))
     {
         /* Pack information in waypoints. */
         Waypoint nextWaypoint;
