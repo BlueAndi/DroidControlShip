@@ -109,7 +109,7 @@ void TrafficHandler::processColor()
     case 4:
     {
         LOG_DEBUG("COLOR 4");
-        DrivingState::getInstance().setMaxMotorSpeed(500);
+        DrivingState::getInstance().setMaxMotorSpeed(100);
         break;
     }
     default:
