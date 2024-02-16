@@ -62,6 +62,7 @@
 
 LateralController::LateralController() : ILateralController(), m_headingFinder()
 {
+    m_headingFinder.setPIDFactors(8, 4, 0, 1, 30, 1);
 }
 
 LateralController::~LateralController()
