@@ -104,7 +104,7 @@ private:
      * Offset speed in encoder steps/s
      * Used to being too slow when approaching the target waypoint.
      */
-    static const int16_t OFFSET_SPEED = 1000;
+    static const int16_t OFFSET_SPEED = 2000;
 
     /** Ramp factor. */
     static const int16_t RAMP_FACTOR = MAX_MOTOR_SPEED / MIN_DISTANCE_TO_MAX_SPEED;
