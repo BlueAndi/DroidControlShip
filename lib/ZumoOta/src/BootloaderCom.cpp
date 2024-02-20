@@ -72,8 +72,9 @@ public:
      * in the command sequence memory.
      */
     virtual bool reset() 
-    { m_index = 0;
-    return true;
+    { 
+        m_index = 0;
+        return true;
      }
 
     /**
@@ -86,13 +87,10 @@ public:
      */
     virtual bool next(const CommandInfo *& cmd, const ResponseInfo *& rsp)
     {
-        
         if (SEQ_LENGHT > m_index)
         {
-
             cmd = &m_cmds[m_index];
             rsp = &m_responses[m_index];
-
             ++m_index;
             return true;
         }
@@ -174,7 +172,7 @@ class FwProgCmdProvider : public CmdProvider {
 
             if (m_firmwareFile)
             {
-                m_firmwareFile.close(); // Close the file
+                m_firmwareFile.close(); /**<programming is done, close the fw file as we don't need it here anymore.*/
             }
 
             return false;
@@ -228,7 +226,7 @@ private:
      * This enumeration defines the various programming commands used during firmware programming.
      * It includes commands for setting memory addresses and writing data blocks.
      */
-   enum ProgCmds {
+   enum ProgCmds{
     FLSPRG_SET_ADDR,    /**< Command to set the memory address. */
     FLSPRG_WRITE_BLOCK,  /**< Command to write a data block to memory.*/
     FLSPRG_COMPLETE   /**<Signalize the end of the Flashing.*/
@@ -284,9 +282,9 @@ private:
             m_updatedCmdBuffer[1] = 0x00;
             m_updatedCmdBuffer[2] = 0x80;
             m_updatedCmdBuffer[3] = 0x46;
-            /*Update the command for WRITE_MEMORY_PAGE*/
+            /*Read the file contents into m_firmwareBuffer for storage.*/
             m_firmwareBytesRead = m_firmwareFile.read(
-                &m_firmwareBuffer[WRITE_BLOCK_CMD_LENGTH],
+                m_firmwareBuffer,
                 FLASH_BLOCK_LENGTH);
             /*Check if there was an error reading the file.*/
             if (m_firmwareBytesRead < 0)
@@ -307,7 +305,7 @@ private:
                 m_nextCmd = FLSPRG_COMPLETE;
                 while (gapFill > 0U)
                 {
-                    m_firmwareBuffer[WRITE_BLOCK_CMD_LENGTH + m_firmwareBytesRead] = 0xFF;
+                    m_firmwareBuffer[m_firmwareBytesRead] = 0xFF;
                     --gapFill;
                     ++m_firmwareBytesRead;
                 }
@@ -315,7 +313,11 @@ private:
             else {
                 m_nextCmd = FLSPRG_SET_ADDR;
             }
-            
+            /* 
+             * Copy the contents of the firmwareBuffer into the updated command buffer starting from the position defined by WRITE_BLOCK_CMD_LENGTH.
+             * Update the command information with the updated command buffer and its size.
+             */
+            memcpy(&m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH], m_firmwareBuffer, 128);
             fwProgCmd.command = m_updatedCmdBuffer;
             fwProgCmd.commandsize = sizeof(m_updatedCmdBuffer);
             return true;
@@ -725,7 +727,6 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
     }
     return true;
 }
-
 
 
 
