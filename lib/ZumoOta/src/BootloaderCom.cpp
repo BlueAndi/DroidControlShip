@@ -226,11 +226,12 @@ private:
      * This enumeration defines the various programming commands used during firmware programming.
      * It includes commands for setting memory addresses and writing data blocks.
      */
-   enum ProgCmds{
-    FLSPRG_SET_ADDR,    /**< Command to set the memory address. */
-    FLSPRG_WRITE_BLOCK,  /**< Command to write a data block to memory.*/
-    FLSPRG_COMPLETE   /**<Signalize the end of the Flashing.*/
-};
+   enum ProgCmds
+   {
+        FLSPRG_SET_ADDR,    /**< Command to set the memory address. */
+        FLSPRG_WRITE_BLOCK,  /**< Command to write a data block to memory.*/
+        FLSPRG_COMPLETE   /**<Signalize the end of the Flashing.*/
+    };
 
     /** 
     * @brief The next programming command to be executed. 
@@ -727,7 +728,6 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
     }
     return true;
 }
-
 
 
 

@@ -189,18 +189,11 @@ private:
      */
     const CommandInfo *m_currentCommand;
 
-
     /**
      * @brief Flag indicating whether the FlashManager is currently waiting for a response.
      * If true, the system is waiting for a response otherwise, it is not.
      */
      bool m_waitingForResponse;
-
-
-    /** 
-     *Specifies the current memory/page address for flashing the firmware of the Zumo program flash.
-     */
-    uint16_t static m_currWriteMemAddr;
 
     /**
      *Instance of FlashManager.
