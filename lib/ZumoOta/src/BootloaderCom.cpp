@@ -35,6 +35,12 @@
 #include "BootloaderCom.h"
 #include <Logging.h>
 #include <Board.h>
+#include <FileHandler.h>
+#include "FileManager.h"
+#include <cstring>
+#include <FS.h>
+#include <LittleFS.h>
+
 
 /******************************************************************************
  * Compiler Switches
@@ -65,7 +71,11 @@ public:
      * This method resets the internal index that tracks the current command
      * in the command sequence memory.
      */
-    virtual void reset() { m_index = 0; }
+    virtual bool reset() 
+    { 
+        m_index = 0;
+        return true;
+     }
 
     /**
      * @brief Retrieves the next command and the next response.
@@ -75,14 +85,12 @@ public:
      * @param rsp Reference to a pointer to the next response.
      * @return True if there is a next command and next response, false otherwise.
      */
-    virtual bool next( const CommandInfo *& cmd,  const ResponseInfo *& rsp)
+    virtual bool next(const CommandInfo *& cmd, const ResponseInfo *& rsp)
     {
         if (SEQ_LENGHT > m_index)
         {
-
             cmd = &m_cmds[m_index];
             rsp = &m_responses[m_index];
-
             ++m_index;
             return true;
         }
@@ -95,18 +103,228 @@ public:
     }
 
 private:
-    static const uint32_t SEQ_LENGHT = 12; /**< Length of the command sequence */
+    static const uint32_t SEQ_LENGHT = 12; /**< Number of required commands to initilize the Flash.*/
     uint32_t m_index; /**< current index in sequence */
     static const CommandInfo m_cmds[SEQ_LENGHT]; /**< Array of command information */
-    static const ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
+    static  ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
 };
 
-#if 0
+/**
+ * @class FwProgCmdProvider
+ * @brief Implementation of the command provider for firmware programming.
+ *
+ * This class provides commands for firmware programming, specifically tailored
+ * for the Zumo32U4 device.
+ */
 class FwProgCmdProvider : public CmdProvider {
     public:
-        FwProgCmdProvider(FileHandle * fs);
+        /**
+         * @brief Constructor for the FwProgCmdProvider class.
+         * @param fileName The name of the file to be used for firmware programming.
+         * Initializes a new instance of the FwProgCmdProvider class with the provided file name.
+         * @remarks The file specified by fileName should contain the firmware to be programmed.
+         */
+        FwProgCmdProvider(const char* fileName):
+            m_fileName(fileName),
+            m_firmwareBytesRead(0),
+            m_updatedCmd(),
+            m_firmwareFile(),
+            m_updatedCmdBuffer{},
+            m_currWriteMemAddr(0x0000)
+        {}
+
+    /**
+     * @brief Resets the command provider to its initial state.
+     * This method resets the internal state of the command provider.
+     * It checks if the firmware file is open and closes it if necessary.
+     * Then, it attempts to open the firmware file with read access.
+     * @return True if the firmware file is successfully opened, false otherwise.
+     */
+    virtual bool reset()
+    {
+        /*Check if the file is already open.*/
+        if (m_firmwareFile)
+        {
+            m_firmwareFile.close();
+        }
+
+        /*If the file is not yet open, open it.*/
+        m_firmwareFile = LittleFS.open(m_fileName, "r");
+        return false != m_firmwareFile;
 }
-#endif
+
+    /**
+     * @brief Retrieves the next command and the next response.
+     *
+     * This method returns the next command and its associated response
+     * from the command sequence memory.
+     * @param cmd Reference to a pointer to the next command.
+     * @param rsp Reference to a pointer to the next response.
+     * @return True if there is a next command and next response, false otherwise.
+     */
+    virtual bool next(const CommandInfo*& cmd, const ResponseInfo*& rsp)
+    {
+        if (m_nextCmd == FLSPRG_COMPLETE) 
+        {
+            cmd = nullptr;
+            rsp = nullptr;
+
+            if (m_firmwareFile)
+            {
+                m_firmwareFile.close(); /**<programming is done, close the fw file as we don't need it here anymore.*/
+            }
+
+            return false;
+        }
+        else
+        {
+            rsp = &m_responses[m_nextCmd];
+    
+            /*Update the command with required content to write in the flash memory.*/
+            if(true == updateFwProgCmd(m_updatedCmd))
+            {
+                cmd = &m_updatedCmd;
+                return true;
+            }
+            else
+            {
+                cmd = nullptr;
+                rsp = nullptr;
+                return false;
+            }
+        }
+    }   
+
+private:
+    /**
+     * @brief Length of a flash memory block in bytes.
+     * This constant defines the length of a flash memory block in bytes.
+     * It is used to specify the size of the blocks when reading or writing data to flash memory.
+     */
+    static const size_t FLASH_BLOCK_LENGTH = 128U;
+
+    /**
+     * @brief Length of a write block command in bytes.
+     * This constant defines the length of a write block command in bytes.
+     * It is used to specify the size of the command for writing a block of data to memory.
+     */
+    static const size_t WRITE_BLOCK_CMD_LENGTH = 4U;
+
+    static  CommandInfo m_cmds[]; /**< Array of command information.*/
+    static  ResponseInfo m_responses[]; /**< Array of response information.*/
+    
+    CommandInfo m_updatedCmd; /**<Intermediate storage for updated commands.*/
+
+    const char* m_fileName =(""); /**< Name of the file to be read.*/
+    size_t m_firmwareBytesRead; /**< Number of bytes read from the firmware file.*/
+    File m_firmwareFile; /**< Handle for the firmware file.*/
+
+    /**
+     * @brief Enumeration of programming commands.
+     * This enumeration defines the various programming commands used during firmware programming.
+     * It includes commands for setting memory addresses and writing data blocks.
+     */
+   enum ProgCmds
+   {
+        FLSPRG_SET_ADDR,    /**< Command to set the memory address. */
+        FLSPRG_WRITE_BLOCK,  /**< Command to write a data block to memory.*/
+        FLSPRG_COMPLETE   /**<Signalize the end of the Flashing.*/
+    };
+
+    /** 
+    * @brief The next programming command to be executed. 
+    * This variable represents the next programming command to be executed in the sequence.
+    * It initializes with FLSPRG_SET_ADDR, typically used to set the memory address first.
+    */
+    ProgCmds m_nextCmd = FLSPRG_SET_ADDR;
+    uint8_t m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH + FLASH_BLOCK_LENGTH]; /**<Buffer for updated commands.*/
+
+    /**
+     * @brief Current memory address for writing data during firmware programming. 
+     * This variable represents the current memory address where data will be written
+     * during the firmware programming process. It is used to keep track of the
+     * memory address for sequential data writes.
+     */
+    uint16_t  m_currWriteMemAddr; 
+
+   /**
+    * @brief Updates the command.
+    * This method updates the provided command based on specific requirements
+    * before it is sent for execution. It modifies the command buffer and size
+    * to reflect the changes required by the bootloader communication protocol.
+    * @param fwProgCmd Pointer to the CommandInfo structure representing the command to be updated.
+    * The method modifies the command buffer and size to reflect the changes.
+    * @remarks This method is called before sending each command to the bootloader for execution.
+    * The update process includes modifying command identifiers and parameters to adhere to the
+    * bootloader communication protocol requirements.
+    */
+    bool updateFwProgCmd(CommandInfo& fwProgCmd)
+    {
+        if (m_nextCmd == FLSPRG_SET_ADDR)
+        {
+            /*Perform the required updates.*/
+            m_updatedCmdBuffer[0] = 0x41;  /**< The first value is always 0x41.*/
+            m_updatedCmdBuffer[1] = (m_currWriteMemAddr >> 8) & 0xFF; /**<Higher 8 bits of m_currWriteMemAddr.*/
+            m_updatedCmdBuffer[2] = m_currWriteMemAddr & 0xFF; //**<Lower 8 bits of m_currWriteMemAddr.*/
+            /*Increase m_currWriteMemAddr by 64 for the next command.
+             * Each address addresses one WORD with 2(!) bytes,
+             *this is why one page consists of 64 addresses but 128 bytes memory
+             */
+            m_currWriteMemAddr += 64U;
+            /**<Set the Cmd instance to the buffer.*/
+            fwProgCmd.command = m_updatedCmdBuffer;
+            fwProgCmd.commandsize = 3;
+            m_nextCmd = FLSPRG_WRITE_BLOCK;
+            return true;
+        }
+        else if (m_nextCmd == FLSPRG_WRITE_BLOCK)
+        {
+            /*Update the command identifier bytes for write block*/
+            m_updatedCmdBuffer[0] = 0x42;
+            m_updatedCmdBuffer[1] = 0x00;
+            m_updatedCmdBuffer[2] = 0x80;
+            m_updatedCmdBuffer[3] = 0x46;
+            /*Read the file contents into m_firmwareBuffer for storage.*/
+            m_firmwareBytesRead = m_firmwareFile.read(
+                &m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH],
+                FLASH_BLOCK_LENGTH);
+            /*Check if there was an error reading the file.*/
+            if (m_firmwareBytesRead < 0)
+            {
+                /*Error reading the file.*/
+                LOG_ERROR("No Bytes available!");
+                return false;
+            } 
+            else if (0 == m_firmwareBytesRead)
+            {
+                m_nextCmd = FLSPRG_COMPLETE;
+                return false;
+            }
+            /*If the number of bytes read is less than MAX_BYTES_TO_READ,fill the rest of the buffer with a pattern.*/
+            size_t gapFill = FLASH_BLOCK_LENGTH - m_firmwareBytesRead;
+            if (0U != gapFill)
+            {
+                m_nextCmd = FLSPRG_COMPLETE;
+                while (gapFill > 0U)
+                {
+                    m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH + m_firmwareBytesRead] = 0xFF;
+                    --gapFill;
+                    ++m_firmwareBytesRead;
+                }
+            }
+            else {
+                m_nextCmd = FLSPRG_SET_ADDR;
+            }
+            
+            fwProgCmd.command = m_updatedCmdBuffer;
+            fwProgCmd.commandsize = sizeof(m_updatedCmdBuffer);
+            return true;
+        }
+
+        return true;
+    }
+};
+
 /******************************************************************************
  * Prototypes
  *****************************************************************************/
@@ -114,7 +332,12 @@ class FwProgCmdProvider : public CmdProvider {
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-const uint16_t PAGE_SIZE_BYTES = 128;
+/**
+ * @brief Name of the firmware file to be used for programming. 
+ * This variable holds the name of the firmware file ("/zumo_firmware.bin")
+ * that will be used for programming the device.
+ */
+std::string fileName = "/firmware.bin";
 
 const CommandInfo IntProgCmdProvider::m_cmds[] = {
     {Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID)},
@@ -131,7 +354,7 @@ const CommandInfo IntProgCmdProvider::m_cmds[] = {
     {Zumo32U4Specification::READ_EXTENDED_FUSE,sizeof(Zumo32U4Specification::READ_EXTENDED_FUSE)}
 };
 
-const ResponseInfo IntProgCmdProvider::m_responses[] = {
+ ResponseInfo IntProgCmdProvider::m_responses[] = {
     {Zumo32U4Specification::EXPECTED_SOFTWARE_ID, sizeof(Zumo32U4Specification::EXPECTED_SOFTWARE_ID)},
     {Zumo32U4Specification::EXPECTED_SW_VERSION,sizeof(Zumo32U4Specification::EXPECTED_SW_VERSION) },
     {Zumo32U4Specification::EXPECTED_HW_VERSION, sizeof(Zumo32U4Specification::EXPECTED_HW_VERSION)},
@@ -146,12 +369,29 @@ const ResponseInfo IntProgCmdProvider::m_responses[] = {
     {Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE,sizeof(Zumo32U4Specification::EXPECTED_EXTENDED_FUSE_VALUE)},
 };
 
+ CommandInfo FwProgCmdProvider::m_cmds[] = {
+            {Zumo32U4Specification::SET_MEMORY_ADDR, sizeof(Zumo32U4Specification::SET_MEMORY_ADDR)},
+            {Zumo32U4Specification::WRITE_MEMORY_PAGE, sizeof(Zumo32U4Specification::WRITE_MEMORY_PAGE)}
+};
+
+ResponseInfo FwProgCmdProvider::m_responses[] = {
+            {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)},
+            {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)}
+};
+
 /**
  * @brief Static instance of the internal programming command provider.
  * This static variable holds an instance of the IntProgCmdProvider class,
  * which provides commands for internal programming.
  */
 static IntProgCmdProvider m_initProvider;
+
+/**
+ * @brief Static instance of the internal programming command provider.
+ * This static variable holds an instance of the FwProgCmdProvider class,
+ * which provides commands for internal programming.
+ */
+static FwProgCmdProvider m_fwProvider(fileName.c_str());
 
 /**
  * @ brief Array of command providers.
@@ -161,18 +401,17 @@ static IntProgCmdProvider m_initProvider;
 static CmdProvider * cmdProviders[] = 
 {
     &m_initProvider, /**< Pointer to the internal programming command provider.*/
+    &m_fwProvider,
     nullptr  /**< End marker indicating the end of the array.*/
 };
 
-/** Specifies the maximum firmware payload size in bytes when the firmware is uploaded for the Zumo robot platform */
-    static const uint32_t MAX_ZUMO_FW_BLOB_SIZE_BYTE = 28672U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
 BootloaderCom::BootloaderCom():
 m_state(SelectCmdProvider),
-m_currWriteMemAddr(0),
 m_waitingForResponse(false),
 m_cmdProvider(&m_initProvider),
 m_currentCommand(nullptr),
@@ -197,7 +436,6 @@ void BootloaderCom::exitBootloader()
 
 }
 
-
 bool BootloaderCom::process()
 {
     size_t newBytes = 0; 
@@ -209,15 +447,25 @@ bool BootloaderCom::process()
             m_cmdProvider = cmdProviders[m_currentProvider];
             if (nullptr != m_cmdProvider)
             {
-                m_cmdProvider->reset();
+                if(true == m_cmdProvider->reset() )
+                {
+                    ++m_currentProvider;
+                    m_state = Idle;
 
-                ++m_currentProvider;
-                m_state = Idle;
+                }
+                else
+                {
+                    LOG_ERROR("Fatal error! Process can not start!");
+                    return false;
+                }
 
+                
             }
             else
             {
-                // TODO: We are done, no more provider, signal completion to web interface
+                /*TODO: We are done, no more provider, signal completion to web interface.*/
+                LOG_ERROR("no more work!");
+
                 break;
             }
             break;
@@ -227,13 +475,14 @@ bool BootloaderCom::process()
             m_waitingForResponse = false;
             if(m_cmdProvider->next(m_currentCommand, m_currentResponse))
             {
-                if(true == m_flashManager.sendCommand(
+                 if (true == m_flashManager.sendCommand(
                     m_currentCommand->command,
                     m_currentCommand->commandsize))
-                {
-                    m_waitingForResponse = true;
-                    m_state = ReadingResponse;   
-                }
+                    {
+                        m_waitingForResponse = true;
+                        m_state = ReadingResponse;
+                    }
+
                 else
                 {
                     LOG_ERROR("Failed to send command.");
@@ -248,7 +497,7 @@ bool BootloaderCom::process()
 
         case ReadingResponse:
             /*Handle Complete state*/
-            LOG_DEBUG("Size of currentsize= %d", m_currentResponse->responseSize);
+            LOG_DEBUG("Size of currentresponse= %d", m_currentResponse->responseSize);
             newBytes = m_flashManager.readingStream(receiveBuffer, m_currentResponse->responseSize);
             if(m_currentResponse->responseSize == newBytes)
             {
@@ -263,7 +512,7 @@ bool BootloaderCom::process()
                 {
                     LOG_ERROR("Compare is false");
                     m_state = Complete;
-                    m_waitingForResponse = false;   
+                    m_waitingForResponse = false;
                     break;
                 }
             }
@@ -476,14 +725,6 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
     }
     return true;
 }
-
-
-
-
-
-
-
-
 
 
 

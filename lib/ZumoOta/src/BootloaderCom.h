@@ -44,6 +44,7 @@
  * Includes
  ******************************************************************************/
 #include "FlashManager.h"
+#include "FileManager.h"
 #include <cstdint>
 /******************************************************************************
  * Macros
@@ -82,6 +83,7 @@ struct ResponseInfo{
      */
     size_t responseSize;
 };
+
 /**
  *@class CmdProvider
  *@brief Abstract base class for providing commands and responses for the BootloaderCom class.
@@ -91,7 +93,7 @@ public:
     /**
      *@brief Resets the command provider to its initial state.
      */
-    virtual void reset() = 0;
+    virtual bool reset() = 0;
 
     /**
      *@brief Retrieves the next command and response pair.
@@ -99,7 +101,12 @@ public:
      *@param rsp Reference to a pointer to the next response.
      *@return True if there is a next command and response pair, otherwise false.
      */
-    virtual bool next(const CommandInfo *& cmd,  const ResponseInfo *& rsp) = 0;
+    virtual bool next( const CommandInfo *& cmd, const ResponseInfo *& rsp) = 0;
+
+    /**
+     *@brief Read 128 bytes from the file system.
+     */
+    static uint8_t* m_buffer;
 };
 
 /**
@@ -143,7 +150,7 @@ public:
      *@return True if the received response matches the expected response, false otherwise.
      */
      bool compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize);
-  
+
 private:
     /**
      *@brief Enumeration representing different states for the BootloaderCom class.
@@ -182,23 +189,17 @@ private:
      */
     const CommandInfo *m_currentCommand;
 
-
     /**
      * @brief Flag indicating whether the FlashManager is currently waiting for a response.
      * If true, the system is waiting for a response otherwise, it is not.
      */
      bool m_waitingForResponse;
 
-
-    /** 
-     *Specifies the current memory/page address for flashing the firmware of the Zumo program flash.
-     */
-    uint16_t m_currWriteMemAddr;
-
     /**
      *Instance of FlashManager.
      */
      FlashManager m_flashManager;
+
 };
 
 #endif /* BOOTLOADERCOM_H */
