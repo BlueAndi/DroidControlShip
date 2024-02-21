@@ -512,7 +512,7 @@ public:
     static const size_t FLASH_BLOCK_LENGTH = 128U;
 
 private:
-    const char* m_fileName = "/firmware.bin"; /**< Name of the file to be read.*/
+    const char* m_fileName = (""); /**< Name of the file to be read.*/
     static  CommandInfo m_cmds[]; /**< Array of command information.*/
     static ResponseInfo m_responses[]; /**< Array of response information.*/
     CommandInfo m_updatedCmd; /**<Intermediate storage for updated commands.*/
@@ -527,7 +527,6 @@ private:
      */
     uint16_t  m_currWriteMemAddr; 
     size_t m_max_buffers; /**<Maximum number of firmware buffers.*/
-    const char* firmwareFileName = ("");
     uint8_t m_count; /**<Counter for the number of processed firmware blocks.*/
     size_t m_firmwareSize;/**<Size of the firmware file.*/
 
