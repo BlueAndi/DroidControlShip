@@ -106,7 +106,7 @@ private:
     static const uint32_t SEQ_LENGHT = 12; /**< Number of required commands to initilize the Flash.*/
     uint32_t m_index; /**< current index in sequence */
     static const CommandInfo m_cmds[SEQ_LENGHT]; /**< Array of command information */
-    static const ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
+    static  ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
 };
 
 /**
@@ -307,7 +307,7 @@ private:
                 m_nextCmd = FLSPRG_COMPLETE;
                 while (gapFill > 0U)
                 {
-                    m_updatedCmdBuffer[m_firmwareBytesRead] = 0xFF;
+                    m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH + m_firmwareBytesRead] = 0xFF;
                     --gapFill;
                     ++m_firmwareBytesRead;
                 }
@@ -354,7 +354,7 @@ const CommandInfo IntProgCmdProvider::m_cmds[] = {
     {Zumo32U4Specification::READ_EXTENDED_FUSE,sizeof(Zumo32U4Specification::READ_EXTENDED_FUSE)}
 };
 
-const ResponseInfo IntProgCmdProvider::m_responses[] = {
+ ResponseInfo IntProgCmdProvider::m_responses[] = {
     {Zumo32U4Specification::EXPECTED_SOFTWARE_ID, sizeof(Zumo32U4Specification::EXPECTED_SOFTWARE_ID)},
     {Zumo32U4Specification::EXPECTED_SW_VERSION,sizeof(Zumo32U4Specification::EXPECTED_SW_VERSION) },
     {Zumo32U4Specification::EXPECTED_HW_VERSION, sizeof(Zumo32U4Specification::EXPECTED_HW_VERSION)},
