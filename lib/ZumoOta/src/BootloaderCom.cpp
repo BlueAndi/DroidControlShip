@@ -105,8 +105,8 @@ public:
 private:
     static const uint32_t SEQ_LENGHT = 12; /**< Number of required commands to initilize the Flash.*/
     uint32_t m_index; /**< current index in sequence */
-    static  CommandInfo m_cmds[SEQ_LENGHT]; /**< Array of command information */
-    static  ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
+    static const CommandInfo m_cmds[SEQ_LENGHT]; /**< Array of command information */
+    static const ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
 };
 
 /**
@@ -128,7 +128,6 @@ class FwProgCmdProvider : public CmdProvider {
             m_fileName(fileName),
             m_firmwareBytesRead(0),
             m_updatedCmd(),
-            m_firmwareBuffer(),
             m_firmwareFile(),
             m_updatedCmdBuffer{},
             m_currWriteMemAddr(0x0000)
@@ -216,8 +215,7 @@ private:
     
     CommandInfo m_updatedCmd; /**<Intermediate storage for updated commands.*/
 
-    const char* m_fileName = "/firmware.bin"; /**< Name of the file to be read.*/
-    uint8_t m_firmwareBuffer[128]; /**< Buffer to hold firmware data read from the file.*/
+    const char* m_fileName =(""); /**< Name of the file to be read.*/
     size_t m_firmwareBytesRead; /**< Number of bytes read from the firmware file.*/
     File m_firmwareFile; /**< Handle for the firmware file.*/
 
@@ -268,7 +266,10 @@ private:
             m_updatedCmdBuffer[0] = 0x41;  /**< The first value is always 0x41.*/
             m_updatedCmdBuffer[1] = (m_currWriteMemAddr >> 8) & 0xFF; /**<Higher 8 bits of m_currWriteMemAddr.*/
             m_updatedCmdBuffer[2] = m_currWriteMemAddr & 0xFF; //**<Lower 8 bits of m_currWriteMemAddr.*/
-            /*Increase m_currWriteMemAddr by 64 for the next command.*/
+            /*Increase m_currWriteMemAddr by 64 for the next command.
+             * Each address addresses one WORD with 2(!) bytes,
+             *this is why one page consists of 64 addresses but 128 bytes memory
+             */
             m_currWriteMemAddr += 64U;
             /**<Set the Cmd instance to the buffer.*/
             fwProgCmd.command = m_updatedCmdBuffer;
@@ -285,7 +286,7 @@ private:
             m_updatedCmdBuffer[3] = 0x46;
             /*Read the file contents into m_firmwareBuffer for storage.*/
             m_firmwareBytesRead = m_firmwareFile.read(
-                m_firmwareBuffer,
+                &m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH],
                 FLASH_BLOCK_LENGTH);
             /*Check if there was an error reading the file.*/
             if (m_firmwareBytesRead < 0)
@@ -306,7 +307,7 @@ private:
                 m_nextCmd = FLSPRG_COMPLETE;
                 while (gapFill > 0U)
                 {
-                    m_firmwareBuffer[m_firmwareBytesRead] = 0xFF;
+                    m_updatedCmdBuffer[m_firmwareBytesRead] = 0xFF;
                     --gapFill;
                     ++m_firmwareBytesRead;
                 }
@@ -314,11 +315,7 @@ private:
             else {
                 m_nextCmd = FLSPRG_SET_ADDR;
             }
-            /* 
-             * Copy the contents of the firmwareBuffer into the updated command buffer starting from the position defined by WRITE_BLOCK_CMD_LENGTH.
-             * Update the command information with the updated command buffer and its size.
-             */
-            memcpy(&m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH], m_firmwareBuffer, 128);
+            
             fwProgCmd.command = m_updatedCmdBuffer;
             fwProgCmd.commandsize = sizeof(m_updatedCmdBuffer);
             return true;
@@ -342,7 +339,7 @@ private:
  */
 std::string fileName = "/firmware.bin";
 
- CommandInfo IntProgCmdProvider::m_cmds[] = {
+const CommandInfo IntProgCmdProvider::m_cmds[] = {
     {Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID)},
     {Zumo32U4Specification::READ_SW_VERSION, sizeof(Zumo32U4Specification::READ_SW_VERSION)},
     {Zumo32U4Specification::READ_HW_VERSION, sizeof(Zumo32U4Specification::READ_HW_VERSION)},
@@ -357,7 +354,7 @@ std::string fileName = "/firmware.bin";
     {Zumo32U4Specification::READ_EXTENDED_FUSE,sizeof(Zumo32U4Specification::READ_EXTENDED_FUSE)}
 };
 
- ResponseInfo IntProgCmdProvider::m_responses[] = {
+const ResponseInfo IntProgCmdProvider::m_responses[] = {
     {Zumo32U4Specification::EXPECTED_SOFTWARE_ID, sizeof(Zumo32U4Specification::EXPECTED_SOFTWARE_ID)},
     {Zumo32U4Specification::EXPECTED_SW_VERSION,sizeof(Zumo32U4Specification::EXPECTED_SW_VERSION) },
     {Zumo32U4Specification::EXPECTED_HW_VERSION, sizeof(Zumo32U4Specification::EXPECTED_HW_VERSION)},
@@ -377,7 +374,7 @@ std::string fileName = "/firmware.bin";
             {Zumo32U4Specification::WRITE_MEMORY_PAGE, sizeof(Zumo32U4Specification::WRITE_MEMORY_PAGE)}
 };
 
- ResponseInfo FwProgCmdProvider::m_responses[] = {
+ResponseInfo FwProgCmdProvider::m_responses[] = {
             {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)},
             {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)}
 };
@@ -728,7 +725,6 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
     }
     return true;
 }
-
 
 
 
