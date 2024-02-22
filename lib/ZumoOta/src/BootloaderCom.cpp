@@ -282,7 +282,7 @@ private:
             /**Increase m_currWriteMemAddr by 64 for the next command.
              *Each address addresses one WORD with 2(!) bytes, this is why one page consists of 64 addresses but 128 bytes memory.
              */
-            m_currWriteMemAddr += 64U;
+            m_currWriteMemAddr += FLASH_BLOCK_LENGTH/2U;
             /**<Set the Cmd instance to the buffer.*/
             fwProgCmd.command = m_updatedCmdBuffer;
             fwProgCmd.commandsize = 3;
@@ -320,7 +320,7 @@ private:
                 m_nextCmd = FLSPRG_COMPLETE;
                 while (gapFill > 0U)
                 {
-                    m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH +m_firmwareBytesRead] = 0xFF;   //m_firmwareBuffer[WRITE_BLOCK_CMD_LENGTH + m_firmwareBytesRead] = 0xFF;
+                    m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH +m_firmwareBytesRead] = 0xFF;
                     --gapFill;
                     ++m_firmwareBytesRead;
                 }
@@ -547,7 +547,7 @@ private:
             /**Increase m_currWriteMemAddr by 64 for the next command.
              *Each address addresses one WORD with 2(!) bytes, this is why one page consists of 64 addresses but 128 bytes memory.
              */
-            m_currWriteMemAddr += 64U;
+            m_currWriteMemAddr += FLASH_BLOCK_LENGTH/2U;
 
             /**<Set the Cmd instance to the buffer.*/
             cmd.command = m_updatedCmdBuffer;
@@ -697,7 +697,7 @@ private:
  * that will be used for programming the device.
  * In the finalversion this should be provided by the Webserver
  */
- std::string fileName = "/firmware.bin";
+ std::string fileName = "/TestFileStarWars.bin";
  File m_firmwareFile; /**< Handle for the firmware file.*/
  const char* m_fileName = fileName.c_str(); /**< File name for the firmware file.*/
 
