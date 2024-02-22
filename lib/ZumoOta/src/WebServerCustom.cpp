@@ -40,8 +40,10 @@
 #include <SettingsHandler.h>
 #include <Board.h>
 #include <SPIFFS.h>
-#include <ArduinoJson.h>
 #include <string.h>
+#include "BootloaderCom.h"
+
+
 
 using namespace fs;
 
@@ -65,6 +67,7 @@ using namespace fs;
  * Local Variables
  *****************************************************************************/
 Upload upload;
+String BootloaderCom::m_firmwareName = "";
 
 /******************************************************************************
  * Public Methods
@@ -180,15 +183,13 @@ void WebServerCustom::init()
                   request->send(200, "text/html", fileList);
               });
 
-
-
-
-
+    
     server.begin();
 }
 
 void WebServerCustom::handleUploadRequest()
 {
+    
     server.on(
         "/upload", HTTP_POST, [this](AsyncWebServerRequest* request) {},
         [this](AsyncWebServerRequest* request, String filename, size_t index, uint8_t* data, size_t len, bool final)
@@ -197,23 +198,54 @@ void WebServerCustom::handleUploadRequest()
             upload.handleFileUpload(request, filename, index, data, len, final);
         });
 }
-
-void WebServerCustom::handleUpdateRequest()
+String WebServerCustom::getFirmwareName()
 {
-    server.on(
-        "/performFirmwareUpdate", HTTP_POST, [this](AsyncWebServerRequest* request) {},
-        [this](AsyncWebServerRequest* request, String filename, size_t index, uint8_t* data, size_t len, bool final)
-    
-        {
-            /* Process the firmware update.*/
-            request->send(200, "text/plain", "Firmware update successful!");
-        });
+    return m_firmwareName;
 }
 
+void WebServerCustom::handleUpdateRequest() {
+    server.on("/uploadFirmware", HTTP_POST, [this](AsyncWebServerRequest *request) {
 
+    if (request->hasParam("firmware", true))
+    {
+        AsyncWebParameter* p = request->getParam("firmware", true);
+        if (p->isPost())
+        {
+            /*Get firmware filename from the parameter.*/
+            String tempFirmwareName = p->value();
+            if (false == tempFirmwareName.startsWith("/"))
+            {
+                m_firmwareName = "/" + tempFirmwareName;
+            }
 
+            /* Get the content length from the HTTP header */
+            AsyncWebHeader* contentLengthHeader = request->getHeader("Content-Length");
+            if (contentLengthHeader)
+            {
+                int contentLength = contentLengthHeader->value().toInt();
+                LOG_DEBUG("Size of Uploaded File: %d bytes", contentLength);
+            }
+            else
+            {
+                LOG_ERROR("Content-Length header not found.");
+            }
 
+            LOG_DEBUG("Value of Upoaded File: %s", m_firmwareName.c_str());
+            request->send(200, "text/plain", "Processing Firmware Update!");
+        }
+    }
+    else
+    {
+        request->send(200, "text/plain", "Error: Firmware not found in request");
+        LOG_ERROR("Firmware not found in request");
+    }
 
+    /* Process the firmware update.*/
+
+    Board::getInstance().getDevice().enterBootloader();
+
+    });
+}
 
 
 

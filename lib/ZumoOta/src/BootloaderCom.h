@@ -44,6 +44,7 @@
  * Includes
  ******************************************************************************/
 #include "FlashManager.h"
+#include "FileManager.h"
 #include <cstdint>
 /******************************************************************************
  * Macros
@@ -113,28 +114,28 @@ public:
     /**
      * Construct the bootloader  application.
      */
-  BootloaderCom();
+     BootloaderCom();
 
     /**
      * Destroy the bootloader  application.
      */
-    ~BootloaderCom();
+     ~BootloaderCom();
 
     /**
      * @brief enter the bootloader mode.
      */
-    void enterBootloader();
+     void enterBootloader();
 
    /**
     * @brief exit the bootloader mode.
     */
-    void exitBootloader();
+     void exitBootloader();
 
    /**
     *@brief Process the flash manager state machine.
     *return bool True if the process was successful, otherwise false.
     */
-    bool process();
+     bool process();
 
     /**
      *@brief Compare the received response against the expected response after sending a command.
@@ -145,6 +146,16 @@ public:
      *@return True if the received response matches the expected response, false otherwise.
      */
      bool compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize);
+
+    /**
+     *@brief Set the Firmware File name.
+     */
+     static void setFirmwareName(const String& firmwareName);
+
+    /**
+     *@brief Get the Firmware File name.
+     */
+     static String getFirmwareName();
 private:
     /**
      *@brief Enumeration representing different states for the BootloaderCom class.
@@ -194,8 +205,19 @@ private:
      */
      FlashManager m_flashManager;
 
+    /**
+     *Handle the File
+     */
+    //static File m_firmwareFile;
+
+    /**
+     * Name of the Firmware.
+     */
+     static String m_firmwareName;
 
 };
+
+ 
 
 #endif /* BOOTLOADERCOM_H */
 /** @} */

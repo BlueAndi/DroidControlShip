@@ -364,7 +364,7 @@ public:
         m_firmwareFile(),
         m_count(0U),
         m_firmwareSize(0U),
-        m_max_buffers(0),
+        m_Block(0),
         m_currWriteMemAddr(0x0000)
      {}
 
@@ -390,7 +390,7 @@ public:
         /*Retrieves the size of the firmware file and calculates the maximum number of buffers.*/
         m_firmwareSize = m_firmwareFile.size();
         LOG_INFO("Size of the file = %d", m_firmwareSize);
-        m_max_buffers = m_firmwareFile.size() / FLASH_BLOCK_LENGTH;
+        m_Block = m_firmwareFile.size() / FLASH_BLOCK_LENGTH;
         if(m_firmwareFile.size() % FLASH_BLOCK_LENGTH == 0)
         {
             /*m_max_buffers doesn't change*/
@@ -398,9 +398,9 @@ public:
         else
         {
             /*Incrementing m_max_buffers by 1 to accommodate the remainder of the file*/
-            m_max_buffers += 1;
+            m_Block += 1;
         }
-        LOG_INFO("m_max_buffers = %d", m_max_buffers);
+        LOG_INFO("m_Block = %d", m_Block);
         return false != m_firmwareFile;
     }
 
@@ -416,7 +416,7 @@ public:
      */
     virtual bool next(const CommandInfo*& cmd, const ResponseInfo*& rsp) override
     {
-        if(m_count < m_max_buffers)
+        if(m_count < m_Block)
         {
             /*Keep the original command.*/
             if( m_nextCmd == CCMD_SET_ADDR)
@@ -520,7 +520,7 @@ private:
      * memory address for sequential data writes.
      */
     uint16_t  m_currWriteMemAddr; 
-    size_t m_max_buffers; /**<Maximum number of firmware buffers.*/
+    size_t m_Block; /**<Maximum number of firmware buffers.*/
     uint8_t m_count; /**<Counter for the number of processed firmware blocks.*/
     size_t m_firmwareSize;/**<Size of the firmware file.*/
 
@@ -697,7 +697,8 @@ private:
  * that will be used for programming the device.
  * In the finalversion this should be provided by the Webserver
  */
- std::string fileName = "/TestFileStarWars.bin";
+ String fileName = BootloaderCom::getFirmwareName();
+ //std::string fileName = "/TestFileStarWars.bin";
  File m_firmwareFile; /**< Handle for the firmware file.*/
  const char* m_fileName = fileName.c_str(); /**< File name for the firmware file.*/
 
@@ -847,6 +848,36 @@ m_currentProvider(0)
 
 BootloaderCom::~BootloaderCom()
 {
+}
+
+void BootloaderCom::setFirmwareName(const String& firmwareName)
+{
+    if( false == firmwareName.isEmpty())
+    {
+        if (false == firmwareName.startsWith("/"))
+        {
+            m_firmwareName = "/" + firmwareName;
+        }
+        else
+        {
+            m_firmwareName = firmwareName;
+
+        }
+    }
+    else
+    {
+        /*Nothing to update!*/
+    }
+
+}
+
+String BootloaderCom:: getFirmwareName()
+{
+    if (false == m_firmwareName.startsWith("/"))
+        {
+            m_firmwareName = "/" + m_firmwareName;
+        }
+    return m_firmwareName;
 }
 
 void BootloaderCom :: enterBootloader()
