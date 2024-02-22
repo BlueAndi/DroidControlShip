@@ -102,12 +102,6 @@ public:
      */
     virtual bool next( const CommandInfo *& cmd, const ResponseInfo *& rsp) = 0;
 
-    /**
-     *@brief Indicates is the Writeprocess still activated.
-     *return True if the Writeprocess is activated.
-     */
-    bool iswriting = false;
-
 };
 
 /**

@@ -96,7 +96,6 @@ public:
             rsp = &m_responses[m_index];
 
             ++m_index;
-            iswriting = false;
             return true;
         }
         else
@@ -202,7 +201,6 @@ class FwProgCmdProvider : public CmdProvider {
             if(true == updateFwProgCmd(m_updatedCmd))
             {
                 cmd = &m_updatedCmd;
-                iswriting = true;
                 return true;
             }
             else
@@ -369,7 +367,6 @@ public:
     ByteCheckCmdProvider(const char* fileName) :
         m_updatedCmd(),
         m_updatedRsp(),
-        m_firmwareBuffer(),
         m_updatedCmdBuffer{},
         m_fileName(fileName),
         m_firmwareFile(),
@@ -446,13 +443,12 @@ public:
                 /*Increment the count of processed buffers.*/
                 m_count++;
                 cmd =&m_cmds[m_nextCmd];
-                m_updatedRsp.expectedResponse = m_firmwareBuffer;
+                m_updatedRsp.expectedResponse = nullptr;
                 m_updatedRsp.responseSize = FLASH_BLOCK_LENGTH;
                 rsp = &m_updatedRsp;
  
                 /*Set m_nextCmd to CCMD_SET_ADDR to prepare for the next command cycle.*/
                 m_nextCmd = CCMD_SET_ADDR;
-                iswriting = false;
                 return true;
             }
             else
@@ -516,7 +512,6 @@ private:
     static ResponseInfo m_responses[]; /**< Array of response information.*/
     CommandInfo m_updatedCmd; /**<Intermediate storage for updated commands.*/
     ResponseInfo m_updatedRsp; /**<Intermediate storage for experted responses.*/
-    uint8_t m_firmwareBuffer[FLASH_BLOCK_LENGTH]; /**< Buffer to hold firmware data read from the file.*/
     File m_firmwareFile; /**< Handle for the firmware file.*/
     uint8_t m_updatedCmdBuffer[3]; /**<Buffer for updated commands.*/
     /**
@@ -819,10 +814,6 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
      */
     uint8_t fileReadBuffer[CHUNK_SIZE];
 
-
-    /*Obtain a ByteCheckCmdProvider pointer from the current command provider.*/
-    FwProgCmdProvider* temprovider = (FwProgCmdProvider*)m_cmdProvider;
-
     if(nullptr == receivedResponse)
     {
         LOG_ERROR("Received Response is a nullptr");
@@ -1004,11 +995,18 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
         }
     }
 
-    else if(m_cmdProvider->iswriting == true)
+    else if(command == Zumo32U4Specification::WRITE_MEMORY_PAGE)
     {
-        uint8_t idx= temprovider->getCount();
-        LOG_INFO("Writing Data  %d to Zumo was successfull", idx);
-        return true;
+        if (0 == memcmp(receivedResponse,Zumo32U4Specification::WRITE_MEMORY_PAGE,expectedSize))
+        {
+            LOG_INFO("Chunk has been written!");
+            return true;
+        }
+        else
+        {
+            LOG_ERROR("Chunk has not been written!");
+            return false;
+        }
     }
     else if(command == Zumo32U4Specification:: READ_MEMORY_PAGE)
     {
@@ -1094,7 +1092,6 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
     }
     return true;
 }
-
 
 
 
