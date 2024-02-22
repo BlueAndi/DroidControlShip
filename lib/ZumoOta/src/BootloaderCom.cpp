@@ -358,6 +358,7 @@ public:
      */
     ByteCheckCmdProvider(const char* fileName) :
         m_updatedCmd(),
+        m_updatedRsp(),
         m_updatedCmdBuffer{},
         m_fileName(fileName),
         m_firmwareFile(),
@@ -569,7 +570,7 @@ private:
  * @class ReadFusesCmdProvider
  * @brief Implementation of the  command provider for reading Fuses.
  */
-class ReadFusesCmdProvider: public CmdProvider {
+class ReadFusesCmdProvider : public CmdProvider {
 public:
     /**
      * @brief Constructor for the FinalCmdProvider class.
