@@ -18,36 +18,19 @@
             background-repeat: no-repeat;
             background-size: cover;
             background-color: blueviolet;
-        
         }
-        h1,p{
+        h1, p {
             margin-top: 0;
             color: yellow;  
         }
-
         
-        #listFilesButton {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: green;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* Style for the file list.*/
-        #fileList
-        {
-            /* Start with hidden file list.*/
+        #fileList {
             display: none; 
             margin-top: 20px;
             color: white;
         }
 
-        /* Style for selecting the firmware file.*/
-        #firmwareFileButton
-        {
+        #firmwareFileButton {
             margin-top: 20px;
             padding: 10px 20px;
             background-color: blue;
@@ -57,8 +40,7 @@
             cursor: pointer;
         }
 
-        #successMessage
-        {
+        #successMessage {
             display: none;
             color: green;
             margin-top: 20px;
@@ -70,215 +52,91 @@
     <h1>OTA Firmware Update for Zumo32U4 Robot</h1>
     <p>Welcome to the OTA firmware update page!</p>
 
-    <!-- Firmware-Upload-Formular -->
+    <!-- Button to display the file list -->
+    <button id="listFilesButton" onclick="loadFileList()">Choose Firmware File</button>
+    <input type="button" id="firmwareFileButton" style="display: none;" />
+    <!-- To display file list -->
+<div id="fileList" onclick="handleFileSelection(event)"></div>
 
-        <input type="button" id="firmwareFileButton" name="firmwareFile" style="display: none;" onclick="loadFileList()" />
-        <label for="firmwareFileButton" style="cursor: pointer; margin-top: 20px; padding: 10px 20px; background-color: blue; color: white; border: none; border-radius: 5px;">Filelist</label>
-    
-    
-    <!-- To display file list. -->
-<div id="fileList"></div>
-
-<!-- Firmware-Update-Button -->
-<form id = "newtest"  method="POST" enctype="application/x-www-form-urlencoded" action="/performFirmwareUpdate" > 
-    <input type="text" id="file_id" name="firmware" style="display:none" />
-    <input type="button" id="firmwaree" name="newfirmware" style="display: none;"  /> 
-    <input type="submit" name="firmwaretest" value="submit"  />
-
-    <label for="firmwaree" style="margin-top: 20px; padding: 10px 20px; background-color: rgb(0, 255, 13); color: white; border: none; border-radius: 5px; cursor: pointer;">Update Firmware</button>"
-</form> 
-<!--<button id="updateButton" style="margin-top: 20px; padding: 10px 20px; background-color: rgb(0, 255, 13); color: white; border: none; border-radius: 5px; cursor: pointer;">Update Firmware</button>-->
+    <!-- Form for uploading the firmware -->
+    <form id="firmwareForm" method="POST" enctype="multipart/form-data" action="/uploadFirmware">
+        <!-- Hidden input field for the selected file -->
+        <input type="hidden" id="file_id" name="firmware" />
+        <!-- Button to perform the firmware update -->
+        <input type="button" id="firmwareUpdateButton" value="Update Firmware" onclick="performFirmwareUpdate()" style="display: block;" />
+    </form>
 
 <script>
-    /*A function to load the file list.*/
-    function loadFileList()
-    {
+    /* Function to load the file list */
+    function loadFileList() {
         fetch('/listFirmwareFiles')
             .then(response => response.text())
             .then(data => {
                 document.getElementById('fileList').innerHTML = data;
-                /*Displaying the file list*/
-                document.getElementById('fileList').style.display = 'block'; 
-
-                /*Event listener for each file name in the list.*/
-                document.querySelectorAll('.filename').forEach(file => {
-                    file.addEventListener('click', () => {
-                        /*File name of the selected file.*/
-                        const selectedFile = file.textContent.trim();
-                        /*Display the selected file.*/
-                        alert(`Selected file: ${selectedFile}`);
-                        
-                        /*Saving the selected file in a hidden field.*/
-                        //document.getElementById('selectedFileName').value = selectedFile;
-                        const myvariable = document.getElementById('file_id');
-                        //alert(`new file: ${myvariable}`);
-                        myvariable.setAttribute('value', `${selectedFile}`);
-                        //myvariable.value = selectedFile;
-                    
-                        
-
-                        /*Hide the 'Select file' button and display the 'Firmware Update' button.*/ 
-                        document.getElementById('firmwareFileButton').style.display = 'none';
-                        document.getElementById('firmwaree').style.display = 'block';
-                    });
-                });
+                document.getElementById('fileList').style.display = 'block'; // Display the file list
             });
     }
 
-    document.getElementById('newtest').addEventListener('submit', function (event) {
-            var file = document.getElementById("file_id").value;
-            alert(`Valeur: ${file}`);
-            /*var fileSizeFirmware = file.size;*/
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/performFirmwareUpdate', true);
-            /*xhr.upload.addEventListener('progress', updateProgress);
-            xhr.setRequestHeader('X-File-Size-Firmware', fileSizeFirmware);*/
+    /* Function to handle file selection */
+function handleFileSelection(event)
+{
+    let selectedFile = event.target.textContent.trim();
+    // Display the selected file
+    alert('Selected file: ' + selectedFile);
 
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    if (xhr.status === 200) {
-                        /* This code displays the message "Upload successful" on the web page. */
-                        /*var fileListContainer = document.getElementById('fileListContainer');
-                        fileListContainer.innerHTML = '<span style="color: red;">Upload successful.</span>';*/
-                        alert('Firmware update initiated!');
-                        
-                    } else {
-                        
-                        alert('Error during upload!');
-                    }
+    // Display the file size
+    let fileSize = event.target.dataset.size;
+    alert('File size: ' + fileSize);
 
-                }
-            };
-            const newvar= document.getElementById('newtest');
-            alert(` Nouvelle valeur: ${newvar}`);
+    // Save the selected file in a hidden field
+    document.getElementById('file_id').value = selectedFile;  //.text
+    //fileInput.value = selectedFile;
+                
+    // Hide the 'Choose Firmware File' button and display the 'Firmware Update' button 
+    document.getElementById('firmwareFileButton').style.display = 'block';
+    document.getElementById('firmwareUpdateButton').style.display = 'block';
+}
 
-            var formData = new FormData(newvar);
-            xhr.send(formData);
 
-            /* Prevent the form from submitting the traditional way. */
-            event.preventDefault();
-        });
-     /*function for firmware update*/
-     function performFirmwareUpdate()
-    {
-        /*Retrieve selected file*/
-        //const selectedFile = document.getElementById('selectedFileName').value;
+    /* Function for firmware update */
+    function performFirmwareUpdate() {
+        // Retrieve selected file
+        let selectedFile = document.getElementById('file_id').value;
         
-        /*fetch('/performFirmwareUpdate',{
-            method: "POST",
-            body: new FormData(document.getElementById("newtest")),
-            headers: {
-            "Content-type": "application/x-www-form-urlencoded"
+        // Debugging: Log the selected file to the console
+        console.log('Selected file:', selectedFile);
+        
+        if (!selectedFile) {
+            alert('No file selected.');
+            return;
         }
-    });*/
 
-        /*Here, only a success message is displayed as the actual update process is executed server-side.*/ 
-        alert('Firmware update initiated!');
+        // Initiate firmware update
+        const formData = new FormData();
+        formData.append('firmware', selectedFile);
+
+        // Debugging: Log the formData to the console
+        console.log('FormData:', formData);
+
+        fetch('/uploadFirmware', {
+            method: "POST",
+            body: formData,
+        })
+        .then(response => {
+            if (response.ok) {
+                // Firmware update initiated successfully
+                alert('Firmware update initiated! Robot will now enter bootloader mode.');
+            } else {
+                // Error during Firmware update
+                alert('Error during firmware update!');
+            }
+        })
+        .catch(error => {
+            console.error('Error during firmware update:', error);
+            alert('Error during firmware update!');
+        });
     }
 
-    /*Event listener for the Firmware Update button.*/
-    document.querySelector('#firmwaree').addEventListener('click', performFirmwareUpdate);
-
-
-
-    /*Function to display the success message.*/
-    function showSuccess()
-    {
-        alert('File uploaded successfully!');
-    }
-
-    /*Event listener for the button to load the file list.*/
-    document.querySelector('label[for="firmwareFileButton"]').addEventListener('click', loadFileList);
-    //document.querySelector('label[for="#updateButton"]').addEventListener('click', loadFileList);
 </script>
-
-
-
-
-
-   
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        
-
-        
-        
-        
-        
-        
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-  
 </body>
 </html>
