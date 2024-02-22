@@ -45,7 +45,6 @@
  ******************************************************************************/
 #include "FlashManager.h"
 #include "FileManager.h"
-#include <Fs.h>
 #include <cstdint>
 /******************************************************************************
  * Macros
@@ -151,7 +150,7 @@ public:
     /**
      *@brief Set the Firmware File name.
      */
-     static void setFirmwareName(String firmwareName);
+     static void setFirmwareName(const String& firmwareName);
 
     /**
      *@brief Get the Firmware File name.

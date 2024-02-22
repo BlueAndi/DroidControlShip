@@ -850,7 +850,7 @@ BootloaderCom::~BootloaderCom()
 {
 }
 
-void BootloaderCom::setFirmwareName(String firmwareName)
+void BootloaderCom::setFirmwareName(const String& firmwareName)
 {
     if( false == firmwareName.isEmpty())
     {
@@ -868,7 +868,7 @@ void BootloaderCom::setFirmwareName(String firmwareName)
     {
         /*Nothing to update!*/
     }
-    
+
 }
 
 String BootloaderCom:: getFirmwareName()
