@@ -21,6 +21,8 @@
 #include "Upload.h"
 #include "FlashManager.h"
 
+
+
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -44,6 +46,13 @@ private:
      * FlashManager instance.
      */
     FlashManager m_flashManager;
+
+    /**
+     *Name of the Firmware.
+     */
+    String m_firmwareName;
+
+    
 
 
 public:
@@ -98,13 +107,19 @@ public:
      * @return A string containing the list of files in the specified format
      */
     String listFiles(bool ishtml);
+
     /**
      *
      * This function sets up a handler for processing HTTP POST requests to Firmware Update.
      *
      */
     void handleUpdateRequest();
-    
+
+    /**
+     *@brief return the m_firmwareName
+     */
+     String getFirmwareName();
+
 };
 
 #endif /* WEBSERVER_H */

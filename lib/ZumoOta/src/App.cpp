@@ -188,9 +188,8 @@ void App::setup()
         Board::getInstance().getGreenLed().enable(true);
         delay(100U);
         Board::getInstance().getGreenLed().enable(false);
-        Board::getInstance().getDevice().enterBootloader();
-        
-        
+        //Board::getInstance().getDevice().enterBootloader();
+
     }
 }
 
@@ -210,10 +209,11 @@ void App::loop()
         start();
 
         m_webServer.handleUploadRequest();
+        m_webServer.handleUpdateRequest();
         m_isWebServerInitialized = true;
     }
 
-    
+
     while(false == Board::getInstance().getDevice().isInBootloaderMode())
     {
         if (false ==Board::getInstance().process())
@@ -227,6 +227,21 @@ void App::loop()
     while(true == Board::getInstance().getDevice().isInBootloaderMode())
     {
         Board::getInstance().process();
+        String fileName = m_webServer.getFirmwareName();
+        if(fileName.isEmpty())
+        {
+            LOG_ERROR("Empty File");
+        }
+        else
+        {
+            //LOG_DEBUG("fileName von App = %s", fileName.c_str());
+        }
+        
+        if (false == fileName.startsWith("/"))
+        {
+            fileName = "/" + fileName;
+        }
+        m_bootloader.setFirmwareName(fileName);
         m_bootloader.process();
     }
     LOG_INFO("Not in Bootloader Mode!");

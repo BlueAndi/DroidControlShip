@@ -697,7 +697,8 @@ private:
  * that will be used for programming the device.
  * In the finalversion this should be provided by the Webserver
  */
- std::string fileName = "/TestFileStarWars.bin";
+ String fileName = BootloaderCom::getFirmwareName();
+ //std::string fileName = "/TestFileStarWars.bin";
  File m_firmwareFile; /**< Handle for the firmware file.*/
  const char* m_fileName = fileName.c_str(); /**< File name for the firmware file.*/
 
@@ -847,6 +848,35 @@ m_currentProvider(0)
 
 BootloaderCom::~BootloaderCom()
 {
+}
+
+void BootloaderCom::setFirmwareName(String firmwareName)
+{
+    if( false == firmwareName.isEmpty())
+    {
+        if (false == firmwareName.startsWith("/"))
+        {
+            m_firmwareName = "/" + firmwareName;
+        }
+        else
+        {
+            m_firmwareName = firmwareName;
+
+        }
+    }
+    else
+    {
+        /*Nothing to update!*/
+    }
+}
+
+String BootloaderCom:: getFirmwareName()
+{
+    if (false == m_firmwareName.startsWith("/"))
+        {
+            m_firmwareName = "/" + m_firmwareName;
+        }
+    return m_firmwareName;
 }
 
 void BootloaderCom :: enterBootloader()
