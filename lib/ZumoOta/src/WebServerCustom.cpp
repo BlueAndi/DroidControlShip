@@ -183,66 +183,7 @@ void WebServerCustom::init()
                   request->send(200, "text/html", fileList);
               });
 
-    server.on("/changeProfile", HTTP_POST, [this](AsyncWebServerRequest* request)
-    {
-        String myusername;
-        String mypassword;
-        LOG_DEBUG("In changeprofile!");
-
-        //List all parameters
-        int params = request->params();
-        for(int i=0;i<params;i++)
-        {
-            AsyncWebParameter* p = request->getParam(i);
-  
-            if(p->isPost())
-            {
-                Serial.printf("POST[newUsername]: %s\n",  p->value().c_str());
-                Serial.printf("POST[newPassword]: %s\n",  p->value().c_str());
-                if(strcmp(p->name().c_str() ,"newUsername")==0)
-                {
-                    myusername = p->value().c_str();
-                    LOG_DEBUG("In If Anweisung1");
-                }
-                else if(strcmp(p->name().c_str() ,"newPassword")==0)
-                {
-                    mypassword = p->value().c_str();
-                    LOG_DEBUG("In If Anweisung2");
-                }
-            }
-        }
-                SettingsHandler& settings     = SettingsHandler::getInstance();
-                settings.setwebServerPassword(mypassword);
-                settings.setwebServerUser(myusername);
-        
-                Board&           board        = Board::getInstance();
-                /* Settings shall be loaded from configuration file. */
-                 if (false == settings.loadConfigurationFile(board.getConfigFilePath()))
-                {
-                    LOG_FATAL("Settings could not be loaded from %s.", board.getConfigFilePath());
-                }
-                else
-                {
-                    LOG_DEBUG("Loadconfig with success!");
-                }
-                if (false == settings.saveConfigurationFile(board.getConfigFilePath()))
-                {
-                /* Error saving settings, but it is not fatal. */
-                LOG_ERROR("Settings file could not be saved.");
-                }
-                else
-                {
-                    LOG_INFO("Settings updated!");
-                }
-
-        LOG_DEBUG("AFter saveConfiguration");
-         LOG_INFO("myusername=" +String(myusername));
-          LOG_INFO("mypassword=" +String(mypassword));
-
-        request->send(200, "text/plain", "User Settings saved!");
-    });
-
-
+    
     server.begin();
 }
 
