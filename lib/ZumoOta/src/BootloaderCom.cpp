@@ -868,6 +868,7 @@ void BootloaderCom::setFirmwareName(String firmwareName)
     {
         /*Nothing to update!*/
     }
+    
 }
 
 String BootloaderCom:: getFirmwareName()
