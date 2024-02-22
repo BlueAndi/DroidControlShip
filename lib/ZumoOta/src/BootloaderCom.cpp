@@ -769,7 +769,6 @@ bool BootloaderCom::process()
                 m_state = SelectCmdProvider;
             }
             break;
-
         case ReadingResponse:
             /*Handle Complete state*/
             LOG_DEBUG("Size of currentresponse= %d", m_currentResponse->responseSize);

@@ -102,6 +102,7 @@ public:
      */
     virtual bool next( const CommandInfo *& cmd, const ResponseInfo *& rsp) = 0;
 
+    
 };
 
 /**
