@@ -44,7 +44,6 @@
  * Includes
  ******************************************************************************/
 #include "FlashManager.h"
-#include "FileManager.h"
 #include <cstdint>
 /******************************************************************************
  * Macros
@@ -103,10 +102,7 @@ public:
      */
     virtual bool next( const CommandInfo *& cmd, const ResponseInfo *& rsp) = 0;
 
-    /**
-     *@brief Read 128 bytes from the file system.
-     */
-    static uint8_t* m_buffer;
+    
 };
 
 /**
@@ -150,7 +146,6 @@ public:
      *@return True if the received response matches the expected response, false otherwise.
      */
      bool compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize);
-
 private:
     /**
      *@brief Enumeration representing different states for the BootloaderCom class.
