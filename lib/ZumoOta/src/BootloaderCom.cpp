@@ -132,7 +132,6 @@ class FwProgCmdProvider : public CmdProvider {
             m_fileName(fileName),
             m_firmwareBytesRead(0),
             m_updatedCmd(),
-            m_firmwareBuffer(),
             m_firmwareFile(),
             m_updatedCmdBuffer{},
             m_count(0U),
@@ -157,7 +156,7 @@ class FwProgCmdProvider : public CmdProvider {
         /*If the file is not yet open, open it.*/
         m_firmwareFile = LittleFS.open(m_fileName, "r");
         return false != m_firmwareFile;
-    }
+}
 
     /**
      * @brief Retrieves the count of processed firmware blocks. 
@@ -187,10 +186,8 @@ class FwProgCmdProvider : public CmdProvider {
 
             if (m_firmwareFile)
             {
-                m_firmwareFile.close(); /**<Close the file.*/
+                m_firmwareFile.close(); /**<Programming is done you can close the file.*/
             }
-
-        
 
             return false;
         }
@@ -210,7 +207,7 @@ class FwProgCmdProvider : public CmdProvider {
                 return false;
             }
         }
-    }   
+    }
 
 private:
     /**
@@ -219,7 +216,6 @@ private:
      * It is used to specify the size of the blocks when reading or writing data to flash memory.
      */
     static const size_t FLASH_BLOCK_LENGTH = 128U;
-
     uint8_t m_count;/**<Counter for the number of processed firmware blocks.*/
 
     /**
@@ -228,17 +224,13 @@ private:
      * It is used to specify the size of the command for writing a block of data to memory.
      */
     static const size_t WRITE_BLOCK_CMD_LENGTH = 4U;
-
     static  CommandInfo m_cmds[]; /**< Array of command information.*/
     static  ResponseInfo m_responses[]; /**< Array of response information.*/
-    
     CommandInfo m_updatedCmd; /**<Intermediate storage for updated commands.*/
-
     const char* m_fileName = (""); /**< Name of the file to be read.*/
-    uint8_t m_firmwareBuffer[FLASH_BLOCK_LENGTH]; /**< Buffer to hold firmware data read from the file.*/
     size_t m_firmwareBytesRead; /**< Number of bytes read from the firmware file.*/
     File m_firmwareFile; /**< Handle for the firmware file.*/
-    
+
 
     /**
      * @brief Enumeration of programming commands.
@@ -290,7 +282,7 @@ private:
             /**Increase m_currWriteMemAddr by 64 for the next command.
              *Each address addresses one WORD with 2(!) bytes, this is why one page consists of 64 addresses but 128 bytes memory.
              */
-            m_currWriteMemAddr += FLASH_BLOCK_LENGTH/2U;
+            m_currWriteMemAddr += 64U;
             /**<Set the Cmd instance to the buffer.*/
             fwProgCmd.command = m_updatedCmdBuffer;
             fwProgCmd.commandsize = 3;
@@ -328,7 +320,7 @@ private:
                 m_nextCmd = FLSPRG_COMPLETE;
                 while (gapFill > 0U)
                 {
-                    m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH +m_firmwareBytesRead] = 0xFF;
+                    m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH +m_firmwareBytesRead] = 0xFF;   //m_firmwareBuffer[WRITE_BLOCK_CMD_LENGTH + m_firmwareBytesRead] = 0xFF;
                     --gapFill;
                     ++m_firmwareBytesRead;
                 }
@@ -338,7 +330,7 @@ private:
             }
             fwProgCmd.command = m_updatedCmdBuffer;
             fwProgCmd.commandsize = sizeof(m_updatedCmdBuffer);
- 
+            
             m_count++;
             LOG_DEBUG("Write count = %d", m_count);
             return true;
@@ -366,13 +358,12 @@ public:
      */
     ByteCheckCmdProvider(const char* fileName) :
         m_updatedCmd(),
-        m_updatedRsp(),
         m_updatedCmdBuffer{},
         m_fileName(fileName),
         m_firmwareFile(),
         m_count(0U),
         m_firmwareSize(0U),
-        m_maxBlocks(0),
+        m_max_buffers(0),
         m_currWriteMemAddr(0x0000)
      {}
 
@@ -398,17 +389,17 @@ public:
         /*Retrieves the size of the firmware file and calculates the maximum number of buffers.*/
         m_firmwareSize = m_firmwareFile.size();
         LOG_INFO("Size of the file = %d", m_firmwareSize);
-        m_maxBlocks = m_firmwareFile.size() / FLASH_BLOCK_LENGTH;
-        if((m_firmwareFile.size() % FLASH_BLOCK_LENGTH) == 0)
+        m_max_buffers = m_firmwareFile.size() / FLASH_BLOCK_LENGTH;
+        if(m_firmwareFile.size() % FLASH_BLOCK_LENGTH == 0)
         {
             /*m_max_buffers doesn't change*/
         }
         else
         {
-            /*Incrementing m_max_buffers by 1 to accommodate the remainder of the file.*/
-            m_maxBlocks += 1;
+            /*Incrementing m_max_buffers by 1 to accommodate the remainder of the file*/
+            m_max_buffers += 1;
         }
-        LOG_INFO("m_maxBlocks = %d", m_maxBlocks);
+        LOG_INFO("m_max_buffers = %d", m_max_buffers);
         return false != m_firmwareFile;
     }
 
@@ -424,9 +415,9 @@ public:
      */
     virtual bool next(const CommandInfo*& cmd, const ResponseInfo*& rsp) override
     {
-        if(m_count < m_maxBlocks)
+        if(m_count < m_max_buffers)
         {
-            /*Keep original command.*/
+            /*Keep the original command.*/
             if( m_nextCmd == CCMD_SET_ADDR)
             {
                 rsp = &m_responses[m_nextCmd];
@@ -443,10 +434,11 @@ public:
                 /*Increment the count of processed buffers.*/
                 m_count++;
                 cmd =&m_cmds[m_nextCmd];
+
                 m_updatedRsp.expectedResponse = nullptr;
                 m_updatedRsp.responseSize = FLASH_BLOCK_LENGTH;
                 rsp = &m_updatedRsp;
- 
+
                 /*Set m_nextCmd to CCMD_SET_ADDR to prepare for the next command cycle.*/
                 m_nextCmd = CCMD_SET_ADDR;
                 return true;
@@ -505,6 +497,12 @@ public:
      * It is used to specify the size of the blocks when reading or writing data to flash memory.
      */
     static const size_t FLASH_BLOCK_LENGTH = 128U;
+    /**
+     * @brief Length of a Set adress Updated Command in bytes.
+     * It is used to specify the size of the updated SET_ADRESS command when reading or writing data to flash memory.
+     */
+    static const size_t SET_ADRESS_LENGTH = 3U;
+
 
 private:
     const char* m_fileName = (""); /**< Name of the file to be read.*/
@@ -512,8 +510,9 @@ private:
     static ResponseInfo m_responses[]; /**< Array of response information.*/
     CommandInfo m_updatedCmd; /**<Intermediate storage for updated commands.*/
     ResponseInfo m_updatedRsp; /**<Intermediate storage for experted responses.*/
+    //size_t m_firmwareBytesRead; /**< Number of bytes read from the firmware file.*/
     File m_firmwareFile; /**< Handle for the firmware file.*/
-    uint8_t m_updatedCmdBuffer[3]; /**<Buffer for updated commands.*/
+    uint8_t m_updatedCmdBuffer[SET_ADRESS_LENGTH]; /**<Buffer for updated commands.*/
     /**
      * @brief Current memory address for writing data during firmware programming. 
      * This variable represents the current memory address where data will be written
@@ -521,7 +520,8 @@ private:
      * memory address for sequential data writes.
      */
     uint16_t  m_currWriteMemAddr; 
-    size_t m_maxBlocks; /**<Maximum number of firmware buffers.*/
+    size_t m_max_buffers; /**<Maximum number of firmware buffers.*/
+    const char* firmwareFileName = ("");
     uint8_t m_count; /**<Counter for the number of processed firmware blocks.*/
     size_t m_firmwareSize;/**<Size of the firmware file.*/
 
@@ -548,11 +548,11 @@ private:
             /**Increase m_currWriteMemAddr by 64 for the next command.
              *Each address addresses one WORD with 2(!) bytes, this is why one page consists of 64 addresses but 128 bytes memory.
              */
-            m_currWriteMemAddr += FLASH_BLOCK_LENGTH/2U;
+            m_currWriteMemAddr += 64U;
 
             /**<Set the Cmd instance to the buffer.*/
             cmd.command = m_updatedCmdBuffer;
-            cmd.commandsize = 3;
+            cmd.commandsize = SET_ADRESS_LENGTH;
             m_nextCmd = CCMD_READ_BLOCK;
             return true;
 
@@ -564,6 +564,126 @@ private:
         }
     }
 };
+
+/**
+ * @class ReadFusesCmdProvider
+ * @brief Implementation of the  command provider for reading Fuses.
+ */
+class ReadFusesCmdProvider: public CmdProvider {
+public:
+    /**
+     * @brief Constructor for the FinalCmdProvider class.
+     */
+    ReadFusesCmdProvider() :
+        m_index(0)
+    {}
+
+    /**
+     * @brief Resets the command provider to its initial state.
+     * This method resets the internal index that tracks the current command
+     * in the command sequence memory.
+     */
+    virtual bool reset() 
+    {
+        m_index = 0;
+        return true;
+    }
+
+    /**
+     * @brief Retrieves the next command and the next response.
+     * This method returns the next command and its associated response
+     * from the command sequence memory.
+     * @param cmd Reference to a pointer to the next command.
+     * @param rsp Reference to a pointer to the next response.
+     * @return True if there is a next command and next response, false otherwise.
+     */
+    virtual bool next(const CommandInfo *& cmd, const ResponseInfo *& rsp)
+    {
+        
+        if (SEQ_LENGHT > m_index)
+        {
+
+            cmd = &m_cmds[m_index];
+            rsp = &m_responses[m_index];
+
+            ++m_index;
+            return true;
+        }
+        else
+        {
+            cmd = nullptr;
+            rsp = nullptr;
+            return false;
+        }
+    }
+
+private:
+    static const uint32_t SEQ_LENGHT = 3; /**< Number of required commands to read the Fuses.*/
+    uint32_t m_index; /**< current index in sequence */
+    static  CommandInfo m_cmds[SEQ_LENGHT]; /**< Array of command information */
+    static  ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
+};
+
+/**
+ * @class ExitCmdProvider
+ * @brief Implementation of the exit command provider for internal programming.
+ */
+class ExitCmdProvider: public CmdProvider {
+public:
+    /**
+     * @brief Constructor for the ExitCmdProvider class.
+     */
+    ExitCmdProvider() :
+        m_index(0)
+    {}
+
+    /**
+     * @brief Resets the command provider to its initial state.
+     * This method resets the internal index that tracks the current command
+     * in the command sequence memory.
+     */
+    virtual bool reset() 
+    {
+        m_index = 0;
+        return true;
+    }
+
+    /**
+     * @brief Retrieves the next command and the next response.
+     * This method returns the next command and its associated response
+     * from the command sequence memory.
+     * @param cmd Reference to a pointer to the next command.
+     * @param rsp Reference to a pointer to the next response.
+     * @return True if there is a next command and next response, false otherwise.
+     */
+    virtual bool next(const CommandInfo *& cmd, const ResponseInfo *& rsp)
+    {
+        
+        if (SEQ_LENGHT > m_index)
+        {
+
+            cmd = &m_cmds[m_index];
+            rsp = &m_responses[m_index];
+
+            ++m_index;
+            return true;
+        }
+        else
+        {
+            cmd = nullptr;
+            rsp = nullptr;
+            return false;
+        }
+    }
+
+private:
+    static const uint32_t SEQ_LENGHT = 2; /**< Number of required commands to initilize the Flash.*/
+    uint32_t m_index; /**< current index in sequence */
+    static  CommandInfo m_cmds[SEQ_LENGHT]; /**< Array of command information */
+    static  ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
+};
+
+
 
 /******************************************************************************
  * Prototypes
@@ -586,6 +706,7 @@ private:
  * The size of each data chunk used for processing, set to 128 bytes.
  */
 static const size_t CHUNK_SIZE = 128U;
+
 
  CommandInfo IntProgCmdProvider::m_cmds[] = {
     {Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID)},
@@ -636,6 +757,28 @@ ResponseInfo ByteCheckCmdProvider::m_responses[] = {
             {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)}
 };
 
+CommandInfo ReadFusesCmdProvider::m_cmds[] = {
+            {Zumo32U4Specification::READ_LSB_FUSE, sizeof(Zumo32U4Specification::READ_LSB_FUSE)},
+            {Zumo32U4Specification::READ_MSB_FUSE, sizeof(Zumo32U4Specification::READ_MSB_FUSE)},
+            {Zumo32U4Specification::READ_EXTENDED_FUSE,sizeof(Zumo32U4Specification::READ_EXTENDED_FUSE)}
+};
+
+ResponseInfo ReadFusesCmdProvider::m_responses[] = {
+            {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)},
+            {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)},
+            {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)}
+};
+
+CommandInfo ExitCmdProvider::m_cmds[] = {
+            {Zumo32U4Specification::EXIT_PROGRAMMING_MODE, sizeof(Zumo32U4Specification::EXIT_PROGRAMMING_MODE)},
+            {Zumo32U4Specification::EXIT_BOOTLOADER_MODE, sizeof(Zumo32U4Specification::EXIT_BOOTLOADER_MODE)}
+};
+
+ResponseInfo ExitCmdProvider::m_responses[] = {
+            {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)},
+            {Zumo32U4Specification::RET_OK, sizeof(Zumo32U4Specification::RET_OK)}
+};
+
 
 /**
  * @brief Static instance of the internal programming command provider.
@@ -659,6 +802,20 @@ static FwProgCmdProvider m_fwProvider(fileName.c_str());
 static ByteCheckCmdProvider m_bcProvider(fileName.c_str());
 
 /**
+ * @brief Static instance of the internal programming command provider.
+ * This static variable holds an instance of the IntProgCmdProvider class,
+ * which provides commands for internal programming.
+ */
+static ReadFusesCmdProvider m_ReadFusesCmdProvider;
+
+/**
+ * @brief Static instance of the internal programming command provider.
+ * This static variable holds an instance of the IntProgCmdProvider class,
+ * which provides commands for internal programming.
+ */
+static ExitCmdProvider m_exitProvider;
+
+/**
  * @ brief Array of command providers.
  * This static array holds pointers to command providers. It can be used to
  * iterate through different command providers during operation.
@@ -666,8 +823,10 @@ static ByteCheckCmdProvider m_bcProvider(fileName.c_str());
 static CmdProvider * cmdProviders[] = 
 {
     &m_initProvider, /**< Pointer to the internal programming command provider.*/
-    &m_fwProvider,
-    &m_bcProvider,
+    &m_fwProvider, /**< Pointer to the writing programming command provider.*/
+    &m_bcProvider, /**< Pointer to the reading programming command provider.*/
+    &m_ReadFusesCmdProvider, /**< Pointer to the reading fuses programming command provider.*/
+    &m_exitProvider, /**< Pointer to the exit programming command provider.*/
     nullptr  /**< End marker indicating the end of the array.*/
 };
 
@@ -704,19 +863,9 @@ void BootloaderCom::exitBootloader()
 
 bool BootloaderCom::process()
 {
-    /**
-     * @brief Variable to store the number of new bytes read from the stream.
-     * It represents the size of the data received and processed in the current iteration.
-     */
-    size_t newBytes = 0;
-
-    /**
-     * @brief Buffer to store data received from the stream for processing.
-     * It holds the incoming data temporarily while it's being processed.
-     * The size of the buffer is defined by CHUNK_SIZE.
-     */
-    uint8_t receiveBuffer[CHUNK_SIZE];
-
+    size_t newBytes = 0; 
+    uint8_t receiveBuffer[128];
+    bool success = true;/**<Keeps track of the overall process success status.*/
     switch(m_state)
     {
         case SelectCmdProvider:
@@ -731,6 +880,7 @@ bool BootloaderCom::process()
                 else
                 {
                     LOG_ERROR("Fatal error! Process can not start!");
+                    success = false;
                     return false;
                 }
             }
@@ -754,14 +904,16 @@ bool BootloaderCom::process()
                     {
                         m_waitingForResponse = true;
                         m_state = ReadingResponse;
-                        return true;
+                        //return true;
                     }
 
                 else
                 {
                     LOG_ERROR("Failed to send command.");
                     m_state = Idle;
-                    return false;
+                    success = false;
+                    break;
+                    //return false;
                 }
             }
             else
@@ -769,6 +921,7 @@ bool BootloaderCom::process()
                 m_state = SelectCmdProvider;
             }
             break;
+
         case ReadingResponse:
             /*Handle Complete state*/
             LOG_DEBUG("Size of currentresponse= %d", m_currentResponse->responseSize);
@@ -783,27 +936,27 @@ bool BootloaderCom::process()
                 {
                     m_state = Complete;
                     m_waitingForResponse = false;
-
+                    break;
                 }
                 else
                 {
                     LOG_ERROR("Compare is false");
                     m_state = Complete;
                     m_waitingForResponse = false;
-
+                    success = false;
+                    break;
                 }
             }
            break;
 
         case Complete:
             m_state = Idle;
-            return true;
-
+            break;
 
         default:
             break;
     }
-    return true;
+    return success;
 }
 
 bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize)
@@ -1091,6 +1244,8 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
     }
     return true;
 }
+
+
 
 
 
