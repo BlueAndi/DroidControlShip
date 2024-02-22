@@ -330,7 +330,7 @@ private:
                 m_nextCmd = FLSPRG_COMPLETE;
                 while (gapFill > 0U)
                 {
-                    m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH +m_firmwareBytesRead] = 0xFF;   //m_firmwareBuffer[WRITE_BLOCK_CMD_LENGTH + m_firmwareBytesRead] = 0xFF;
+                    m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH +m_firmwareBytesRead] = 0xFF;
                     --gapFill;
                     ++m_firmwareBytesRead;
                 }
@@ -368,13 +368,14 @@ public:
      */
     ByteCheckCmdProvider(const char* fileName) :
         m_updatedCmd(),
+        m_updatedRsp(),
         m_firmwareBuffer(),
         m_updatedCmdBuffer{},
         m_fileName(fileName),
         m_firmwareFile(),
         m_count(0U),
         m_firmwareSize(0U),
-        m_max_buffers(0),
+        m_maxBlocks(0),
         m_currWriteMemAddr(0x0000)
      {}
 
@@ -400,7 +401,7 @@ public:
         /*Retrieves the size of the firmware file and calculates the maximum number of buffers.*/
         m_firmwareSize = m_firmwareFile.size();
         LOG_INFO("Size of the file = %d", m_firmwareSize);
-        m_max_buffers = m_firmwareFile.size() / FLASH_BLOCK_LENGTH;
+        m_maxBlocks = m_firmwareFile.size() / FLASH_BLOCK_LENGTH;
         if((m_firmwareFile.size() % FLASH_BLOCK_LENGTH) == 0)
         {
             /*m_max_buffers doesn't change*/
@@ -408,9 +409,9 @@ public:
         else
         {
             /*Incrementing m_max_buffers by 1 to accommodate the remainder of the file.*/
-            m_max_buffers += 1;
+            m_maxBlocks += 1;
         }
-        LOG_INFO("m_max_buffers = %d", m_max_buffers);
+        LOG_INFO("m_maxBlocks = %d", m_maxBlocks);
         return false != m_firmwareFile;
     }
 
@@ -426,7 +427,7 @@ public:
      */
     virtual bool next(const CommandInfo*& cmd, const ResponseInfo*& rsp) override
     {
-        if(m_count < m_max_buffers)
+        if(m_count < m_maxBlocks)
         {
             /*Keep original command.*/
             if( m_nextCmd == CCMD_SET_ADDR)
@@ -445,12 +446,10 @@ public:
                 /*Increment the count of processed buffers.*/
                 m_count++;
                 cmd =&m_cmds[m_nextCmd];
-                /*Create a static ResponseInfo pointer to hold temporary response information.*/
-                static ResponseInfo tempResponse[FLASH_BLOCK_LENGTH];
-                tempResponse->expectedResponse = m_firmwareBuffer;
-                tempResponse->responseSize = FLASH_BLOCK_LENGTH;
-                rsp = tempResponse;
-
+                m_updatedRsp.expectedResponse = m_firmwareBuffer;
+                m_updatedRsp.responseSize = FLASH_BLOCK_LENGTH;
+                rsp = &m_updatedRsp;
+ 
                 /*Set m_nextCmd to CCMD_SET_ADDR to prepare for the next command cycle.*/
                 m_nextCmd = CCMD_SET_ADDR;
                 iswriting = false;
@@ -516,6 +515,7 @@ private:
     static  CommandInfo m_cmds[]; /**< Array of command information.*/
     static ResponseInfo m_responses[]; /**< Array of response information.*/
     CommandInfo m_updatedCmd; /**<Intermediate storage for updated commands.*/
+    ResponseInfo m_updatedRsp; /**<Intermediate storage for experted responses.*/
     uint8_t m_firmwareBuffer[FLASH_BLOCK_LENGTH]; /**< Buffer to hold firmware data read from the file.*/
     File m_firmwareFile; /**< Handle for the firmware file.*/
     uint8_t m_updatedCmdBuffer[3]; /**<Buffer for updated commands.*/
@@ -526,7 +526,7 @@ private:
      * memory address for sequential data writes.
      */
     uint16_t  m_currWriteMemAddr; 
-    size_t m_max_buffers; /**<Maximum number of firmware buffers.*/
+    size_t m_maxBlocks; /**<Maximum number of firmware buffers.*/
     uint8_t m_count; /**<Counter for the number of processed firmware blocks.*/
     size_t m_firmwareSize;/**<Size of the firmware file.*/
 
@@ -590,14 +590,7 @@ private:
 /** 
  * The size of each data chunk used for processing, set to 128 bytes.
  */
-static const size_t chunkSize = 128U;
-
-/** 
- * Buffer to hold data read from a file, with a size of 128 bytes.
- */
-uint8_t mybuffer[chunkSize];
-
-
+static const size_t CHUNK_SIZE = 128U;
 
  CommandInfo IntProgCmdProvider::m_cmds[] = {
     {Zumo32U4Specification::READ_SW_ID, sizeof(Zumo32U4Specification::READ_SW_ID)},
@@ -716,8 +709,19 @@ void BootloaderCom::exitBootloader()
 
 bool BootloaderCom::process()
 {
-    size_t newBytes = 0; 
-    uint8_t receiveBuffer[chunkSize];
+    /**
+     * @brief Variable to store the number of new bytes read from the stream.
+     * It represents the size of the data received and processed in the current iteration.
+     */
+    size_t newBytes = 0;
+
+    /**
+     * @brief Buffer to store data received from the stream for processing.
+     * It holds the incoming data temporarily while it's being processed.
+     * The size of the buffer is defined by CHUNK_SIZE.
+     */
+    uint8_t receiveBuffer[CHUNK_SIZE];
+
     switch(m_state)
     {
         case SelectCmdProvider:
@@ -810,6 +814,11 @@ bool BootloaderCom::process()
 
 bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], const uint8_t* receivedResponse, size_t readbytes, size_t expectedSize)
 {
+    /** 
+     * Buffer to hold data read from a file, with a size of 128 bytes.
+     */
+    uint8_t fileReadBuffer[CHUNK_SIZE];
+
 
     /*Obtain a ByteCheckCmdProvider pointer from the current command provider.*/
     FwProgCmdProvider* temprovider = (FwProgCmdProvider*)m_cmdProvider;
@@ -1018,34 +1027,31 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
         uint8_t idx = temprovider->getCount();
  
         /*Fill the buffer with Fillvalues 0xFF.*/
-        if( nullptr != mybuffer)
-	    {
-            for (int i = 0; i <  chunkSize; i++)
+            for (int i = 0; i <  CHUNK_SIZE; i++)
             {
-                mybuffer[i] = 0xFF;
+                fileReadBuffer[i] = 0xFF;
             }
-        }
 
-        /*Read up to 128 bytes from the firmware file into mybuffer.*/
-        size_t  m_firmwareBytesRead = m_firmwareFile.read(mybuffer,chunkSize);
+        /*Read up to 128 bytes from the firmware file into fileReadBuffer.*/
+        size_t  m_firmwareBytesRead = m_firmwareFile.read(fileReadBuffer,CHUNK_SIZE);
 
         /*Check if the number of bytes read is less than 128 (the buffer size).*/
-        if (m_firmwareBytesRead < chunkSize)
+        if (m_firmwareBytesRead < CHUNK_SIZE)
         {
             /*Log the number of bytes read in the last block.*/
             LOG_DEBUG("Last block finalytes read: %d!", m_firmwareBytesRead);
             m_firmwareFile.close();
         }
 
-        /*Print out the content of mybuffer and receivedResponse for comparaison.*/
-        for(uint8_t a = 0; a < chunkSize; a++)
+        /*Print out the content of fileReadBuffer and receivedResponse for comparaison.*/
+        for(uint8_t a = 0; a < CHUNK_SIZE; a++)
         {
-            Serial.print(mybuffer[a], HEX);
+            Serial.print(fileReadBuffer[a], HEX);
             Serial.print(" vs ");
             Serial.print(receivedResponse[a], HEX);
             Serial.println();
         }
-        if (0 == memcmp(mybuffer, receivedResponse, chunkSize))
+        if (0 == memcmp(fileReadBuffer, receivedResponse, CHUNK_SIZE))
         {
             LOG_INFO("+++++++++++++++++++++++DataChunk %d  read with success", idx);
             return true;
@@ -1088,7 +1094,6 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
     }
     return true;
 }
-
 
 
 
