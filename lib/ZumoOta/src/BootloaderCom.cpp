@@ -511,7 +511,6 @@ private:
     static ResponseInfo m_responses[]; /**< Array of response information.*/
     CommandInfo m_updatedCmd; /**<Intermediate storage for updated commands.*/
     ResponseInfo m_updatedRsp; /**<Intermediate storage for experted responses.*/
-    //size_t m_firmwareBytesRead; /**< Number of bytes read from the firmware file.*/
     File m_firmwareFile; /**< Handle for the firmware file.*/
     uint8_t m_updatedCmdBuffer[SET_ADRESS_LENGTH]; /**<Buffer for updated commands.*/
     /**
@@ -522,7 +521,6 @@ private:
      */
     uint16_t  m_currWriteMemAddr; 
     size_t m_max_buffers; /**<Maximum number of firmware buffers.*/
-    const char* firmwareFileName = ("");
     uint8_t m_count; /**<Counter for the number of processed firmware blocks.*/
     size_t m_firmwareSize;/**<Size of the firmware file.*/
 
