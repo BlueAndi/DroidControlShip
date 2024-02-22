@@ -102,7 +102,6 @@ public:
      */
     virtual bool next( const CommandInfo *& cmd, const ResponseInfo *& rsp) = 0;
 
-    
 };
 
 /**
@@ -194,6 +193,7 @@ private:
      *Instance of FlashManager.
      */
      FlashManager m_flashManager;
+
 
 };
 
