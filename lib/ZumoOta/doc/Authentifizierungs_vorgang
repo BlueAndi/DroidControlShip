@@ -1,0 +1,27 @@
+@startuml
+
+participant Client
+participant WebServer
+participant SettingsHandler
+participant LittleFS
+
+Client -> WebServer: GET /
+WebServer -> Client: Send login.html
+Client -> WebServer: POST / (Authenticate)
+WebServer -> SettingsHandler: Get WebServer User and Password
+SettingsHandler --> WebServer: User and Password
+WebServer -> Client: Send Authentication prompt
+Client -> WebServer: POST / (Credentials)
+WebServer --> Client: Authenticate credentials
+alt Successful Authentication
+
+    Client -> WebServer: GET / (Start page)
+    WebServer -> LittleFS: Retrieve start page
+    LittleFS --> WebServer: Start page content
+    WebServer -> Client: Send start page
+else Failed Authentication
+    WebServer -> Client: Send Authentication failed message
+end
+
+
+@enduml
