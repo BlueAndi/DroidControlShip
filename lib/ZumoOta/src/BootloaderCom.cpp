@@ -138,76 +138,99 @@ class FwProgCmdProvider : public CmdProvider {
             m_currWriteMemAddr(0x0000)
         {}
 
-    /**
-     * @brief Resets the command provider to its initial state.
-     * This method resets the internal state of the command provider.
-     * It checks if the firmware file is open and closes it if necessary.
-     * Then, it attempts to open the firmware file with read access.
-     * @return True if the firmware file is successfully opened, false otherwise.
-     */
-    virtual bool reset()
-    {
-        /*Check if the file is already open.*/
-        if (m_firmwareFile)
+        /**
+         * @brief Resets the command provider to its initial state.
+         * This method resets the internal state of the command provider.
+         * It checks if the firmware file is open and closes it if necessary.
+         * Then, it attempts to open the firmware file with read access.
+         * @return True if the firmware file is successfully opened, false otherwise.
+         */
+        virtual bool reset()
         {
-            m_firmwareFile.close();
-        }
+            String tempvar = BootloaderCom::getFirmwareName();
+            m_fileName = tempvar.c_str();
+            /* Check if the file exists in the file system. */
+            LOG_INFO("m_fileName in Reset FwProg ist %s", m_fileName);
 
-        /*If the file is not yet open, open it.*/
-        m_firmwareFile = LittleFS.open(m_fileName, "r");
-        return false != m_firmwareFile;
-}
+            if (!LittleFS.exists(m_fileName))
+            {
+                /*File does not exist.*/
+                return false;
+            }
 
-    /**
-     * @brief Retrieves the count of processed firmware blocks. 
-     * This function returns the number of firmware blocks that have been processed.
-     * The count represents the progress of the firmware programming process.
-     * @return The count of processed firmware blocks as a uint8_t.
-     */
-     uint8_t getCount() const
-     {
-        return m_count;
-     }
-
-    /**
-     * @brief Retrieves the next command and the next response.
-     * This method returns the next command and its associated response
-     * from the command sequence memory.
-     * @param cmd Reference to a pointer to the next command.
-     * @param rsp Reference to a pointer to the next response.
-     * @return True if there is a next command and next response, false otherwise.
-     */
-    virtual bool next(const CommandInfo*& cmd, const ResponseInfo*& rsp)
-    {
-        if (m_nextCmd == FLSPRG_COMPLETE) 
-        {
-            cmd = nullptr;
-            rsp = nullptr;
-
+            /* Check if the file is already open. */
             if (m_firmwareFile)
             {
-                m_firmwareFile.close(); /**<Programming is done you can close the file.*/
+                m_firmwareFile.close();
             }
 
-            return false;
-        }
-        else
-        {
-            rsp = &m_responses[m_nextCmd];
-            /*Update the command with required content to write in the flash memory.*/
-            if(true == updateFwProgCmd(m_updatedCmd))
+            /* Open the file in read mode. */
+            m_firmwareFile = LittleFS.open(m_fileName, "r");
+            if (!m_firmwareFile)
             {
-                cmd = &m_updatedCmd;
-                return true;
+                /*Failed to open the file.*/
+                return false;
             }
-            else
+
+            /*Calculate the size of the file.*/
+            size_t fileSize = m_firmwareFile.size();
+
+            /*Output the file size.*/
+            LOG_INFO("File size: %d",fileSize);
+            return true;
+        }
+
+
+        /**
+         * @brief Retrieves the count of processed firmware blocks. 
+         * This function returns the number of firmware blocks that have been processed.
+         * The count represents the progress of the firmware programming process.
+         * @return The count of processed firmware blocks as a uint8_t.
+         */
+        uint8_t getCount() const
+        {
+            return m_count;
+        }
+
+        /**
+         * @brief Retrieves the next command and the next response.
+         * This method returns the next command and its associated response
+         * from the command sequence memory.
+         * @param cmd Reference to a pointer to the next command.
+         * @param rsp Reference to a pointer to the next response.
+         * @return True if there is a next command and next response, false otherwise.
+         */
+        virtual bool next(const CommandInfo*& cmd, const ResponseInfo*& rsp)
+        {
+            if (m_nextCmd == FLSPRG_COMPLETE) 
             {
                 cmd = nullptr;
                 rsp = nullptr;
+
+                if (m_firmwareFile)
+                {
+                    m_firmwareFile.close(); /**<Programming is done you can close the file.*/
+                }
+
                 return false;
             }
+            else
+            {
+                rsp = &m_responses[m_nextCmd];
+                /*Update the command with required content to write in the flash memory.*/
+                if(true == updateFwProgCmd(m_updatedCmd))
+                {
+                    cmd = &m_updatedCmd;
+                    return true;
+                }
+                else
+                {
+                    cmd = nullptr;
+                    rsp = nullptr;
+                    return false;
+                }
+            }
         }
-    }
 
 private:
     /**
@@ -231,7 +254,6 @@ private:
     size_t m_firmwareBytesRead; /**< Number of bytes read from the firmware file.*/
     File m_firmwareFile; /**< Handle for the firmware file.*/
 
-
     /**
      * @brief Enumeration of programming commands.
      * This enumeration defines the various programming commands used during firmware programming.
@@ -245,10 +267,10 @@ private:
     };
 
     /** 
-    * @brief The next programming command to be executed. 
-    * This variable represents the next programming command to be executed in the sequence.
-    * It initializes with FLSPRG_SET_ADDR, typically used to set the memory address first.
-    */
+     * @brief The next programming command to be executed. 
+     * This variable represents the next programming command to be executed in the sequence.
+     * It initializes with FLSPRG_SET_ADDR, typically used to set the memory address first.
+     */
     ProgCmds m_nextCmd = FLSPRG_SET_ADDR;
     uint8_t m_updatedCmdBuffer[WRITE_BLOCK_CMD_LENGTH + FLASH_BLOCK_LENGTH]; /**<Buffer for updated commands.*/
 
@@ -260,17 +282,17 @@ private:
      */
     uint16_t  m_currWriteMemAddr; 
 
-   /**
-    * @brief Updates the command.
-    * This method updates the provided command based on specific requirements
-    * before it is sent for execution. It modifies the command buffer and size
-    * to reflect the changes required by the bootloader communication protocol.
-    * @param fwProgCmd Pointer to the CommandInfo structure representing the command to be updated.
-    * The method modifies the command buffer and size to reflect the changes.
-    * @remarks This method is called before sending each command to the bootloader for execution.
-    * The update process includes modifying command identifiers and parameters to adhere to the
-    * bootloader communication protocol requirements.
-    */
+    /**
+     * @brief Updates the command.
+     * This method updates the provided command based on specific requirements
+     * before it is sent for execution. It modifies the command buffer and size
+     * to reflect the changes required by the bootloader communication protocol.
+     * @param fwProgCmd Pointer to the CommandInfo structure representing the command to be updated.
+     * The method modifies the command buffer and size to reflect the changes.
+     * @remarks This method is called before sending each command to the bootloader for execution.
+     * The update process includes modifying command identifiers and parameters to adhere to the
+     * bootloader communication protocol requirements.
+     */
     bool updateFwProgCmd(CommandInfo& fwProgCmd)
     {
         if (m_nextCmd == FLSPRG_SET_ADDR)
@@ -280,14 +302,14 @@ private:
             m_updatedCmdBuffer[1] = (m_currWriteMemAddr >> 8) & 0xFF; /**<Higher 8 bits of m_currWriteMemAddr.*/
             m_updatedCmdBuffer[2] = m_currWriteMemAddr & 0xFF; //**<Lower 8 bits of m_currWriteMemAddr.*/
             /**Increase m_currWriteMemAddr by 64 for the next command.
-             *Each address addresses one WORD with 2(!) bytes, this is why one page consists of 64 addresses but 128 bytes memory.
-             */
+            *Each address addresses one WORD with 2(!) bytes, this is why one page consists of 64 addresses but 128 bytes memory.
+            */
             m_currWriteMemAddr += FLASH_BLOCK_LENGTH/2U;
             /**<Set the Cmd instance to the buffer.*/
             fwProgCmd.command = m_updatedCmdBuffer;
             fwProgCmd.commandsize = 3;
             m_nextCmd = FLSPRG_WRITE_BLOCK;
-            return true;
+               return true;
         }
         else if (m_nextCmd == FLSPRG_WRITE_BLOCK)
         {
@@ -325,12 +347,12 @@ private:
                     ++m_firmwareBytesRead;
                 }
             }
-            else {
+            else
+            {
                 m_nextCmd = FLSPRG_SET_ADDR;
             }
             fwProgCmd.command = m_updatedCmdBuffer;
             fwProgCmd.commandsize = sizeof(m_updatedCmdBuffer);
-            
             m_count++;
             LOG_DEBUG("Write count = %d", m_count);
             return true;
@@ -364,21 +386,27 @@ public:
         m_firmwareFile(),
         m_count(0U),
         m_firmwareSize(0U),
-        m_Block(0),
+        m_block(0),
         m_currWriteMemAddr(0x0000)
      {}
 
     /**
- * @brief Resets the firmware file and prepares it for reading.
- * 
- * This function closes the currently opened firmware file, if any,
- * and then attempts to open the firmware file specified by m_fileName
- * in read mode. It retrieves the size of the firmware file and calculates
- * the maximum number of buffers based on the file size divided by 128.
- * @return True if the firmware file is successfully opened, false otherwise.
- */
+     * @brief Resets the firmware file and prepares it for reading.
+     * 
+     * This function closes the currently opened firmware file, if any,
+     * and then attempts to open the firmware file specified by m_fileName
+     * in read mode. It retrieves the size of the firmware file and calculates
+     * the maximum number of buffers based on the file size divided by 128.
+     * @return True if the firmware file is successfully opened, false otherwise.
+     */
     virtual bool reset()
     { 
+        String tempvar = BootloaderCom::getFirmwareName();
+        if (false == tempvar.startsWith("/"))
+        {
+            tempvar = "/" + tempvar;
+        }
+        m_fileName = tempvar.c_str();
         /*Check if the file is already open.*/
         if (m_firmwareFile)
         {
@@ -390,17 +418,17 @@ public:
         /*Retrieves the size of the firmware file and calculates the maximum number of buffers.*/
         m_firmwareSize = m_firmwareFile.size();
         LOG_INFO("Size of the file = %d", m_firmwareSize);
-        m_Block = m_firmwareFile.size() / FLASH_BLOCK_LENGTH;
+        m_block = m_firmwareFile.size() / FLASH_BLOCK_LENGTH;
         if(m_firmwareFile.size() % FLASH_BLOCK_LENGTH == 0)
         {
-            /*m_max_buffers doesn't change*/
+            /*m_block doesn't change*/
         }
         else
         {
-            /*Incrementing m_max_buffers by 1 to accommodate the remainder of the file*/
-            m_Block += 1;
+            /*Incrementing m_block by 1 to accommodate the remainder of the file*/
+            m_block += 1;
         }
-        LOG_INFO("m_Block = %d", m_Block);
+        LOG_INFO("m_block = %d", m_block);
         return false != m_firmwareFile;
     }
 
@@ -416,7 +444,7 @@ public:
      */
     virtual bool next(const CommandInfo*& cmd, const ResponseInfo*& rsp) override
     {
-        if(m_count < m_Block)
+        if(m_count < m_block)
         {
             /*Keep the original command.*/
             if( m_nextCmd == CCMD_SET_ADDR)
@@ -463,6 +491,7 @@ public:
         return true;
     }
 
+ 
     /**
      * @brief Enumeration of programming commands.
      * This enumeration defines the various programming commands used during firmware programming.
@@ -520,7 +549,7 @@ private:
      * memory address for sequential data writes.
      */
     uint16_t  m_currWriteMemAddr; 
-    size_t m_Block; /**<Maximum number of firmware buffers.*/
+    size_t m_block; /**<Maximum number of firmware buffers.*/
     uint8_t m_count; /**<Counter for the number of processed firmware blocks.*/
     size_t m_firmwareSize;/**<Size of the firmware file.*/
 
@@ -647,33 +676,30 @@ public:
         return true;
     }
 
-    /**
-     * @brief Retrieves the next command and the next response.
-     * This method returns the next command and its associated response
-     * from the command sequence memory.
-     * @param cmd Reference to a pointer to the next command.
-     * @param rsp Reference to a pointer to the next response.
-     * @return True if there is a next command and next response, false otherwise.
-     */
-    virtual bool next(const CommandInfo *& cmd, const ResponseInfo *& rsp)
+/**
+* @brief Retrieves the next command and the next response.
+* This method returns the next command and its associated response
+* from the command sequence memory.
+* @param cmd Reference to a pointer to the next command.
+* @param rsp Reference to a pointer to the next response.
+* @return True if there is a next command and next response, false otherwise.
+*/
+virtual bool next(const CommandInfo *& cmd, const ResponseInfo *& rsp)
+{
+    if (SEQ_LENGHT > m_index)
     {
-        
-        if (SEQ_LENGHT > m_index)
-        {
-
-            cmd = &m_cmds[m_index];
-            rsp = &m_responses[m_index];
-
-            ++m_index;
-            return true;
-        }
-        else
-        {
-            cmd = nullptr;
-            rsp = nullptr;
-            return false;
-        }
+        cmd = &m_cmds[m_index];
+        rsp = &m_responses[m_index];
+        ++m_index;
+        return true;
     }
+    else
+    {
+        cmd = nullptr;
+        rsp = nullptr;
+        return false;
+    }
+}
 
 private:
     static const uint32_t SEQ_LENGHT = 2; /**< Number of required commands to initilize the Flash.*/
@@ -681,8 +707,6 @@ private:
     static  CommandInfo m_cmds[SEQ_LENGHT]; /**< Array of command information */
     static  ResponseInfo m_responses[SEQ_LENGHT]; /**< Array of response information */
 };
-
-
 
 /******************************************************************************
  * Prototypes
@@ -698,7 +722,6 @@ private:
  * In the finalversion this should be provided by the Webserver
  */
  String fileName = BootloaderCom::getFirmwareName();
- //std::string fileName = "/TestFileStarWars.bin";
  File m_firmwareFile; /**< Handle for the firmware file.*/
  const char* m_fileName = fileName.c_str(); /**< File name for the firmware file.*/
 
@@ -831,7 +854,6 @@ static CmdProvider * cmdProviders[] =
 };
 
 
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -850,7 +872,7 @@ BootloaderCom::~BootloaderCom()
 {
 }
 
-void BootloaderCom::setFirmwareName(const String& firmwareName)
+void BootloaderCom::setFirmwareName( const String& firmwareName)
 {
     if( false == firmwareName.isEmpty())
     {
@@ -860,9 +882,11 @@ void BootloaderCom::setFirmwareName(const String& firmwareName)
         }
         else
         {
+            LOG_DEBUG("m_firmwareName is unchanged!");
             m_firmwareName = firmwareName;
 
         }
+        LOG_DEBUG("Updated Filename is : %s",m_firmwareName.c_str());
     }
     else
     {
@@ -884,11 +908,6 @@ void BootloaderCom :: enterBootloader()
 {
     Board::getInstance().getDevice().enterBootloader();
     LOG_INFO(" bootloader mode is activated");
-}
-
-void BootloaderCom::exitBootloader()
-{
-    LOG_INFO(" bootloader mode is exited");
 }
 
 bool BootloaderCom::process()
@@ -917,7 +936,7 @@ bool BootloaderCom::process()
             else
             {
                 /*TODO: We are done, no more provider, signal completion to web interface.*/
-                LOG_ERROR("no more work!");
+                LOG_INFO("no more work!");
 
                 break;
             }
@@ -934,7 +953,6 @@ bool BootloaderCom::process()
                     {
                         m_waitingForResponse = true;
                         m_state = ReadingResponse;
-                        //return true;
                     }
 
                 else
@@ -943,7 +961,6 @@ bool BootloaderCom::process()
                     m_state = Idle;
                     success = false;
                     break;
-                    //return false;
                 }
             }
             else
@@ -1198,6 +1215,13 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
         }
         else
         {
+            String testFileName = getFirmwareName();
+            if (false == testFileName.startsWith("/"))
+            {
+                testFileName = "/" + testFileName;
+            }
+            m_fileName = testFileName.c_str();
+
             m_firmwareFile = LittleFS.open(m_fileName, "r");
         }
 
@@ -1205,7 +1229,7 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
         ByteCheckCmdProvider* temprovider = (ByteCheckCmdProvider*)m_cmdProvider;
         /*Get the count from the ByteCheckCmdProvider instance.*/
         uint8_t idx = temprovider->getCount();
- 
+
         /*Fill the buffer with Fillvalues 0xFF.*/
             for (int i = 0; i <  CHUNK_SIZE; i++)
             {
@@ -1238,7 +1262,7 @@ bool BootloaderCom::compareExpectedAndReceivedResponse(const uint8_t command[], 
         }
         else
         {
-            LOG_INFO("-----------------------Reading of the DataChunk failed");
+            LOG_INFO("-----------------------Reading of the DataChunk %d failed", idx);
             return false;
         }
     return true;

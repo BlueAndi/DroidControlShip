@@ -66,8 +66,14 @@ using namespace fs;
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+/*Instance of Upload Class.*/
 Upload upload;
+
+/*Name of The firmware.*/
 String BootloaderCom::m_firmwareName = "";
+
+/*Instance of BootloaderCom Class.*/
+BootloaderCom myBootloaderCom;
 
 /******************************************************************************
  * Public Methods
@@ -183,13 +189,11 @@ void WebServerCustom::init()
                   request->send(200, "text/html", fileList);
               });
 
-    
     server.begin();
 }
 
 void WebServerCustom::handleUploadRequest()
 {
-    
     server.on(
         "/upload", HTTP_POST, [this](AsyncWebServerRequest* request) {},
         [this](AsyncWebServerRequest* request, String filename, size_t index, uint8_t* data, size_t len, bool final)
@@ -198,12 +202,14 @@ void WebServerCustom::handleUploadRequest()
             upload.handleFileUpload(request, filename, index, data, len, final);
         });
 }
+
 String WebServerCustom::getFirmwareName()
 {
     return m_firmwareName;
 }
 
-void WebServerCustom::handleUpdateRequest() {
+void WebServerCustom::handleUpdateRequest()
+{
     server.on("/uploadFirmware", HTTP_POST, [this](AsyncWebServerRequest *request) {
 
     if (request->hasParam("firmware", true))
@@ -217,19 +223,6 @@ void WebServerCustom::handleUpdateRequest() {
             {
                 m_firmwareName = "/" + tempFirmwareName;
             }
-
-            /* Get the content length from the HTTP header */
-            AsyncWebHeader* contentLengthHeader = request->getHeader("Content-Length");
-            if (contentLengthHeader)
-            {
-                int contentLength = contentLengthHeader->value().toInt();
-                LOG_DEBUG("Size of Uploaded File: %d bytes", contentLength);
-            }
-            else
-            {
-                LOG_ERROR("Content-Length header not found.");
-            }
-
             LOG_DEBUG("Value of Upoaded File: %s", m_firmwareName.c_str());
             request->send(200, "text/plain", "Processing Firmware Update!");
         }
@@ -241,13 +234,22 @@ void WebServerCustom::handleUpdateRequest() {
     }
 
     /* Process the firmware update.*/
+    if(m_firmwareName.isEmpty())
+    {
+        LOG_ERROR("Empty File");
+    }
+    else
+    {
+        /*Nothing to do.*/
+    }
+    myBootloaderCom.setFirmwareName(m_firmwareName);
+    String tempvar= BootloaderCom::getFirmwareName();
+    LOG_DEBUG("new Value: %s", tempvar.c_str());
 
     Board::getInstance().getDevice().enterBootloader();
 
     });
 }
-
-
 
 /******************************************************************************
  * External Functions

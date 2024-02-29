@@ -127,11 +127,6 @@ public:
      void enterBootloader();
 
    /**
-    * @brief exit the bootloader mode.
-    */
-     void exitBootloader();
-
-   /**
     *@brief Process the flash manager state machine.
     *return bool True if the process was successful, otherwise false.
     */
@@ -150,7 +145,7 @@ public:
     /**
      *@brief Set the Firmware File name.
      */
-     static void setFirmwareName(const String& firmwareName);
+      void setFirmwareName( const String& firmwareName);
 
     /**
      *@brief Get the Firmware File name.
@@ -206,18 +201,11 @@ private:
      FlashManager m_flashManager;
 
     /**
-     *Handle the File
-     */
-    //static File m_firmwareFile;
-
-    /**
      * Name of the Firmware.
      */
      static String m_firmwareName;
 
 };
-
- 
 
 #endif /* BOOTLOADERCOM_H */
 /** @} */
