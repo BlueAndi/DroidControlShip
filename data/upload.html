@@ -83,10 +83,12 @@
 
     <script>
 
-        function updateProgress(evt) {
+        function updateProgress(evt)
+        {
             var progress = 0;
 
-            if (true === evt.lengthComputable) {
+            if (true === evt.lengthComputable)
+            {
                 progress = Math.ceil(evt.loaded * 100 / evt.total);
             }
 
@@ -105,14 +107,18 @@
             xhr.setRequestHeader('X-File-Size-Firmware', fileSizeFirmware);
 
             xhr.onreadystatechange = function () {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    if (xhr.status === 200) {
+                if (xhr.readyState === XMLHttpRequest.DONE)
+                {
+                    if (xhr.status === 200)
+                    {
                         /* This code displays the message "Upload successful" on the web page. */
                         var fileListContainer = document.getElementById('fileListContainer');
                         fileListContainer.innerHTML = '<span style="color: red;">Upload successful.</span>';
 
                         console.log('Upload successful.');
-                    } else {
+                    } 
+                    else
+                    {
                         console.error('Error during upload.');
                     }
 
@@ -127,19 +133,25 @@
         });
 
         /* Wait until the DOM is fully loaded. */
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function ()
+        {
             var fileListButton = document.getElementById('fileListButton');
             var fileListContainer = document.getElementById('fileListContainer');
 
-            fileListButton.addEventListener('click', function () {
+            fileListButton.addEventListener('click', function () 
+            {
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', '/filelist', true);
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState === XMLHttpRequest.DONE) {
-                        if (xhr.status === 200) {
+                xhr.onreadystatechange = function ()
+                {
+                    if (xhr.readyState === XMLHttpRequest.DONE)
+                    {
+                        if (xhr.status === 200)
+                        {
                             fileListContainer.innerHTML = xhr.responseText;
                         }
-                        else {
+                        else
+                        {
                             fileListContainer.innerHTML = 'Error fetching file list.';
                         }
                     }
