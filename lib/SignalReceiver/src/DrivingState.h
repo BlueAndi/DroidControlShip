@@ -148,6 +148,9 @@ private:
     /** Last follower feedback. */
     VehicleData m_followerFeedback;
 
+    /** Top robot speed. */
+    static const uint16_t TOP_ROBOT_SPEED = 1000;
+
     /**
      * Default constructor.
      */

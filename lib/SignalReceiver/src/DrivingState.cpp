@@ -64,7 +64,7 @@ void DrivingState::entry()
     m_isActive = true;
 
     /* Limit top speed for increased precision and reaction time. */
-    m_maxMotorSpeed = 1000;
+    m_maxMotorSpeed = TOP_ROBOT_SPEED;
 }
 
 void DrivingState::process(StateMachine& sm)
