@@ -211,6 +211,9 @@ private:
     /** Status of robot in relation to IE. */
     CurrentStatus m_currentStatus;
 
+    /** Orientation threshold. */
+    static const uint16_t ORIENTATION_THRESHOLD = 500;
+
     /**
      * Check if robot is moving towards an IE. If distance gets smaller then
      * robot is moving towards it.

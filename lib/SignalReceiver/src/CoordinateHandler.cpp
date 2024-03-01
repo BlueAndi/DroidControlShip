@@ -156,7 +156,8 @@ bool CoordinateHandler::checkOrientation(int32_t orientationIE)
 {
     bool isTrue = false;
 
-    if (((orientationIE - 500) <= getCurrentOrientation()) && (getCurrentOrientation() <= (orientationIE + 500)))
+    if (((orientationIE - ORIENTATION_THRESHOLD) <= getCurrentOrientation()) &&
+        (getCurrentOrientation() <= (orientationIE + ORIENTATION_THRESHOLD)))
     {
         isTrue = true;
     }
