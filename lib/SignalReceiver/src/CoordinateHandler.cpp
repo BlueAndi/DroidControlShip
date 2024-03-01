@@ -88,8 +88,7 @@ bool CoordinateHandler::process(const String& ieName, int32_t ieOrientation, int
             }
             else
             {
-                m_currentStatus = STATUS_LOCKED_IN;
-                isSuccessful    = false;
+                isSuccessful = false;
             }
         }
         else
