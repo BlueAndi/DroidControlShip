@@ -156,21 +156,13 @@ bool CoordinateHandler::checkOrientation(int32_t orientationIE)
 {
     bool isTrue = false;
 
-    if (orientationIE != 0)
+    if (((orientationIE - 500) <= getCurrentOrientation()) && (getCurrentOrientation() <= (orientationIE + 500)))
     {
-        if (((orientationIE - 500) <= getCurrentOrientation()) && (getCurrentOrientation() <= (orientationIE + 500)))
-        {
-            isTrue = true;
-        }
-        else
-        {
-            isTrue = false;
-        }
+        isTrue = true;
     }
     else
     {
-        /* If there is no orientation set, set it to always be true. */
-        isTrue = true;
+        isTrue = false;
     }
 
     return isTrue;
