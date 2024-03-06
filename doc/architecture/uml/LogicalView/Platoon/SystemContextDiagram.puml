@@ -1,0 +1,18 @@
+@startuml SystemContextDiagram
+
+package "Follower 2" as follower_2 {
+    component "Waypoint Algorith" as WA_2
+}
+
+package "Follower 1" as follower_1 {
+    component "Waypoint Algorith" as WA_1
+}
+
+package "Leader" as leader {
+    component "Platoon Application Controller" as PAC
+}
+
+WA_2 <- WA_1 : Waypoint
+WA_1 <- PAC : Waypoint
+
+@enduml

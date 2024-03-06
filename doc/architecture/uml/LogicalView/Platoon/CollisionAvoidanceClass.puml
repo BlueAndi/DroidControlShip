@@ -1,0 +1,27 @@
+@startuml CAVClass
+
+package "App" {
+    class "Platoon Application\nController" as PAC
+    class "Waypoint Algorithm" as WA
+    class "Application" as data 
+    {
+        - m_currentVehicleData : VehicleData
+    }
+    
+    PAC -[hidden]> WA
+    WA -[hidden]> data
+}
+
+package "PlatoonService" as serv {
+    class "Collision Avoidance" as CAV {
+        + setProximitySensorData(Range proximityRange) : void
+        + limitSpeedSetpoint(int16_t speedSetpoint) : bool
+    }
+}
+
+PAC ..> CAV : <<use>>
+WA ..> CAV : <<use>>
+data ..> CAV : <<use>> 
+
+
+@enduml

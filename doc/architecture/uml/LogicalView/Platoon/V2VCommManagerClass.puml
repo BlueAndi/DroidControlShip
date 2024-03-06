@@ -1,0 +1,33 @@
+@startuml VCMClass
+
+package "App" {
+    class "Application" as app
+}
+
+package "PlatoonService" as serv {
+    class "V2V Communication Manager" as VCM {
+        + sendWaypoint(const Waypoint& waypoint) : bool
+        + getEvent(V2VEvent& event) : bool
+    }
+
+    struct "V2V Event" as event {
+        + vehicleId : uint8_t
+        + type : V2VEventType
+        + timestamp : uint32_t
+        + data : void*
+    }
+
+    VCM .> event : <<use>>
+}
+
+package "HAL" as hal {
+    class "MQTT Client" as mqtt {
+        + publish(String topic, String payload) : bool
+        + subcribe(String topic, TopicCallback callback) : bool
+    }
+}
+
+app *--> VCM : <<use>>
+VCM ..> mqtt : <<use>>
+
+@enduml

@@ -1,0 +1,41 @@
+@startuml PACClass
+
+package "App" {
+    class "Application" as app {
+        + loop() : void
+        - m_systemStateMachine : StateMachine
+    }
+
+    class DrivingState <<Singleton>> {
+        - updateSpeedSetpoint() : bool
+        - m_pac : PlatoonApplicationController
+    }
+
+
+    class "Platoon Application\nController" as PAC {
+        + calculateSpeedSetpoint(int16_t setpoint) : bool
+    }
+}
+
+package "PlatoonService" as serv {
+    class "Collision Avoidance" as CAV {
+        + limitSpeedSetpoint(int16_t speedSetpoint) : bool
+    }
+
+    struct "Waypoint" as waypoint {
+        + xPos : int32_t
+        + yPos : int32_t
+        + orientation : int32_t
+        + left : int16_t
+        + right : int16_t
+        + center : int16_t
+    }
+    
+    PAC .> waypoint : <<use>>
+}
+
+app ..> DrivingState : <<Use>>
+DrivingState *--> PAC
+PAC ..> CAV : <<use>>
+
+@enduml
