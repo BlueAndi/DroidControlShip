@@ -46,7 +46,6 @@
 #include <Waypoint.h>
 #include <queue>
 #include <SimpleTimer.hpp>
-#include "Follower.h"
 #include "V2VEvent.h"
 
 /******************************************************************************
@@ -179,6 +178,20 @@ private:
 
     /** Maximum number of events to queue. */
     static const size_t MAX_EVENT_QUEUE_SIZE = 20U;
+
+    /** Follower. */
+    struct Follower
+    {
+        uint32_t m_timestamp; /**< Timestamp of the last received heartbeat. */
+        uint8_t  m_status;    /**< Status of the vehicle. */
+
+        /**
+         * Construct a follower.
+         */
+        Follower() : m_timestamp(0U), m_status(0U)
+        {
+        }
+    };
 
     /** MQTTClient Instance. */
     MqttClient& m_mqttClient;

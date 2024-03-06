@@ -682,8 +682,8 @@ void V2VCommManager::processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t e
         Follower& follower           = m_followers[followerArrayIndex];
 
         /* Update follower. */
-        follower.setLastHeartbeatTimestamp(eventDataTimestamp);
-        follower.setStatus(eventDataStatus);
+        follower.m_timestamp = eventDataTimestamp;
+        follower.m_status    = eventDataStatus;
 
         /* Increment counter regardless of the status. */
         ++m_followerResponseCounter;
