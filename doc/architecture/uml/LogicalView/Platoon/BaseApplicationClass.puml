@@ -1,0 +1,47 @@
+@startuml ApplicationStates
+
+package "Application" 
+{
+    class "Application" as app {
+        - m_systemStateMachine : StateMachine
+        - m_v2vCommMngr : V2VCommMngr
+        + setup() : void
+        + loop() : void
+    }
+
+    class StateMachine <<control>> {
+        + setState(state : IState*) : void
+        + getState() : IState*
+        + process() : void
+    }
+
+    interface IState {
+        + {abstract} entry() : void
+        + {abstract} process(sm : StateMachine&) : void
+        + {abstract} exit() : void
+    }
+
+    class StartupState <<Singleton>>
+    class IdleState <<Singleton>>
+    class DrivingState <<Singleton>>
+    class ErrorState <<Singleton>>
+
+    class "Platoon Application\nController" as PAC
+
+    class "Waypoint Algorithm" as WA
+}
+
+app *--> StateMachine : <<use>>
+
+StateMachine o--> "0..1" IState
+
+IState <|.. StartupState: <<realize>>
+IState <|.. IdleState: <<realize>>
+IState <|.. DrivingState: <<realize>>
+IState <|.. ErrorState: <<realize>>
+
+DrivingState *--> PAC : <<use>>
+DrivingState *--> WA : <<use>>
+
+
+@enduml
