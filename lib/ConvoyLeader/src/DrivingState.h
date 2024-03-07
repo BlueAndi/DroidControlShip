@@ -114,14 +114,14 @@ public:
      *
      * @param[in] data   Latest vehicle data.
      */
-    void setVehicleData(const VehicleData& data);
+    void setVehicleData(const Telemetry& data);
 
     /**
      * Set last follower feedback.
      *
      * @param[in] feedback  Last follower feedback.
      */
-    void setLastFollowerFeedback(const VehicleData& feedback);
+    void setLastFollowerFeedback(const Telemetry& feedback);
 
     /**
      * Is state active?
