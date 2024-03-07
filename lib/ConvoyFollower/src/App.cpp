@@ -598,7 +598,11 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
         App*               application        = reinterpret_cast<App*>(userData);
-        DrivingState::getInstance().setVehicleData(*currentVehicleData);
+        Telemetry          data(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
+                                currentVehicleData->left, currentVehicleData->right, currentVehicleData->center,
+                                currentVehicleData->proximity);
+
+        DrivingState::getInstance().setVehicleData(data);
     }
     else
     {

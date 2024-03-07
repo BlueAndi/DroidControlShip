@@ -100,11 +100,7 @@ void DrivingState::process(StateMachine& sm)
         else
         {
             /* Set latest vehicle data. */
-            Telemetry vehicleDataAsTelemetry(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation,
-                                             m_vehicleData.left, m_vehicleData.right, m_vehicleData.center,
-                                             m_vehicleData.proximity);
-
-            m_platoonController.setLatestVehicleData(vehicleDataAsTelemetry);
+            m_platoonController.setLatestVehicleData(m_vehicleData);
 
             /* Process PlatoonController. */
             m_platoonController.process(m_inputWaypointQueue.size());
@@ -143,17 +139,14 @@ bool DrivingState::setMotorSpeedSetpoints(const int16_t leftMotorSpeed, const in
 {
     m_leftMotorSpeed  = leftMotorSpeed;
     m_rightMotorSpeed = rightMotorSpeed;
+
+    m_collisionAvoidance.limitSpeedToAvoidCollision(m_leftMotorSpeed, m_rightMotorSpeed, m_vehicleData);
     return true;
 }
 
-void DrivingState::setVehicleData(const VehicleData& vehicleData)
+void DrivingState::setVehicleData(const Telemetry& vehicleData)
 {
     m_vehicleData = vehicleData;
-}
-
-void DrivingState::setLastFollowerFeedback(const VehicleData& feedback)
-{
-    m_followerFeedback = feedback;
 }
 
 bool DrivingState::pushWaypoint(Waypoint* waypoint)

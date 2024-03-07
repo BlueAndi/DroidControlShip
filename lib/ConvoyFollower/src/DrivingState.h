@@ -49,6 +49,7 @@
 #include <queue>
 #include <StateMachine.h>
 #include "SerialMuxChannels.h"
+#include <CollisionAvoidance.h>
 
 /******************************************************************************
  * Macros
@@ -125,14 +126,7 @@ public:
      *
      * @param[in] vehicleData   Latest vehicle data.
      */
-    void setVehicleData(const VehicleData& vehicleData);
-
-    /**
-     * Set last follower feedback.
-     *
-     * @param[in] feedback  Last follower feedback.
-     */
-    void setLastFollowerFeedback(const VehicleData& feedback);
+    void setVehicleData(const Telemetry& vehicleData);
 
     /**
      * Push the next waypoint into the queue.
@@ -183,10 +177,7 @@ private:
     int16_t m_rightMotorSpeed;
 
     /** Latest vehicle data. */
-    VehicleData m_vehicleData;
-
-    /** Last follower feedback. */
-    VehicleData m_followerFeedback;
+    Telemetry m_vehicleData;
 
     /** Platoon controller. */
     PlatoonController m_platoonController;
@@ -203,6 +194,9 @@ private:
      * @tparam Waypoint*    Pointer to a Waypoint.
      */
     std::queue<Waypoint*> m_inputWaypointQueue;
+
+    /** Collision Avoidance instance. */
+    CollisionAvoidance m_collisionAvoidance;
 
     /**
      * Setup the platoon controller.
@@ -221,11 +215,11 @@ private:
         m_maxMotorSpeed(0),
         m_leftMotorSpeed(0),
         m_rightMotorSpeed(0),
-        m_vehicleData{0},
-        m_followerFeedback{0},
+        m_vehicleData(),
         m_platoonController(),
         m_outputWaypoint(),
-        m_inputWaypointQueue()
+        m_inputWaypointQueue(),
+        m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15)
     {
     }
 
