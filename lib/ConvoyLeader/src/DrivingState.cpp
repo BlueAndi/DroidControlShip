@@ -133,14 +133,18 @@ bool DrivingState::getTopMotorSpeed(int16_t& topMotorSpeed) const
     return m_isActive;
 }
 
-void DrivingState::setVehicleData(const VehicleData& vehicleData)
+void DrivingState::setVehicleData(const VehicleData& data)
 {
-    m_vehicleData = vehicleData;
+    Telemetry vehicleDataAsTelemetry(data.xPos, data.yPos, data.orientation, data.left, data.right, data.center,
+                                     data.proximity);
+    m_vehicleData = vehicleDataAsTelemetry;
 }
 
 void DrivingState::setLastFollowerFeedback(const VehicleData& feedback)
 {
-    m_followerFeedback = feedback;
+    Telemetry feedbackAsTelemetry(feedback.xPos, feedback.yPos, feedback.orientation, feedback.left, feedback.right,
+                                  feedback.center, feedback.proximity);
+    m_followerFeedback = feedbackAsTelemetry;
 }
 
 /******************************************************************************

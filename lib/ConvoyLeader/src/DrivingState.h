@@ -47,6 +47,7 @@
 #include <IState.h>
 #include <StateMachine.h>
 #include "SerialMuxChannels.h"
+#include "Telemetry.h"
 
 /******************************************************************************
  * Macros
@@ -111,9 +112,9 @@ public:
     /**
      * Set latest vehicle data.
      *
-     * @param[in] vehicleData   Latest vehicle data.
+     * @param[in] data   Latest vehicle data.
      */
-    void setVehicleData(const VehicleData& vehicleData);
+    void setVehicleData(const VehicleData& data);
 
     /**
      * Set last follower feedback.
@@ -153,10 +154,10 @@ private:
     int16_t m_topMotorSpeed;
 
     /** Latest vehicle data. */
-    VehicleData m_vehicleData;
+    Telemetry m_vehicleData;
 
     /** Last follower feedback. */
-    VehicleData m_followerFeedback;
+    Telemetry m_followerFeedback;
 
     /** Inter Vehicle Space in mm. */
     uint16_t m_interVehicleSpace;
@@ -169,9 +170,8 @@ private:
         m_isActive(false),
         m_maxMotorSpeed(0),
         m_topMotorSpeed(0),
-        m_vehicleData{0},
-        m_followerFeedback{0},
-        m_interVehicleSpace(MIN_INTER_VEHICLE_SPACE)
+        m_vehicleData(),
+        m_followerFeedback(),
     {
     }
 
