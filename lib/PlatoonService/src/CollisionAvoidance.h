@@ -91,6 +91,24 @@ public:
         }
     }
 
+    /**
+     * Limit the speed of the vehicle to avoid collision.
+     *
+     * @param[out] leftSpeedSetpoint The left motor speed setpoint to be limited.
+     * @param[out] rightSpeedSetpoint The right motor speed setpoint to be limited.
+     * @param[in] vehicleData The vehicle data.
+     */
+    void limitSpeedToAvoidCollision(int16_t& leftSpeedSetpoint, int16_t& rightSpeedSetpoint,
+                                    const Telemetry& vehicleData) const
+    {
+        /* Is vehicle is closer than the threshold? */
+        if (vehicleData.proximity >= m_rangeThreshold)
+        {
+            leftSpeedSetpoint  = 0;
+            rightSpeedSetpoint = 0;
+        }
+    }
+
 private:
     /** Closest proximity range value. */
     uint8_t m_closestProximityRangeValue;
