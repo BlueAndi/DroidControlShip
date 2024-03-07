@@ -36,7 +36,7 @@
 #include "DrivingState.h"
 #include "ErrorState.h"
 #include <Logging.h>
-#include <ProcessingChainFactory.h>
+#include <PlatoonController/ProcessingChainFactory.h>
 #include "LongitudinalController.h"
 #include "LongitudinalSafetyPolicy.h"
 #include "LateralController.h"

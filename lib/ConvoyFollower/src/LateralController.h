@@ -42,7 +42,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <ILateralController.h>
+#include <PlatoonController/ILateralController.h>
 #include <new>
 #include <HeadingFinder.h>
 

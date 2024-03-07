@@ -45,7 +45,7 @@
 
 #include <stdint.h>
 #include <IState.h>
-#include <PlatoonController.h>
+#include <PlatoonController/PlatoonController.h>
 #include <queue>
 #include <StateMachine.h>
 #include "SerialMuxChannels.h"

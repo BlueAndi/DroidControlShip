@@ -42,7 +42,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <ILongitudinalController.h>
+#include <PlatoonController/ILongitudinalController.h>
 #include <new>
 #include "SerialMuxChannels.h"
 
