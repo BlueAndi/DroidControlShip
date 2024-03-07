@@ -37,10 +37,10 @@
 #include "ErrorState.h"
 #include <Logging.h>
 #include <PlatoonController/ProcessingChainFactory.h>
-#include "LongitudinalController.h"
-#include "LongitudinalSafetyPolicy.h"
-#include "LateralController.h"
-#include "LateralSafetyPolicy.h"
+#include "ProcessingChain/LongitudinalController.h"
+#include "ProcessingChain/LongitudinalSafetyPolicy.h"
+#include "ProcessingChain/LateralController.h"
+#include "ProcessingChain/LateralSafetyPolicy.h"
 
 /******************************************************************************
  * Compiler Switches
