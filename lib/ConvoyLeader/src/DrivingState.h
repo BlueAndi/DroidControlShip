@@ -47,7 +47,7 @@
 #include <IState.h>
 #include <StateMachine.h>
 #include "SerialMuxChannels.h"
-#include "Telemetry.h"
+#include <CollisionAvoidance.h>
 
 /******************************************************************************
  * Macros
@@ -135,9 +135,6 @@ public:
 
 protected:
 private:
-    /** Number of proximity Sensor ranges. */
-    static const uint8_t NUM_PROXIMITY_SENSOR_RANGES = SMPChannelPayload::RANGE_0_5;
-
     /** Vehicle length in mm. */
     static const uint8_t VEHICLE_LENGTH = 100;
 
@@ -162,6 +159,9 @@ private:
     /** Inter Vehicle Space in mm. */
     uint16_t m_interVehicleSpace;
 
+    /** Collision Avoidance instance. */
+    CollisionAvoidance m_collisionAvoidance;
+
     /**
      * Default constructor.
      */
@@ -172,6 +172,8 @@ private:
         m_topMotorSpeed(0),
         m_vehicleData(),
         m_followerFeedback(),
+        m_interVehicleSpace(MIN_INTER_VEHICLE_SPACE),
+        m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15)
     {
     }
 
