@@ -71,34 +71,23 @@ void DrivingState::process(StateMachine& sm)
     /* Check if the state is active. */
     if (false == m_isActive)
     {
-        m_topMotorSpeed = 0;
+        m_currentSpeedSetpoint = 0;
     }
     else
     {
-        int16_t maxPossibleSpeed         = m_maxMotorSpeed;
-        int32_t distanceToLast           = 0;
-        int16_t maxPossiblePlatoonLength = 0;
+        /* Compact implementation of the "Platoon Application Controller". */
 
-        /* Check follower feedback. */
-        distanceToLast =
-            (abs((m_vehicleData.xPos - m_followerFeedback.xPos)) + abs(m_vehicleData.yPos - m_followerFeedback.yPos));
+        /* Drive as fast as possible */
+        int16_t linearSpeedSetpoint = m_maxMotorSpeed;
 
-        /* Calculate inter vehicle space. */
-        m_interVehicleSpace = constrain(m_interVehicleSpace, MIN_INTER_VEHICLE_SPACE, m_interVehicleSpace);
+        /* Constrain the setpoint based on platoon length. */
+        platoonLengthController(linearSpeedSetpoint);
 
-        /* Calculate platoon length and react accordingly. */
-        maxPossiblePlatoonLength = (V2VCommManager::NUMBER_OF_FOLLOWERS * (VEHICLE_LENGTH + m_interVehicleSpace));
+        /* Constrain the setpoint using collision avoidance module. */
+        m_collisionAvoidance.limitSpeedToAvoidCollision(linearSpeedSetpoint, m_vehicleData);
 
-        if (distanceToLast > maxPossiblePlatoonLength)
-        {
-            maxPossibleSpeed = maxPossibleSpeed - (distanceToLast * maxPossibleSpeed / (maxPossiblePlatoonLength * 2));
-        }
-
-        /* Calculate top motor speed. */
-        m_topMotorSpeed = constrain(maxPossibleSpeed, 0, m_maxMotorSpeed);
-
-        /* Setpoint limiting by collision avoidance module. */
-        m_collisionAvoidance.limitSpeedToAvoidCollision(m_topMotorSpeed, m_vehicleData);
+        /* Constrain setpoint to max and min motor speeds. */
+        m_currentSpeedSetpoint = constrain(linearSpeedSetpoint, 0, m_maxMotorSpeed);
     }
 }
 
@@ -114,7 +103,7 @@ void DrivingState::setMaxMotorSpeed(int16_t maxSpeed)
 
 bool DrivingState::getTopMotorSpeed(int16_t& topMotorSpeed) const
 {
-    topMotorSpeed = m_topMotorSpeed;
+    topMotorSpeed = m_currentSpeedSetpoint;
 
     /* Only valid if the state is active. */
     return m_isActive;
@@ -137,6 +126,33 @@ void DrivingState::setLastFollowerFeedback(const Telemetry& feedback)
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+void DrivingState::platoonLengthController(int16_t& linearCenterSpeedSetpoint)
+{
+    int32_t distanceToLast           = 0;
+    int16_t maxPossiblePlatoonLength = 0;
+
+    /* Calculate current platoon length based on distance to last follower. */
+    distanceToLast =
+        (abs((m_vehicleData.xPos - m_followerFeedback.xPos)) + abs(m_vehicleData.yPos - m_followerFeedback.yPos));
+
+    /* Calculate max. possible platoon length. */
+    maxPossiblePlatoonLength = (V2VCommManager::NUMBER_OF_FOLLOWERS * (VEHICLE_LENGTH + MAX_INTER_VEHICLE_SPACE));
+
+    /* Limit the speed setpoint if platoon length greater than maximum allowed. */
+    if (distanceToLast > maxPossiblePlatoonLength)
+    {
+        int16_t maxPossibleSpeed = linearCenterSpeedSetpoint;
+
+        maxPossibleSpeed = maxPossibleSpeed - (distanceToLast * maxPossibleSpeed / (maxPossiblePlatoonLength * 2));
+
+        /* Make sure the speed is constraint. */
+        if (maxPossibleSpeed < linearCenterSpeedSetpoint)
+        {
+            linearCenterSpeedSetpoint = maxPossibleSpeed;
+        }
+    }
+}
 
 /******************************************************************************
  * External Functions

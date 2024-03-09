@@ -139,7 +139,7 @@ private:
     static const uint8_t VEHICLE_LENGTH = 100;
 
     /** Minimum inter vehicle space in mm. */
-    static const uint16_t MIN_INTER_VEHICLE_SPACE = VEHICLE_LENGTH;
+    static const uint16_t MAX_INTER_VEHICLE_SPACE = VEHICLE_LENGTH;
 
     /** Flag: State is active. */
     bool m_isActive;
@@ -148,7 +148,7 @@ private:
     int16_t m_maxMotorSpeed;
 
     /** Calculated top motor speed. */
-    int16_t m_topMotorSpeed;
+    int16_t m_currentSpeedSetpoint;
 
     /** Latest vehicle data. */
     Telemetry m_vehicleData;
@@ -156,11 +156,15 @@ private:
     /** Last follower feedback. */
     Telemetry m_followerFeedback;
 
-    /** Inter Vehicle Space in mm. */
-    uint16_t m_interVehicleSpace;
-
     /** Collision Avoidance instance. */
     CollisionAvoidance m_collisionAvoidance;
+
+    /**
+     * Limit the speed setpoint based on the platoon length.
+     *
+     * @param[out] speedSetpoint The speed setpoint.
+     */
+    void platoonLengthController(int16_t& speedSetpoint);
 
     /**
      * Default constructor.
@@ -169,10 +173,9 @@ private:
         IState(),
         m_isActive(false),
         m_maxMotorSpeed(0),
-        m_topMotorSpeed(0),
+        m_currentSpeedSetpoint(0),
         m_vehicleData(),
         m_followerFeedback(),
-        m_interVehicleSpace(MIN_INTER_VEHICLE_SPACE),
         m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15)
     {
     }
