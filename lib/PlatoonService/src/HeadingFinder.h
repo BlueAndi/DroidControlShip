@@ -143,7 +143,7 @@ private:
     static const int16_t MAX_MOTOR_SPEED = 2400;
 
     /** The PID proportional factor numerator for the heading controller. */
-    static const int32_t PID_P_NUMERATOR = 8;
+    static const int32_t PID_P_NUMERATOR = 4;
 
     /** The PID proportional factor denominator for the heading controller.*/
     static const int32_t PID_P_DENOMINATOR = 4;

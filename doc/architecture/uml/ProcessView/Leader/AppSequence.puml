@@ -1,0 +1,110 @@
+@startuml LeaderAppSequenceDiagram
+
+autoactivate on
+
+Title Leader App Sequence Diagram
+
+participant "App" as App
+participant "State Machine" as SM
+participant "SMP Server" as Smp
+participant "V2V Client" as Mqtt
+participant "Remote Command Response Handler" as RCRH
+participant "Startup State" as StartupState
+participant "Idle State" as IdleState
+participant "Driving State" as DrivingState
+participant "Safety Monitor" as SafetyMonitor
+
+entity "RadonUlzer" as RU
+
+== State Machine: Startup State ==
+
+group Startup Commands [Repeats for each pending command]
+    App -> StartupState : getPendingCommand
+    return pendingCommand
+
+    App -> Smp : sendCommand(pendingCommand)
+        Smp -> RU : send
+        deactivate
+    return command sent
+
+    RU -->> Smp : response
+
+    App -> Smp : process()
+        Smp -> App : CMD_RSP callback
+            App -> RCRH : handleCommandResponse(rsp)
+                alt OK
+                    RCRH -> StartupState : notify(Event event)
+                    return
+                end
+                alt max speed received
+                    RCRH -> DrivingState : setMaxSpeed(speed)
+                    return
+                end
+                alt error received
+                    RCRH -> SM : setState(ErrorState)
+                    return
+                end
+            return
+        return
+    return
+end group
+
+== State Machine: Idle State ==
+
+group Wait for release
+    App -> Mqtt : process()
+        Mqtt -> App : release command
+            App -> IdleState : release()
+            return
+        return
+    return
+
+end group
+
+== State Machine: Driving State ==
+group Driving
+    App -> Smp : process()
+        Smp -> App : CurrentVehicleData
+            App -> DrivingState : CurrentVehicleData
+            return top speed
+            App -> Smp : sendSpeed(topSpeed)
+                Smp -> RU : send
+                deactivate
+            return
+        return
+    return
+
+    App -> Mqtt : process()
+        Mqtt -> App : lastFollowerFeedbackCallback()
+            App -> DrivingState : setLastFollowerFeedback(const Waypoint& feedback)
+            return 
+        return
+    return
+
+    App -> DrivingState : getLatestVehicleData(Waypoint& vehicleData)
+    return vehicle data is valid
+
+    App -> Mqtt : sendWaypoint(const Waypoint& vehicleData)
+    return
+
+end group
+
+== Stateless ==
+
+loop 
+    App -> Smp : process()
+        Smp -> App : Heartbeat callback
+            App -> SafetyMonitor : heartbeatCallback()
+            return
+        return
+    return
+
+    App -> SafetyMonitor : process()
+        SafetyMonitor -> SafetyMonitor : checkHeartbeat()
+        return false
+        SafetyMonitor -> SM : setState(ErrorState)
+        return
+    return
+end loop
+
+@enduml

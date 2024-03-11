@@ -41,6 +41,10 @@
  * Compile Switches
  *****************************************************************************/
 
+#ifndef ARDUINOJSON_ENABLE_ARDUINO_STRING
+#define ARDUINOJSON_ENABLE_ARDUINO_STRING 1
+#endif
+
 /******************************************************************************
  * Includes
  *****************************************************************************/
@@ -646,6 +650,29 @@ public:
             m_buffer = tmp;
             m_size   = newlen + 1;
         }
+    }
+
+    bool concat(const String& s)
+    {
+        (void)this->operator+=(s);
+        return true;
+    }
+
+    bool concat(const char* cstr)
+    {
+        if ((nullptr == cstr) || (0U == strlen(cstr)))
+        {
+            return false;
+        }
+
+        (void)this->operator+=(cstr);
+        return true;
+    }
+
+    bool concat(char c)
+    {
+        (void)this->operator+=(c);
+        return true;
     }
 
 private:

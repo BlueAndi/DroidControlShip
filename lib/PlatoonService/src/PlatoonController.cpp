@@ -66,10 +66,14 @@ PlatoonController::PlatoonController() :
     m_outputWaypointCallback(nullptr),
     m_motorSetpointCallback(nullptr),
     m_currentWaypoint(),
+    m_nextWaypoint(),
     m_currentVehicleData(),
+    m_lastSentWaypoint(),
     m_processingChainTimer(),
     m_processingChain(nullptr),
-    m_isPositionKnown(false)
+    m_isPositionKnown(false),
+    m_processingChainRelease(false),
+    m_invalidWaypointCounter(0U)
 {
 }
 
@@ -86,9 +90,11 @@ bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback
                              const OutputWaypointCallback& outputWaypointCallback,
                              const MotorSetpointCallback&  motorSetpointCallback)
 {
-    bool isSuccessful = false;
+    bool             isSuccessful    = false;
+    SettingsHandler& settingsHandler = SettingsHandler::getInstance();
 
-    if ((nullptr != inputWaypointCallback) && (nullptr != outputWaypointCallback) && (nullptr != motorSetpointCallback))
+    if ((nullptr != inputWaypointCallback) && (nullptr != outputWaypointCallback) &&
+        (nullptr != motorSetpointCallback) && (nullptr == m_processingChain))
     {
         m_processingChain = ProcessingChainFactory::getInstance().create();
 
@@ -103,6 +109,12 @@ bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback
             m_outputWaypointCallback = outputWaypointCallback;
             m_motorSetpointCallback  = motorSetpointCallback;
 
+            m_currentVehicleData.xPos        = settingsHandler.getInitialXPosition();
+            m_currentVehicleData.yPos        = settingsHandler.getInitialYPosition();
+            m_currentVehicleData.orientation = settingsHandler.getInitialHeading();
+
+            m_currentWaypoint = m_currentVehicleData;
+
             m_processingChainTimer.start(PROCESSING_CHAIN_PERIOD);
 
             isSuccessful = true;
@@ -112,7 +124,7 @@ bool PlatoonController::init(const InputWaypointCallback&  inputWaypointCallback
     return isSuccessful;
 }
 
-void PlatoonController::process()
+void PlatoonController::process(size_t numberOfAvailableWaypoints)
 {
     if (false == m_isPositionKnown)
     {
@@ -129,11 +141,6 @@ void PlatoonController::process()
         {
             ; /* Nothing to do here. Have to wait for a waypoint. */
         }
-        /* Send current waypoint to the next vehicle only when a new one has been received. */
-        else if (false == m_outputWaypointCallback(m_currentWaypoint))
-        {
-            LOG_ERROR("Failed to send waypoint to next vehicle.");
-        }
         else
         {
             /* Sanitize the Waypoint. */
@@ -149,16 +156,44 @@ void PlatoonController::process()
                 /* Update current waypoint. */
                 m_currentWaypoint = m_nextWaypoint;
                 LOG_DEBUG("New Waypoint: (%d, %d)", m_currentWaypoint.xPos, m_currentWaypoint.yPos);
+
+                /* Reset counter once a valid waypoint is received. */
+                m_invalidWaypointCounter = 0U;
             }
             else
             {
                 LOG_ERROR("Invalid target waypoint (%d, %d)", m_nextWaypoint.xPos, m_nextWaypoint.yPos);
+
+                /* Prevent wrap-around. */
+                if (UINT8_MAX > m_invalidWaypointCounter)
+                {
+                    /* Increase counter. */
+                    ++m_invalidWaypointCounter;
+                }
             }
         }
     }
 
+    /* Send current position as waypoint in a constant distance interval. */
+    if (WAYPOINT_DISTANCE_INTERVAL < PlatoonUtils::calculateAbsoluteDistance(m_lastSentWaypoint, m_currentVehicleData))
+    {
+        if (false == m_outputWaypointCallback(m_currentVehicleData))
+        {
+            LOG_ERROR("Failed to send waypoint to next vehicle.");
+        }
+        else
+        {
+            m_lastSentWaypoint = m_currentVehicleData;
+        }
+    }
+
+    /* Are there enough waypoints available at the start of the drive? */
+    if ((false == m_processingChainRelease) && (MIN_AVAILABLE_WAYPOINTS < numberOfAvailableWaypoints))
+    {
+        m_processingChainRelease = true;
+    }
     /* Process chain on timeout. */
-    if ((true == m_processingChainTimer.isTimeout()) && (nullptr != m_motorSetpointCallback))
+    else if (true == m_processingChainTimer.isTimeout())
     {
         if (nullptr != m_processingChain)
         {
@@ -178,7 +213,7 @@ void PlatoonController::process()
                 rightMotorSpeedSetpoint = 0;
             }
 
-            if (true == calculationSuccessful)
+            if ((true == calculationSuccessful) && (nullptr != m_motorSetpointCallback))
             {
                 /* Send motor setpoints. */
                 m_motorSetpointCallback(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
@@ -197,6 +232,11 @@ void PlatoonController::setLatestVehicleData(const Waypoint& vehicleData)
 {
     m_currentVehicleData = vehicleData;
     m_isPositionKnown    = true;
+}
+
+uint8_t PlatoonController::getInvalidWaypointCounter() const
+{
+    return m_invalidWaypointCounter;
 }
 
 /******************************************************************************

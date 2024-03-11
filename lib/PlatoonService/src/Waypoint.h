@@ -44,6 +44,8 @@
  *****************************************************************************/
 
 #include <stdint.h>
+#include <WString.h>
+#include <ArduinoJson.h>
 
 /******************************************************************************
  * Macros
@@ -57,8 +59,9 @@
  * Waypoint structure definition.
  * Defines the position of a waypoint in the map and the speed at which is to be reached.
  */
-typedef struct _Waypoint
+struct Waypoint
 {
+public:
     int32_t xPos;        /**< X position [mm]. */
     int32_t yPos;        /**< Y position [mm]. */
     int32_t orientation; /**< Orientation [mrad]. */
@@ -69,11 +72,63 @@ typedef struct _Waypoint
     /**
      * Default constructor.
      */
-    _Waypoint() : xPos(0), yPos(0), orientation(0), left(0), right(0), center(0)
+    Waypoint() : Waypoint(0, 0, 0, 0, 0, 0)
     {
     }
 
-} __attribute__((packed)) Waypoint;
+    /**
+     * Constructor
+     *
+     * @param[in] xPos          X position [mm].
+     * @param[in] yPos          Y position [mm].
+     * @param[in] orientation   Orientation [mrad].
+     * @param[in] left          Left motor speed [steps/s].
+     * @param[in] right         Right motor speed [steps/s].
+     * @param[in] center        Center speed [steps/s].
+     */
+    Waypoint(int32_t xPos, int32_t yPos, int32_t orientation, int16_t left, int16_t right, int16_t center) :
+        xPos(xPos),
+        yPos(yPos),
+        orientation(orientation),
+        left(left),
+        right(right),
+        center(center)
+    {
+    }
+
+    /**
+     * Deserialize a waypoint.
+     * The waypoint is created on the heap and must be deleted by the caller.
+     *
+     * @param[in] serializedWaypoint  Serialized waypoint.
+     *
+     * @return Pointer to a waypoint object. In case of an error, it returns nullptr.
+     */
+    static Waypoint* deserialize(const String& serializedWaypoint);
+
+    /**
+     * Extract a waypoint form a JSON object.
+     * The waypoint is created on the heap and must be deleted by the caller.
+     *
+     * @param[in] jsonWaypoint JSON object.
+     *
+     * @return Pointer to a waypoint object. In case of an error, it returns nullptr.
+     */
+    static Waypoint* fromJsonObject(const JsonObject& jsonWaypoint);
+
+    /**
+     * Serialize the waypoint.
+     *
+     * @param[out] serializedWaypoint Serialized waypoint. Writes an empty string in case of an error.
+     */
+    void serialize(String& serializedWaypoint) const;
+
+    /**
+     * Print waypoint data to the serial console.
+     * Uses the LOG_DEBUG macro, so it can be deactivated.
+     */
+    void debugPrint() const;
+};
 
 /******************************************************************************
  * Functions
