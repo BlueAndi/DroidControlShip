@@ -73,38 +73,10 @@ LongitudinalController::~LongitudinalController()
 bool LongitudinalController::calculateLongitudinalMovement(const Telemetry& currentVehicleData,
                                                            const Waypoint& targetWaypoint, int16_t& centerSpeedSetpoint)
 {
-    bool    isSuccessful            = true;
-    uint8_t closestProximityAllowed = SMPChannelPayload::RANGE_15_20;
+    bool isSuccessful = true;
 
-    /* Ensure that the robot stops when an obstable is too near. */
-    if (closestProximityAllowed <= currentVehicleData.proximity)
-    {
-        centerSpeedSetpoint = 0;
-    }
-    else
-    {
-        int16_t maxPossibleSpeed = MAX_MOTOR_SPEED;
-        int32_t distance = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentVehicleData.asWaypoint());
-
-        /* Limit speed based on the proximity sensors. */
-        /* currentVehicleData.proximity goes from 0 to NUM_PROXIMITY_SENSOR_RANGES */
-        maxPossibleSpeed =
-            MAX_MOTOR_SPEED - (currentVehicleData.proximity * MAX_MOTOR_SPEED / NUM_PROXIMITY_SENSOR_RANGES);
-
-        /* TODO: Check limits. */
-
-        if (0 == distance)
-        {
-            /* Target reached. */
-            centerSpeedSetpoint = 0;
-        }
-        else
-        {
-            /* Calculate speed using ramp factor. */
-            centerSpeedSetpoint =
-                constrain(((distance * RAMP_FACTOR) + OFFSET_SPEED), -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-        }
-    }
+    /* Use speed of the target waypoint. */
+    centerSpeedSetpoint = targetWaypoint.center;
 
     return isSuccessful;
 }

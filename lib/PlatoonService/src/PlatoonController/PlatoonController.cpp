@@ -156,7 +156,8 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
             {
                 /* Update current waypoint. */
                 m_currentWaypoint = m_nextWaypoint;
-                LOG_DEBUG("New Waypoint: (%d, %d)", m_currentWaypoint.xPos, m_currentWaypoint.yPos);
+                LOG_DEBUG("New Waypoint: (%d, %d) Vc=%d", m_currentWaypoint.xPos, m_currentWaypoint.yPos,
+                          m_currentWaypoint.center);
 
                 /* Reset counter once a valid waypoint is received. */
                 m_invalidWaypointCounter = 0U;
