@@ -131,6 +131,8 @@ bool DrivingState::getMotorSpeedSetpoints(int16_t& leftMotorSpeed, int16_t& righ
     leftMotorSpeed  = m_leftMotorSpeed;
     rightMotorSpeed = m_rightMotorSpeed;
 
+    m_collisionAvoidance.limitSpeedToAvoidCollision(leftMotorSpeed, rightMotorSpeed, m_vehicleData);
+
     /* Only valid if the state is active. */
     return m_isActive;
 }
