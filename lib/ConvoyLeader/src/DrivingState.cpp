@@ -80,15 +80,33 @@ void DrivingState::process(StateMachine& sm)
 
         /* Drive as fast as possible */
         int16_t linearSpeedSetpoint = m_maxMotorSpeed;
+        int16_t controlSpeed        = m_maxMotorSpeed;
 
         /* Constrain the setpoint based on platoon length. */
         platoonLengthController(linearSpeedSetpoint);
 
+        if (controlSpeed > linearSpeedSetpoint)
+        {
+            LOG_DEBUG("Speed limited by Platoon Length Controller.");
+            controlSpeed = linearSpeedSetpoint;
+        }
+
         /* Constrain the setpoint using collision avoidance module. */
         m_collisionAvoidance.limitSpeedToAvoidCollision(linearSpeedSetpoint, m_vehicleData);
 
+        if (controlSpeed > linearSpeedSetpoint)
+        {
+            LOG_DEBUG("Speed limited by Collision Avoidance.");
+            controlSpeed = linearSpeedSetpoint;
+        }
+
         /* Constrain setpoint to max and min motor speeds. */
         m_currentSpeedSetpoint = constrain(linearSpeedSetpoint, 0, m_maxMotorSpeed);
+
+        if (controlSpeed > m_currentSpeedSetpoint)
+        {
+            LOG_DEBUG("Speed limited by constrain.");
+        }
     }
 }
 

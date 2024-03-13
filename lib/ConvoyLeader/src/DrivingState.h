@@ -139,8 +139,8 @@ private:
     /** Vehicle length in mm. */
     static const uint8_t VEHICLE_LENGTH = 100;
 
-    /** Minimum inter vehicle space in mm. */
-    static const uint16_t MAX_INTER_VEHICLE_SPACE = VEHICLE_LENGTH;
+    /** Maximum inter vehicle space in mm. */
+    static const uint16_t MAX_INTER_VEHICLE_SPACE = 3U * VEHICLE_LENGTH;
 
     /** Maximum platoon length allowed. */
     static const uint16_t MAX_PLATOON_LENGTH =
@@ -181,7 +181,7 @@ private:
         m_currentSpeedSetpoint(0),
         m_vehicleData(),
         m_followerFeedback(),
-        m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15)
+        m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_20_25)
     {
     }
 

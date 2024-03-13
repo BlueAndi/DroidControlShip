@@ -133,7 +133,7 @@ void PlatoonController::process(size_t numberOfAvailableWaypoints)
     }
 
     /* Check if target waypoint has been reached. */
-    if ((true == targetWaypointReached()) && (nullptr != m_inputWaypointCallback) &&
+    if ((numberOfAvailableWaypoints > MIN_AVAILABLE_WAYPOINTS) && (nullptr != m_inputWaypointCallback) &&
         (nullptr != m_outputWaypointCallback))
     {
         /* Get next waypoint. */
