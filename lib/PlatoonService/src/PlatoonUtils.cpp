@@ -103,6 +103,11 @@ bool PlatoonUtils::calculateRelativeHeading(const Waypoint& targetWaypoint, cons
 
     relativeHeading = equivalentHeading - referenceWaypoint.orientation;
 
+    /* Normalize relative heading. */
+    relativeHeading += 3 * FP_PI();
+    relativeHeading %= 2 * FP_PI();
+    relativeHeading -= 1 * FP_PI();
+
     return isSuccessful;
 }
 
