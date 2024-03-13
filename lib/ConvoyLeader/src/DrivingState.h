@@ -48,6 +48,7 @@
 #include <StateMachine.h>
 #include "SerialMuxChannels.h"
 #include <CollisionAvoidance.h>
+#include <V2VCommManager.h>
 
 /******************************************************************************
  * Macros
@@ -140,6 +141,10 @@ private:
 
     /** Minimum inter vehicle space in mm. */
     static const uint16_t MAX_INTER_VEHICLE_SPACE = VEHICLE_LENGTH;
+
+    /** Maximum platoon length allowed. */
+    static const uint16_t MAX_PLATOON_LENGTH =
+        V2VCommManager::NUMBER_OF_FOLLOWERS * (VEHICLE_LENGTH + MAX_INTER_VEHICLE_SPACE);
 
     /** Flag: State is active. */
     bool m_isActive;
