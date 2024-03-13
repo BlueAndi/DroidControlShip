@@ -80,7 +80,8 @@ public:
         m_statusTimer(),
         m_statusTimeoutTimer(),
         m_lastV2VStatus(V2VCommManager::V2VStatus::V2V_STATUS_NOT_INIT),
-        m_lastRUStatus(SMPChannelPayload::Status::STATUS_FLAG_OK)
+        m_lastRUStatus(SMPChannelPayload::Status::STATUS_FLAG_OK),
+        m_latestVehicleData()
     {
     }
 
@@ -207,6 +208,9 @@ private:
 
     /** Last system status of RU. */
     SMPChannelPayload::Status m_lastRUStatus;
+
+    /** Latest vehicle data from RU. */
+    Waypoint m_latestVehicleData;
 
 private:
     /**

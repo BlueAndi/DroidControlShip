@@ -225,6 +225,11 @@ void App::loop()
     processPeriodicTasks();
 }
 
+void App::setLatestVehicleData(const Waypoint& waypoint)
+{
+    m_latestVehicleData = waypoint;
+}
+
 void App::setErrorState()
 {
     if (&ErrorState::getInstance() != m_systemStateMachine.getState())
@@ -369,6 +374,10 @@ void App::processPeriodicTasks()
 
     if ((true == m_sendWaypointTimer.isTimeout()) && (true == m_mqttClient.isConnected()))
     {
+        if (false == m_v2vCommManager.sendStatus(m_latestVehicleData))
+        {
+            LOG_WARNING("Status could not be sent.");
+        }
         Waypoint      payload;
         DrivingState& drivingState = DrivingState::getInstance();
 
@@ -603,6 +612,7 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
                                 currentVehicleData->proximity);
 
         DrivingState::getInstance().setVehicleData(data);
+        application->setLatestVehicleData(data.asWaypoint());
     }
     else
     {

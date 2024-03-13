@@ -136,6 +136,15 @@ public:
     bool sendWaypoint(const Waypoint& waypoint);
 
     /**
+     * Send the current vehicle status data as a Waypoint to the debug topic.
+     *
+     * @param[in] waypoint  Waypoint to send.
+     *
+     * @return If the waypoint was sent successfully, returns true. Otherwise, false.
+     */
+    bool sendStatus(const Waypoint& waypoint);
+
+    /**
      * Get the next recevied V2V Event from the V2V communication manager.
      * The V2V Event is a generic event that can be used to send any type of event.
      * The event type is defined by the V2VEventType enum.
@@ -175,6 +184,9 @@ private:
 
     /** MQTT subtopic name for platoon emergency stop. */
     static const char* TOPIC_NAME_EMERGENCY;
+
+    /** MQTT topic name for platoon debug. */
+    static const char* TOPIC_NAME_DEBUG;
 
     /** Maximum number of events to queue. */
     static const size_t MAX_EVENT_QUEUE_SIZE = 20U;
