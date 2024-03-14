@@ -152,7 +152,7 @@ private:
     /**
      * Minimum number of available waypoints for release of processing chain.
      */
-    static const size_t MIN_AVAILABLE_WAYPOINTS = 2U;
+    static const size_t MIN_AVAILABLE_WAYPOINTS = 0U;
 
     /**
      * Input waypoint callback.
