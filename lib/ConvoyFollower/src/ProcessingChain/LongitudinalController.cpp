@@ -75,8 +75,16 @@ bool LongitudinalController::calculateLongitudinalMovement(const Telemetry& curr
 {
     bool isSuccessful = true;
 
+    int32_t distance = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentVehicleData.asWaypoint());
+
     /* Use speed of the target waypoint. */
     centerSpeedSetpoint = targetWaypoint.center;
+
+    if (distance > 200)
+    {
+        centerSpeedSetpoint += 500;
+        LOG_DEBUG("Boosted speed");
+    }
 
     return isSuccessful;
 }
