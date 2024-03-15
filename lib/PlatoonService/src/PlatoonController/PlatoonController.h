@@ -137,7 +137,7 @@ private:
      * Error margin in mm for target waypoint.
      * Used to determine if target waypoint has been reached.
      */
-    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 10;
+    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 50;
 
     /**
      * Aperture angle of the forward cone in mrad.
