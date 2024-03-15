@@ -137,14 +137,14 @@ public:
 protected:
 private:
     /** Vehicle length in mm. */
-    static const uint8_t VEHICLE_LENGTH = 100;
+    static const uint8_t VEHICLE_LENGTH = 100U;
 
     /** Maximum inter vehicle space in mm. */
-    static const uint16_t MAX_INTER_VEHICLE_SPACE = 3U * VEHICLE_LENGTH;
+    static const uint16_t MAX_INTER_VEHICLE_SPACE = V2VCommManager::NUMBER_OF_FOLLOWERS * VEHICLE_LENGTH;
 
     /** Maximum platoon length allowed. */
-    static const uint16_t MAX_PLATOON_LENGTH =
-        V2VCommManager::NUMBER_OF_FOLLOWERS * (VEHICLE_LENGTH + MAX_INTER_VEHICLE_SPACE);
+    static const uint16_t MAX_PLATOON_LENGTH = ((V2VCommManager::NUMBER_OF_FOLLOWERS + 1) * VEHICLE_LENGTH) +
+                                               (V2VCommManager::NUMBER_OF_FOLLOWERS * MAX_INTER_VEHICLE_SPACE);
 
     /** Flag: State is active. */
     bool m_isActive;
