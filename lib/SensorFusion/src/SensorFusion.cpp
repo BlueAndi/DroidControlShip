@@ -99,6 +99,7 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
 
         float CONVERSION_MS_TO_S = 0.001F;
         float duration           = static_cast<float>(newSensorData.timePeriod) * CONVERSION_MS_TO_S; /* In seconds */
+        m_timeSinceLastOdoUpdate += duration;
 
         /* Calculate the mean velocity since the last Iteration instead of using the momentary Speed.
         Correct the sign of the distance via the measured velocity if the velocity is negative, hence the robot drives
@@ -114,7 +115,7 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         {
             directionCorrection = -1.0F;
         }
-        float meanVelocityOdometry = directionCorrection * euclideanDistance / duration; /* In mm/s */
+        float meanVelocityOdometry = directionCorrection * euclideanDistance / m_timeSinceLastOdoUpdate; /* In mm/s */
 
         /* Update the measured position assuming the robot drives in the estimated Direction.
         Use the Correction Factor in case the robot drives Backwards. */
@@ -131,7 +132,14 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
 
         /* Perform the Prediction Step and the Update Step of the Kalman Filter. */
         m_kalmanFilter.predictionStep(newSensorData.timePeriod, kalmanParameter);
-        m_estimatedPosition = m_kalmanFilter.updateStep();
+
+        /* The Odometry is not necessarily updated in every time step. Only Perform the Update step if there are new Odometry values available. */
+        bool newOdometryValues = (euclideanDistance > 0.0F);
+        if (true == newOdometryValues)
+        {
+            m_estimatedPosition = m_kalmanFilter.updateStep();
+            m_timeSinceLastOdoUpdate = 0.0F;
+        }
     }
 
     /* Save the last Odometry values */
