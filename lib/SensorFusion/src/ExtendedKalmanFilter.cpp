@@ -112,8 +112,11 @@ void ExtendedKalmanFilter::init(KalmanParameter& initialParameter)
     updateMeasurementVector(initialParameter);
 }
 
-void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
+void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep, KalmanParameter& kalmanParameter)
 {
+    updateControlInputVector(kalmanParameter);
+    updateMeasurementVector(kalmanParameter);
+
     /* Extract individual values into variables in favor of readability. */
     float positionX   = m_stateVector(IDX_POSITION_X_STATE_VECTOR);  /* In mm */
     float positionY   = m_stateVector(IDX_POSITION_Y_STATE_VECTOR);  /* In mm */
@@ -143,11 +146,8 @@ void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
     m_covarianceMatrix = jacobianMatrix * m_covarianceMatrix * jacobianMatrix.transpose() + PROCESS_COVARIANCE_MATRIX_Q;
 }
 
-IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& kalmanParameter)
+IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep()
 {
-    updateControlInputVector(kalmanParameter);
-    updateMeasurementVector(kalmanParameter);
-
     /* Calculate the Kalman Gain Matrix according to Kalman Formula. */
     Eigen::VectorXf z_hat             = OBSERVATION_MATRIX_H * m_stateVector;
     Eigen::VectorXf innovationVectorY = m_measurementVector - z_hat;

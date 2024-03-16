@@ -95,17 +95,20 @@ public:
     void init(KalmanParameter& initialParameter) final;
 
     /**
-     * Prediction of the covariance and the state of the Extended Kalman Filter.
+     * Prediction of the covariance and the state of the Kalman Filter.
+     * 
      * @param[in] timeStep Measured Time Step in ms.
+     * @param[in] kalmanParameter   Input Parameters for the Kalman Filter
      */
-    void predictionStep(const uint16_t timeStep) final;
+    virtual void predictionStep(const uint16_t timeStep, KalmanParameter& kalmanParameter) final;
 
     /**
      * Update of the covariance and the state of the Kalman Filter.
-     * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
+     * 
      * @return Estimated Position as a PositionData struct.
+     *
      */
-    PositionData updateStep(KalmanParameter& kalmanParameter) final;
+    virtual PositionData updateStep() final;
 
 private:
     /** Estimated state vector [positionX in mm, positionY in mm, velocity in mm/s, orientation in mrad/s]^T */
