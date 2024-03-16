@@ -60,7 +60,6 @@
  *****************************************************************************/
 
 static void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
-static void App_endlineChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -162,7 +161,6 @@ void App::setup()
 
             /* Setup SerialMuxProt Channels */
             m_smpServer.subscribeToChannel(SENSORDATA_CHANNEL_NAME, App_sensorChannelCallback);
-            m_smpServer.subscribeToChannel(ENDLINE_CHANNEL_NAME, App_endlineChannelCallback);
 
             if (false == m_mqttClient.init())
             {
@@ -270,31 +268,11 @@ void App_sensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize
 
         const SensorData* newSensorData = reinterpret_cast<const SensorData*>(payload);
         application->processNewSensorData(*newSensorData);
+        application->publishSensorFusionPosition();
     }
     else
     {
         LOG_WARNING("SENSOR_DATA:: Invalid payload size. Expected: %u Received: %u", SENSORDATA_CHANNEL_DLC,
                     payloadSize);
-    }
-}
-
-/**
- * Receives an End Line detection Flag over SerialMuxProt channel.
- * @param[in] payload      Sensor data
- * @param[in] payloadSize  Size of 8 sensor data
- * @param[in] userData     Pointer to the SensorFusion App.
- */
-void App_endlineChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
-{
-    if ((nullptr != payload) && (ENDLINE_CHANNEL_DLC == payloadSize) && (nullptr != userData))
-    {
-        App* application = reinterpret_cast<App*>(userData);
-        application->publishSensorFusionPosition();
-
-        LOG_DEBUG("END_LINE: New End Line Data!");
-    }
-    else
-    {
-        LOG_WARNING("END_LINE: Invalid payload size. Expected: %u Received: %u", ENDLINE_CHANNEL_DLC, payloadSize);
     }
 }
