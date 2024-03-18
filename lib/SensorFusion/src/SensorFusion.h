@@ -67,6 +67,7 @@ public:
         m_kalmanFilter(),
         m_estimatedPosition{0.0F, 0.0F, 0.0F},
         m_lastOdometryPosition{0.0F, 0.0F, 0.0F},
+        m_timeSinceLastOdoUpdate(0.01F),
         m_isFirstIteration(true)
     {
     }
@@ -102,6 +103,8 @@ private:
 
     IKalmanFilter::PositionData
         m_lastOdometryPosition; /**< Variable where the previous odometry Position is saved in. */
+
+    float m_timeSinceLastOdoUpdate; /**< Calculate how much time has passed since the last Odometry Update. */
 
     bool m_isFirstIteration; /**< Flag if the current Iteration is the first one */
 };

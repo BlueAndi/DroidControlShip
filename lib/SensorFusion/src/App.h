@@ -88,7 +88,6 @@ public:
 
     /**
      * Publish Position calculated by Sensor Fusion via MQTT.
-     * It will only be published if a new End Line has been detected.
      */
     void publishSensorFusionPosition();
 

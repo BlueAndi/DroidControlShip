@@ -92,17 +92,7 @@ typedef struct _SensorData
 
     /** Time passed since the last sensor value in milliseconds. */
     uint16_t timePeriod;
-
-    /** Indicates whether the Robot is standing still (true) or is moving (false). Determined via Odometry. */
-    bool isStandStill;
 } __attribute__((packed)) SensorData;
-
-/** Struct of the End Line Detection payload. */
-typedef struct _EndLineFlag
-{
-    /** Indicates if the End Line has been detected. */
-    bool isEndLineDetected;
-} __attribute__((packed)) EndLineFlag;
 
 /******************************************************************************
  * Functions

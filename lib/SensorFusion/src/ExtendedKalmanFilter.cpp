@@ -61,21 +61,21 @@ constexpr float EXPECTED_DURATION_IN_S = 0.025F;
 /** The Variance of the Acceleration.
  *  The standard deviation value 20.0F has been determined by standstill measurements.
  *  The variance then needs to be multiplied with the expected duration of one cycle. */
-constexpr float ACCELERATION_VARIANCE = 20.0F * 20.0F * EXPECTED_DURATION_IN_S * EXPECTED_DURATION_IN_S;
+constexpr float ACCELERATION_VARIANCE = 80.0F * 80.0F * EXPECTED_DURATION_IN_S * EXPECTED_DURATION_IN_S;
 
 /** Variance of the Turn Rate.
  *  The standard deviation value 4.0F has been determined by standstill measurements.
  *  The variance then needs to be multiplied with the expected duration of one cycle. */
-constexpr float TURNRATE_VARIANCE = 4.0F * 4.0F * EXPECTED_DURATION_IN_S * EXPECTED_DURATION_IN_S;
+constexpr float TURNRATE_VARIANCE = 20.0F * 20.0F * EXPECTED_DURATION_IN_S * EXPECTED_DURATION_IN_S;
 
 /** Variance of the Odometry Position. Determined empirically. */
-constexpr float ODOMETRY_POSITION_VARIANCE = 2.0F / 1000.0F;
+constexpr float ODOMETRY_POSITION_VARIANCE = 2.0F;
 
 /** Variance of the Odometry Velocity. Determined empirically. */
-constexpr float ODOMETRY_VELOCITY_VARIANCE = 3.0F / 1000.0F;
+constexpr float ODOMETRY_VELOCITY_VARIANCE = ODOMETRY_POSITION_VARIANCE * 2;
 
 /** Variance of the Odometry Angle. Determined empirically. */
-constexpr float ODOMETRY_ANGLE_VARIANCE = 1.0F;
+constexpr float ODOMETRY_ANGLE_VARIANCE = 6.0F;
 
 /** The observation model Matrix (notation in literature: H). */
 const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> ExtendedKalmanFilter::OBSERVATION_MATRIX_H{
@@ -112,8 +112,11 @@ void ExtendedKalmanFilter::init(KalmanParameter& initialParameter)
     updateMeasurementVector(initialParameter);
 }
 
-void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
+void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep, KalmanParameter& kalmanParameter)
 {
+    updateControlInputVector(kalmanParameter);
+    updateMeasurementVector(kalmanParameter);
+
     /* Extract individual values into variables in favor of readability. */
     float positionX   = m_stateVector(IDX_POSITION_X_STATE_VECTOR);  /* In mm */
     float positionY   = m_stateVector(IDX_POSITION_Y_STATE_VECTOR);  /* In mm */
@@ -143,11 +146,8 @@ void ExtendedKalmanFilter::predictionStep(const uint16_t timeStep)
     m_covarianceMatrix = jacobianMatrix * m_covarianceMatrix * jacobianMatrix.transpose() + PROCESS_COVARIANCE_MATRIX_Q;
 }
 
-IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& kalmanParameter)
+IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep()
 {
-    updateControlInputVector(kalmanParameter);
-    updateMeasurementVector(kalmanParameter);
-
     /* Calculate the Kalman Gain Matrix according to Kalman Formula. */
     Eigen::VectorXf z_hat             = OBSERVATION_MATRIX_H * m_stateVector;
     Eigen::VectorXf innovationVectorY = m_measurementVector - z_hat;
@@ -160,7 +160,6 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep(KalmanParameter& ka
 
     /* Perform the update step of the state vector  */
     m_stateVector                               = m_stateVector + kalmanGainMatrix * innovationVectorY;
-    m_stateVector(IDX_ORIENTATION_STATE_VECTOR) = wrapAngle(m_stateVector(IDX_ORIENTATION_STATE_VECTOR));
 
     /* Perform the update step of the covariance matrix  */
     Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> identityMatrix =
@@ -186,7 +185,7 @@ void ExtendedKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParame
     m_measurementVector[IDX_POSITION_X_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryX;        /* In mm */
     m_measurementVector[IDX_POSITION_Y_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryY;        /* In mm */
     m_measurementVector[IDX_VELOCITY_MEASUREMENT_VECTOR]    = kalmanParameter.velocityOdometry;         /* In mm/s */
-    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = wrapAngle(kalmanParameter.angleOdometry); /* In mrad */
+    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = kalmanParameter.angleOdometry; /* In mrad */
 }
 
 void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)
