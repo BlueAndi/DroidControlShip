@@ -117,13 +117,27 @@ bool PlatoonUtils::areWaypointsEqual(const Waypoint& waypoint1, const Waypoint& 
 
 int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t referenceHeading)
 {
-    int32_t equivalentHeading = targetHeading;
+    int32_t equivalentHeading = targetHeading % FP_2PI();
+
+    if (FP_2PI() == referenceHeading)
+    {
+        equivalentHeading += FP_2PI();
+    }
+    else if (-FP_2PI() == referenceHeading)
+    {
+        equivalentHeading -= FP_2PI();
+    }
 
     /* Calculate delta between the two headings. */
     int32_t absoluteDelta = equivalentHeading - referenceHeading;
 
+    /* Heading are equal. */
+    if (0 == absoluteDelta)
+    {
+        /* Nothing to do. */
+    }
     /* Current heading is positive and delta is negative. */
-    if ((absoluteDelta < 0) && (0 < referenceHeading))
+    else if ((absoluteDelta < 0) && (0 <= referenceHeading))
     {
         /* Relative delta when going counter-clockwise. */
         int32_t deltaCounterClockwise = (equivalentHeading + FP_2PI()) - referenceHeading;
@@ -138,7 +152,7 @@ int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t 
         }
     }
     /* Current heading is positive and delta is positive. */
-    else if ((absoluteDelta > 0) && (0 < referenceHeading))
+    else if ((absoluteDelta > 0) && (0 <= referenceHeading))
     {
         /* Relative delta when going counter-clockwise. */
         int32_t deltaCounterClockwise = equivalentHeading - referenceHeading;

@@ -67,6 +67,7 @@ namespace PlatoonUtils
 
     /**
      * Calculate the heading at which a target waypoint is located relative to other waypoint.
+     * The result is the heading in mrad. The result is always positive, between 0 and 2*PI.
      *
      * @param[in]   targetWaypoint    Target waypoint.
      * @param[in]   referenceWaypoint Reference waypoint.
