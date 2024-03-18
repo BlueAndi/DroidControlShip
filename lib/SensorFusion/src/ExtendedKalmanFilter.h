@@ -181,10 +181,10 @@ private:
     void updateControlInputVector(KalmanParameter& kalmanParameter);
 
     /**
-     * Wraps the angle from -2 pi to 2 pi.
+     * Wraps an angle Difference from [0, 2 pi) to [-pi, pi).
      *
-     * @param[in] inputAngle   Angle to be wrapped in mrad
-     * @return Wrapped angle in mrad from (-2 pi, 2 pi]
+     * @param[in] inputAngle   Angle to be wrapped in mrad.
+     * @return Wrapped angle in mrad.
      */
     float wrapAngle(float inputAngle);
 };
