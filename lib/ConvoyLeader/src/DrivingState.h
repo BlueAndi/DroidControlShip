@@ -47,7 +47,8 @@
 #include <IState.h>
 #include <StateMachine.h>
 #include "SerialMuxChannels.h"
-#include <Telemetry.h>
+#include <CollisionAvoidance.h>
+#include <V2VCommManager.h>
 
 /******************************************************************************
  * Macros
@@ -123,10 +124,27 @@ public:
      */
     void setLastFollowerFeedback(const Telemetry& feedback);
 
+    /**
+     * Is state active?
+     *
+     * @return If state is active, it will return true otherwise false.
+     */
+    bool isActive() const
+    {
+        return m_isActive;
+    }
+
 protected:
 private:
-    /** Number of proximity Sensor ranges. */
-    static const uint8_t NUM_PROXIMITY_SENSOR_RANGES = SMPChannelPayload::RANGE_0_5;
+    /** Vehicle length in mm. */
+    static const uint8_t VEHICLE_LENGTH = 100U;
+
+    /** Maximum inter vehicle space in mm. */
+    static const uint16_t MAX_INTER_VEHICLE_SPACE = V2VCommManager::NUMBER_OF_FOLLOWERS * VEHICLE_LENGTH;
+
+    /** Maximum platoon length allowed. */
+    static const uint16_t MAX_PLATOON_LENGTH = ((V2VCommManager::NUMBER_OF_FOLLOWERS + 1) * VEHICLE_LENGTH) +
+                                               (V2VCommManager::NUMBER_OF_FOLLOWERS * MAX_INTER_VEHICLE_SPACE);
 
     /** Flag: State is active. */
     bool m_isActive;
@@ -143,6 +161,16 @@ private:
     /** Last follower feedback. */
     Telemetry m_followerFeedback;
 
+    /** Collision Avoidance instance. */
+    CollisionAvoidance m_collisionAvoidance;
+
+    /**
+     * Limit the speed setpoint based on the platoon length.
+     *
+     * @param[out] speedSetpoint The speed setpoint.
+     */
+    void platoonLengthController(int16_t& speedSetpoint);
+
     /**
      * Default constructor.
      */
@@ -152,7 +180,8 @@ private:
         m_maxMotorSpeed(0),
         m_currentSpeedSetpoint(0),
         m_vehicleData(),
-        m_followerFeedback()
+        m_followerFeedback(),
+        m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_20_25)
     {
     }
 

@@ -44,7 +44,7 @@
 #include "IdleState.h"
 #include "DrivingState.h"
 #include "ErrorState.h"
-#include <Telemetry.h>
+#include <PlatoonUtils.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -379,9 +379,23 @@ void App::processPeriodicTasks()
 
     if ((true == m_sendWaypointTimer.isTimeout()) && (true == m_mqttClient.isConnected()))
     {
-        if (false == m_v2vCommManager.sendWaypoint(m_latestVehicleData))
+        if (false == m_v2vCommManager.sendStatus(m_latestVehicleData))
         {
-            LOG_WARNING("Waypoint could not be sent.");
+            LOG_WARNING("Status could not be sent.");
+        }
+
+        if ((true == DrivingState::getInstance().isActive()) &&
+            (WAYPOINT_DISTANCE_INTERVAL <=
+             PlatoonUtils::calculateAbsoluteDistance(m_lastWaypointSent, m_latestVehicleData)))
+        {
+            if (false == m_v2vCommManager.sendWaypoint(m_latestVehicleData))
+            {
+                LOG_WARNING("Waypoint could not be sent.");
+            }
+            else
+            {
+                m_lastWaypointSent = m_latestVehicleData;
+            }
         }
 
         m_sendWaypointTimer.restart();
