@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Concrete Lateral Controller
+ * @brief  Concrete Longitudinal Controller.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
@@ -33,8 +33,10 @@
  * Includes
  *****************************************************************************/
 
-#include "LateralController.h"
-#include <Util.h>
+#include "LongitudinalController.h"
+#include "PlatoonUtils.h"
+#include <Arduino.h>
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -60,25 +62,29 @@
  * Public Methods
  *****************************************************************************/
 
-LateralController::LateralController() : ILateralController(), m_headingFinder()
+LongitudinalController::LongitudinalController() : ILongitudinalController()
 {
 }
 
-LateralController::~LateralController()
+LongitudinalController::~LongitudinalController()
 {
 }
 
-bool LateralController::calculateLateralMovement(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
-                                                 const int16_t centerSpeedSetpoint, int16_t& leftMotorSpeedSetpoint,
-                                                 int16_t& rightMotorSpeedSetpoint)
+bool LongitudinalController::calculateLongitudinalMovement(const Telemetry& currentVehicleData,
+                                                           const Waypoint& targetWaypoint, int16_t& centerSpeedSetpoint)
 {
     bool isSuccessful = true;
 
-    m_headingFinder.setOdometryData(currentWaypoint.xPos, currentWaypoint.yPos, currentWaypoint.orientation);
-    m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
-    m_headingFinder.setTargetHeading(targetWaypoint.xPos, targetWaypoint.yPos);
+    int32_t distance = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentVehicleData.asWaypoint());
 
-    m_headingFinder.process(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
+    /* Use speed of the target waypoint. */
+    centerSpeedSetpoint = targetWaypoint.center;
+
+    if (distance > 200)
+    {
+        centerSpeedSetpoint += 500;
+        LOG_DEBUG("Boosted speed");
+    }
 
     return isSuccessful;
 }

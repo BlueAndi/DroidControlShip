@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Concrete Longitudinal Controller.
+ * @brief  Concrete Lateral Controller
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
@@ -33,9 +33,8 @@
  * Includes
  *****************************************************************************/
 
-#include "LongitudinalController.h"
-#include "PlatoonUtils.h"
-#include <Arduino.h>
+#include "LateralController.h"
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -61,30 +60,31 @@
  * Public Methods
  *****************************************************************************/
 
-LongitudinalController::LongitudinalController() : ILongitudinalController()
+LateralController::LateralController() : ILateralController(), m_headingFinder()
+{
+    m_headingFinder.setPIDFactors(2,  /* Kp Numerator */
+                                  1,  /* Kp Denominator */
+                                  0,  /* Ki Numerator */
+                                  1,  /* Ki Denominator */
+                                  30, /* Kd Numerator */
+                                  1 /* Kd Denominator */);
+}
+
+LateralController::~LateralController()
 {
 }
 
-LongitudinalController::~LongitudinalController()
+bool LateralController::calculateLateralMovement(const Telemetry& currentVehicleData, const Waypoint& targetWaypoint,
+                                                 const int16_t centerSpeedSetpoint, int16_t& leftMotorSpeedSetpoint,
+                                                 int16_t& rightMotorSpeedSetpoint)
 {
-}
+    bool isSuccessful = true;
 
-bool LongitudinalController::calculateLongitudinalMovement(const Waypoint& currentWaypoint,
-                                                           const Waypoint& targetWaypoint, int16_t& centerSpeedSetpoint)
-{
-    bool    isSuccessful = true;
-    int32_t distance     = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentWaypoint);
+    m_headingFinder.setOdometryData(currentVehicleData.xPos, currentVehicleData.yPos, currentVehicleData.orientation);
+    m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
+    m_headingFinder.setTargetHeading(targetWaypoint.xPos, targetWaypoint.yPos);
 
-    if (0 == distance)
-    {
-        /* Target reached. */
-        centerSpeedSetpoint = 0;
-    }
-    else
-    {
-        /* Calculate speed using ramp factor. */
-        centerSpeedSetpoint = constrain(((distance * RAMP_FACTOR) + OFFSET_SPEED), -MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
-    }
+    m_headingFinder.process(leftMotorSpeedSetpoint, rightMotorSpeedSetpoint);
 
     return isSuccessful;
 }

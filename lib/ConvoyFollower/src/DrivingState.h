@@ -45,11 +45,11 @@
 
 #include <stdint.h>
 #include <IState.h>
-#include <PlatoonController.h>
+#include <PlatoonController/PlatoonController.h>
 #include <queue>
 #include <StateMachine.h>
 #include "SerialMuxChannels.h"
-#include <Telemetry.h>
+#include <CollisionAvoidance.h>
 
 /******************************************************************************
  * Macros
@@ -195,6 +195,9 @@ private:
      */
     std::queue<Waypoint*> m_inputWaypointQueue;
 
+    /** Collision Avoidance instance. */
+    CollisionAvoidance m_collisionAvoidance;
+
     /**
      * Setup the platoon controller.
      *
@@ -215,7 +218,8 @@ private:
         m_vehicleData(),
         m_platoonController(),
         m_outputWaypoint(),
-        m_inputWaypointQueue()
+        m_inputWaypointQueue(),
+        m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15)
     {
     }
 

@@ -44,7 +44,7 @@
 #include "IdleState.h"
 #include "DrivingState.h"
 #include "ErrorState.h"
-#include <Telemetry.h>
+#include <PlatoonUtils.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -375,24 +375,25 @@ void App::processPeriodicTasks()
 
     if ((true == m_sendWaypointTimer.isTimeout()) && (true == m_mqttClient.isConnected()))
     {
-        Waypoint      payload;
-        DrivingState& drivingState = DrivingState::getInstance();
+        /* Send debug status. */
+        if (false == m_v2vCommManager.sendStatus(m_latestVehicleData))
+        {
+            LOG_WARNING("Status could not be sent.");
+        }
 
-        if (false == drivingState.isActive())
+        /* Send waypoint to next follower. */
+        if ((true == DrivingState::getInstance().isActive()) &&
+            (WAYPOINT_DISTANCE_INTERVAL <=
+             PlatoonUtils::calculateAbsoluteDistance(m_lastWaypointSent, m_latestVehicleData)))
         {
-            /* Not in the correct state. Do nothing. */
-        }
-        else if (false == drivingState.getWaypoint(payload))
-        {
-            LOG_WARNING("Failed to get waypoint from driving state.");
-        }
-        else if (false == m_v2vCommManager.sendWaypoint(payload))
-        {
-            LOG_WARNING("Waypoint could not be sent.");
-        }
-        else
-        {
-            /* Nothing to do. */
+            if (false == m_v2vCommManager.sendWaypoint(m_latestVehicleData))
+            {
+                LOG_WARNING("Waypoint could not be sent.");
+            }
+            else
+            {
+                m_lastWaypointSent = m_latestVehicleData;
+            }
         }
 
         m_sendWaypointTimer.restart();

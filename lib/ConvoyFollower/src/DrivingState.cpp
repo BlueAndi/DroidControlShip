@@ -36,11 +36,11 @@
 #include "DrivingState.h"
 #include "ErrorState.h"
 #include <Logging.h>
-#include <ProcessingChainFactory.h>
-#include "LongitudinalController.h"
-#include "LongitudinalSafetyPolicy.h"
-#include "LateralController.h"
-#include "LateralSafetyPolicy.h"
+#include <PlatoonController/ProcessingChainFactory.h>
+#include "ProcessingChain/LongitudinalController.h"
+#include "ProcessingChain/LongitudinalSafetyPolicy.h"
+#include "ProcessingChain/LateralController.h"
+#include "ProcessingChain/LateralSafetyPolicy.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -100,10 +100,7 @@ void DrivingState::process(StateMachine& sm)
         else
         {
             /* Set latest vehicle data. */
-            Waypoint vehicleDataAsWaypoint(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation,
-                                           m_vehicleData.left, m_vehicleData.right, m_vehicleData.center);
-
-            m_platoonController.setLatestVehicleData(vehicleDataAsWaypoint);
+            m_platoonController.setLatestVehicleData(m_vehicleData);
 
             /* Process PlatoonController. */
             m_platoonController.process(m_inputWaypointQueue.size());
@@ -134,6 +131,8 @@ bool DrivingState::getMotorSpeedSetpoints(int16_t& leftMotorSpeed, int16_t& righ
     leftMotorSpeed  = m_leftMotorSpeed;
     rightMotorSpeed = m_rightMotorSpeed;
 
+    m_collisionAvoidance.limitSpeedToAvoidCollision(leftMotorSpeed, rightMotorSpeed, m_vehicleData);
+
     /* Only valid if the state is active. */
     return m_isActive;
 }
@@ -142,6 +141,8 @@ bool DrivingState::setMotorSpeedSetpoints(const int16_t leftMotorSpeed, const in
 {
     m_leftMotorSpeed  = leftMotorSpeed;
     m_rightMotorSpeed = rightMotorSpeed;
+
+    m_collisionAvoidance.limitSpeedToAvoidCollision(m_leftMotorSpeed, m_rightMotorSpeed, m_vehicleData);
     return true;
 }
 

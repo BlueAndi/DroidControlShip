@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Concrete Longitudinal Controller.
+ * @brief  Concrete LongitudinalSafetyPolicy.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup Application
  *
  * @{
  */
-#ifndef LONGITUDINAL_CONTROLLER_H
-#define LONGITUDINAL_CONTROLLER_H
+#ifndef LATERAL_SAFETY_POLICY_H
+#define LATERAL_SAFETY_POLICY_H
 
 /******************************************************************************
  * Compile Switches
@@ -42,7 +42,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <ILongitudinalController.h>
+#include <PlatoonController/ILateralSafetyPolicy.h>
 #include <new>
 
 /******************************************************************************
@@ -53,65 +53,47 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Concrete Longitudinal Controller */
-class LongitudinalController : public ILongitudinalController
+/** Concrete Lateral Safety Policy. */
+class LateralSafetyPolicy : public ILateralSafetyPolicy
 {
 public:
     /**
-     * Longitudinal Controller constructor.
+     * Lateral Safety Policy constructor.
      */
-    LongitudinalController();
+    LateralSafetyPolicy();
 
     /**
-     * Longitudinal Controller destructor.
+     * Lateral Safety Policy destructor.
      */
-    virtual ~LongitudinalController();
+    virtual ~LateralSafetyPolicy();
 
     /**
-     * Creates a LongitudinalController instance, for registering in the ProcessingChainFactory.
+     * Creates a LateralSafetyPolicy instance, for registering in the ProcessingChainFactory.
      *
-     * @return If successful, returns a pointer to the LongitudinalController instance. Otherwise nullptr.
+     * @return If successful, returns a pointer to the LateralSafetyPolicy instance. Otherwise nullptr.
      */
-    static ILongitudinalController* create()
+    static ILateralSafetyPolicy* create()
     {
-        return new (std::nothrow) LongitudinalController();
+        return new (std::nothrow) LateralSafetyPolicy();
     }
 
     /**
-     * Calculates the motor speeds for the next step.
+     * Checks if the lateral safety policy is satisfied by the calculated motor speeds.
+     * If not, the motor speeds are adjusted accordingly.
      *
-     * @param[in]   currentWaypoint         Current waypoint where the vehicle is found.
-     * @param[in]   targetWaypoint          Target waypoint to drive to.
-     * @param[out]  centerSpeedSetpoint     Center speed setpoint [steps/s].
+     * @param[in,out]   leftMotorSpeedSetpoint  Left motor speed [steps/s].
+     * @param[in,out]   rightMotorSpeedSetpoint Right motor speed [steps/s].
      *
-     * @return If successful, returns true otherwise false.
+     * @return True is satisfied, otherwise false.
      */
-    bool calculateLongitudinalMovement(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
-                                       int16_t& centerSpeedSetpoint) final;
+    bool check(int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint) final;
 
 private:
-    /**
-     * Maximum motor speed in encoder steps/s
-     * Speed determined experimentally using the motor calibration of the RadonUlzer.
-     */
-    static const int16_t MAX_MOTOR_SPEED = 2400;
-
-    /** Minimum distance to drive with max motor speed to in mm.*/
-    static const int16_t MIN_DISTANCE_TO_MAX_SPEED = 400;
-
-    /**
-     * Offset speed in encoder steps/s
-     * Used to being too slow when approaching the target waypoint.
-     */
-    static const int16_t OFFSET_SPEED = 500;
-
-    /** Ramp factor. */
-    static const int16_t RAMP_FACTOR = MAX_MOTOR_SPEED / MIN_DISTANCE_TO_MAX_SPEED;
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* LONGITUDINAL_CONTROLLER_H */
+#endif /* LATERAL_SAFETY_POLICY_H */
 /** @} */

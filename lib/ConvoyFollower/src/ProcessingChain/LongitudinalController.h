@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Concrete LongitudinalSafetyPolicy.
+ * @brief  Concrete Longitudinal Controller.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup Application
  *
  * @{
  */
-#ifndef LATERAL_SAFETY_POLICY_H
-#define LATERAL_SAFETY_POLICY_H
+#ifndef LONGITUDINAL_CONTROLLER_H
+#define LONGITUDINAL_CONTROLLER_H
 
 /******************************************************************************
  * Compile Switches
@@ -42,8 +42,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <ILateralSafetyPolicy.h>
+#include <PlatoonController/ILongitudinalController.h>
 #include <new>
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -53,47 +54,68 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Concrete Lateral Safety Policy. */
-class LateralSafetyPolicy : public ILateralSafetyPolicy
+/** Concrete Longitudinal Controller */
+class LongitudinalController : public ILongitudinalController
 {
 public:
     /**
-     * Lateral Safety Policy constructor.
+     * Longitudinal Controller constructor.
      */
-    LateralSafetyPolicy();
+    LongitudinalController();
 
     /**
-     * Lateral Safety Policy destructor.
+     * Longitudinal Controller destructor.
      */
-    virtual ~LateralSafetyPolicy();
+    virtual ~LongitudinalController();
 
     /**
-     * Creates a LateralSafetyPolicy instance, for registering in the ProcessingChainFactory.
+     * Creates a LongitudinalController instance, for registering in the ProcessingChainFactory.
      *
-     * @return If successful, returns a pointer to the LateralSafetyPolicy instance. Otherwise nullptr.
+     * @return If successful, returns a pointer to the LongitudinalController instance. Otherwise nullptr.
      */
-    static ILateralSafetyPolicy* create()
+    static ILongitudinalController* create()
     {
-        return new (std::nothrow) LateralSafetyPolicy();
+        return new (std::nothrow) LongitudinalController();
     }
 
     /**
-     * Checks if the lateral safety policy is satisfied by the calculated motor speeds.
-     * If not, the motor speeds are adjusted accordingly.
+     * Calculates the motor speeds for the next step.
      *
-     * @param[in,out]   leftMotorSpeedSetpoint  Left motor speed [steps/s].
-     * @param[in,out]   rightMotorSpeedSetpoint Right motor speed [steps/s].
+     * @param[in]   currentVehicleData      Current vehicle data.
+     * @param[in]   targetWaypoint          Target waypoint to drive to.
+     * @param[out]  centerSpeedSetpoint     Center speed setpoint [steps/s].
      *
-     * @return True is satisfied, otherwise false.
+     * @return If successful, returns true otherwise false.
      */
-    bool check(int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint) final;
+    bool calculateLongitudinalMovement(const Telemetry& currentVehicleData, const Waypoint& targetWaypoint,
+                                       int16_t& centerSpeedSetpoint) final;
 
 private:
+    /**
+     * Maximum motor speed in encoder steps/s
+     * Speed determined experimentally using the motor calibration of the RadonUlzer.
+     */
+    static const int16_t MAX_MOTOR_SPEED = 3000;
+
+    /** Minimum distance to drive with max motor speed to in mm.*/
+    static const int16_t MIN_DISTANCE_TO_MAX_SPEED = 400;
+
+    /**
+     * Offset speed in encoder steps/s
+     * Used to being too slow when approaching the target waypoint.
+     */
+    static const int16_t OFFSET_SPEED = 2000;
+
+    /** Ramp factor. */
+    static const int16_t RAMP_FACTOR = MAX_MOTOR_SPEED / MIN_DISTANCE_TO_MAX_SPEED;
+
+    /** Number of proximity Sensor ranges. Equals the closest range. */
+    static const uint8_t NUM_PROXIMITY_SENSOR_RANGES = SMPChannelPayload::RANGE_0_5;
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* LATERAL_SAFETY_POLICY_H */
+#endif /* LONGITUDINAL_CONTROLLER_H */
 /** @} */
