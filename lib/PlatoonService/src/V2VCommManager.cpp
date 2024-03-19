@@ -68,6 +68,9 @@ const char* V2VCommManager::TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE = "heartbeatRe
 /* MQTT subtopic name for platoon emergency stop. */
 const char* V2VCommManager::TOPIC_NAME_EMERGENCY = "emergency";
 
+/** MQTT topic name for platoon debug. */
+const char* V2VCommManager::TOPIC_NAME_DEBUG = "debug/waypoint";
+
 /** Buffer size for JSON serialization of heartbeat messages. */
 static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 128U;
 
@@ -255,6 +258,29 @@ bool V2VCommManager::sendWaypoint(const Waypoint& waypoint)
         LOG_ERROR("Failed to serialize waypoint.");
     }
     else if (false == publishEvent(m_waypointOutputTopic, type, payload))
+    {
+        LOG_ERROR("Failed to publish Waypoint Event");
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
+bool V2VCommManager::sendStatus(const Waypoint& waypoint)
+{
+    bool         isSuccessful = false;
+    V2VEventType type         = V2V_EVENT_WAYPOINT;
+    String       payload;
+    waypoint.serialize(payload);
+
+    if (true == payload.isEmpty())
+    {
+        LOG_ERROR("Failed to serialize waypoint.");
+    }
+    else if (false == publishEvent(TOPIC_NAME_DEBUG, type, payload))
     {
         LOG_ERROR("Failed to publish Waypoint Event");
     }
@@ -682,8 +708,8 @@ void V2VCommManager::processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t e
         Follower& follower           = m_followers[followerArrayIndex];
 
         /* Update follower. */
-        follower.setLastHeartbeatTimestamp(eventDataTimestamp);
-        follower.setStatus(eventDataStatus);
+        follower.m_timestamp = eventDataTimestamp;
+        follower.m_status    = eventDataStatus;
 
         /* Increment counter regardless of the status. */
         ++m_followerResponseCounter;

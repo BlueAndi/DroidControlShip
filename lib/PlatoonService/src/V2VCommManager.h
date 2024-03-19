@@ -46,7 +46,6 @@
 #include <Waypoint.h>
 #include <queue>
 #include <SimpleTimer.hpp>
-#include "Follower.h"
 #include "V2VEvent.h"
 
 /******************************************************************************
@@ -63,6 +62,9 @@ class V2VCommManager
 public:
     /** Platoon leader vehicle ID. */
     static const uint8_t PLATOON_LEADER_ID = 0U;
+
+    /** Number of followers. */
+    static const uint8_t NUMBER_OF_FOLLOWERS = 2U;
 
     /** Type of platoon participant. */
     enum ParticipantType : uint8_t
@@ -134,6 +136,15 @@ public:
     bool sendWaypoint(const Waypoint& waypoint);
 
     /**
+     * Send the current vehicle status data as a Waypoint to the debug topic.
+     *
+     * @param[in] waypoint  Waypoint to send.
+     *
+     * @return If the waypoint was sent successfully, returns true. Otherwise, false.
+     */
+    bool sendStatus(const Waypoint& waypoint);
+
+    /**
      * Get the next recevied V2V Event from the V2V communication manager.
      * The V2V Event is a generic event that can be used to send any type of event.
      * The event type is defined by the V2VEventType enum.
@@ -156,9 +167,6 @@ private:
     /** Max topic length */
     static const uint8_t MAX_TOPIC_LENGTH = 64U;
 
-    /** Number of followers. */
-    static const uint8_t NUMBER_OF_FOLLOWERS = 1U;
-
     /** Vehicle heartbeat timeout timer interval in ms. */
     static const uint32_t VEHICLE_HEARTBEAT_TIMEOUT_TIMER_INTERVAL = 1000U;
 
@@ -177,8 +185,25 @@ private:
     /** MQTT subtopic name for platoon emergency stop. */
     static const char* TOPIC_NAME_EMERGENCY;
 
+    /** MQTT topic name for platoon debug. */
+    static const char* TOPIC_NAME_DEBUG;
+
     /** Maximum number of events to queue. */
     static const size_t MAX_EVENT_QUEUE_SIZE = 20U;
+
+    /** Follower. */
+    struct Follower
+    {
+        uint32_t m_timestamp; /**< Timestamp of the last received heartbeat. */
+        uint8_t  m_status;    /**< Status of the vehicle. */
+
+        /**
+         * Construct a follower.
+         */
+        Follower() : m_timestamp(0U), m_status(0U)
+        {
+        }
+    };
 
     /** MQTTClient Instance. */
     MqttClient& m_mqttClient;

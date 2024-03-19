@@ -46,6 +46,7 @@
 #include <functional>
 #include <SimpleTimer.hpp>
 #include "Waypoint.h"
+#include "Telemetry.h"
 #include "ProcessingChain.h"
 #include "ProcessingChainFactory.h"
 #include <SettingsHandler.h>
@@ -115,9 +116,9 @@ public:
     /**
      * Set lastest vehicle data.
      *
-     * @param[in] vehicleData  Lastest vehicle data in the form of a waypoint.
+     * @param[in] vehicleData  Lastest vehicle data.
      */
-    void setLatestVehicleData(const Waypoint& vehicleData);
+    void setLatestVehicleData(const Telemetry& vehicleData);
 
     /**
      * Get the invalid waypoint counter.
@@ -136,7 +137,7 @@ private:
      * Error margin in mm for target waypoint.
      * Used to determine if target waypoint has been reached.
      */
-    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 10;
+    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 50;
 
     /**
      * Aperture angle of the forward cone in mrad.
@@ -151,7 +152,7 @@ private:
     /**
      * Minimum number of available waypoints for release of processing chain.
      */
-    static const size_t MIN_AVAILABLE_WAYPOINTS = 2U;
+    static const size_t MIN_AVAILABLE_WAYPOINTS = 0U;
 
     /**
      * Input waypoint callback.
@@ -179,9 +180,9 @@ private:
     Waypoint m_nextWaypoint;
 
     /**
-     * Current vehicle data in the form of a waypoint.
+     * Current vehicle data.
      */
-    Waypoint m_currentVehicleData;
+    Telemetry m_currentVehicleData;
 
     /**
      * Last sent waypoint to the next platoon participant.
