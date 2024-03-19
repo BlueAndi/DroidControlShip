@@ -25,99 +25,92 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Driving state.
+ * @brief  Telemetry struct definition.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup PlatoonService
+ *
+ * @{
  */
+#ifndef TELEMETRY_H
+#define TELEMETRY_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
 
-#include "DrivingState.h"
-#include <Logging.h>
-
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <stdint.h>
+#include "Waypoint.h"
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and classes
+ * Types and Classes
  *****************************************************************************/
 
-/******************************************************************************
- * Prototypes
- *****************************************************************************/
-
-/******************************************************************************
- * Local Variables
- *****************************************************************************/
-
-/******************************************************************************
- * Public Methods
- *****************************************************************************/
-
-void DrivingState::entry()
+/**
+ * Vehicle Data struct definition.
+ */
+struct Telemetry
 {
-    m_isActive = true;
-}
+    int32_t xPos;        /**< X position [mm]. */
+    int32_t yPos;        /**< Y position [mm]. */
+    int32_t orientation; /**< Orientation [mrad]. */
+    int16_t left;        /**< Left motor speed [steps/s]. */
+    int16_t right;       /**< Right motor speed [steps/s]. */
+    int16_t center;      /**< Center speed [steps/s]. */
+    uint8_t proximity;   /**< Range at which object is found [range]. */
 
-void DrivingState::process(StateMachine& sm)
-{
-    /* Check if the state is active. */
-    if (false == m_isActive)
+    /**
+     * Default constructor.
+     */
+    Telemetry() : Telemetry(0, 0, 0, 0, 0, 0, 0)
     {
-        m_currentSpeedSetpoint = 0;
     }
-    else
+
+    /**
+     * Constructor
+     *
+     * @param[in] xPos          X position [mm].
+     * @param[in] yPos          Y position [mm].
+     * @param[in] orientation   Orientation [mrad].
+     * @param[in] left          Left motor speed [steps/s].
+     * @param[in] right         Right motor speed [steps/s].
+     * @param[in] center        Center speed [steps/s].
+     * @param[in] proximity     Range at which object is found [range].
+     */
+    Telemetry(int32_t xPos, int32_t yPos, int32_t orientation, int16_t left, int16_t right, int16_t center,
+              uint8_t proximity) :
+        xPos(xPos),
+        yPos(yPos),
+        orientation(orientation),
+        left(left),
+        right(right),
+        center(center),
+        proximity(proximity)
     {
-        m_currentSpeedSetpoint = m_maxMotorSpeed;
     }
-}
 
-void DrivingState::exit()
-{
-    m_isActive = false;
-}
-
-void DrivingState::setMaxMotorSpeed(int16_t maxSpeed)
-{
-    m_maxMotorSpeed = maxSpeed;
-}
-
-bool DrivingState::getTopMotorSpeed(int16_t& topMotorSpeed) const
-{
-    topMotorSpeed = m_currentSpeedSetpoint;
-
-    /* Only valid if the state is active. */
-    return m_isActive;
-}
-
-void DrivingState::setVehicleData(const Telemetry& data)
-{
-    m_vehicleData = data;
-}
-
-void DrivingState::setLastFollowerFeedback(const Telemetry& feedback)
-{
-    m_followerFeedback = feedback;
-}
+    /**
+     * Get vehicle data as Waypoint.
+     *
+     * @return Vehicle data as Waypoint.
+     */
+    Waypoint asWaypoint() const
+    {
+        return Waypoint(xPos, yPos, orientation, left, right, center);
+    }
+};
 
 /******************************************************************************
- * Protected Methods
+ * Functions
  *****************************************************************************/
 
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
+#endif /* TELEMETRY_H */
+/** @} */
