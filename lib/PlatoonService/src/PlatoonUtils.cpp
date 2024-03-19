@@ -86,9 +86,8 @@ bool PlatoonUtils::calculateHeading(const Waypoint& targetWaypoint, const Waypoi
     if ((0 != deltaX) || (0 != deltaY))
     {
         /* Calculate target heading. */
-        float angle = atan2(deltaY, deltaX) * 1000.0F;         /* Angle in mrad. */
-        angle += (FP_2PI() + 0.5F);                            /* Shift angle by 360 degree. */
-        heading      = static_cast<int32_t>(angle) % FP_2PI(); /* Fixed point heading. */
+        float angle  = atan2(deltaY, deltaX) * 1000.0F;               /* Angle in mrad. */
+        heading      = static_cast<int32_t>(angle + 0.5F) % FP_2PI(); /* Fixed point heading. */
         isSuccessful = true;
     }
 

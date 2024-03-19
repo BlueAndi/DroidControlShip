@@ -166,11 +166,11 @@ void testCalculateHeading()
 
     const size_t NUMBER_OF_CASES                = 5U;
     Waypoint     waypointArray[NUMBER_OF_CASES] = {waypointA, waypointB, waypointC, waypointD, waypointE};
-    int32_t      headingMatrix[NUMBER_OF_CASES][NUMBER_OF_CASES] = {{0, 1560, 2653, 3322, 2715},
-                                                                    {4701, 0, 3540, 3836, 3756},
-                                                                    {5794, 399, 0, 4192, 5560},
+    int32_t      headingMatrix[NUMBER_OF_CASES][NUMBER_OF_CASES] = {{0, 1560, 2653, -2960, 2715},
+                                                                    {-1581, 0, -2742, -2446, -2526},
+                                                                    {-488, 399, 0, -2090, -722},
                                                                     {180, 695, 1050, 0, 785},
-                                                                    {5856, 614, 2419, 3927, 0}};
+                                                                    {-426, 614, 2419, -2355, 0}};
 
     for (size_t targetWaypoint = 0; targetWaypoint < NUMBER_OF_CASES; ++targetWaypoint)
     {
@@ -205,7 +205,7 @@ void testCalculateRelativeHeading()
     bool result = PlatoonUtils::calculateRelativeHeading(targetWaypoint, referenceWaypoint, relativeHeading);
 
     TEST_ASSERT_TRUE(result);
-    TEST_ASSERT_EQUAL_INT32(-2356, relativeHeading);
+    TEST_ASSERT_EQUAL_INT32(-2355, relativeHeading);
 }
 
 void testCalculateEquivalentHeading()
