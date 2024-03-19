@@ -373,25 +373,27 @@ void App::processPeriodicTasks()
         m_commandTimer.restart();
     }
 
-    if (true == m_sendWaypointTimer.isTimeout())
+    if ((true == m_sendWaypointTimer.isTimeout()) && (true == m_mqttClient.isConnected()))
     {
+        /* Send debug status. */
         if (false == m_v2vCommManager.sendStatus(m_latestVehicleData))
         {
             LOG_WARNING("Status could not be sent.");
         }
-    }
 
-    if ((true == m_sendWaypointTimer.isTimeout()) && (true == m_mqttClient.isConnected()) &&
-        (true == DrivingState::getInstance().isActive()) &&
-        (50U <= PlatoonUtils::calculateAbsoluteDistance(m_lastWaypointSent, m_latestVehicleData)))
-    {
-        if (false == m_v2vCommManager.sendWaypoint(m_latestVehicleData))
+        /* Send waypoint to next follower. */
+        if ((true == DrivingState::getInstance().isActive()) &&
+            (WAYPOINT_DISTANCE_INTERVAL <=
+             PlatoonUtils::calculateAbsoluteDistance(m_lastWaypointSent, m_latestVehicleData)))
         {
-            LOG_WARNING("Waypoint could not be sent.");
-        }
-        else
-        {
-            m_lastWaypointSent = m_latestVehicleData;
+            if (false == m_v2vCommManager.sendWaypoint(m_latestVehicleData))
+            {
+                LOG_WARNING("Waypoint could not be sent.");
+            }
+            else
+            {
+                m_lastWaypointSent = m_latestVehicleData;
+            }
         }
 
         m_sendWaypointTimer.restart();
