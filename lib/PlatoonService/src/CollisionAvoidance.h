@@ -25,25 +25,25 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Interface for a Longitudinal Controller.
+ * @brief  Collision Avoidance Module.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup PlatoonService
  *
  * @{
  */
-#ifndef I_LONGITUDINAL_CONTROLLER_H
-#define I_LONGITUDINAL_CONTROLLER_H
+#ifndef COLLISION_AVOIDANCE_H
+#define COLLISION_AVOIDANCE_H
 
 /******************************************************************************
  * Compile Switches
  *****************************************************************************/
 
+#include "Telemetry.h"
+
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include "Waypoint.h"
 
 /******************************************************************************
  * Macros
@@ -53,47 +53,78 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Abstract longitudinal controller interface. */
-class ILongitudinalController
+/**
+ * Collision avoidance class.
+ */
+class CollisionAvoidance
 {
 public:
     /**
-     * ILongitudinalController creation function, used by the ProcessingChainFactory to create a ILongitudinalController
-     * instance.
+     * Collision avoidance constructor
+     *
+     * @param[in] closestProximityRangeValue Value equivalent to the closest proximity range that can be measured.
+     * @param[in] rangeThreshold Range at which the vehicle should stop to avoid collision.
      */
-    typedef ILongitudinalController* (*CreateFunc)(void);
+    CollisionAvoidance(uint8_t closestProximityRangeValue, uint8_t rangeThreshold) :
+        m_closestProximityRangeValue(closestProximityRangeValue),
+        m_rangeThreshold(rangeThreshold){};
 
     /**
-     * Destroys the interface.
+     * Default Destructor.
      */
-    virtual ~ILongitudinalController()
+    ~CollisionAvoidance()
     {
     }
 
     /**
-     * Calculates the motor speeds for the next step.
+     * Limit the speed of the vehicle to avoid collision.
      *
-     * @param[in]   currentWaypoint         Current waypoint where the vehicle is found.
-     * @param[in]   targetWaypoint          Target waypoint to drive to.
-     * @param[out]  centerSpeedSetpoint     Center speed setpoint [steps/s].
-     *
-     * @return If successful, returns true otherwise false.
+     * @param[out] speedSetpoint The speed setpoint to be limited.
+     * @param[in] vehicleData The vehicle data.
      */
-    virtual bool calculateLongitudinalMovement(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
-                                               int16_t& centerSpeedSetpoint) = 0;
-
-protected:
-    /**
-     * Constructs the interface.
-     */
-    ILongitudinalController()
+    void limitSpeedToAvoidCollision(int16_t& speedSetpoint, const Telemetry& vehicleData) const
     {
+        /* Is vehicle is closer than the threshold? */
+        if (vehicleData.proximity >= m_rangeThreshold)
+        {
+            speedSetpoint = 0;
+        }
     }
+
+    /**
+     * Limit the speed of the vehicle to avoid collision.
+     *
+     * @param[out] leftSpeedSetpoint The left motor speed setpoint to be limited.
+     * @param[out] rightSpeedSetpoint The right motor speed setpoint to be limited.
+     * @param[in] vehicleData The vehicle data.
+     */
+    void limitSpeedToAvoidCollision(int16_t& leftSpeedSetpoint, int16_t& rightSpeedSetpoint,
+                                    const Telemetry& vehicleData) const
+    {
+        /* Is vehicle is closer than the threshold? */
+        if (vehicleData.proximity >= m_rangeThreshold)
+        {
+            leftSpeedSetpoint  = 0;
+            rightSpeedSetpoint = 0;
+        }
+    }
+
+private:
+    /** Closest proximity range value. */
+    uint8_t m_closestProximityRangeValue;
+
+    /** Range threshold. */
+    uint8_t m_rangeThreshold;
+
+    /**
+     * Default constructor.
+     */
+    CollisionAvoidance();
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* I_LONGITUDINAL_CONTROLLER_H */
+#endif /* COLLISION_AVOIDANCE_H */
 /** @} */

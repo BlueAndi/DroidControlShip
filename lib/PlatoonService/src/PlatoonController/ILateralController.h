@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Follower class for V2V communication.
+ * @brief  Interface for a Lateral Controller.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup PlatoonService
  *
  * @{
  */
-#ifndef FOLLOWER_H
-#define FOLLOWER_H
+#ifndef I_LATERAL_CONTROLLER_H
+#define I_LATERAL_CONTROLLER_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,7 @@
  * Includes
  *****************************************************************************/
 
-#include <stdint.h>
+#include "Telemetry.h"
 
 /******************************************************************************
  * Macros
@@ -53,75 +53,50 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Follower class. */
-class Follower
+/** Abstract lateral controller interface. */
+class ILateralController
 {
 public:
     /**
-     * Follower Constructor.
+     * ILateralController creation function, used by the ProcessingChainFactory to create a ILateralController
+     * instance.
      */
-    Follower() : m_lastHeartbeatTimestamp(0U), m_status(0U)
+    typedef ILateralController* (*CreateFunc)(void);
+
+    /**
+     * Destroys the interface.
+     */
+    virtual ~ILateralController()
     {
     }
 
     /**
-     * Follower Destructor.
-     */
-    ~Follower()
-    {
-    }
-
-    /**
-     * Get the last heartbeat timestamp.
+     * Calculates the motor speeds for the next step.
      *
-     * @return Last heartbeat timestamp.
-     */
-    uint32_t getLastHeartbeatTimestamp() const
-    {
-        return m_lastHeartbeatTimestamp;
-    }
-
-    /**
-     * Set the last heartbeat timestamp.
+     * @param[in]   currentVehicleData      Current vehicle data.
+     * @param[in]   targetWaypoint          Target waypoint to drive to.
+     * @param[in]   centerSpeedSetpoint     Center speed setpoint [steps/s] calculated by longitudinal controller.
+     * @param[out]  leftMotorSpeedSetpoint  Left motor speed setpoint [steps/s].
+     * @param[out]  rightMotorSpeedSetpoint Right motor speed setpoint [steps/s].
      *
-     * @param[in] timestamp    Last heartbeat timestamp.
+     * @return If successful, returns true otherwise false.
      */
-    void setLastHeartbeatTimestamp(uint32_t timestamp)
-    {
-        m_lastHeartbeatTimestamp = timestamp;
-    }
+    virtual bool calculateLateralMovement(const Telemetry& currentVehicleData, const Waypoint& targetWaypoint,
+                                          const int16_t centerSpeedSetpoint, int16_t& leftMotorSpeedSetpoint,
+                                          int16_t& rightMotorSpeedSetpoint) = 0;
 
+protected:
     /**
-     * Get the status.
-     *
-     * @return Status.
+     * Constructs the interface.
      */
-    uint8_t getStatus() const
+    ILateralController()
     {
-        return m_status;
     }
-
-    /**
-     * Set the status.
-     *
-     * @param[in] status    Status.
-     */
-    void setStatus(uint8_t status)
-    {
-        m_status = status;
-    }
-
-private:
-    /** Last heartbeat timestamp. */
-    uint32_t m_lastHeartbeatTimestamp;
-
-    /** Status. */
-    uint8_t m_status;
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* FOLLOWER_H */
+#endif /* I_LATERAL_CONTROLLER_H */
 /** @} */

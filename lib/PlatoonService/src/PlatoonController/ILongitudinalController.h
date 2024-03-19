@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Processing Chain composed of a longitudinal and a lateral component.
+ * @brief  Interface for a Longitudinal Controller.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup PlatoonService
  *
  * @{
  */
-#ifndef PROCESSING_CHAIN_H
-#define PROCESSING_CHAIN_H
+#ifndef I_LONGITUDINAL_CONTROLLER_H
+#define I_LONGITUDINAL_CONTROLLER_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,10 +43,7 @@
  * Includes
  *****************************************************************************/
 
-#include "ILongitudinalController.h"
-#include "ILongitudinalSafetyPolicy.h"
-#include "ILateralController.h"
-#include "ILateralSafetyPolicy.h"
+#include "Telemetry.h"
 
 /******************************************************************************
  * Macros
@@ -56,78 +53,47 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Processing Chain composed of a longitudinal and a lateral component. */
-class ProcessingChain
+/** Abstract longitudinal controller interface. */
+class ILongitudinalController
 {
 public:
     /**
-     * Constructs the processing chain.
-     * The processing chain will take ownership of the longitudinal and lateral components.
-     * The processing chain will delete the longitudinal and lateral components when it is destroyed.
-     *
-     * @param[in]   longitudinalController      Longitudinal controller.
-     * @param[in]   longitudinalSafetyPolicy    Longitudinal safety policy.
-     * @param[in]   lateralController           Lateral controller.
-     * @param[in]   lateralSafetyPolicy         Lateral safety policy.
+     * ILongitudinalController creation function, used by the ProcessingChainFactory to create a ILongitudinalController
+     * instance.
      */
-    ProcessingChain(ILongitudinalController&   longitudinalController,
-                    ILongitudinalSafetyPolicy& longitudinalSafetyPolicy, ILateralController& lateralController,
-                    ILateralSafetyPolicy& lateralSafetyPolicy);
+    typedef ILongitudinalController* (*CreateFunc)(void);
 
     /**
-     * Destroys the processing chain.
+     * Destroys the interface.
      */
-    ~ProcessingChain();
+    virtual ~ILongitudinalController()
+    {
+    }
 
     /**
      * Calculates the motor speeds for the next step.
      *
-     * @param[in]   currentWaypoint         Current waypoint where the vehicle is found.
+     * @param[in]   currentVehicleData      Current vehicle data.
      * @param[in]   targetWaypoint          Target waypoint to drive to.
-     * @param[out]  leftMotorSpeedSetpoint  Left motor speed setpoint [steps/s].
-     * @param[out]  rightMotorSpeedSetpoint Right motor speed setpoint [steps/s].
+     * @param[out]  centerSpeedSetpoint     Center speed setpoint [steps/s].
      *
-     * @return If successful, returns true. Otherwise false.
+     * @return If successful, returns true otherwise false.
      */
-    bool calculateMotorSetpoints(const Waypoint& currentWaypoint, const Waypoint& targetWaypoint,
-                                 int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint);
+    virtual bool calculateLongitudinalMovement(const Telemetry& currentVehicleData, const Waypoint& targetWaypoint,
+                                               int16_t& centerSpeedSetpoint) = 0;
 
-private:
-    /** Longitudinal controller. */
-    ILongitudinalController& m_longitudinalController;
-
-    /** Longitudinal safety policy. */
-    ILongitudinalSafetyPolicy& m_longitudinalSafetyPolicy;
-
-    /** Lateral controller. */
-    ILateralController& m_lateralController;
-
-    /** Lateral safety policy. */
-    ILateralSafetyPolicy& m_lateralSafetyPolicy;
-
-private:
+protected:
     /**
-     * Default constructor.
-     * Not allowed to use.
+     * Constructs the interface.
      */
-    ProcessingChain();
-
-    /**
-     * Copy constructor.
-     * Not allowed to use.
-     */
-    ProcessingChain(const ProcessingChain& chain);
-
-    /**
-     * Assignment operator.
-     * Not allowed to use.
-     */
-    ProcessingChain& operator=(const ProcessingChain& chain);
+    ILongitudinalController()
+    {
+    }
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* PROCESSING_CHAIN_H */
+#endif /* I_LONGITUDINAL_CONTROLLER_H */
 /** @} */
