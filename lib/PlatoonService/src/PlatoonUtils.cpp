@@ -116,8 +116,10 @@ bool PlatoonUtils::areWaypointsEqual(const Waypoint& waypoint1, const Waypoint& 
 
 int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t referenceHeading)
 {
+    /* Make sure the target heading is in the range [-2PI, 2PI]. */
     int32_t equivalentHeading = targetHeading % FP_2PI();
 
+    /* Move equivalent heading to the range of the refence heading if required. */
     if (FP_2PI() == referenceHeading)
     {
         equivalentHeading += FP_2PI();
@@ -130,7 +132,7 @@ int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t 
     /* Calculate delta between the two headings. */
     int32_t absoluteDelta = equivalentHeading - referenceHeading;
 
-    /* Heading are equal. */
+    /* Headings are equal. */
     if (0 == absoluteDelta)
     {
         /* Nothing to do. */
@@ -147,6 +149,7 @@ int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t 
         /* Choose the shortest path. */
         if (deltaCounterClockwise < deltaClockwise)
         {
+            /* Shortest path is counter-clockwise. Result may reach 3PI. */
             equivalentHeading += FP_2PI();
         }
     }
@@ -162,6 +165,7 @@ int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t 
         /* Choose the shortest path. */
         if (deltaCounterClockwise > deltaClockwise)
         {
+            /* Shortest path is clockwise. */
             equivalentHeading -= FP_2PI();
         }
     }
@@ -177,6 +181,7 @@ int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t 
         /* Choose the shortest path. */
         if (deltaCounterClockwise < deltaClockwise)
         {
+            /* Shortest path is counter-clockwise. */
             equivalentHeading += FP_2PI();
         }
     }
@@ -192,6 +197,7 @@ int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t 
         /* Choose the shortest path. */
         if (deltaCounterClockwise > deltaClockwise)
         {
+            /* Shortest path is clockwise. Result may reach -3PI. */
             equivalentHeading -= FP_2PI();
         }
     }
