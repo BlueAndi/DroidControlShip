@@ -139,6 +139,11 @@ public:
      * @param[in] useClientIdAsBaseTopic    If true, the client ID is used as the base (prefix) of the topic.
      */
     void unsubscribe(const String& topic, const bool useClientIdAsBaseTopic) final;
+
+private:
+    /* Not allowed. */
+    MqttClient(const MqttClient& src);            /**< Copy construction of an instance. */
+    MqttClient& operator=(const MqttClient& rhs); /**< Assignment of an instance. */
 };
 
 /******************************************************************************

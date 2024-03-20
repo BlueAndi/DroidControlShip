@@ -280,6 +280,11 @@ private:
      * @param[in] length    Payload length in byte.
      */
     void onMessageCallback(char* topic, uint8_t* payload, uint32_t length);
+
+private:
+    /* Not allowed. */
+    MqttClient(const MqttClient& src);            /**< Copy construction of an instance. */
+    MqttClient& operator=(const MqttClient& rhs); /**< Assignment of an instance. */
 };
 
 /******************************************************************************
