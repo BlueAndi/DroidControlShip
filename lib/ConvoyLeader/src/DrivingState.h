@@ -134,7 +134,7 @@ private:
     /** Maximum motor speed. */
     int16_t m_maxMotorSpeed;
 
-    /** Calculated top motor speed. */
+    /** Current linear speed setpoint to apply to the vehicle. */
     int16_t m_currentSpeedSetpoint;
 
     /** Latest vehicle data. */

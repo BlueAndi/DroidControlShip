@@ -98,6 +98,40 @@ struct Telemetry
     }
 
     /**
+     * Copy constructor
+     *
+     * @param[in] telemetry Telemetry data.
+     */
+    Telemetry(const Telemetry& telemetry) :
+        xPos(telemetry.xPos),
+        yPos(telemetry.yPos),
+        orientation(telemetry.orientation),
+        left(telemetry.left),
+        right(telemetry.right),
+        center(telemetry.center),
+        proximity(telemetry.proximity)
+    {
+    }
+
+    /**
+     * Assignment operator
+     *
+     * @param[in] telemetry Telemetry data.
+     */
+    Telemetry& operator=(const Telemetry& telemetry)
+    {
+        xPos        = telemetry.xPos;
+        yPos        = telemetry.yPos;
+        orientation = telemetry.orientation;
+        left        = telemetry.left;
+        right       = telemetry.right;
+        center      = telemetry.center;
+        proximity   = telemetry.proximity;
+
+        return *this;
+    }
+
+    /**
      * Get vehicle data as Waypoint.
      *
      * @return Vehicle data as Waypoint.
