@@ -80,6 +80,7 @@ namespace PlatoonUtils
     /**
      * Calculate the heading at which a target waypoint is located relative to other waypoint.
      * Takes the orientation of the reference waypoint into account.
+     * The result range is [-2PI, 2PI].
      *
      * @param[in] targetWaypoint    Target waypoint.
      * @param[in] referenceWaypoint Reference waypoint.
@@ -92,6 +93,7 @@ namespace PlatoonUtils
 
     /**
      * Calculate the equivalent of a target heading which results in the shortest delta between two headings.
+     * The result range is [-2PI, 2PI].
      *
      * @param[in]   targetHeading       Target heading.
      * @param[in]   referenceHeading    Reference heading.
