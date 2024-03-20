@@ -115,6 +115,9 @@ bool MqttClient::publish(const String& topic, const bool useClientIdAsBaseTopic,
 
 bool MqttClient::subscribe(const String& topic, const bool useClientIdAsBaseTopic, TopicCallback callback)
 {
+    UTIL_NOT_USED(topic);
+    UTIL_NOT_USED(useClientIdAsBaseTopic);
+    UTIL_NOT_USED(callback);
     LOG_WARNING("MQTT client not implemented for test environment.");
     return false;
 }

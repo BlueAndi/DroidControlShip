@@ -36,6 +36,7 @@
 #include "FileHandler.h"
 #include <stdio.h>
 #include <Logging.h>
+#include <Util.h>
 
 /******************************************************************************
  * Macros
@@ -63,16 +64,20 @@ FileHandler::~FileHandler()
 
 size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const
 {
-    size_t readBytes = 0U;
+    UTIL_NOT_USED(fileName);
+    UTIL_NOT_USED(outBuffer);
+    UTIL_NOT_USED(maxBufferSize);
     LOG_WARNING("FileHandler::readFile not implemented for test environment.");
-    return readBytes;
+    return 0U;
 }
 
 size_t FileHandler::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
 {
-    size_t writtenBytes = 0U;
+    UTIL_NOT_USED(fileName);
+    UTIL_NOT_USED(buffer);
+    UTIL_NOT_USED(bufferSize);
     LOG_WARNING("FileHandler::writeFile not implemented for test environment.");
-    return writtenBytes;
+    return 0U;
 }
 
 /******************************************************************************
