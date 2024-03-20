@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 #include "DrivingState.h"
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -69,33 +70,11 @@ void DrivingState::process(StateMachine& sm)
     /* Check if the state is active. */
     if (false == m_isActive)
     {
-        m_topMotorSpeed = 0;
+        m_currentSpeedSetpoint = 0;
     }
     else
     {
-        uint8_t closestProximityAllowed = NUM_PROXIMITY_SENSOR_RANGES - 1U;
-
-        /* Ensure that the robot stops when an obstable is too near. */
-        if (closestProximityAllowed <= m_vehicleData.proximity)
-        {
-            m_topMotorSpeed = 0;
-        }
-        else
-        {
-            int16_t maxPossibleSpeed = m_maxMotorSpeed;
-
-            /* Limit speed based on the proximity sensors. */
-            /* m_vehicleData.proximity goes from 0 to NUM_PROXIMITY_SENSOR_RANGES */
-            maxPossibleSpeed =
-                m_maxMotorSpeed - (m_vehicleData.proximity * m_maxMotorSpeed / NUM_PROXIMITY_SENSOR_RANGES);
-
-            /* TODO: Check limits. */
-
-            /* TODO: Check follower feedback. Calculate platoon length and react accordingly */
-
-            /* Calculate top motor speed. */
-            m_topMotorSpeed = constrain(maxPossibleSpeed, 0, m_maxMotorSpeed);
-        }
+        m_currentSpeedSetpoint = m_maxMotorSpeed;
     }
 }
 
@@ -111,18 +90,18 @@ void DrivingState::setMaxMotorSpeed(int16_t maxSpeed)
 
 bool DrivingState::getTopMotorSpeed(int16_t& topMotorSpeed) const
 {
-    topMotorSpeed = m_topMotorSpeed;
+    topMotorSpeed = m_currentSpeedSetpoint;
 
     /* Only valid if the state is active. */
     return m_isActive;
 }
 
-void DrivingState::setVehicleData(const VehicleData& vehicleData)
+void DrivingState::setVehicleData(const Telemetry& data)
 {
-    m_vehicleData = vehicleData;
+    m_vehicleData = data;
 }
 
-void DrivingState::setLastFollowerFeedback(const VehicleData& feedback)
+void DrivingState::setLastFollowerFeedback(const Telemetry& feedback)
 {
     m_followerFeedback = feedback;
 }

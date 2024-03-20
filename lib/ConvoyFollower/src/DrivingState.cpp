@@ -145,14 +145,9 @@ bool DrivingState::setMotorSpeedSetpoints(const int16_t leftMotorSpeed, const in
     return true;
 }
 
-void DrivingState::setVehicleData(const VehicleData& vehicleData)
+void DrivingState::setVehicleData(const Telemetry& vehicleData)
 {
     m_vehicleData = vehicleData;
-}
-
-void DrivingState::setLastFollowerFeedback(const VehicleData& feedback)
-{
-    m_followerFeedback = feedback;
 }
 
 bool DrivingState::pushWaypoint(Waypoint* waypoint)

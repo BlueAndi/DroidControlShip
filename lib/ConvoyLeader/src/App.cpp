@@ -44,6 +44,7 @@
 #include "IdleState.h"
 #include "DrivingState.h"
 #include "ErrorState.h"
+#include <Telemetry.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -504,9 +505,14 @@ void App::processV2VCommunication()
         case V2VEventType::V2V_EVENT_FEEDBACK:
             if (nullptr != event.data)
             {
-                Waypoint*   waypoint = static_cast<Waypoint*>(event.data);
-                VehicleData feedback{waypoint->xPos, waypoint->yPos,  waypoint->orientation,
-                                     waypoint->left, waypoint->right, waypoint->center};
+                Waypoint* waypoint = static_cast<Waypoint*>(event.data);
+                Telemetry feedback{waypoint->xPos,
+                                   waypoint->yPos,
+                                   waypoint->orientation,
+                                   waypoint->left,
+                                   waypoint->right,
+                                   waypoint->center,
+                                   0U}; /* No proximity data. */
 
                 DrivingState::getInstance().setLastFollowerFeedback(feedback);
                 delete waypoint;
@@ -583,11 +589,12 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
         App*               application        = reinterpret_cast<App*>(userData);
-        Waypoint dataAsWaypoint(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
-                                currentVehicleData->left, currentVehicleData->right, currentVehicleData->center);
+        Telemetry          data(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
+                                currentVehicleData->left, currentVehicleData->right, currentVehicleData->center,
+                                currentVehicleData->proximity);
 
-        application->setLatestVehicleData(dataAsWaypoint);
-        DrivingState::getInstance().setVehicleData(*currentVehicleData);
+        DrivingState::getInstance().setVehicleData(data);
+        application->setLatestVehicleData(data.asWaypoint());
     }
     else
     {
