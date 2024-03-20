@@ -120,13 +120,16 @@ struct Telemetry
      */
     Telemetry& operator=(const Telemetry& telemetry)
     {
-        xPos        = telemetry.xPos;
-        yPos        = telemetry.yPos;
-        orientation = telemetry.orientation;
-        left        = telemetry.left;
-        right       = telemetry.right;
-        center      = telemetry.center;
-        proximity   = telemetry.proximity;
+        if (this != &telemetry)
+        {
+            xPos        = telemetry.xPos;
+            yPos        = telemetry.yPos;
+            orientation = telemetry.orientation;
+            left        = telemetry.left;
+            right       = telemetry.right;
+            center      = telemetry.center;
+            proximity   = telemetry.proximity;
+        }
 
         return *this;
     }
