@@ -67,6 +67,7 @@ namespace PlatoonUtils
 
     /**
      * Calculate the heading at which a target waypoint is located relative to other waypoint.
+     * The result is the heading in mrad in the range [-PI, PI].
      *
      * @param[in]   targetWaypoint    Target waypoint.
      * @param[in]   referenceWaypoint Reference waypoint.
@@ -79,10 +80,11 @@ namespace PlatoonUtils
     /**
      * Calculate the heading at which a target waypoint is located relative to other waypoint.
      * Takes the orientation of the reference waypoint into account.
+     * The result range is [-2PI, 2PI].
      *
      * @param[in] targetWaypoint    Target waypoint.
      * @param[in] referenceWaypoint Reference waypoint.
-     * @param[out] relativeHeading  Heading in mrad.
+     * @param[out] relativeHeading  Heading in mrad in range [-2PI, 2PI].
      *
      * @return If heading is valid, it will return true. Otherwise false.
      */
@@ -92,10 +94,10 @@ namespace PlatoonUtils
     /**
      * Calculate the equivalent of a target heading which results in the shortest delta between two headings.
      *
-     * @param[in]   targetHeading       Target heading.
-     * @param[in]   referenceHeading    Reference heading.
+     * @param[in]   targetHeading       Target heading in range [-2PI, 2PI].
+     * @param[in]   referenceHeading    Reference heading in range [-2PI, 2PI].
      *
-     * @return Equivalent to target heading in mrad.
+     * @return Equivalent to target heading in mrad in range [-3PI, 3PI].
      */
     int32_t calculateEquivalentHeading(int32_t targetHeading, int32_t referenceHeading);
 

@@ -28,7 +28,7 @@
  * @brief  MQTTClient realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTarget
+ * @addtogroup HALSim
  *
  * @{
  */
@@ -44,10 +44,6 @@
  * Includes
  *****************************************************************************/
 #include "IMqttClient.h"
-#include <PubSubClient.h>
-#include <SimpleTimer.hpp>
-#include <vector>
-#include <WiFi.h>
 
 /******************************************************************************
  * Macros
@@ -57,29 +53,29 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the robot's MQTTClient. */
+/** This class provides mqtt client functionality. */
 class MqttClient : public IMqttClient
 {
 public:
     /**
-     * Constructs the MQTTClient adapter.
+     * Constructs the MQTTClient.
      */
     MqttClient();
 
     /**
-     * Destroys the MQTTClient adapter.
+     * Destroys the MQTTClient.
      */
     virtual ~MqttClient();
 
     /**
-     * Initialize MQTTClient driver.
+     * Initialize MQTTClient state.
      *
      * @return If successfully initialized, returns true. Otherwise, false.
      */
     bool init() final;
 
     /**
-     * Process communication with the MQTTClient.
+     * Process communication with the broker.
      *
      * @return If communication is successful, returns true. Otherwise, false.
      */
@@ -94,7 +90,7 @@ public:
     bool setConfig(const MqttSettings& settings) final;
 
     /**
-     * Start connection to the MQTTClient.
+     * Start connection to the broker.
      * This method does not necessarily wait for the connection to be established, it just starts the connection
      * process. Check `isConnected()` for the current connection status.
      *
@@ -103,12 +99,12 @@ public:
     bool connect() final;
 
     /**
-     * Disconnect from the MQTTClient.
+     * Disconnect from the broker.
      */
     void disconnect() final;
 
     /**
-     * Is connected to the MQTTClient?
+     * Is connected to the broker?
      *
      * @return If connected, it will return true otherwise false.
      */
@@ -143,143 +139,6 @@ public:
      * @param[in] useClientIdAsBaseTopic    If true, the client ID is used as the base (prefix) of the topic.
      */
     void unsubscribe(const String& topic, const bool useClientIdAsBaseTopic) final;
-
-private:
-    /** MQTT Service States. */
-    enum State
-    {
-        STATE_UNINITIALIZED = 0, /**< Uninitialized state. */
-        STATE_SETUP,             /**< Setup state. */
-        STATE_DISCONNECTED,      /**< Disconnecting state. */
-        STATE_DISCONNECTING,     /**< Disconnecting state. */
-        STATE_CONNECTED,         /**< Connected state. */
-        STATE_CONNECTING,        /**< Connecting state. */
-    };
-
-    /**
-     * Subscriber information
-     */
-    struct Subscriber
-    {
-        String        topic;    /**< The subscriber topic */
-        TopicCallback callback; /**< The subscriber callback */
-    };
-
-    /**
-     * This type defines a list of subscribers.
-     */
-    typedef std::vector<Subscriber*> SubscriberList;
-
-    /** MQTT Keep Alive in seconds. */
-    static const uint16_t MQTT_KEEP_ALIVE_S = 2U;
-
-    /** Connecting Timeout. */
-    static const uint32_t CONNECTING_TIMEOUT_MS = 1000;
-
-    /** Reconnect Timeout. */
-    static const uint32_t RECONNECT_TIMEOUT_MS = (2 * CONNECTING_TIMEOUT_MS);
-
-    /**
-     * Max. MQTT client buffer size in byte.
-     * Received MQTT messages greather than this will be skipped.
-     */
-    static const size_t MAX_BUFFER_SIZE = 1024U;
-
-    /** Connection state */
-    State m_state;
-
-    /** WiFi client */
-    WiFiClient m_wifiClient;
-
-    /** Mosquitto instance */
-    PubSubClient m_mqttClient;
-
-    /** Client ID. */
-    String m_clientId;
-
-    /** Broker address to connect to. */
-    String m_brokerAddress;
-
-    /** Broker port to connect to. */
-    uint16_t m_brokerPort;
-
-    /** Birth topic. */
-    String m_birthTopic;
-
-    /** Birth Message. */
-    String m_birthMessage;
-
-    /** Will topic. */
-    String m_willTopic;
-
-    /** Will message. */
-    String m_willMessage;
-
-    /** Reconnect Flag. */
-    bool m_reconnect;
-
-    /** Reconnect Timer. */
-    SimpleTimer m_reconnectTimer;
-
-    /** Connection Timer. */
-    SimpleTimer m_connectionTimer;
-
-    /** List of subscribers */
-    SubscriberList m_subscriberList;
-
-    /** Configuration Set Flag. */
-    bool m_configSet;
-
-    /** User connection request. */
-    bool m_connectRequest;
-
-    /** User disconnection request. */
-    bool m_disconnectRequest;
-
-private:
-    /**
-     * Process the Idle state.
-     */
-    void handleSetupState();
-
-    /**
-     * Process the Disconnected state.
-     */
-    void handleDisconnectedState();
-
-    /**
-     * Process the Disconnecting state.
-     */
-    void handleDisconnectingState();
-
-    /**
-     * Process the Connected state.
-     */
-    void handleConnectedState();
-
-    /**
-     * Process the Connected state.
-     */
-    void handleConnectingState();
-
-    /**
-     * Resubscribe to all topics.
-     */
-    void resubscribe();
-
-    /**
-     * Attempt to establish connection to the broker.
-     */
-    void attemptConnection();
-
-    /**
-     * Callback function, which is called on message reception.
-     *
-     * @param[in] topic     The topic name.
-     * @param[in] payload   The payload of the topic.
-     * @param[in] length    Payload length in byte.
-     */
-    void onMessageCallback(char* topic, uint8_t* payload, uint32_t length);
 
 private:
     /* Not allowed. */
