@@ -62,8 +62,21 @@
  * Public Methods
  *****************************************************************************/
 
-LongitudinalController::LongitudinalController() : ILongitudinalController()
+LongitudinalController::LongitudinalController() :
+    ILongitudinalController(),
+    m_pidCtrl(),
+    m_pidProcessTime(),
+    m_ivs(350)
 {
+    /* Configure PID. */
+    m_pidCtrl.clear();
+    setPIDFactors(PID_P_NUMERATOR, PID_P_DENOMINATOR, PID_I_NUMERATOR, PID_I_DENOMINATOR, PID_D_NUMERATOR,
+                  PID_D_DENOMINATOR);
+    m_pidCtrl.setSampleTime(PID_PROCESS_PERIOD);
+    m_pidCtrl.setLimits(-MAX_MOTOR_SPEED, MAX_MOTOR_SPEED);
+    m_pidCtrl.setDerivativeOnMeasurement(true);
+
+    m_pidProcessTime.start(0); /* Immediate */
 }
 
 LongitudinalController::~LongitudinalController()
@@ -73,18 +86,18 @@ LongitudinalController::~LongitudinalController()
 bool LongitudinalController::calculateLongitudinalMovement(const Telemetry& currentVehicleData,
                                                            const Waypoint& targetWaypoint, int16_t& centerSpeedSetpoint)
 {
-    bool isSuccessful = true;
+    bool    isSuccessful = true;
+    int32_t pidDelta     = 0;
+    int32_t distance     = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentVehicleData.asWaypoint());
 
-    int32_t distance = PlatoonUtils::calculateAbsoluteDistance(targetWaypoint, currentVehicleData.asWaypoint());
-
-    /* Use speed of the target waypoint. */
-    centerSpeedSetpoint = targetWaypoint.center;
-
-    if (distance > 200)
+    if (true == m_pidProcessTime.isTimeout())
     {
-        centerSpeedSetpoint += 500;
-        LOG_DEBUG("Boosted speed");
+        /* Calculate PID delta. */
+        pidDelta = m_pidCtrl.calculate(m_ivs, distance);
+        m_pidProcessTime.start(PID_PROCESS_PERIOD);
     }
+
+    centerSpeedSetpoint = constrain(targetWaypoint.center - pidDelta, 0, MAX_MOTOR_SPEED * 2);
 
     return isSuccessful;
 }
@@ -96,6 +109,14 @@ bool LongitudinalController::calculateLongitudinalMovement(const Telemetry& curr
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+void LongitudinalController::setPIDFactors(int32_t pNumerator, int32_t pDenominator, int32_t iNumerator,
+                                           int32_t iDenominator, int32_t dNumerator, int32_t dDenominator)
+{
+    m_pidCtrl.setPFactor(pNumerator, pDenominator);
+    m_pidCtrl.setIFactor(iNumerator, iDenominator);
+    m_pidCtrl.setDFactor(dNumerator, dDenominator);
+}
 
 /******************************************************************************
  * External Functions

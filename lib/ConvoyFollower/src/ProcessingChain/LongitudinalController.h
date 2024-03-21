@@ -45,6 +45,8 @@
 #include <PlatoonController/ILongitudinalController.h>
 #include <new>
 #include "SerialMuxChannels.h"
+#include <PIDController.h>
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
@@ -97,20 +99,48 @@ private:
      */
     static const int16_t MAX_MOTOR_SPEED = 3000;
 
-    /** Minimum distance to drive with max motor speed to in mm.*/
-    static const int16_t MIN_DISTANCE_TO_MAX_SPEED = 400;
+    /** Period in ms for PID processing. */
+    static const uint32_t PID_PROCESS_PERIOD = 50U;
+
+    /** The PID proportional factor numerator for the heading controller. */
+    static const int32_t PID_P_NUMERATOR = 3;
+
+    /** The PID proportional factor denominator for the heading controller.*/
+    static const int32_t PID_P_DENOMINATOR = 4;
+
+    /** The PID integral factor numerator for the heading controller. */
+    static const int32_t PID_I_NUMERATOR = 1;
+
+    /** The PID integral factor denominator for the heading controller. */
+    static const int32_t PID_I_DENOMINATOR = 10;
+
+    /** The PID derivative factor numerator for the heading controller. */
+    static const int32_t PID_D_NUMERATOR = 1;
+
+    /** The PID derivative factor denominator for the heading controller. */
+    static const int32_t PID_D_DENOMINATOR = 10;
+
+    /** PID controller, used for maintaining IVS. */
+    PIDController<int32_t> m_pidCtrl;
+
+    /** Timer used for periodically PID processing. */
+    SimpleTimer m_pidProcessTime;
+
+    /** Inter Vehicle Space (IVS) in mm. */
+    int32_t m_ivs;
 
     /**
-     * Offset speed in encoder steps/s
-     * Used to being too slow when approaching the target waypoint.
+     * Set the factors for the PID controller.
+     *
+     * @param[in] pNumerator Numerator of the proportional factor.
+     * @param[in] pDenominator Denominator of the proportional factor.
+     * @param[in] iNumerator Numerator of the integral factor.
+     * @param[in] iDenominator Denominator of the integral factor.
+     * @param[in] dNumerator Numerator of the derivative factor.
+     * @param[in] dDenominator Denominator of the derivative factor.
      */
-    static const int16_t OFFSET_SPEED = 2000;
-
-    /** Ramp factor. */
-    static const int16_t RAMP_FACTOR = MAX_MOTOR_SPEED / MIN_DISTANCE_TO_MAX_SPEED;
-
-    /** Number of proximity Sensor ranges. Equals the closest range. */
-    static const uint8_t NUM_PROXIMITY_SENSOR_RANGES = SMPChannelPayload::RANGE_0_5;
+    void setPIDFactors(int32_t pNumerator, int32_t pDenominator, int32_t iNumerator, int32_t iDenominator,
+                       int32_t dNumerator, int32_t dDenominator);
 };
 
 /******************************************************************************
