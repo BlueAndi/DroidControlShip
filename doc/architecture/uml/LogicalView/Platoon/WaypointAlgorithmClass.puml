@@ -1,0 +1,53 @@
+@startuml WAClass
+
+package "App" {
+    class "Application" as app {
+        + loop() : void
+    }
+
+    class DrivingState <<Singleton>> {
+        - updateSpeedSetpoint() : bool
+        - m_pac : PlatoonApplicationController
+    }
+
+    class "Waypoint Algorithm" as WA 
+    {
+        + calculateSpeedSetpoints(int16_t left, int16_t right) : bool
+        - m_longCtrl : LongitudinalController
+        - m_latCtrl : LateralController
+    }
+
+    class "Longitudinal Controller" as longCtrl {
+        + calculateCenterSpeedSetpoint(int16_t centerSpeed) : bool
+    }
+
+    class "Lateral Controller" as latCtrl 
+    {
+        + calculateSideSpeedSetpoints(int16_t centerSpeed,\n int16_t leftSpeed, int16_t rightSpeed) : bool
+    }
+}
+
+package "PlatoonService" as serv {
+    class "Collision Avoidance" as CAV
+    class "HeadingFinder" as heading
+
+    struct "Waypoint" as waypoint {
+        + xPos : int32_t
+        + yPos : int32_t
+        + orientation : int32_t
+        + left : int16_t
+        + right : int16_t
+        + center : int16_t
+    }
+    
+    WA .> waypoint : <<use>>
+}
+
+app ..> DrivingState : <<Use>>
+DrivingState *--> WA
+WA *--> longCtrl
+WA *--> latCtrl
+WA ..> CAV : <<use>>
+latCtrl ..> heading : <<use>>
+
+@enduml

@@ -1,0 +1,41 @@
+@startuml WASequence
+
+autoactivate on
+
+entity "Leader" as leader
+entity "Next Follower" as follower
+participant "V2V Comm.\nManager" as VCM
+participant "Application" as app
+participant "Waypoint\nAlgorithm" as WA
+participant "Collision Avoidance" as CAV
+
+group Loop
+    group New Waypoint received
+        leader ->> VCM : Waypoint Event
+            VCM -> app : New target Waypoint
+            return
+        deactivate
+    end
+
+    group Pass on Waypoint
+        app -> VCM : Next Waypoint
+        VCM -> follower : Next Waypoint
+        deactivate
+        return
+    end
+    
+
+    app -> app: Determine current position and speed.
+    return
+
+    app -> WA:  Calculate linear speed setpoint.
+    return
+
+    app -> CAV: Limit speed setpoint.
+    return
+
+    app -> app : Apply speed setpoint
+    return
+end
+
+@enduml
