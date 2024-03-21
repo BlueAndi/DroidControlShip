@@ -45,11 +45,13 @@
 
 #include <stdint.h>
 #include <IState.h>
-#include <PlatoonController/PlatoonController.h>
 #include <queue>
 #include <StateMachine.h>
 #include "SerialMuxChannels.h"
 #include <CollisionAvoidance.h>
+#include <PIDController.h>
+#include <SimpleTimer.hpp>
+#include <HeadingFinder.h>
 
 /******************************************************************************
  * Macros
@@ -179,9 +181,6 @@ private:
     /** Latest vehicle data. */
     Telemetry m_vehicleData;
 
-    /** Platoon controller. */
-    PlatoonController m_platoonController;
-
     /** Outgoing Waypoint. */
     Waypoint m_outputWaypoint;
 
@@ -198,12 +197,61 @@ private:
     /** Collision Avoidance instance. */
     CollisionAvoidance m_collisionAvoidance;
 
+    /** Target waypoint. */
+    Waypoint m_targetWaypoint;
+
+    /** Counter of invalid waypoints. */
+    uint8_t m_invalidWaypointCounter;
+
+    /**
+     * Aperture angle of the forward cone in mrad.
+     */
+    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 75 degrees */
+
+    /** Period in ms for PID processing. */
+    static const uint32_t PID_PROCESS_PERIOD = 50U;
+
+    /** The PID proportional factor numerator for the heading controller. */
+    static const int32_t PID_P_NUMERATOR = 3;
+
+    /** The PID proportional factor denominator for the heading controller.*/
+    static const int32_t PID_P_DENOMINATOR = 4;
+
+    /** The PID integral factor numerator for the heading controller. */
+    static const int32_t PID_I_NUMERATOR = 1;
+
+    /** The PID integral factor denominator for the heading controller. */
+    static const int32_t PID_I_DENOMINATOR = 10;
+
+    /** The PID derivative factor numerator for the heading controller. */
+    static const int32_t PID_D_NUMERATOR = 1;
+
+    /** The PID derivative factor denominator for the heading controller. */
+    static const int32_t PID_D_DENOMINATOR = 10;
+
+    /** PID controller, used for maintaining IVS. */
+    PIDController<int32_t> m_pidCtrl;
+
+    /** Timer used for periodically PID processing. */
+    SimpleTimer m_pidProcessTime;
+
+    /** Inter Vehicle Space (IVS) in mm. */
+    int32_t m_ivs;
+
+    /** Heading finder. */
+    HeadingFinder m_headingFinder;
+
     /**
      * Setup the platoon controller.
      *
      * @return If successful returns true, otherwise false.
      */
     bool setupPlatoonController();
+
+    /**
+     * Get latest waypoint from the queue, validate it and set it to as the current target.
+     */
+    void getNextWaypoint();
 
     /**
      * Default constructor.
@@ -216,11 +264,33 @@ private:
         m_leftMotorSpeed(0),
         m_rightMotorSpeed(0),
         m_vehicleData(),
-        m_platoonController(),
         m_outputWaypoint(),
         m_inputWaypointQueue(),
-        m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15)
+        m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15),
+        m_targetWaypoint(),
+        m_invalidWaypointCounter(0U),
+        m_pidCtrl(),
+        m_pidProcessTime(),
+        m_ivs(350),
+        m_headingFinder()
     {
+        /* Configure PID. */
+        m_pidCtrl.clear();
+        m_pidCtrl.setPFactor(PID_P_NUMERATOR, PID_P_DENOMINATOR);
+        m_pidCtrl.setIFactor(PID_I_NUMERATOR, PID_I_DENOMINATOR);
+        m_pidCtrl.setDFactor(PID_D_NUMERATOR, PID_D_DENOMINATOR);
+        m_pidCtrl.setSampleTime(PID_PROCESS_PERIOD);
+        m_pidCtrl.setLimits(-m_maxMotorSpeed, m_maxMotorSpeed);
+        m_pidCtrl.setDerivativeOnMeasurement(true);
+        m_pidProcessTime.start(0); /* Immediate */
+
+        /* Configure heading finder. */
+        m_headingFinder.setPIDFactors(2,  /* Kp Numerator */
+                                      1,  /* Kp Denominator */
+                                      0,  /* Ki Numerator */
+                                      1,  /* Ki Denominator */
+                                      30, /* Kd Numerator */
+                                      1 /* Kd Denominator */);
     }
 
     /**

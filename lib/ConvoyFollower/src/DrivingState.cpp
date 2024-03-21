@@ -36,11 +36,7 @@
 #include "DrivingState.h"
 #include "ErrorState.h"
 #include <Logging.h>
-#include <PlatoonController/ProcessingChainFactory.h>
-#include "ProcessingChain/LongitudinalController.h"
-#include "ProcessingChain/LongitudinalSafetyPolicy.h"
-#include "ProcessingChain/LateralController.h"
-#include "ProcessingChain/LateralSafetyPolicy.h"
+#include <PlatoonUtils.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -99,18 +95,43 @@ void DrivingState::process(StateMachine& sm)
         }
         else
         {
-            /* Set latest vehicle data. */
-            m_platoonController.setLatestVehicleData(m_vehicleData);
+            /* Get next waypoint from the queue. */
+            getNextWaypoint();
 
-            /* Process PlatoonController. */
-            m_platoonController.process(m_inputWaypointQueue.size());
-
-            /* Get invalid waypoint count. */
-            if (MAX_INVALID_WAYPOINTS <= m_platoonController.getInvalidWaypointCounter())
+            /* Check invalid waypoint count. */
+            if (MAX_INVALID_WAYPOINTS <= m_invalidWaypointCounter)
             {
                 /* Go to Error state. Too many invalid waypoints received. Are we going in the right direction? */
                 LOG_ERROR("Too many invalid waypoints received. Going into error state.");
                 sm.setState(&ErrorState::getInstance());
+            }
+            else
+            {
+                int32_t pidDelta            = 0;
+                int32_t distance            = 0;
+                int16_t centerSpeedSetpoint = 0;
+
+                /* Longitudinal controller. */
+                distance = PlatoonUtils::calculateAbsoluteDistance(m_targetWaypoint, m_vehicleData.asWaypoint());
+
+                if (true == m_pidProcessTime.isTimeout())
+                {
+                    /* Calculate PID delta. */
+                    pidDelta = m_pidCtrl.calculate(m_ivs, distance);
+                    m_pidProcessTime.start(PID_PROCESS_PERIOD);
+                }
+
+                centerSpeedSetpoint = constrain(m_targetWaypoint.center - pidDelta, 0, m_maxMotorSpeed * 2);
+
+                /* Lateral controller. */
+                m_headingFinder.setOdometryData(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation);
+                m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
+                m_headingFinder.setTargetHeading(m_targetWaypoint.xPos, m_targetWaypoint.yPos);
+
+                m_headingFinder.process(m_leftMotorSpeed, m_rightMotorSpeed);
+
+                /* Collision Avoidance. */
+                m_collisionAvoidance.limitSpeedToAvoidCollision(m_leftMotorSpeed, m_rightMotorSpeed, m_vehicleData);
             }
         }
     }
@@ -190,55 +211,53 @@ bool DrivingState::getWaypoint(Waypoint& waypoint)
 
 bool DrivingState::setupPlatoonController()
 {
-    bool isSuccessful = false;
-
-    ProcessingChainFactory& processingChainFactory = ProcessingChainFactory::getInstance();
-
-    PlatoonController::InputWaypointCallback lambdaInputWaypointCallback = [this](Waypoint& waypoint)
-    {
-        bool isSuccessful = false;
-
-        if (false == m_inputWaypointQueue.empty())
-        {
-            /* Retrieve next waypoint. */
-            Waypoint* nextWaypoint = m_inputWaypointQueue.front();
-            m_inputWaypointQueue.pop();
-
-            /* Copy waypoint. */
-            waypoint = *nextWaypoint;
-
-            /* Delete queued waypoint. */
-            delete nextWaypoint;
-
-            isSuccessful = true;
-        }
-
-        return isSuccessful;
-    };
-    PlatoonController::OutputWaypointCallback lambdaOutputWaypointCallback = [this](const Waypoint& waypoint)
-    {
-        m_outputWaypoint = waypoint;
-        return true;
-    };
-    PlatoonController::MotorSetpointCallback lambdaMotorSetpointCallback =
-        [this](const int16_t left, const int16_t right) { return this->setMotorSpeedSetpoints(left, right); };
-
-    processingChainFactory.registerLongitudinalControllerCreateFunc(LongitudinalController::create);
-    processingChainFactory.registerLongitudinalSafetyPolicyCreateFunc(LongitudinalSafetyPolicy::create);
-    processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
-    processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
-
-    if (false == m_platoonController.init(lambdaInputWaypointCallback, lambdaOutputWaypointCallback,
-                                          lambdaMotorSetpointCallback))
-    {
-        LOG_FATAL("Could not initialize Platoon Controller.");
-    }
-    else
-    {
-        isSuccessful = true;
-    }
+    bool isSuccessful = true;
 
     return isSuccessful;
+}
+
+void DrivingState::getNextWaypoint()
+{
+    /* Get latest waypoint. */
+    if (false == m_inputWaypointQueue.empty())
+    {
+        /* Retrieve next waypoint. */
+        Waypoint* nextWaypoint = m_inputWaypointQueue.front();
+        m_inputWaypointQueue.pop();
+
+        /* Check for invalid waypoint. */
+        int32_t headingDelta = 0;
+        if (false == PlatoonUtils::calculateRelativeHeading(*nextWaypoint, m_vehicleData.asWaypoint(), headingDelta))
+        {
+            LOG_ERROR("Failed to calculate relative heading for (%d, %d)", nextWaypoint->xPos, nextWaypoint->yPos);
+        }
+        /* Target is in the forward cone. */
+        else if ((headingDelta > -FORWARD_CONE_APERTURE) && (headingDelta < FORWARD_CONE_APERTURE))
+        {
+            /* Copy waypoint. */
+            m_targetWaypoint = *nextWaypoint;
+
+            LOG_DEBUG("New Waypoint: (%d, %d) Vc=%d", m_targetWaypoint.xPos, m_targetWaypoint.yPos,
+                      m_targetWaypoint.center);
+
+            /* Reset counter once a valid waypoint is received. */
+            m_invalidWaypointCounter = 0U;
+        }
+        else
+        {
+            LOG_ERROR("Invalid target waypoint (%d, %d)", nextWaypoint->xPos, nextWaypoint->yPos);
+
+            /* Prevent wrap-around. */
+            if (UINT8_MAX > m_invalidWaypointCounter)
+            {
+                /* Increase counter. */
+                ++m_invalidWaypointCounter;
+            }
+        }
+
+        /* Delete queued waypoint. */
+        delete nextWaypoint;
+    }
 }
 
 /******************************************************************************
