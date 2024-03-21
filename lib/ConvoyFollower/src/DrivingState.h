@@ -114,16 +114,6 @@ public:
     bool getMotorSpeedSetpoints(int16_t& leftMotorSpeed, int16_t& rightMotorSpeed) const;
 
     /**
-     * Set the calculated motor speed setpoints. Shall only be called internally and not by the user.
-     *
-     * @param[in] leftMotorSpeed The calculated left motor speed.
-     * @param[in] rightMotorSpeed The calculated right motor speed.
-     *
-     * @returns true, as the assignment cannot fail.
-     */
-    bool setMotorSpeedSetpoints(const int16_t leftMotorSpeed, const int16_t rightMotorSpeed);
-
-    /**
      * Set latest vehicle data.
      *
      * @param[in] vehicleData   Latest vehicle data.
@@ -140,15 +130,6 @@ public:
     bool pushWaypoint(Waypoint* waypoint);
 
     /**
-     * Get latest waypoint to be sent to follower.
-     *
-     * @param[out] waypoint  Latest waypoint.
-     *
-     * @return If successful returns true, otherwise false.
-     */
-    bool getWaypoint(Waypoint& waypoint);
-
-    /**
      * Is state active?
      *
      * @return If state is active, it will return true otherwise false.
@@ -163,11 +144,58 @@ private:
     /** Maximum invalid waypoints allowed before going into error state. */
     static const uint8_t MAX_INVALID_WAYPOINTS = 3U;
 
+    /** Aperture angle of the forward cone in mrad. */
+    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 75 degrees */
+
+    /** Period in ms for PID processing. */
+    static const uint32_t IVS_PID_PROCESS_PERIOD = 50U;
+
+    /** PID factors for the Inter Vehicle Space Controller. */
+    struct IVS_PID_FACTORS
+    {
+        /** The PID proportional factor numerator for the Inter Vehicle Space Controller. */
+        static const int32_t PID_P_NUMERATOR = 3;
+
+        /** The PID proportional factor denominator for the Inter Vehicle Space Controller.*/
+        static const int32_t PID_P_DENOMINATOR = 4;
+
+        /** The PID integral factor numerator for the Inter Vehicle Space Controller. */
+        static const int32_t PID_I_NUMERATOR = 1;
+
+        /** The PID integral factor denominator for the Inter Vehicle Space Controller. */
+        static const int32_t PID_I_DENOMINATOR = 10;
+
+        /** The PID derivative factor numerator for the Inter Vehicle Space Controller. */
+        static const int32_t PID_D_NUMERATOR = 1;
+
+        /** The PID derivative factor denominator for the Inter Vehicle Space Controller. */
+        static const int32_t PID_D_DENOMINATOR = 10;
+    };
+
+    /** PID factors for the Heading. */
+    struct HEADING_FINDER_PID_FACTORS
+    {
+        /** The PID proportional factor numerator for the Heading Finder. */
+        static const int32_t PID_P_NUMERATOR = 2;
+
+        /** The PID proportional factor denominator for the Heading Finder.*/
+        static const int32_t PID_P_DENOMINATOR = 1;
+
+        /** The PID integral factor numerator for the Heading Finder. */
+        static const int32_t PID_I_NUMERATOR = 0;
+
+        /** The PID integral factor denominator for the Heading Finder. */
+        static const int32_t PID_I_DENOMINATOR = 1;
+
+        /** The PID derivative factor numerator for the Heading Finder. */
+        static const int32_t PID_D_NUMERATOR = 30;
+
+        /** The PID derivative factor denominator for the Heading Finder. */
+        static const int32_t PID_D_DENOMINATOR = 1;
+    };
+
     /** Flag: State is active. */
     bool m_isActive;
-
-    /** Flag: initialization is successful. */
-    bool m_isInitSuccessful;
 
     /** Maximum motor speed. */
     int16_t m_maxMotorSpeed;
@@ -181,14 +209,11 @@ private:
     /** Latest vehicle data. */
     Telemetry m_vehicleData;
 
-    /** Outgoing Waypoint. */
-    Waypoint m_outputWaypoint;
-
     /**
      * Queue for the received waypoints.
      * Stores pointers to the waypoints in the queue when received in the callback.
-     * The queue is emptied by the getNextWaypoint() method.
-     * The queue is filled by the targetWaypointTopicCallback() method.
+     * The queue is emptied by the processNextWaypoint() method.
+     * The queue is filled by the pushWaypoint() method.
      *
      * @tparam Waypoint*    Pointer to a Waypoint.
      */
@@ -203,37 +228,11 @@ private:
     /** Counter of invalid waypoints. */
     uint8_t m_invalidWaypointCounter;
 
-    /**
-     * Aperture angle of the forward cone in mrad.
-     */
-    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 75 degrees */
-
-    /** Period in ms for PID processing. */
-    static const uint32_t PID_PROCESS_PERIOD = 50U;
-
-    /** The PID proportional factor numerator for the heading controller. */
-    static const int32_t PID_P_NUMERATOR = 3;
-
-    /** The PID proportional factor denominator for the heading controller.*/
-    static const int32_t PID_P_DENOMINATOR = 4;
-
-    /** The PID integral factor numerator for the heading controller. */
-    static const int32_t PID_I_NUMERATOR = 1;
-
-    /** The PID integral factor denominator for the heading controller. */
-    static const int32_t PID_I_DENOMINATOR = 10;
-
-    /** The PID derivative factor numerator for the heading controller. */
-    static const int32_t PID_D_NUMERATOR = 1;
-
-    /** The PID derivative factor denominator for the heading controller. */
-    static const int32_t PID_D_DENOMINATOR = 10;
-
     /** PID controller, used for maintaining IVS. */
-    PIDController<int32_t> m_pidCtrl;
+    PIDController<int32_t> m_ivsPidController;
 
     /** Timer used for periodically PID processing. */
-    SimpleTimer m_pidProcessTime;
+    SimpleTimer m_ivsPidProcessTimer;
 
     /** Inter Vehicle Space (IVS) in mm. */
     int32_t m_ivs;
@@ -242,56 +241,14 @@ private:
     HeadingFinder m_headingFinder;
 
     /**
-     * Setup the platoon controller.
-     *
-     * @return If successful returns true, otherwise false.
-     */
-    bool setupPlatoonController();
-
-    /**
      * Get latest waypoint from the queue, validate it and set it to as the current target.
      */
-    void getNextWaypoint();
+    void processNextWaypoint();
 
     /**
      * Default constructor.
      */
-    DrivingState() :
-        IState(),
-        m_isActive(false),
-        m_isInitSuccessful(false),
-        m_maxMotorSpeed(0),
-        m_leftMotorSpeed(0),
-        m_rightMotorSpeed(0),
-        m_vehicleData(),
-        m_outputWaypoint(),
-        m_inputWaypointQueue(),
-        m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15),
-        m_targetWaypoint(),
-        m_invalidWaypointCounter(0U),
-        m_pidCtrl(),
-        m_pidProcessTime(),
-        m_ivs(350),
-        m_headingFinder()
-    {
-        /* Configure PID. */
-        m_pidCtrl.clear();
-        m_pidCtrl.setPFactor(PID_P_NUMERATOR, PID_P_DENOMINATOR);
-        m_pidCtrl.setIFactor(PID_I_NUMERATOR, PID_I_DENOMINATOR);
-        m_pidCtrl.setDFactor(PID_D_NUMERATOR, PID_D_DENOMINATOR);
-        m_pidCtrl.setSampleTime(PID_PROCESS_PERIOD);
-        m_pidCtrl.setLimits(-m_maxMotorSpeed, m_maxMotorSpeed);
-        m_pidCtrl.setDerivativeOnMeasurement(true);
-        m_pidProcessTime.start(0); /* Immediate */
-
-        /* Configure heading finder. */
-        m_headingFinder.setPIDFactors(2,  /* Kp Numerator */
-                                      1,  /* Kp Denominator */
-                                      0,  /* Ki Numerator */
-                                      1,  /* Ki Denominator */
-                                      30, /* Kd Numerator */
-                                      1 /* Kd Denominator */);
-    }
+    DrivingState();
 
     /**
      * Default destructor.

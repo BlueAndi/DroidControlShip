@@ -65,74 +65,62 @@
 void DrivingState::entry()
 {
     m_isActive = true;
-
-    if (false == m_isInitSuccessful)
-    {
-        m_isInitSuccessful = setupPlatoonController();
-    }
-
-    if (false == m_isInitSuccessful)
-    {
-        LOG_FATAL("Could not initialize Platoon Controller.");
-    }
 }
 
 void DrivingState::process(StateMachine& sm)
 {
-    /* Check initialization is successful. */
-    if (false == m_isInitSuccessful)
+    /* Check if the state is active. */
+    if (false == m_isActive)
     {
-        sm.setState(&ErrorState::getInstance());
+        /* Stop motors. */
+        m_leftMotorSpeed  = 0;
+        m_rightMotorSpeed = 0;
     }
     else
     {
-        /* Check if the state is active. */
-        if (false == m_isActive)
+        /* Get next waypoint from the queue. */
+        processNextWaypoint();
+
+        /* Check invalid waypoint count. */
+        if (MAX_INVALID_WAYPOINTS <= m_invalidWaypointCounter)
         {
-            /* Stop motors. */
-            m_leftMotorSpeed  = 0;
-            m_rightMotorSpeed = 0;
+            /* Go to Error state. Too many invalid waypoints received. Are we going in the right direction? */
+            LOG_ERROR("Too many invalid waypoints received. Going into error state.");
+            sm.setState(&ErrorState::getInstance());
         }
         else
         {
-            /* Get next waypoint from the queue. */
-            getNextWaypoint();
+            int32_t pidDelta            = 0;
+            int32_t distance            = 0;
+            int16_t centerSpeedSetpoint = 0;
 
-            /* Check invalid waypoint count. */
-            if (MAX_INVALID_WAYPOINTS <= m_invalidWaypointCounter)
+            /* Longitudinal controller. */
+            /* Calculate distance to target waypoint. */
+            distance = PlatoonUtils::calculateAbsoluteDistance(m_targetWaypoint, m_vehicleData.asWaypoint());
+
+            if (true == m_ivsPidProcessTimer.isTimeout())
             {
-                /* Go to Error state. Too many invalid waypoints received. Are we going in the right direction? */
-                LOG_ERROR("Too many invalid waypoints received. Going into error state.");
-                sm.setState(&ErrorState::getInstance());
+                /* Calculate PID delta. Objective is for distance to reach and maintain the IVS. */
+                pidDelta = m_ivsPidController.calculate(m_ivs, distance);
+
+                /* Restart timer. */
+                m_ivsPidProcessTimer.start(IVS_PID_PROCESS_PERIOD);
             }
-            else
-            {
-                int32_t pidDelta            = 0;
-                int32_t distance            = 0;
-                int16_t centerSpeedSetpoint = 0;
 
-                /* Longitudinal controller. */
-                distance = PlatoonUtils::calculateAbsoluteDistance(m_targetWaypoint, m_vehicleData.asWaypoint());
+            /* Center speedpoint is relative to the center speed of the target waypoint. */
+            centerSpeedSetpoint = m_targetWaypoint.center - pidDelta;
 
-                if (true == m_pidProcessTime.isTimeout())
-                {
-                    /* Calculate PID delta. */
-                    pidDelta = m_pidCtrl.calculate(m_ivs, distance);
-                    m_pidProcessTime.start(PID_PROCESS_PERIOD);
-                }
+            /* Lateral controller. */
+            /* Set current input values. */
+            m_headingFinder.setOdometryData(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation);
+            m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
+            m_headingFinder.setTargetHeading(m_targetWaypoint.xPos, m_targetWaypoint.yPos);
 
-                centerSpeedSetpoint = constrain(m_targetWaypoint.center - pidDelta, 0, m_maxMotorSpeed * 2);
+            /* Calculate differential motor speed setpoints to reach target. */
+            m_headingFinder.process(m_leftMotorSpeed, m_rightMotorSpeed);
 
-                /* Lateral controller. */
-                m_headingFinder.setOdometryData(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation);
-                m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
-                m_headingFinder.setTargetHeading(m_targetWaypoint.xPos, m_targetWaypoint.yPos);
-
-                m_headingFinder.process(m_leftMotorSpeed, m_rightMotorSpeed);
-
-                /* Collision Avoidance. */
-                m_collisionAvoidance.limitSpeedToAvoidCollision(m_leftMotorSpeed, m_rightMotorSpeed, m_vehicleData);
-            }
+            /* Collision Avoidance. */
+            m_collisionAvoidance.limitSpeedToAvoidCollision(m_leftMotorSpeed, m_rightMotorSpeed, m_vehicleData);
         }
     }
 }
@@ -152,19 +140,8 @@ bool DrivingState::getMotorSpeedSetpoints(int16_t& leftMotorSpeed, int16_t& righ
     leftMotorSpeed  = m_leftMotorSpeed;
     rightMotorSpeed = m_rightMotorSpeed;
 
-    m_collisionAvoidance.limitSpeedToAvoidCollision(leftMotorSpeed, rightMotorSpeed, m_vehicleData);
-
     /* Only valid if the state is active. */
     return m_isActive;
-}
-
-bool DrivingState::setMotorSpeedSetpoints(const int16_t leftMotorSpeed, const int16_t rightMotorSpeed)
-{
-    m_leftMotorSpeed  = leftMotorSpeed;
-    m_rightMotorSpeed = rightMotorSpeed;
-
-    m_collisionAvoidance.limitSpeedToAvoidCollision(m_leftMotorSpeed, m_rightMotorSpeed, m_vehicleData);
-    return true;
 }
 
 void DrivingState::setVehicleData(const Telemetry& vehicleData)
@@ -193,14 +170,6 @@ bool DrivingState::pushWaypoint(Waypoint* waypoint)
     return isSuccessful;
 }
 
-bool DrivingState::getWaypoint(Waypoint& waypoint)
-{
-    waypoint = m_outputWaypoint;
-
-    /* Only valid if the state is active. */
-    return m_isActive;
-}
-
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/
@@ -209,14 +178,7 @@ bool DrivingState::getWaypoint(Waypoint& waypoint)
  * Private Methods
  *****************************************************************************/
 
-bool DrivingState::setupPlatoonController()
-{
-    bool isSuccessful = true;
-
-    return isSuccessful;
-}
-
-void DrivingState::getNextWaypoint()
+void DrivingState::processNextWaypoint()
 {
     /* Get latest waypoint. */
     if (false == m_inputWaypointQueue.empty())
@@ -258,6 +220,39 @@ void DrivingState::getNextWaypoint()
         /* Delete queued waypoint. */
         delete nextWaypoint;
     }
+}
+
+DrivingState::DrivingState() :
+    IState(),
+    m_isActive(false),
+    m_maxMotorSpeed(0),
+    m_leftMotorSpeed(0),
+    m_rightMotorSpeed(0),
+    m_vehicleData(),
+    m_inputWaypointQueue(),
+    m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15),
+    m_targetWaypoint(),
+    m_invalidWaypointCounter(0U),
+    m_ivsPidController(),
+    m_ivsPidProcessTimer(),
+    m_ivs(350),
+    m_headingFinder()
+{
+    /* Configure PID. */
+    m_ivsPidController.clear();
+    m_ivsPidController.setPFactor(IVS_PID_FACTORS::PID_P_NUMERATOR, IVS_PID_FACTORS::PID_P_DENOMINATOR);
+    m_ivsPidController.setIFactor(IVS_PID_FACTORS::PID_I_NUMERATOR, IVS_PID_FACTORS::PID_I_DENOMINATOR);
+    m_ivsPidController.setDFactor(IVS_PID_FACTORS::PID_D_NUMERATOR, IVS_PID_FACTORS::PID_D_DENOMINATOR);
+    m_ivsPidController.setSampleTime(IVS_PID_PROCESS_PERIOD);
+    m_ivsPidController.setLimits(-m_maxMotorSpeed, m_maxMotorSpeed);
+    m_ivsPidController.setDerivativeOnMeasurement(true);
+    m_ivsPidProcessTimer.start(0); /* Immediate */
+
+    /* Configure heading finder. */
+    m_headingFinder.setPIDFactors(
+        HEADING_FINDER_PID_FACTORS::PID_P_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_P_DENOMINATOR,
+        HEADING_FINDER_PID_FACTORS::PID_I_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_I_DENOMINATOR,
+        HEADING_FINDER_PID_FACTORS::PID_D_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_D_DENOMINATOR);
 }
 
 /******************************************************************************
