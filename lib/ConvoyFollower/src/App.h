@@ -127,7 +127,7 @@ private:
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
 
     /** Send waypoint timer interval in ms. */
-    static const uint32_t SEND_WAYPOINT_TIMER_INTERVAL = 500U;
+    static const uint32_t SEND_WAYPOINT_TIMER_INTERVAL = 50U;
 
     /** Send commands timer interval in ms. */
     static const uint32_t SEND_COMMANDS_TIMER_INTERVAL = 100U;
