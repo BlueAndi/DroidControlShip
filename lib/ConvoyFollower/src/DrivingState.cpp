@@ -65,6 +65,25 @@
 void DrivingState::entry()
 {
     m_isActive = true;
+
+    /* First target is the current location. */
+    m_targetWaypoint = m_vehicleData.asWaypoint();
+
+    /* Configure PID. */
+    m_ivsPidController.clear();
+    m_ivsPidController.setPFactor(IVS_PID_FACTORS::PID_P_NUMERATOR, IVS_PID_FACTORS::PID_P_DENOMINATOR);
+    m_ivsPidController.setIFactor(IVS_PID_FACTORS::PID_I_NUMERATOR, IVS_PID_FACTORS::PID_I_DENOMINATOR);
+    m_ivsPidController.setDFactor(IVS_PID_FACTORS::PID_D_NUMERATOR, IVS_PID_FACTORS::PID_D_DENOMINATOR);
+    m_ivsPidController.setSampleTime(IVS_PID_PROCESS_PERIOD);
+    m_ivsPidController.setLimits(-m_maxMotorSpeed, m_maxMotorSpeed);
+    m_ivsPidController.setDerivativeOnMeasurement(true);
+    m_ivsPidProcessTimer.start(0); /* Immediate */
+
+    /* Configure heading finder. */
+    m_headingFinder.setPIDFactors(
+        HEADING_FINDER_PID_FACTORS::PID_P_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_P_DENOMINATOR,
+        HEADING_FINDER_PID_FACTORS::PID_I_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_I_DENOMINATOR,
+        HEADING_FINDER_PID_FACTORS::PID_D_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_D_DENOMINATOR);
 }
 
 void DrivingState::process(StateMachine& sm)
@@ -240,21 +259,6 @@ DrivingState::DrivingState() :
     m_ivs(350),
     m_headingFinder()
 {
-    /* Configure PID. */
-    m_ivsPidController.clear();
-    m_ivsPidController.setPFactor(IVS_PID_FACTORS::PID_P_NUMERATOR, IVS_PID_FACTORS::PID_P_DENOMINATOR);
-    m_ivsPidController.setIFactor(IVS_PID_FACTORS::PID_I_NUMERATOR, IVS_PID_FACTORS::PID_I_DENOMINATOR);
-    m_ivsPidController.setDFactor(IVS_PID_FACTORS::PID_D_NUMERATOR, IVS_PID_FACTORS::PID_D_DENOMINATOR);
-    m_ivsPidController.setSampleTime(IVS_PID_PROCESS_PERIOD);
-    m_ivsPidController.setLimits(-m_maxMotorSpeed, m_maxMotorSpeed);
-    m_ivsPidController.setDerivativeOnMeasurement(true);
-    m_ivsPidProcessTimer.start(0); /* Immediate */
-
-    /* Configure heading finder. */
-    m_headingFinder.setPIDFactors(
-        HEADING_FINDER_PID_FACTORS::PID_P_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_P_DENOMINATOR,
-        HEADING_FINDER_PID_FACTORS::PID_I_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_I_DENOMINATOR,
-        HEADING_FINDER_PID_FACTORS::PID_D_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_D_DENOMINATOR);
 }
 
 /******************************************************************************
