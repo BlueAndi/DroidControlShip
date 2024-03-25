@@ -130,6 +130,16 @@ public:
     bool pushWaypoint(Waypoint* waypoint);
 
     /**
+     * Get the last reached waypoint.
+     *
+     * @return Last reached waypoint.
+     */
+    Waypoint getLastReachedWaypoint() const
+    {
+        return m_lastReachedWaypoint;
+    }
+
+    /**
      * Is state active?
      *
      * @return If state is active, it will return true otherwise false.
@@ -224,6 +234,9 @@ private:
 
     /** Target waypoint. */
     Waypoint m_targetWaypoint;
+
+    /** Last waypoint. */
+    Waypoint m_lastReachedWaypoint;
 
     /** Counter of invalid waypoints. */
     uint8_t m_invalidWaypointCounter;

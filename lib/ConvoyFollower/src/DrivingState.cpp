@@ -197,7 +197,8 @@ void DrivingState::processNextWaypoint()
         else if ((headingDelta > -FORWARD_CONE_APERTURE) && (headingDelta < FORWARD_CONE_APERTURE))
         {
             /* Copy waypoint. */
-            m_targetWaypoint = *nextWaypoint;
+            m_lastReachedWaypoint = m_targetWaypoint;
+            m_targetWaypoint      = *nextWaypoint;
 
             LOG_DEBUG("New Waypoint: (%d, %d) Vc=%d", m_targetWaypoint.xPos, m_targetWaypoint.yPos,
                       m_targetWaypoint.center);
@@ -232,6 +233,7 @@ DrivingState::DrivingState() :
     m_inputWaypointQueue(),
     m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15),
     m_targetWaypoint(),
+    m_lastReachedWaypoint(),
     m_invalidWaypointCounter(0U),
     m_ivsPidController(),
     m_ivsPidProcessTimer(),

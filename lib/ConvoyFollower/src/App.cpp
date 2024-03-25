@@ -381,18 +381,19 @@ void App::processPeriodicTasks()
             LOG_WARNING("Status could not be sent.");
         }
 
-        /* Send waypoint to next follower. */
+        /* Send lastReachedWaypoint to next follower. */
+        Waypoint lastReachedWaypoint = DrivingState::getInstance().getLastReachedWaypoint();
+
         if ((true == DrivingState::getInstance().isActive()) &&
-            (WAYPOINT_DISTANCE_INTERVAL <=
-             PlatoonUtils::calculateAbsoluteDistance(m_lastWaypointSent, m_latestVehicleData)))
+            (false == PlatoonUtils::areWaypointsEqual(m_lastWaypointSent, lastReachedWaypoint)))
         {
-            if (false == m_v2vCommManager.sendWaypoint(m_latestVehicleData))
+            if (false == m_v2vCommManager.sendWaypoint(lastReachedWaypoint))
             {
                 LOG_WARNING("Waypoint could not be sent.");
             }
             else
             {
-                m_lastWaypointSent = m_latestVehicleData;
+                m_lastWaypointSent = lastReachedWaypoint;
             }
         }
 
