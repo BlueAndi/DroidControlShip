@@ -142,7 +142,7 @@ private:
     static const uint32_t STATUS_TIMEOUT_TIMER_INTERVAL = 2U * SEND_STATUS_TIMER_INTERVAL;
 
     /** Distance interval between waypoints in mm. */
-    static const int32_t WAYPOINT_DISTANCE_INTERVAL = 150;
+    static const int32_t WAYPOINT_DISTANCE_INTERVAL = 100;
 
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;
