@@ -145,6 +145,15 @@ public:
     bool sendStatus(const Waypoint& waypoint);
 
     /**
+     * Send the current IVS to the leader.
+     *
+     * @param[in] ivs  Inter Vehicle Space (IVS) in mm.
+     *
+     * @return If the IVS was sent successfully, returns true. Otherwise, false.
+     */
+    bool sendIVS(const int32_t ivs);
+
+    /**
      * Get the next recevied V2V Event from the V2V communication manager.
      * The V2V Event is a generic event that can be used to send any type of event.
      * The event type is defined by the V2VEventType enum.
@@ -162,6 +171,14 @@ public:
      * Trigger emergency stop of the platoon.
      */
     void triggerEmergencyStop();
+
+    /**
+     * Get the calculated platoon length.
+     * The platoon length is calculated as the sum of the Inter Vehicle Space (IVS) of all the followers.
+     *
+     * @return Platoon length in mm.
+     */
+    int32_t getPlatoonLength() const;
 
 private:
     /** Max topic length */
@@ -188,6 +205,9 @@ private:
     /** MQTT topic name for platoon debug. */
     static const char* TOPIC_NAME_DEBUG;
 
+    /** MQTT subtopic name for Inter Vehicle Space. */
+    static const char* TOPIC_NAME_IVS;
+
     /** Maximum number of events to queue. */
     static const size_t MAX_EVENT_QUEUE_SIZE = 20U;
 
@@ -196,11 +216,12 @@ private:
     {
         uint32_t m_timestamp; /**< Timestamp of the last received heartbeat. */
         uint8_t  m_status;    /**< Status of the vehicle. */
+        int32_t  m_ivs;       /**< Inter Vehicle Space (IVS) in mm. */
 
         /**
          * Construct a follower.
          */
-        Follower() : m_timestamp(0U), m_status(0U)
+        Follower() : m_timestamp(0U), m_status(0U), m_ivs(0)
         {
         }
     };
@@ -232,6 +253,9 @@ private:
 
     /** Topic to receive last follower feedback waypoints. */
     String m_feedbackTopic;
+
+    /** Topic to send the IVS. */
+    String m_ivsTopic;
 
     /** Type of Platoon Participant.*/
     ParticipantType m_participantType;
@@ -282,7 +306,7 @@ private:
      *
      * @return If the topics were setup successfully, returns true. Otherwise, false.
      */
-    bool setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId);
+    bool setupCommonTopics(uint8_t platoonId, uint8_t vehicleId);
 
     /**
      * Setup heartbeat input and output topics.

@@ -381,19 +381,27 @@ void App::processPeriodicTasks()
             LOG_WARNING("Status could not be sent.");
         }
 
-        /* Send lastReachedWaypoint to next follower. */
-        Waypoint lastReachedWaypoint = DrivingState::getInstance().getLastReachedWaypoint();
-
-        if ((true == DrivingState::getInstance().isActive()) &&
-            (false == PlatoonUtils::areWaypointsEqual(m_lastWaypointSent, lastReachedWaypoint)))
+        if (true == DrivingState::getInstance().isActive())
         {
-            if (false == m_v2vCommManager.sendWaypoint(lastReachedWaypoint))
+            /* Send lastReachedWaypoint to next follower. */
+            Waypoint lastReachedWaypoint = DrivingState::getInstance().getLastReachedWaypoint();
+
+            if (false == PlatoonUtils::areWaypointsEqual(m_lastWaypointSent, lastReachedWaypoint))
             {
-                LOG_WARNING("Waypoint could not be sent.");
+                if (false == m_v2vCommManager.sendWaypoint(lastReachedWaypoint))
+                {
+                    LOG_WARNING("Waypoint could not be sent.");
+                }
+                else
+                {
+                    m_lastWaypointSent = lastReachedWaypoint;
+                }
             }
-            else
+
+            /* Send average IVS to next follower. */
+            if (false == m_v2vCommManager.sendIVS(DrivingState::getInstance().getAvgIVS()))
             {
-                m_lastWaypointSent = lastReachedWaypoint;
+                LOG_WARNING("IVS could not be sent.");
             }
         }
 

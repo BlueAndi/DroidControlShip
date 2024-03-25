@@ -150,6 +150,16 @@ public:
         return m_isActive;
     }
 
+    /**
+     * Get the current average Inter Vehicle Space (IVS) in mm.
+     *
+     * @return Current average IVS in mm.
+     */
+    int32_t getAvgIVS() const
+    {
+        return m_avgIvs.getResult();
+    }
+
 protected:
 private:
     /** Maximum invalid waypoints allowed before going into error state. */
