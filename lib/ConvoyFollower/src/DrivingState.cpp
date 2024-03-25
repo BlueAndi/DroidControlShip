@@ -292,6 +292,7 @@ DrivingState::DrivingState() :
     m_ivsPidProcessTimer(),
     m_ivsSetpoint(DEFAULT_IVS),
     m_headingFinder(),
+    m_cumulativeQueueDistance(0),
     m_avgIvs()
 {
 }

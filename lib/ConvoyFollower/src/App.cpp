@@ -398,7 +398,7 @@ void App::processPeriodicTasks()
                 }
             }
 
-            /* Send average IVS to next follower. */
+            /* Send average IVS to the leader. */
             if (false == m_v2vCommManager.sendIVS(DrivingState::getInstance().getAvgIVS()))
             {
                 LOG_WARNING("IVS could not be sent.");
