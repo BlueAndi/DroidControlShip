@@ -97,8 +97,13 @@ void DrivingState::process(StateMachine& sm)
     }
     else
     {
-        /* Get next waypoint from the queue. */
-        processNextWaypoint();
+        /* Check if target waypoint is reached. */
+        if (true ==
+            PlatoonUtils::areWaypointsEqual(m_targetWaypoint, m_vehicleData.asWaypoint(), TARGET_WAYPOINT_ERROR_MARGIN))
+        {
+            /* Get next waypoint from the queue. */
+            processNextWaypoint();
+        }
 
         /* Check invalid waypoint count. */
         if (MAX_INVALID_WAYPOINTS <= m_invalidWaypointCounter)
@@ -144,6 +149,10 @@ void DrivingState::process(StateMachine& sm)
 
             /* Collision Avoidance. */
             m_collisionAvoidance.limitSpeedToAvoidCollision(m_leftMotorSpeed, m_rightMotorSpeed, m_vehicleData);
+
+            /* Prevent going backwards. */
+            m_leftMotorSpeed  = constrain(m_leftMotorSpeed, 0, m_maxMotorSpeed);
+            m_rightMotorSpeed = constrain(m_rightMotorSpeed, 0, m_maxMotorSpeed);
         }
     }
 }

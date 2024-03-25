@@ -163,6 +163,12 @@ private:
     /** Default Inter Vehicle Space in mm. */
     static const int32_t DEFAULT_IVS = 200;
 
+    /**
+     * Error margin in mm for target waypoint.
+     * Used to determine if target waypoint has been reached.
+     */
+    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 30;
+
     /** PID factors for the Inter Vehicle Space Controller. */
     struct IVS_PID_FACTORS
     {
