@@ -67,7 +67,8 @@ void DrivingState::entry()
     m_isActive = true;
 
     /* First target is the current location. */
-    m_targetWaypoint = m_vehicleData.asWaypoint();
+    m_targetWaypoint      = m_vehicleData.asWaypoint();
+    m_lastReachedWaypoint = m_targetWaypoint;
 
     /* Configure PID. */
     m_ivsPidController.clear();
