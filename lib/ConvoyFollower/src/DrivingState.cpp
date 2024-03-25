@@ -109,18 +109,22 @@ void DrivingState::process(StateMachine& sm)
         }
         else
         {
-            int32_t pidDelta            = 0;
-            int32_t distance            = 0;
-            int16_t centerSpeedSetpoint = 0;
+            int32_t pidDelta                 = 0;
+            int32_t distanceToTargetWaypoint = 0;
+            int16_t centerSpeedSetpoint      = 0;
 
             /* Longitudinal controller. */
             /* Calculate distance to target waypoint. */
-            distance = PlatoonUtils::calculateAbsoluteDistance(m_targetWaypoint, m_vehicleData.asWaypoint());
+            distanceToTargetWaypoint =
+                PlatoonUtils::calculateAbsoluteDistance(m_targetWaypoint, m_vehicleData.asWaypoint());
+
+            /* Calculate distance to predecessor for platoon length calculation of the leader. */
+            m_distanceToPredecessor = m_cumulativeQueueDistance + distanceToTargetWaypoint;
 
             if (true == m_ivsPidProcessTimer.isTimeout())
             {
                 /* Calculate PID delta. Objective is for distance to reach and maintain the IVS. */
-                pidDelta = m_ivsPidController.calculate(m_ivs, distance);
+                pidDelta = m_ivsPidController.calculate(m_ivs, m_distanceToPredecessor);
 
                 /* Restart timer. */
                 m_ivsPidProcessTimer.start(IVS_PID_PROCESS_PERIOD);
@@ -181,6 +185,18 @@ bool DrivingState::pushWaypoint(Waypoint* waypoint)
         }
         else
         {
+            /* Calculate distance to predecessor.*/
+            if (false == m_inputWaypointQueue.empty())
+            {
+                /* Distance to last received waypoint to prevent direct line. */
+                Waypoint* predecessor = m_inputWaypointQueue.back();
+                m_cumulativeQueueDistance += PlatoonUtils::calculateAbsoluteDistance(*predecessor, *waypoint);
+            }
+            else
+            {
+                m_cumulativeQueueDistance = 0;
+            }
+
             m_inputWaypointQueue.push(waypoint);
             isSuccessful = true;
         }
@@ -215,6 +231,12 @@ void DrivingState::processNextWaypoint()
         /* Target is in the forward cone. */
         else if ((headingDelta > -FORWARD_CONE_APERTURE) && (headingDelta < FORWARD_CONE_APERTURE))
         {
+            /* Distance to old target waypoint. */
+            int32_t distance = PlatoonUtils::calculateAbsoluteDistance(*nextWaypoint, m_targetWaypoint);
+
+            /* Update cumulative distance. */
+            m_cumulativeQueueDistance = constrain((m_cumulativeQueueDistance - distance), 0, INT32_MAX);
+
             /* Copy waypoint. */
             m_lastReachedWaypoint = m_targetWaypoint;
             m_targetWaypoint      = *nextWaypoint;
@@ -256,8 +278,9 @@ DrivingState::DrivingState() :
     m_invalidWaypointCounter(0U),
     m_ivsPidController(),
     m_ivsPidProcessTimer(),
-    m_ivs(350),
-    m_headingFinder()
+    m_ivs(DEFAULT_IVS),
+    m_headingFinder(),
+    m_distanceToPredecessor(0)
 {
 }
 

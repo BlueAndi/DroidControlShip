@@ -160,6 +160,9 @@ private:
     /** Period in ms for PID processing. */
     static const uint32_t IVS_PID_PROCESS_PERIOD = 50U;
 
+    /** Default Inter Vehicle Space in mm. */
+    static const int32_t DEFAULT_IVS = 200;
+
     /** PID factors for the Inter Vehicle Space Controller. */
     struct IVS_PID_FACTORS
     {
@@ -252,6 +255,12 @@ private:
 
     /** Heading finder. */
     HeadingFinder m_headingFinder;
+
+    /** Cumulative distance of waypoints in queue in mm */
+    int32_t m_cumulativeQueueDistance;
+
+    /** Distance to the predecessor in mm */
+    int32_t m_distanceToPredecessor;
 
     /**
      * Get latest waypoint from the queue, validate it and set it to as the current target.
