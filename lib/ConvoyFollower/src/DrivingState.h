@@ -207,7 +207,7 @@ private:
         static const int32_t PID_I_DENOMINATOR = 1;
 
         /** The PID derivative factor numerator for the Heading Finder. */
-        static const int32_t PID_D_NUMERATOR = 30;
+        static const int32_t PID_D_NUMERATOR = 100;
 
         /** The PID derivative factor denominator for the Heading Finder. */
         static const int32_t PID_D_DENOMINATOR = 1;
