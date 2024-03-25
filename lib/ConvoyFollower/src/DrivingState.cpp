@@ -115,22 +115,24 @@ void DrivingState::process(StateMachine& sm)
         }
         else
         {
-            int32_t pidDelta                 = 0;
-            int32_t distanceToTargetWaypoint = 0;
-            int16_t centerSpeedSetpoint      = 0;
+            int32_t pidDelta            = 0;
+            int16_t centerSpeedSetpoint = 0;
 
             /* Longitudinal controller. */
-            /* Calculate distance to target waypoint. */
-            distanceToTargetWaypoint =
-                PlatoonUtils::calculateAbsoluteDistance(m_targetWaypoint, m_vehicleData.asWaypoint());
-
-            /* Calculate distance to predecessor for platoon length calculation of the leader. */
-            m_distanceToPredecessor = m_cumulativeQueueDistance + distanceToTargetWaypoint;
-
             if (true == m_ivsPidProcessTimer.isTimeout())
             {
+                int32_t distanceToTargetWaypoint = 0;
+                int32_t distanceToPredecessor    = 0;
+
+                /* Calculate distance to target waypoint. */
+                distanceToTargetWaypoint =
+                    PlatoonUtils::calculateAbsoluteDistance(m_targetWaypoint, m_vehicleData.asWaypoint());
+
+                /* Calculate distance to predecessor for platoon length calculation of the leader. */
+                distanceToPredecessor = m_avgIvs.write(m_cumulativeQueueDistance + distanceToTargetWaypoint);
+
                 /* Calculate PID delta. Objective is for distance to reach and maintain the IVS. */
-                pidDelta = m_ivsPidController.calculate(m_ivs, m_distanceToPredecessor);
+                pidDelta = m_ivsPidController.calculate(m_ivsSetpoint, distanceToPredecessor);
 
                 /* Restart timer. */
                 m_ivsPidProcessTimer.start(IVS_PID_PROCESS_PERIOD);
@@ -288,9 +290,9 @@ DrivingState::DrivingState() :
     m_invalidWaypointCounter(0U),
     m_ivsPidController(),
     m_ivsPidProcessTimer(),
-    m_ivs(DEFAULT_IVS),
+    m_ivsSetpoint(DEFAULT_IVS),
     m_headingFinder(),
-    m_distanceToPredecessor(0)
+    m_avgIvs()
 {
 }
 

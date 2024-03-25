@@ -52,6 +52,7 @@
 #include <PIDController.h>
 #include <SimpleTimer.hpp>
 #include <HeadingFinder.h>
+#include <MovAvg.hpp>
 
 /******************************************************************************
  * Macros
@@ -164,6 +165,12 @@ private:
     static const int32_t DEFAULT_IVS = 200;
 
     /**
+     * Number of measurements to be taken into account in the average IVS.
+     * Calculated as the number of measurements in a second.
+     */
+    static const uint8_t IVS_MOVAVG_SIZE = 1000U / IVS_PID_PROCESS_PERIOD;
+
+    /**
      * Error margin in mm for target waypoint.
      * Used to determine if target waypoint has been reached.
      */
@@ -256,8 +263,8 @@ private:
     /** Timer used for periodically PID processing. */
     SimpleTimer m_ivsPidProcessTimer;
 
-    /** Inter Vehicle Space (IVS) in mm. */
-    int32_t m_ivs;
+    /** Inter Vehicle Space (IVS) Setpoint in mm. */
+    int32_t m_ivsSetpoint;
 
     /** Heading finder. */
     HeadingFinder m_headingFinder;
@@ -265,8 +272,8 @@ private:
     /** Cumulative distance of waypoints in queue in mm */
     int32_t m_cumulativeQueueDistance;
 
-    /** Distance to the predecessor in mm */
-    int32_t m_distanceToPredecessor;
+    /** Average distance to the predecessor in mm. */
+    MovAvg<int32_t, IVS_MOVAVG_SIZE> m_avgIvs;
 
     /**
      * Get latest waypoint from the queue, validate it and set it to as the current target.
