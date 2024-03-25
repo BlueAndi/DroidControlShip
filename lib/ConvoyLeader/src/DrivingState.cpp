@@ -63,8 +63,8 @@
 void DrivingState::entry()
 {
     m_isActive = true;
+    LOG_DEBUG("DEFAULT_IVS: %d", DEFAULT_IVS);
     LOG_DEBUG("MAX_PLATOON_LENGTH: %d", MAX_PLATOON_LENGTH);
-    LOG_DEBUG("MAX_INTER_VEHICLE_SPACE: %d", MAX_INTER_VEHICLE_SPACE);
 }
 
 void DrivingState::process(StateMachine& sm)
@@ -87,7 +87,7 @@ void DrivingState::process(StateMachine& sm)
 
         if (controlSpeed > linearSpeedSetpoint)
         {
-            LOG_DEBUG("Speed limited by Platoon Length Controller.");
+            LOG_DEBUG("Speed limited by Platoon Length Controller. Length: %d", m_platoonLength);
             controlSpeed = linearSpeedSetpoint;
         }
 
@@ -134,9 +134,13 @@ void DrivingState::setVehicleData(const Telemetry& data)
     m_vehicleData = data;
 }
 
-void DrivingState::setLastFollowerFeedback(const Telemetry& feedback)
+void DrivingState::setPlatoonLength(const int32_t platoonLength)
 {
-    m_followerFeedback = feedback;
+    /*
+     * Platoon length was calculated using the center points, not the vehicle edges.
+     * Vehicle length is added to take front and back of first and last vehicles into account.
+     */
+    m_platoonLength = platoonLength + VEHICLE_LENGTH;
 }
 
 /******************************************************************************
@@ -149,18 +153,12 @@ void DrivingState::setLastFollowerFeedback(const Telemetry& feedback)
 
 void DrivingState::platoonLengthController(int16_t& linearCenterSpeedSetpoint)
 {
-    int32_t distanceToLast = 0;
-
-    /* Calculate current platoon length based on distance to last follower. */
-    distanceToLast =
-        (abs((m_vehicleData.xPos - m_followerFeedback.xPos)) + abs(m_vehicleData.yPos - m_followerFeedback.yPos));
-
     /* Limit the speed setpoint if platoon length greater than maximum allowed. */
-    if (distanceToLast > MAX_PLATOON_LENGTH)
+    if (m_platoonLength > MAX_PLATOON_LENGTH)
     {
         int16_t maxPossibleSpeed = linearCenterSpeedSetpoint;
 
-        maxPossibleSpeed = maxPossibleSpeed - (distanceToLast * maxPossibleSpeed / (MAX_PLATOON_LENGTH * 2));
+        maxPossibleSpeed = maxPossibleSpeed - (m_platoonLength * maxPossibleSpeed / (MAX_PLATOON_LENGTH * 10));
 
         /* Make sure the speed is constraint. */
         if (maxPossibleSpeed < linearCenterSpeedSetpoint)

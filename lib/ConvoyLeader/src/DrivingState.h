@@ -118,11 +118,11 @@ public:
     void setVehicleData(const Telemetry& data);
 
     /**
-     * Set last follower feedback.
+     * Set the platoon length.
      *
-     * @param[in] feedback  Last follower feedback.
+     * @param[in] platoonLength  Platoon Length.
      */
-    void setLastFollowerFeedback(const Telemetry& feedback);
+    void setPlatoonLength(const int32_t platoonLength);
 
     /**
      * Is state active?
@@ -140,11 +140,10 @@ private:
     static const uint8_t VEHICLE_LENGTH = 100U;
 
     /** Maximum inter vehicle space in mm. */
-    static const uint16_t MAX_INTER_VEHICLE_SPACE = V2VCommManager::NUMBER_OF_FOLLOWERS * VEHICLE_LENGTH;
+    static const uint16_t DEFAULT_IVS = 200;
 
     /** Maximum platoon length allowed. */
-    static const uint16_t MAX_PLATOON_LENGTH = ((V2VCommManager::NUMBER_OF_FOLLOWERS + 1) * VEHICLE_LENGTH) +
-                                               (V2VCommManager::NUMBER_OF_FOLLOWERS * MAX_INTER_VEHICLE_SPACE);
+    static const uint16_t MAX_PLATOON_LENGTH = (VEHICLE_LENGTH + (V2VCommManager::NUMBER_OF_FOLLOWERS * DEFAULT_IVS));
 
     /** Flag: State is active. */
     bool m_isActive;
@@ -158,8 +157,8 @@ private:
     /** Latest vehicle data. */
     Telemetry m_vehicleData;
 
-    /** Last follower feedback. */
-    Telemetry m_followerFeedback;
+    /** Length of the platoon from start of leader to the end of the last follower. */
+    int32_t m_platoonLength;
 
     /** Collision Avoidance instance. */
     CollisionAvoidance m_collisionAvoidance;
@@ -180,7 +179,7 @@ private:
         m_maxMotorSpeed(0),
         m_currentSpeedSetpoint(0),
         m_vehicleData(),
-        m_followerFeedback(),
+        m_platoonLength(),
         m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_20_25)
     {
     }

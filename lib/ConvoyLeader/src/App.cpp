@@ -418,6 +418,9 @@ void App::processPeriodicTasks()
             LOG_WARNING("Failed to send motor speeds to RU.");
         }
 
+        /* Set the platoon length for the next speed calculation. */
+        DrivingState::getInstance().setPlatoonLength(m_v2vCommManager.getPlatoonLength());
+
         m_motorSpeedTimer.restart();
     }
 
@@ -517,21 +520,8 @@ void App::processV2VCommunication()
             break;
 
         case V2VEventType::V2V_EVENT_FEEDBACK:
-            if (nullptr != event.data)
-            {
-                Waypoint* waypoint = static_cast<Waypoint*>(event.data);
-                Telemetry feedback{waypoint->xPos,
-                                   waypoint->yPos,
-                                   waypoint->orientation,
-                                   waypoint->left,
-                                   waypoint->right,
-                                   waypoint->center,
-                                   0U}; /* No proximity data. */
-
-                DrivingState::getInstance().setLastFollowerFeedback(feedback);
-                delete waypoint;
-                break;
-            }
+            /* Nothing to do. */
+            break;
 
         case V2VEventType::V2V_EVENT_EMERGENCY:
             LOG_DEBUG("V2V_EVENT_EMERGENCY");
