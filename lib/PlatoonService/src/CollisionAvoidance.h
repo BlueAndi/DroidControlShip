@@ -79,8 +79,8 @@ public:
     /**
      * Limit the speed of the vehicle to avoid collision.
      *
-     * @param[out] speedSetpoint The speed setpoint to be limited.
-     * @param[in] vehicleData The vehicle data.
+     * @param[out] speedSetpoint The speed setpoint to be limited in steps/s.
+     * @param[in] vehicleData The vehicle data structure.
      */
     void limitSpeedToAvoidCollision(int16_t& speedSetpoint, const Telemetry& vehicleData) const
     {
@@ -94,9 +94,9 @@ public:
     /**
      * Limit the speed of the vehicle to avoid collision.
      *
-     * @param[out] leftSpeedSetpoint The left motor speed setpoint to be limited.
-     * @param[out] rightSpeedSetpoint The right motor speed setpoint to be limited.
-     * @param[in] vehicleData The vehicle data.
+     * @param[out] leftSpeedSetpoint The left motor speed setpoint to be limited in steps/s.
+     * @param[out] rightSpeedSetpoint The right motor speed setpoint to be limited in steps/s.
+     * @param[in] vehicleData The vehicle data structure.
      */
     void limitSpeedToAvoidCollision(int16_t& leftSpeedSetpoint, int16_t& rightSpeedSetpoint,
                                     const Telemetry& vehicleData) const

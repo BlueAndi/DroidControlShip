@@ -118,9 +118,9 @@ public:
     void setVehicleData(const Telemetry& data);
 
     /**
-     * Set the platoon length.
+     * Set the platoon length in mm.
      *
-     * @param[in] platoonLength  Platoon Length.
+     * @param[in] platoonLength  Platoon length in mm.
      */
     void setPlatoonLength(const int32_t platoonLength);
 
@@ -142,13 +142,13 @@ private:
     /** Maximum inter vehicle space in mm. */
     static const uint16_t DEFAULT_IVS = 200U;
 
-    /** Maximum platoon length allowed. */
+    /** Maximum platoon length allowed in mm. */
     static const uint16_t MAX_PLATOON_LENGTH = (VEHICLE_LENGTH + (V2VCommManager::NUMBER_OF_FOLLOWERS * DEFAULT_IVS));
 
     /** Flag: State is active. */
     bool m_isActive;
 
-    /** Maximum motor speed. */
+    /** Maximum motor speed in steps/s. */
     int16_t m_maxMotorSpeed;
 
     /** Current linear speed setpoint to apply to the vehicle. */
@@ -157,7 +157,7 @@ private:
     /** Latest vehicle data. */
     Telemetry m_vehicleData;
 
-    /** Length of the platoon from start of leader to the end of the last follower. */
+    /** Length of the platoon from start of leader to the end of the last follower in mm. */
     int32_t m_platoonLength;
 
     /** Collision Avoidance instance. */
