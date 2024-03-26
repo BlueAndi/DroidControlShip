@@ -43,6 +43,9 @@
  * Includes
  *****************************************************************************/
 
+#include <Arduino.h>
+#include <math.h>
+#include <FPMath.h>
 #include <stdint.h>
 #include <IState.h>
 #include <queue>
@@ -166,7 +169,7 @@ private:
     static const uint8_t MAX_INVALID_WAYPOINTS = 3U;
 
     /** Aperture angle of the forward cone in mrad. */
-    static const int32_t FORWARD_CONE_APERTURE = 1300; /* Aprox. 75 degrees */
+    static const int32_t FORWARD_CONE_APERTURE = FP_2PI() / 5;
 
     /** Period in ms for PID processing. */
     static const uint32_t IVS_PID_PROCESS_PERIOD = 50U;
@@ -178,7 +181,7 @@ private:
      * Number of measurements to be taken into account in the average IVS.
      * Calculated as the number of measurements in a second.
      */
-    static const uint8_t IVS_MOVAVG_SIZE = 1000U / IVS_PID_PROCESS_PERIOD;
+    static const uint8_t IVS_MOVAVG_NUMBER_OF_MEASUREMENTS = 1000U / IVS_PID_PROCESS_PERIOD;
 
     /**
      * Error margin in mm for target waypoint.
@@ -283,7 +286,7 @@ private:
     int32_t m_cumulativeQueueDistance;
 
     /** Average distance to the predecessor in mm. */
-    MovAvg<int32_t, IVS_MOVAVG_SIZE> m_avgIvs;
+    MovAvg<int32_t, IVS_MOVAVG_NUMBER_OF_MEASUREMENTS> m_avgIvs;
 
     /**
      * Get latest waypoint from the queue, validate it and set it to as the current target.

@@ -142,7 +142,7 @@ public:
      *
      * @return If the waypoint was sent successfully, returns true. Otherwise, false.
      */
-    bool sendStatus(const Waypoint& waypoint);
+    bool sendStatus(const Waypoint& waypoint) const;
 
     /**
      * Send the current IVS to the leader.
@@ -151,7 +151,7 @@ public:
      *
      * @return If the IVS was sent successfully, returns true. Otherwise, false.
      */
-    bool sendIVS(const int32_t ivs);
+    bool sendIVS(const int32_t ivs) const;
 
     /**
      * Get the next recevied V2V Event from the V2V communication manager.
@@ -214,14 +214,14 @@ private:
     /** Follower. */
     struct Follower
     {
-        uint32_t m_timestamp; /**< Timestamp of the last received heartbeat. */
-        uint8_t  m_status;    /**< Status of the vehicle. */
-        int32_t  m_ivs;       /**< Inter Vehicle Space (IVS) in mm. */
+        uint32_t      m_timestamp; /**< Timestamp of the last received heartbeat. */
+        VehicleStatus m_status;    /**< Status of the vehicle. */
+        int32_t       m_ivs;       /**< Inter Vehicle Space (IVS) in mm. */
 
         /**
          * Construct a follower.
          */
-        Follower() : m_timestamp(0U), m_status(0U), m_ivs(0)
+        Follower() : m_timestamp(0U), m_status(VEHICLE_STATUS_UNKNOWN), m_ivs(0)
         {
         }
     };
@@ -341,7 +341,7 @@ private:
      *
      * @return If the event was published successfully, returns true. Otherwise, false.
      */
-    bool publishEvent(const String& topic, V2VEventType type, const String& data);
+    bool publishEvent(const String& topic, V2VEventType type, const String& data) const;
 
     /**
      * Publish an event to the specified topic.
@@ -352,7 +352,7 @@ private:
      *
      * @return If the event was published successfully, returns true. Otherwise, false.
      */
-    bool publishEvent(const String& topic, V2VEventType type, const JsonObject& data);
+    bool publishEvent(const String& topic, V2VEventType type, const JsonObject& data) const;
 
     /**
      * Process the vehicle heartbeat of a follower.

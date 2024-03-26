@@ -273,7 +273,7 @@ bool V2VCommManager::sendWaypoint(const Waypoint& waypoint)
     return isSuccessful;
 }
 
-bool V2VCommManager::sendStatus(const Waypoint& waypoint)
+bool V2VCommManager::sendStatus(const Waypoint& waypoint) const
 {
     bool         isSuccessful = false;
     V2VEventType type         = V2V_EVENT_WAYPOINT;
@@ -296,7 +296,7 @@ bool V2VCommManager::sendStatus(const Waypoint& waypoint)
     return isSuccessful;
 }
 
-bool V2VCommManager::sendIVS(const int32_t ivs)
+bool V2VCommManager::sendIVS(const int32_t ivs) const
 {
     bool         isSuccessful = false;
     V2VEventType type         = V2V_EVENT_IVS;
@@ -734,7 +734,7 @@ bool V2VCommManager::sendPlatoonHeartbeat()
     return isSuccessful;
 }
 
-bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const String& data)
+bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const String& data) const
 {
     bool isSuccessful = false;
 
@@ -763,7 +763,7 @@ bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const 
     return isSuccessful;
 }
 
-bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const JsonObject& data)
+bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const JsonObject& data) const
 {
     bool   isSuccessful = false;
     String payload;
@@ -797,7 +797,7 @@ void V2VCommManager::processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t e
 
         /* Update follower. */
         follower.m_timestamp = eventDataTimestamp;
-        follower.m_status    = eventDataStatus;
+        follower.m_status    = static_cast<VehicleStatus>(eventDataStatus);
 
         /* Increment counter regardless of the status. */
         ++m_followerResponseCounter;

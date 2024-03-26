@@ -140,7 +140,7 @@ private:
     static const uint8_t VEHICLE_LENGTH = 100U;
 
     /** Maximum inter vehicle space in mm. */
-    static const uint16_t DEFAULT_IVS = 200;
+    static const uint16_t DEFAULT_IVS = 200U;
 
     /** Maximum platoon length allowed. */
     static const uint16_t MAX_PLATOON_LENGTH = (VEHICLE_LENGTH + (V2VCommManager::NUMBER_OF_FOLLOWERS * DEFAULT_IVS));

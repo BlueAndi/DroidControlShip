@@ -110,10 +110,10 @@ public:
     }
 
 private:
-    /** Closest proximity range value. */
+    /** Closest proximity range value [brightness levels]. */
     uint8_t m_closestProximityRangeValue;
 
-    /** Range threshold. */
+    /** Range threshold [brightness levels]. */
     uint8_t m_rangeThreshold;
 
     /**
