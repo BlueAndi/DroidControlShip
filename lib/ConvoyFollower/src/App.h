@@ -127,7 +127,7 @@ private:
     static const uint8_t MIN_BATTERY_LEVEL = 10U;
 
     /** Send waypoint timer interval in ms. */
-    static const uint32_t SEND_WAYPOINT_TIMER_INTERVAL = 500U;
+    static const uint32_t SEND_WAYPOINT_TIMER_INTERVAL = 50U;
 
     /** Send commands timer interval in ms. */
     static const uint32_t SEND_COMMANDS_TIMER_INTERVAL = 100U;
@@ -140,6 +140,9 @@ private:
 
     /** Status timeout timer interval in ms. */
     static const uint32_t STATUS_TIMEOUT_TIMER_INTERVAL = 2U * SEND_STATUS_TIMER_INTERVAL;
+
+    /** Distance interval between waypoints in mm. */
+    static const int32_t WAYPOINT_DISTANCE_INTERVAL = 50;
 
     /** MQTT topic name for birth messages. */
     static const char* TOPIC_NAME_BIRTH;

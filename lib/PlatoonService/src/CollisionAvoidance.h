@@ -25,25 +25,25 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Interface for a Lateral Safety Policy.
+ * @brief  Collision Avoidance Module.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup PlatoonService
  *
  * @{
  */
-#ifndef I_LATERAL_SAFETY_POLICY_H
-#define I_LATERAL_SAFETY_POLICY_H
+#ifndef COLLISION_AVOIDANCE_H
+#define COLLISION_AVOIDANCE_H
 
 /******************************************************************************
  * Compile Switches
  *****************************************************************************/
 
+#include "Telemetry.h"
+
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -53,46 +53,78 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Abstract lateral safety policy interface. */
-class ILateralSafetyPolicy
+/**
+ * Collision avoidance class.
+ */
+class CollisionAvoidance
 {
 public:
     /**
-     * ILateralSafetyPolicy creation function, used by the ProcessingChainFactory to create a
-     * ILateralSafetyPolicy instance.
+     * Collision avoidance constructor
+     *
+     * @param[in] closestProximityRangeValue Value equivalent to the closest proximity range that can be measured.
+     * @param[in] rangeThreshold Range at which the vehicle should stop to avoid collision.
      */
-    typedef ILateralSafetyPolicy* (*CreateFunc)(void);
+    CollisionAvoidance(uint8_t closestProximityRangeValue, uint8_t rangeThreshold) :
+        m_closestProximityRangeValue(closestProximityRangeValue),
+        m_rangeThreshold(rangeThreshold){};
 
     /**
-     * Destroys the interface.
+     * Default Destructor.
      */
-    virtual ~ILateralSafetyPolicy()
+    ~CollisionAvoidance()
     {
     }
 
     /**
-     * Checks if the lateral safety policy is satisfied by the calculated motor speeds.
-     * If not, the motor speeds are adjusted accordingly.
+     * Limit the speed of the vehicle to avoid collision.
      *
-     * @param[in,out]   leftMotorSpeedSetpoint  Left motor speed [steps/s].
-     * @param[in,out]   rightMotorSpeedSetpoint Right motor speed [steps/s].
-     *
-     * @return True is satisfied, otherwise false.
+     * @param[out] speedSetpoint The speed setpoint to be limited in steps/s.
+     * @param[in] vehicleData The vehicle data structure.
      */
-    virtual bool check(int16_t& leftMotorSpeedSetpoint, int16_t& rightMotorSpeedSetpoint) = 0;
-
-protected:
-    /**
-     * Constructs the interface.
-     */
-    ILateralSafetyPolicy()
+    void limitSpeedToAvoidCollision(int16_t& speedSetpoint, const Telemetry& vehicleData) const
     {
+        /* Is vehicle is closer than the threshold? */
+        if (vehicleData.proximity >= m_rangeThreshold)
+        {
+            speedSetpoint = 0;
+        }
     }
+
+    /**
+     * Limit the speed of the vehicle to avoid collision.
+     *
+     * @param[out] leftSpeedSetpoint The left motor speed setpoint to be limited in steps/s.
+     * @param[out] rightSpeedSetpoint The right motor speed setpoint to be limited in steps/s.
+     * @param[in] vehicleData The vehicle data structure.
+     */
+    void limitSpeedToAvoidCollision(int16_t& leftSpeedSetpoint, int16_t& rightSpeedSetpoint,
+                                    const Telemetry& vehicleData) const
+    {
+        /* Is vehicle is closer than the threshold? */
+        if (vehicleData.proximity >= m_rangeThreshold)
+        {
+            leftSpeedSetpoint  = 0;
+            rightSpeedSetpoint = 0;
+        }
+    }
+
+private:
+    /** Closest proximity range value [brightness levels]. */
+    uint8_t m_closestProximityRangeValue;
+
+    /** Range threshold [brightness levels]. */
+    uint8_t m_rangeThreshold;
+
+    /**
+     * Default constructor.
+     */
+    CollisionAvoidance();
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* I_LATERAL_SAFETY_POLICY_H */
+#endif /* COLLISION_AVOIDANCE_H */
 /** @} */
