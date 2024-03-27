@@ -1,0 +1,16 @@
+{
+    "name": "SignalReceiver",
+    "version": "0.1.0",
+    "description": "SignalReceiver application",
+    "authors": [
+        {
+            "name": "Paul Gramescu",
+            "email": "paul.gramescu@gmail.com",
+            "maintainer": true
+        }
+    ],
+    "license": "MIT",
+    "dependencies": [],
+    "frameworks": "*",
+    "platforms": "*"
+}

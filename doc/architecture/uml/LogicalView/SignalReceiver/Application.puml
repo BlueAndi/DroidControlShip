@@ -1,0 +1,202 @@
+@startuml SignalReceiverApplication
+
+title SignalReceiver app
+
+package "Application" as appLayer {
+
+    class App {
+        - static const uint8_t MIN_BATTERY_LEVEL 
+        - static const uint32_t SEND_COMMANDS_TIMER_INTERVAL
+        - static const uint32_t SEND_MOTOR_SPEED_TIMER_INTERVAL
+        - static const uint32_t SEND_STATUS_TIMER_INTERVAL
+        - static const uint32_t PROCESS_TRAFFIC_TIMER_INTERVAL
+        - static const uint32_t STATUS_TIMEOUT_TIMER_INTERVAL
+        - static const char TOPIC_NAME_BIRTH
+        - static const char TOPIC_NAME_WILL
+        - static const char TOPIC_NAME_SETTINGS
+        - uint8_t m_serialMuxProtChannelIdRemoteCtrl
+        - uint8_t m_serialMuxProtChannelIdMotorSpeeds
+        - uint8_t m_serialMuxProtChannelIdStatus
+        - SMPServer m_smpServer
+        - MqttClient m_mqttClient
+        - StateMachine m_systemStateMachine
+        - SimpleTimer m_commandTimer
+        - SimpleTimer m_motorSpeedTimer 
+        - SimpleTimer m_processTrafficTimer 
+        - SimpleTimer m_statusTimer
+        - SimpleTimer m_statusTimeoutTimer 
+        - bool m_isSubscribed
+        - Color clr 
+        - Color oldClr
+        + setup() : void
+        + loop() : void
+        + setErrorState() : void 
+        + systemStatusCallback(SMPChannelPayload::Status status) : void
+        + odometryChannelCallback(const VehicleData& odometry) : void
+        + trafficLightColorsCallback(const String& payload) : void
+        + settingsCallback(const String& payload) : void
+        - fatalErrorHandler() : void
+        - processPeriodicTasks() : void 
+        - processTraffic() : void 
+    }
+
+    note left of App::m_isSubscribed
+        Flag to subscribe only once, once status is LOCKED_IN.
+    end note
+
+    note left of App::odometryChannelCallback
+        Receives and deserializes odometry information from RadonUlzer. 
+    end note
+
+    note left of App::trafficLightColorsCallback
+        Receives and deserializes MQTT signals.
+        * Type: {"COLOR": ID}
+    end note
+
+    note left of App::settingsCallback
+        Receives and deserializes MQTT signals 
+        with settings of IEs present in the system.
+        * Type: {"FROM": , "TOWARDS": , "EX": , "EY": }
+    end note
+
+    note left of App::processPeriodicTasks()
+        Here are various functions called once the timers are done. 
+    end note 
+
+    class "TrafficElement" as te 
+    {
+        -String m_nameElement
+        -int32_t m_orientation
+        -int32_t m_entryX
+        -int32_t m_entryY
+        -int32_t m_distance
+        -int32_t m_previousDistance
+        -String m_topicName
+        -uint8_t m_trafficStatus
+        +getInstance() : TrafficElement
+        +setIEName(String name) : void
+        +getIEName() : String
+        +setRequiredOrientation(int32_t requiredOrientation) : void
+        +getRequiredOrientation() : int32_t
+        +setEntryValues(int32_t entryX, int32_t entryY) : void
+        +getEntryX() : int32_t
+        +getEntryY() : int32_t
+        +setDistance(int32_t currentDistance) : void
+        +getDistance() : int32_t
+        +setPreviousDistance(int32_t previousDistance) : void
+        +getPreviousDistance() : int32_t   
+        +setTopicName(String topic) : void
+        +getTopicName() : String
+        +setStatus(uint8_t status) : void
+        +getStatus() : uint8_t
+        +isEmpty() : bool
+    }
+
+    note bottom of te
+        * The TrafficElement class contains methods to save 
+        incoming relevant settings from IEs.
+        * It is used by TrafficHandler to create a list of 
+        all present IEs in the system.
+    end note
+
+    class "TrafficHandler" as th 
+    {
+        -uint8_t MAX_ELEMENTS
+        -uint8_t m_IECounter
+        -uint8_t m_colorID
+        -String lockedOnto
+        -TrafficElement listOfElements[MAX_ELEMENTS]
+        +getInstance() : TrafficHandler 
+        +processList() : bool
+        +setNewInfrastructureElement() : bool
+        +setColorID(uint8_t receivedColor) : void 
+        +getColorID() : uint8_t
+        +processColor() : void 
+        +checkLockIn() : bool
+        +isNear() : bool
+        +getTargetName() : String
+        +clearTarget() : void 
+    }
+
+    note right of th
+        * Adds new IEs to the list once it receives relevant settings.
+        * Processes this list and outputs a status between the robot and each IE.
+        * Important statuses are checked using checkLockIn() and isNear()
+    end note
+
+    note left of th::setNewInfrastructureElement()
+        Various parameters are passed through in order to add 
+        the IE to the list.
+    end note
+
+    class "CoordinateHandler" as ch 
+    {
+        -enum CurrentStatus
+        -int32_t m_distance
+        -int32_t m_oldDistance
+        -int32_t m_currentX
+        -int32_t m_currentY
+        -int32_t m_currentOrientation
+        -CurrentStatus m_currentStatus
+        +getInstance() : CoordinateHandler 
+        +setCurrentCoordinates(int32_t xPos, int32_t yPos) : void
+        +getCurrentXCoord() : int32_t 
+        +getCurrentYCoord() : int32_t
+        +setCurrentOrientation() : void
+        +getCurrentOrientation() : int32_t
+        +getCurrentDistance() : int32_t
+        +getOldDistance() : int32_t
+        +process(const String& ieName, int32_t ieOrientation, int32_t distanceToIE, int32_t previousDistanceToIE) : bool
+        +calculateDistance(int32_t xPos, int32_t yPos) : int32_t
+        +getStatus() : uint8_t
+        -isMovingTowards(int32_t currentDistance, int32_t previousDistance) : bool
+        -checkOrientation(int32_t orientationIE) : bool
+    }
+
+    note bottom of ch
+        Processes and compares the coordinates of the robot (current)
+        with the ones of each enlisted IE.
+    end note 
+}
+
+package "Service" as serviceLayer {
+    class SettingsHandler {
+        - String m_robotName
+        - String m_wifiSSID
+        - String m_wifiPassword
+        - String m_mqttBrokerAddress
+        - uint16_t m_mqttPort
+        - String m_apSSID
+        - String m_apPassword
+        - String m_webServerUser
+        - String m_webServerPassword
+        - uint8_t m_platoonPlatoonId
+        - uint8_t m_platoonVehicleId
+        - FileHandler m_fileHandler
+        + getInstance() : SettingsHandler
+        + loadConfigurationFile(const String& filename) : bool
+        + saveConfigurationFile(const String& filename) : bool
+        + getRobotName() : const String&
+        + setRobotName(const String& robotName) : void
+        + getWiFiSSID() : const String&
+        + setWiFiSSID(const String& wifiSSID) : void 
+        + getWiFiPassword() : const String&
+        + setWiFiPassword(const String& wifiPassword) : void
+        + getMqttBrokerAddress() : const String&
+        + getMqttPort() : uint16_t
+        + getApSSID() : const String&
+        + getApPassword() : const String&
+        + getWebServerUser() : const String&
+        + getWebServerPassword() : const String&
+        + getPlatoonPlatoonId() : uint8_t
+        + getPLatoonVehicleId() : uint8_t
+    }
+}
+
+App ---o th
+App --o ch 
+App ----> SettingsHandler : <<use>>
+th "1" --> "0...10" te : <<use>>
+th --o ch 
+
+@enduml

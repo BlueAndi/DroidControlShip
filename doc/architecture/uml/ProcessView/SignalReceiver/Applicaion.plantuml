@@ -1,0 +1,80 @@
+@startuml
+
+title SignalReceiver Sequence
+
+actor Infrastructure_Element
+actor RadonUlzer
+participant App 
+participant Settings 
+participant TrafficElements
+participant TrafficHandler
+participant CoordinateHandler
+
+group Setup
+    App -> App : setup()
+
+        App -> Settings: getMqttConfig()
+        return success
+
+    Infrastructure_Element -> App: settings through MQTT
+        App -> TrafficHandler: setNewInfrastructureElement()
+            TrafficHandler -> TrafficElements: isEmpty()
+            return if true, add it to list of IEs
+end
+
+group Loop 
+    Infrastructure_Element -> Infrastructure_Element: runs through states
+    RadonUlzer -> RadonUlzer: follows the line
+    RadonUlzer -> App : <<SMP/USB>> Receive Odometry info (X,Y and Orientation)
+    App -> CoordinateHandler: setCurrentOrientation(), setCurrentCoordinates()
+    App -> TrafficHandler : TrafficHandler::process()
+    note right: < processing for each IE in the list
+
+    group TrafficHandler::process()
+    TrafficHandler -> TrafficHandler: setPreviousDistance()
+
+    TrafficHandler -> CoordinateHandler: setDistance(calculateDistance())
+    return distance
+
+    TrafficHandler -> CoordinateHandler: CoordinateHandler::process() with given distances
+
+        group CoordinateHandler::process()
+
+            hnote over CoordinateHandler: STATUS_IDLE
+            CoordinateHandler -> CoordinateHandler: isMovingTowards() is true \n then
+
+            hnote over CoordinateHandler: STATUS_TOWARDS
+            CoordinateHandler -> CoordinateHandler: checkOrientation() is true \n then
+
+            hnote over CoordinateHandler: STATUS_LOCKED_IN
+            CoordinateHandler -> CoordinateHandler: distance < 200 is true \n then
+
+            hnote over CoordinateHandler: STATUS_NEAR 
+            hnote over CoordinateHandler: else STATUS_PASSED
+        end
+    end
+
+    TrafficHandler -> CoordinateHandler: setStatus(STATUS)
+
+    group Subscription
+        App -> TrafficHandler: checkLockIn()
+        note left: is getStatus() == LOCKED_IN || NEAR ?
+        return if true, subscribe to IE's MQTT topic
+
+        Infrastructure_Element -> App: <<MQTT>>Incoming color: \n receive and deserialize message, save it in Color clr
+       
+        group Listening
+            App -> TrafficHandler: isNear()
+            note left: is getStatus() == NEAR ?
+            return if true, then gIsListening is true
+            
+            App -> App: if (oldClr != clr) then
+            App -> RadonUlzer: sendColor() 
+            App -> App: oldClr = clr
+        else gIsListening = false
+        end
+    else unsubscribe from IE
+    end
+end
+
+@enduml
