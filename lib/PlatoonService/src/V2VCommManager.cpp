@@ -74,6 +74,9 @@ const char* V2VCommManager::TOPIC_NAME_DEBUG = "debug/waypoint";
 /* MQTT subtopic name for Inter Vehicle Space. */
 const char* V2VCommManager::TOPIC_NAME_IVS = "ivs";
 
+/* MQTT subtopic name for Platoon Length. */
+const char* V2VCommManager::TOPIC_NAME_PLATOON_LENGTH = "length";
+
 /** Buffer size for JSON serialization of heartbeat messages. */
 static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 128U;
 
@@ -93,6 +96,7 @@ V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_heartbeatResponseTopic(),
     m_feedbackTopic(),
     m_ivsTopic(),
+    m_platoonLengthTopic(),
     m_participantType(PARTICIPANT_TYPE_UNKNOWN),
     m_platoonId(0U),
     m_vehicleId(0U),
@@ -358,6 +362,9 @@ int32_t V2VCommManager::getPlatoonLength() const
         platoonLength += m_followers[followerArrayIdx].m_ivs;
     }
 
+    /* Send calculated platoon length to external monitor. */
+    (void)sendPlatoonLength(platoonLength);
+
     return platoonLength;
 }
 
@@ -549,6 +556,7 @@ bool V2VCommManager::setupCommonTopics(uint8_t platoonId, uint8_t vehicleId)
     char    outputTopicBuffer[MAX_TOPIC_LENGTH];
     char    feedbackTopicBuffer[MAX_TOPIC_LENGTH];
     char    ivsTopicBuffer[MAX_TOPIC_LENGTH];
+    char    platoonLengthTopicBuffer[MAX_TOPIC_LENGTH];
 
     /* Input Topic. */
     if (0 >= snprintf(inputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", platoonId, vehicleId,
@@ -573,6 +581,12 @@ bool V2VCommManager::setupCommonTopics(uint8_t platoonId, uint8_t vehicleId)
     {
         LOG_ERROR("Failed to create IVS topic.");
     }
+    /* Platoon Length Topic. */
+    else if (0 >= snprintf(platoonLengthTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/%s", platoonId,
+                           TOPIC_NAME_PLATOON_LENGTH))
+    {
+        LOG_ERROR("Failed to create Platoon Length topic.");
+    }
     else
     {
         /* Set topics. */
@@ -580,9 +594,11 @@ bool V2VCommManager::setupCommonTopics(uint8_t platoonId, uint8_t vehicleId)
         m_waypointOutputTopic = outputTopicBuffer;
         m_feedbackTopic       = feedbackTopicBuffer;
         m_ivsTopic            = ivsTopicBuffer;
+        m_platoonLengthTopic  = platoonLengthTopicBuffer;
 
         if ((true == m_waypointInputTopic.isEmpty()) || (true == m_waypointOutputTopic.isEmpty()) ||
-            (true == m_feedbackTopic.isEmpty()) || (true == m_ivsTopic.isEmpty()))
+            (true == m_feedbackTopic.isEmpty()) || (true == m_ivsTopic.isEmpty()) ||
+            (true == m_platoonLengthTopic.isEmpty()))
         {
             LOG_ERROR("Failed to create MQTT topics.");
         }
@@ -813,6 +829,33 @@ void V2VCommManager::processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t e
             /* Nothing to do. */
         }
     }
+}
+
+bool V2VCommManager::sendPlatoonLength(const int32_t length) const
+{
+    bool         isSuccessful = false;
+    V2VEventType type         = V2V_EVENT_IVS;
+
+    /* Create JSON document. */
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    String                                    payload;
+
+    jsonPayload["length"] = length;
+
+    if (0U == serializeJson(jsonPayload, payload))
+    {
+        LOG_ERROR("Failed to serialize platoon length.");
+    }
+    else if (false == publishEvent(m_platoonLengthTopic, type, payload))
+    {
+        LOG_ERROR("Failed to publish platoon length Event");
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
 }
 
 /******************************************************************************

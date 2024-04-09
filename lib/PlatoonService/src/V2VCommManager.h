@@ -208,6 +208,9 @@ private:
     /** MQTT subtopic name for Inter Vehicle Space. */
     static const char* TOPIC_NAME_IVS;
 
+    /** MQTT subtopic name for Platoon Length. */
+    static const char* TOPIC_NAME_PLATOON_LENGTH;
+
     /** Maximum number of events to queue. */
     static const size_t MAX_EVENT_QUEUE_SIZE = 20U;
 
@@ -256,6 +259,9 @@ private:
 
     /** Topic to send the IVS. */
     String m_ivsTopic;
+
+    /** Topic to send the platoon length. */
+    String m_platoonLengthTopic;
 
     /** Type of Platoon Participant.*/
     ParticipantType m_participantType;
@@ -362,6 +368,15 @@ private:
      * @param[in] eventDataStatus      Status of the vehicle.
      */
     void processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t eventDataTimestamp, uint8_t eventDataStatus);
+
+    /**
+     * Send the current platoon length to the platoon topic.
+     *
+     * @param[in] length  Platoon Length in mm.
+     *
+     * @return If the platoon length was sent successfully, returns true. Otherwise, false.
+     */
+    bool sendPlatoonLength(const int32_t length) const;
 
     /**
      * Default constructor.
