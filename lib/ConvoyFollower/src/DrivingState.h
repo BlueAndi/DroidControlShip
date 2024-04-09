@@ -181,7 +181,7 @@ private:
      * Number of measurements to be taken into account in the average IVS.
      * Calculated as the number of measurements in a second.
      */
-    static const uint8_t IVS_MOVAVG_NUMBER_OF_MEASUREMENTS = 1000U / IVS_PID_PROCESS_PERIOD;
+    static const uint8_t IVS_MOVAVG_NUMBER_OF_MEASUREMENTS = 500U / IVS_PID_PROCESS_PERIOD;
 
     /**
      * Error margin in mm for target waypoint.
@@ -193,7 +193,7 @@ private:
     struct IVS_PID_FACTORS
     {
         /** The PID proportional factor numerator for the Inter Vehicle Space Controller. */
-        static const int32_t PID_P_NUMERATOR = 3;
+        static const int32_t PID_P_NUMERATOR = 8;
 
         /** The PID proportional factor denominator for the Inter Vehicle Space Controller.*/
         static const int32_t PID_P_DENOMINATOR = 4;
@@ -202,7 +202,7 @@ private:
         static const int32_t PID_I_NUMERATOR = 1;
 
         /** The PID integral factor denominator for the Inter Vehicle Space Controller. */
-        static const int32_t PID_I_DENOMINATOR = 10;
+        static const int32_t PID_I_DENOMINATOR = 15;
 
         /** The PID derivative factor numerator for the Inter Vehicle Space Controller. */
         static const int32_t PID_D_NUMERATOR = 1;
