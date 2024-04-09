@@ -40,6 +40,7 @@
  *****************************************************************************/
 
 #include "Telemetry.h"
+#include <Logging.h>
 
 /******************************************************************************
  * Includes
@@ -88,6 +89,7 @@ public:
         if (vehicleData.proximity >= m_rangeThreshold)
         {
             speedSetpoint = 0;
+            LOG_WARNING("Collision Avoidance: Setpoint limited!");
         }
     }
 
@@ -106,6 +108,7 @@ public:
         {
             leftSpeedSetpoint  = 0;
             rightSpeedSetpoint = 0;
+            LOG_WARNING("Collision Avoidance: Setpoint limited!");
         }
     }
 
