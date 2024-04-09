@@ -160,6 +160,11 @@ void DrivingState::platoonLengthController(int16_t& linearCenterSpeedSetpoint)
 
         maxPossibleSpeed = maxPossibleSpeed - (m_platoonLength * maxPossibleSpeed / (MAX_PLATOON_LENGTH * 10));
 
+        if (m_platoonLength > 2 * MAX_PLATOON_LENGTH)
+        {
+            maxPossibleSpeed = 0;
+        }
+
         /* Make sure the speed is constraint. */
         if (maxPossibleSpeed < linearCenterSpeedSetpoint)
         {
