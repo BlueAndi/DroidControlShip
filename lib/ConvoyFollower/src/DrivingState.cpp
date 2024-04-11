@@ -286,7 +286,7 @@ DrivingState::DrivingState() :
     m_rightMotorSpeed(0),
     m_vehicleData(),
     m_inputWaypointQueue(),
-    m_collisionAvoidance(SMPChannelPayload::RANGE_0_5, SMPChannelPayload::RANGE_10_15),
+    m_collisionAvoidance(Telemetry::Range::RANGE_0_5, Telemetry::Range::RANGE_10_15),
     m_targetWaypoint(),
     m_lastReachedWaypoint(),
     m_invalidWaypointCounter(0U),
