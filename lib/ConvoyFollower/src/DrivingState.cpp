@@ -105,59 +105,56 @@ void DrivingState::process(StateMachine& sm)
             /* Get next waypoint from the queue. */
             processNextWaypoint();
         }
+        else if (MAX_INVALID_WAYPOINTS <= m_invalidWaypointCounter)
+        {
+            /* Go to Error state. Too many invalid waypoints received. Are we going in the right direction? */
+            LOG_ERROR("Too many invalid waypoints received. Going into error state.");
+            sm.setState(&ErrorState::getInstance());
+        }
         else
+        {
+            int32_t pidDelta            = 0;
+            int16_t centerSpeedSetpoint = 0;
 
-            /* Check invalid waypoint count. */
-            if (MAX_INVALID_WAYPOINTS <= m_invalidWaypointCounter)
+            /* Longitudinal controller. */
+            if (true == m_ivsPidProcessTimer.isTimeout())
             {
-                /* Go to Error state. Too many invalid waypoints received. Are we going in the right direction? */
-                LOG_ERROR("Too many invalid waypoints received. Going into error state.");
-                sm.setState(&ErrorState::getInstance());
+                int32_t distanceToTargetWaypoint = 0;
+                int32_t distanceToPredecessor    = 0;
+
+                /* Calculate distance to target waypoint. */
+                distanceToTargetWaypoint =
+                    PlatoonUtils::calculateAbsoluteDistance(m_targetWaypoint, m_vehicleData.asWaypoint());
+
+                /* Calculate distance to predecessor for platoon length calculation of the leader. */
+                distanceToPredecessor = m_avgIvs.write(m_cumulativeQueueDistance + distanceToTargetWaypoint);
+
+                /* Calculate PID delta. Objective is for distance to reach and maintain the IVS. */
+                pidDelta = m_ivsPidController.calculate(m_ivsSetpoint, distanceToPredecessor);
+
+                /* Restart timer. */
+                m_ivsPidProcessTimer.start(IVS_PID_PROCESS_PERIOD);
+
+                /* Center speedpoint is relative to the center speed of the target waypoint. */
+                centerSpeedSetpoint = constrain(m_targetWaypoint.center - pidDelta, 0, m_maxMotorSpeed);
+
+                /* Lateral controller. */
+                /* Set current input values. */
+                m_headingFinder.setOdometryData(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation);
+                m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
+                m_headingFinder.setTargetHeading(m_targetWaypoint.xPos, m_targetWaypoint.yPos);
+
+                /* Calculate differential motor speed setpoints to reach target. */
+                m_headingFinder.process(m_leftMotorSpeed, m_rightMotorSpeed);
+
+                /* Collision Avoidance. */
+                m_collisionAvoidance.limitSpeedToAvoidCollision(m_leftMotorSpeed, m_rightMotorSpeed, m_vehicleData);
+
+                /* Prevent going backwards. */
+                m_leftMotorSpeed  = constrain(m_leftMotorSpeed, 0, m_maxMotorSpeed);
+                m_rightMotorSpeed = constrain(m_rightMotorSpeed, 0, m_maxMotorSpeed);
             }
-            else
-            {
-                int32_t pidDelta            = 0;
-                int16_t centerSpeedSetpoint = 0;
-
-                /* Longitudinal controller. */
-                if (true == m_ivsPidProcessTimer.isTimeout())
-                {
-                    int32_t distanceToTargetWaypoint = 0;
-                    int32_t distanceToPredecessor    = 0;
-
-                    /* Calculate distance to target waypoint. */
-                    distanceToTargetWaypoint =
-                        PlatoonUtils::calculateAbsoluteDistance(m_targetWaypoint, m_vehicleData.asWaypoint());
-
-                    /* Calculate distance to predecessor for platoon length calculation of the leader. */
-                    distanceToPredecessor = m_avgIvs.write(m_cumulativeQueueDistance + distanceToTargetWaypoint);
-
-                    /* Calculate PID delta. Objective is for distance to reach and maintain the IVS. */
-                    pidDelta = m_ivsPidController.calculate(m_ivsSetpoint, distanceToPredecessor);
-
-                    /* Restart timer. */
-                    m_ivsPidProcessTimer.start(IVS_PID_PROCESS_PERIOD);
-
-                    /* Center speedpoint is relative to the center speed of the target waypoint. */
-                    centerSpeedSetpoint = constrain(m_targetWaypoint.center - pidDelta, 0, m_maxMotorSpeed);
-
-                    /* Lateral controller. */
-                    /* Set current input values. */
-                    m_headingFinder.setOdometryData(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation);
-                    m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
-                    m_headingFinder.setTargetHeading(m_targetWaypoint.xPos, m_targetWaypoint.yPos);
-
-                    /* Calculate differential motor speed setpoints to reach target. */
-                    m_headingFinder.process(m_leftMotorSpeed, m_rightMotorSpeed);
-
-                    /* Collision Avoidance. */
-                    m_collisionAvoidance.limitSpeedToAvoidCollision(m_leftMotorSpeed, m_rightMotorSpeed, m_vehicleData);
-
-                    /* Prevent going backwards. */
-                    m_leftMotorSpeed  = constrain(m_leftMotorSpeed, 0, m_maxMotorSpeed);
-                    m_rightMotorSpeed = constrain(m_rightMotorSpeed, 0, m_maxMotorSpeed);
-                }
-            }
+        }
     }
 }
 
