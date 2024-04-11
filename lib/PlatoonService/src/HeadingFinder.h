@@ -137,7 +137,7 @@ public:
 
 private:
     /** Period in ms for PID processing. */
-    static const uint32_t PID_PROCESS_PERIOD = 50U;
+    static const uint32_t PID_PROCESS_PERIOD = 40U;
 
     /** Maximum motor speed in encoder steps/s */
     static const int16_t MAX_MOTOR_SPEED = 3000;

@@ -133,7 +133,7 @@ private:
     static const uint32_t SEND_COMMANDS_TIMER_INTERVAL = 100U;
 
     /** Send motor speed timer interval in ms. */
-    static const uint32_t SEND_MOTOR_SPEED_TIMER_INTERVAL = 100U;
+    static const uint32_t SEND_MOTOR_SPEED_TIMER_INTERVAL = 50U;
 
     /** Send status timer interval in ms. */
     static const uint32_t SEND_STATUS_TIMER_INTERVAL = 1000U;

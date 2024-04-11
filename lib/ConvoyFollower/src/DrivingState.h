@@ -187,50 +187,50 @@ private:
      * Error margin in mm for target waypoint.
      * Used to determine if target waypoint has been reached.
      */
-    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 30;
+    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 50;
 
     /** PID factors for the Inter Vehicle Space Controller. */
     struct IVS_PID_FACTORS
     {
         /** The PID proportional factor numerator for the Inter Vehicle Space Controller. */
-        static const int32_t PID_P_NUMERATOR = 8;
+        static const int32_t PID_P_NUMERATOR = 3;
 
         /** The PID proportional factor denominator for the Inter Vehicle Space Controller.*/
         static const int32_t PID_P_DENOMINATOR = 4;
 
         /** The PID integral factor numerator for the Inter Vehicle Space Controller. */
-        static const int32_t PID_I_NUMERATOR = 1;
+        static const int32_t PID_I_NUMERATOR = 0;
 
         /** The PID integral factor denominator for the Inter Vehicle Space Controller. */
-        static const int32_t PID_I_DENOMINATOR = 15;
+        static const int32_t PID_I_DENOMINATOR = 10;
 
         /** The PID derivative factor numerator for the Inter Vehicle Space Controller. */
         static const int32_t PID_D_NUMERATOR = 1;
 
         /** The PID derivative factor denominator for the Inter Vehicle Space Controller. */
-        static const int32_t PID_D_DENOMINATOR = 10;
+        static const int32_t PID_D_DENOMINATOR = 5;
     };
 
     /** PID factors for the Heading. */
     struct HEADING_FINDER_PID_FACTORS
     {
         /** The PID proportional factor numerator for the Heading Finder. */
-        static const int32_t PID_P_NUMERATOR = 2;
+        static const int32_t PID_P_NUMERATOR = 5;
 
         /** The PID proportional factor denominator for the Heading Finder.*/
-        static const int32_t PID_P_DENOMINATOR = 1;
+        static const int32_t PID_P_DENOMINATOR = 4;
 
         /** The PID integral factor numerator for the Heading Finder. */
-        static const int32_t PID_I_NUMERATOR = 0;
+        static const int32_t PID_I_NUMERATOR = 1;
 
         /** The PID integral factor denominator for the Heading Finder. */
-        static const int32_t PID_I_DENOMINATOR = 1;
+        static const int32_t PID_I_DENOMINATOR = 10;
 
         /** The PID derivative factor numerator for the Heading Finder. */
-        static const int32_t PID_D_NUMERATOR = 100;
+        static const int32_t PID_D_NUMERATOR = 1;
 
         /** The PID derivative factor denominator for the Heading Finder. */
-        static const int32_t PID_D_DENOMINATOR = 1;
+        static const int32_t PID_D_DENOMINATOR = 10;
     };
 
     /** Flag: State is active. */
