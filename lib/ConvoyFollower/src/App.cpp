@@ -614,9 +614,46 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
         App*               application        = reinterpret_cast<App*>(userData);
-        Telemetry          data(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
-                                currentVehicleData->left, currentVehicleData->right, currentVehicleData->center,
-                                currentVehicleData->proximity);
+
+        Telemetry::Range proximity = Telemetry::Range::RANGE_0_5;
+
+        switch (currentVehicleData->proximity)
+        {
+        case SMPChannelPayload::Range::RANGE_NO_OBJECT:
+            proximity = Telemetry::Range::RANGE_NO_OBJECT;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_25_30:
+            proximity = Telemetry::Range::RANGE_25_30;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_20_25:
+            proximity = Telemetry::Range::RANGE_20_25;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_15_20:
+            proximity = Telemetry::Range::RANGE_15_20;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_10_15:
+            proximity = Telemetry::Range::RANGE_10_15;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_5_10:
+            proximity = Telemetry::Range::RANGE_5_10;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_0_5:
+            proximity = Telemetry::Range::RANGE_0_5;
+            break;
+
+        default:
+            LOG_DEBUG("Unknown proximity range: %u", currentVehicleData->proximity);
+            break;
+        }
+
+        Telemetry data(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
+                       currentVehicleData->left, currentVehicleData->right, currentVehicleData->center, proximity);
 
         DrivingState::getInstance().setVehicleData(data);
         application->setLatestVehicleData(data.asWaypoint());

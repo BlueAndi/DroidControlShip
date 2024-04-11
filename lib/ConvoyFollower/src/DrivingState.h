@@ -50,7 +50,6 @@
 #include <IState.h>
 #include <queue>
 #include <StateMachine.h>
-#include "SerialMuxChannels.h"
 #include <CollisionAvoidance.h>
 #include <PIDController.h>
 #include <SimpleTimer.hpp>

@@ -66,7 +66,7 @@ public:
      * @param[in] closestProximityRangeValue Value equivalent to the closest proximity range that can be measured.
      * @param[in] rangeThreshold Range at which the vehicle should stop to avoid collision.
      */
-    CollisionAvoidance(uint8_t closestProximityRangeValue, uint8_t rangeThreshold) :
+    CollisionAvoidance(Telemetry::Range closestProximityRangeValue, Telemetry::Range rangeThreshold) :
         m_closestProximityRangeValue(closestProximityRangeValue),
         m_rangeThreshold(rangeThreshold){};
 
@@ -114,10 +114,10 @@ public:
 
 private:
     /** Closest proximity range value [brightness levels]. */
-    uint8_t m_closestProximityRangeValue;
+    Telemetry::Range m_closestProximityRangeValue;
 
     /** Range threshold [brightness levels]. */
-    uint8_t m_rangeThreshold;
+    Telemetry::Range m_rangeThreshold;
 
     /**
      * Default constructor.
