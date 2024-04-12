@@ -289,8 +289,10 @@ private:
 
     /**
      * Get latest waypoint from the queue, validate it and set it to as the current target.
+     *
+     * @return If successfully received and validated a waypoint, it will return true. Otherwise false.
      */
-    void processNextWaypoint();
+    bool processNextWaypoint();
 
     /**
      * Default constructor.

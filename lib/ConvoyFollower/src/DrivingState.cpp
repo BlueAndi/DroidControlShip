@@ -103,7 +103,19 @@ void DrivingState::process(StateMachine& sm)
             PlatoonUtils::areWaypointsEqual(m_targetWaypoint, m_vehicleData.asWaypoint(), TARGET_WAYPOINT_ERROR_MARGIN))
         {
             /* Get next waypoint from the queue. */
-            processNextWaypoint();
+            if (false == processNextWaypoint())
+            {
+                /* No more waypoints in the queue. */
+                LOG_INFO("No more waypoints in the queue.");
+
+                /* Stop motors. */
+                m_leftMotorSpeed  = 0;
+                m_rightMotorSpeed = 0;
+            }
+            else
+            {
+                /* Do nothing. */
+            }
         }
         else if (MAX_INVALID_WAYPOINTS <= m_invalidWaypointCounter)
         {
@@ -227,8 +239,10 @@ bool DrivingState::pushWaypoint(Waypoint* waypoint)
  * Private Methods
  *****************************************************************************/
 
-void DrivingState::processNextWaypoint()
+bool DrivingState::processNextWaypoint()
 {
+    bool isSuccessful = false;
+
     /* Get latest waypoint. */
     if (false == m_inputWaypointQueue.empty())
     {
@@ -275,7 +289,11 @@ void DrivingState::processNextWaypoint()
 
         /* Delete queued waypoint. */
         delete nextWaypoint;
+
+        isSuccessful = true;
     }
+
+    return isSuccessful;
 }
 
 DrivingState::DrivingState() :
