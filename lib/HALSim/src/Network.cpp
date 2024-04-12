@@ -128,7 +128,7 @@ bool Network::process()
 
 bool Network::setConfig(const NetworkSettings& settings)
 {
-    /* Settings have no effect in the Sim but have to be set nonetheless. */
+    /* Settings have no effect in the simulation but have to be set nonetheless. */
     m_configSet = true;
     return m_configSet;
 }
@@ -165,34 +165,34 @@ bool Network::handleStationSetup()
 
 bool Network::handleConnectingState()
 {
-    /* Act like a connection was successfully established in Sim. */
+    /* Act like a connection was successfully established in simulation. */
     m_state = STATE_CONNECTED;
     return true;
 }
 
 bool Network::manageConnection()
 {
-    /* Do nothing in Sim. */
+    /* Do nothing in simulation. */
     return (STATE_CONNECTED == m_state);
 }
 
 bool Network::switchToAPMode()
 {
-    /* Don't need to handle AP mod ein Sim. */
+    /* Don't need to handle AP mode in simulation. */
     m_state = STATE_AP_SETUP;
     return true;
 }
 
 bool Network::handleAPSetup()
 {
-    /* Don't need to handle AP mod ein Sim. */
+    /* Don't need to handle AP mode in simulation. */
     m_state = STATE_AP_UP;
     return true;
 }
 
 bool Network::handleAPState()
 {
-    /* Don't need to handle AP mod ein Sim. */
+    /* Don't need to handle AP mode in simulation. */
     return true;
 }
 

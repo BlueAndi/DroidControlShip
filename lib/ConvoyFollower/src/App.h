@@ -70,7 +70,7 @@ public:
         m_serialMuxProtChannelIdRemoteCtrl(0U),
         m_serialMuxProtChannelIdMotorSpeeds(0U),
         m_serialMuxProtChannelIdStatus(0U),
-        m_smpServer(Board::getInstance().getDevice().getStream(), this),
+        m_smpServer(Board::getInstance().getRobot().getStream(), this),
         m_mqttClient(),
         m_v2vCommManager(m_mqttClient),
         m_systemStateMachine(),

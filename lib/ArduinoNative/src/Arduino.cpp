@@ -33,17 +33,21 @@
  * Includes
  *****************************************************************************/
 #include <Arduino.h>
-#include <time.h>
 #include "Terminal.h"
 
-#ifndef UNIT_TEST
+#ifdef UNIT_TEST
+
+#include <time.h>
+
+#else /* UNIT_TEST */
+
 #include <Board.h>
-#include <Device.h>
 #include <getopt.h>
 #include <direct.h>
 #include <ArduinoJson.h>
 #include <ConfigurationKeys.h>
-#endif
+
+#endif /* UNIT_TEST */
 
 /******************************************************************************
  * Compiler Switches
@@ -65,8 +69,6 @@ typedef struct
     const char* robotName;         /**< Unique robot name */
     const char* mqttHost;          /**< MQTT broker host */
     const char* mqttPort;          /**< MQTT broker port */
-    const char* radonUlzerAddress; /**< Radon Ulzer (socket) address */
-    const char* radonUlzerPort;    /**< Radon Ulzer (socket) port */
     const char* cfgFilePath;       /**< Configuration file path */
     bool        verbose;           /**< Show verbose information */
     const char* platoonId;         /**< Platoon ID */
@@ -76,7 +78,7 @@ typedef struct
     const char* heading;           /**< Heading in mrad*/
 } PrgArguments;
 
-#endif
+#endif /* UNIT_TEST */
 
 /******************************************************************************
  * Prototypes
@@ -94,7 +96,7 @@ static int  createConfigFile(const PrgArguments& prgArgs);
 static int  makeDirRecursively(const char* path);
 static void extractDirectoryPath(const char* filePath, char* buffer, size_t bufferSize);
 
-#endif
+#endif /* UNIT_TEST */
 
 /******************************************************************************
  * Local Variables
@@ -108,13 +110,22 @@ Serial_ Serial(gTerminalStream);
 
 #ifndef UNIT_TEST
 
+/**
+ * The maximum duration a simulated time step can have.
+ * Everything above would cause missbehaviour in the application.
+ */
+static const int MAX_TIME_STEP = 10;
+
+/**
+ * Simulation time handler, used by Arduino functions.
+ */
+static SimTime* gSimTime = nullptr;
+
 /** Supported long program arguments. */
 static const struct option LONG_OPTIONS[] = {{"help", no_argument, nullptr, 0},
                                              {"cfgFilePath", required_argument, nullptr, 0},
                                              {"mqttAddr", required_argument, nullptr, 0},
                                              {"mqttPort", required_argument, nullptr, 0},
-                                             {"radonUlzerAddr", required_argument, nullptr, 0},
-                                             {"radonUlzerPort", required_argument, nullptr, 0},
                                              {"platoonId", required_argument, nullptr, 0},
                                              {"vehicleId", required_argument, nullptr, 0},
                                              {"xPosition", required_argument, nullptr, 0},
@@ -130,12 +141,6 @@ static const char PRG_ARG_MQTT_ADDR_DEFAULT[] = "localhost";
 
 /** Program argument default value of the MQTT broker port. */
 static const char PRG_ARG_MQTT_PORT_DEFAULT[] = "1883";
-
-/** Program argument default value of the Radon Ulzer address. */
-static const char PRG_ARG_RADON_ULZER_ADDR_DEFAULT[] = "localhost";
-
-/** Program argument default value of the Radon Ulzer port. */
-static const char PRG_ARG_RADON_ULZER_PORT_DEFAULT[] = "65432";
 
 /** Program argument default value of the configuration file. */
 static const char PRG_ARG_CFG_FILE_DEFAULT[] = "./data/config/config.json";
@@ -176,7 +181,7 @@ static const char WEBSERVER_USER_DEFAULT[] = "admin";
 /** Default value of the webserver passphrase. */
 static const char WEBSERVER_PASSPHRASE_DEFAULT[] = "admin";
 
-#endif
+#endif /* UNIT_TEST */
 
 /******************************************************************************
  * Public Methods
@@ -204,7 +209,24 @@ extern int main(int argc, char** argv)
     return 0;
 }
 
-#else
+extern unsigned long millis()
+{
+    clock_t now = clock();
+
+    return (now * 1000UL) / CLOCKS_PER_SEC;
+}
+
+extern void delay(unsigned long ms)
+{
+    unsigned long timestamp = millis();
+
+    while ((millis() - timestamp) < ms)
+    {
+        ;
+    }
+}
+
+#else /* UNIT_TEST */
 
 extern int main(int argc, char** argv)
 {
@@ -247,20 +269,51 @@ extern int main(int argc, char** argv)
 
         if (0 == status)
         {
+            /* Get simulation time handler. It will be used by millis() and delay(). */
+            gSimTime = &Board::getInstance().getSimTime();
+
             Board::getInstance().setConfigFilePath(prgArguments.cfgFilePath);
+        }
+    }
 
-            /* Set Device Server from command line arguments.
-             * Uses the Device Native Interface IDeviceNative instead of IDevice from HALInterfaces.
-             */
-            IDeviceNative& deviceNativeInterface = Board::getInstance().getDeviceNative();
-            deviceNativeInterface.setServer(prgArguments.radonUlzerAddress, prgArguments.radonUlzerPort);
+    if (0 != status)
+    {
+        /* Something went wrong previously and was already notified.*/
+        ;
+    }
+    else if ((0 == gSimTime->getTimeStep()) || (MAX_TIME_STEP < gSimTime->getTimeStep()))
+    {
+        printf("Simulation time step is too high!\n");
+        printf("This would cause missbehaviour in the application.\n");
 
+        status = -1;
+    }
+    else
+    {
+        /**
+         * Synchronization between the simulation steps and the control steps is done automatically
+         * by Webots (If the synchronization field in the robot node is set to TRUE).
+         * For a more detailed explanation see:
+         * https://cyberbotics.com/doc/reference/robot#synchronous-versus-asynchronous-controllers
+         */
+
+        /* Do one single simulation step to force that all sensors will deliver already data.
+         * Otherwise e.g. the position sensor will provide NaN.
+         * This must be done before setup() is called!
+         */
+        if (false == gSimTime->step())
+        {
+            printf("Very first simulation step failed.\n");
+            status = -1;
+        }
+        else
+        {
             /* Print a empty line before the main application starts to print log messages. */
             printf("\n");
 
             setup();
 
-            while (true)
+            while (true == gSimTime->step())
             {
                 loop();
             }
@@ -270,13 +323,9 @@ extern int main(int argc, char** argv)
     return status;
 }
 
-#endif
-
 extern unsigned long millis()
 {
-    clock_t now = clock();
-
-    return (now * 1000UL) / CLOCKS_PER_SEC;
+    return gSimTime->getElapsedTimeSinceReset();
 }
 
 extern void delay(unsigned long ms)
@@ -285,15 +334,16 @@ extern void delay(unsigned long ms)
 
     while ((millis() - timestamp) < ms)
     {
-        ;
+        if (false == gSimTime->step())
+        {
+            break;
+        }
     }
 }
 
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
-
-#ifndef UNIT_TEST
 
 /**
  * Handle the arguments passed to the programm.
@@ -317,8 +367,6 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
     prgArguments.cfgFilePath       = PRG_ARG_CFG_FILE_DEFAULT;
     prgArguments.mqttHost          = PRG_ARG_MQTT_ADDR_DEFAULT;
     prgArguments.mqttPort          = PRG_ARG_MQTT_PORT_DEFAULT;
-    prgArguments.radonUlzerAddress = PRG_ARG_RADON_ULZER_ADDR_DEFAULT;
-    prgArguments.radonUlzerPort    = PRG_ARG_RADON_ULZER_PORT_DEFAULT;
     prgArguments.robotName         = PRG_ARG_ROBOT_NAME_DEFAULT;
     prgArguments.verbose           = PRG_ARG_VERBOSE_DEFAULT;
     prgArguments.platoonId         = PRG_ARG_PLATOON_ID_DEFAULT;
@@ -348,14 +396,6 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "mqttPort"))
             {
                 prgArguments.mqttPort = optarg;
-            }
-            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "radonUlzerAddr"))
-            {
-                prgArguments.radonUlzerAddress = optarg;
-            }
-            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "radonUlzerPort"))
-            {
-                prgArguments.radonUlzerPort = optarg;
             }
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "platoonId"))
             {
@@ -419,10 +459,6 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
         printf(" Default: %s\n", PRG_ARG_MQTT_ADDR_DEFAULT);                /* MQTT broker address default value */
         printf("\t--mqttPort <MQTT-PORT>\t\tSet MQTT broker port.");        /* MQTT broker port */
         printf(" Default: %s\n", PRG_ARG_MQTT_PORT_DEFAULT);                /* MQTT broker port default value */
-        printf("\t--radonUlzerAddr <RU-ADDR>\tSet Radon Ulzer server address."); /* Radon Ulzer server address */
-        printf(" Default: %s\n", PRG_ARG_RADON_ULZER_ADDR_DEFAULT); /* Radon Ulzer server address default value*/
-        printf("\t--radonUlzerPort <RU-PORT>\tSet Radon Ulzer server port."); /* Radon Ulzer server port */
-        printf(" Default: %s\n", PRG_ARG_RADON_ULZER_PORT_DEFAULT);           /* Radon Ulzer server port default value*/
         printf("\t--platoonId <PLATOON-ID>\tSet platoon ID.");                /* Platoon ID */
         printf(" Default: %s\n", PRG_ARG_PLATOON_ID_DEFAULT);                 /* Platoon ID default value */
         printf("\t--vehicleId <VEHICLE-ID>\tSet vehicle ID.");                /* Vehicle ID */
@@ -449,8 +485,6 @@ static void showPrgArguments(const PrgArguments& prgArgs)
     printf("Robot name             : %s\n", prgArgs.robotName);
     printf("MQTT broker address    : %s\n", prgArgs.mqttHost);
     printf("MQTT broker port       : %s\n", prgArgs.mqttPort);
-    printf("Radon Ulzer address    : %s\n", prgArgs.radonUlzerAddress);
-    printf("Radon Ulzer port       : %s\n", prgArgs.radonUlzerPort);
     printf("Platoon ID             : %s\n", prgArgs.platoonId);
     printf("Vehicle ID             : %s\n", prgArgs.vehicleId);
     printf("Initial X position [mm]: %s\n", prgArgs.xPosition);
@@ -642,4 +676,4 @@ static void extractDirectoryPath(const char* filePath, char* buffer, size_t buff
     }
 }
 
-#endif
+#endif /* UNIT_TEST */

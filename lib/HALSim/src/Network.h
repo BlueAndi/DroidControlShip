@@ -122,7 +122,6 @@ private:
     /** Configuration Set Flag. */
     bool m_configSet;
 
-private:
     /**
      * Setup network connection
      *

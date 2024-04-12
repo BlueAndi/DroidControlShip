@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Abstract native device interface
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Robot realization
+ * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef IDEVICENATIVE_H
-#define IDEVICENATIVE_H
+#ifndef ROBOT_H
+#define ROBOT_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,6 +43,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
+#include "IRobot.h"
+#include "IRobotNative.h"
+#include "WebotsSerialDrv.h"
 
 /******************************************************************************
  * Macros
@@ -52,39 +55,83 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The abstract native device interface. */
-class IDeviceNative
+/** This class provides access to the simulation robot. */
+class Robot : public IRobot, public IRobotNative
 {
 public:
     /**
-     * Destroys the interface.
+     * Constructs the robot adapter.
      */
-    virtual ~IDeviceNative()
+    Robot(WebotsSerialDrv& serialDrv) : IRobot(), IRobotNative(), m_serialDrv(serialDrv)
     {
     }
 
     /**
-     * Set the server address and port of the device.
+     * Destroys the robot adapter.
+     */
+    virtual ~Robot()
+    {
+    }
+
+    /**
+     * Initialize robot driver.
      *
-     * @param[in] address   Server address. Set nullptr to use the default address.
-     * @param[in] port      Server port number. Set nullptr to use the default port.
+     * @return If successfully initialized, returns true. Otherwise, false.
      */
-    virtual void setServer(const char* address, const char* port) = 0;
+    bool init() final;
 
-protected:
     /**
-     * Constructs the interface.
+     * Process communication with the robot.
+     *
+     * @return If communication is successful, returns true. Otherwise, false.
      */
-    IDeviceNative()
-    {
-    }
+    bool process() final;
+
+    /**
+     * Get comunication stream.
+     *
+     * @return Robot data stream.
+     */
+    Stream& getStream() final;
+
+    /**
+     * Reset the robot.
+     */
+    void reset() final;
+
+    /**
+     * Enter bootloader mode.
+     */
+    void enterBootloader() final;
+
+    /**
+     * Is the robot in bootloader mode?
+     *
+     * @return If robot is in bootloader mode, it will return true. Otherwise false.
+     */
+    bool isInBootloaderMode() const final;
+
+    /**
+     * Set the serial receive channel id.
+     *
+     * @param[in] channelId Channel ID, shall be positive for inter-robot communication.
+     */
+    void setRxChannel(int32_t channelId) final;
+
+    /**
+     * Set the serial sender channel id.
+     *
+     * @param[in] channelId Channel ID, shall be positive for inter-robot communication.
+     */
+    void setTxChannel(int32_t channelId) final;
 
 private:
+    WebotsSerialDrv& m_serialDrv; /**< Webots serial driver. */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IDEVICENATIVE_H */
+#endif /* ROBOT_H */
 /** @} */

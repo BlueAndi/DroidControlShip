@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Abstract device interface
+ * @brief  Abstract robot interface
  * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup HALInterfaces
@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef IDEVICE_H
-#define IDEVICE_H
+#ifndef IROBOT_H
+#define IROBOT_H
 
 /******************************************************************************
  * Compile Switches
@@ -54,52 +54,52 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The abstract device interface. */
-class IDevice
+/** The abstract robot interface. */
+class IRobot
 {
 public:
     /**
      * Destroys the interface.
      */
-    virtual ~IDevice()
+    virtual ~IRobot()
     {
     }
 
     /**
-     * Initialize device driver.
+     * Initialize robot driver.
      *
      * @return If successfully initialized, returns true. Otherwise, false.
      */
     virtual bool init() = 0;
 
     /**
-     * Process communication with the device.
+     * Process communication with the robot.
      *
      * @return If communication is successful, returns true. Otherwise, false.
      */
     virtual bool process() = 0;
 
     /**
-     * Get comunication Stream.
+     * Get comunication stream.
      *
-     * @return Device data Stream.
+     * @return Robot data stream.
      */
     virtual Stream& getStream() = 0;
 
     /**
-     * Reset the device.
+     * Reset the robot.
      */
     virtual void reset() = 0;
 
     /**
-     * Enter Bootloader mode.
+     * Enter bootloader mode.
      */
     virtual void enterBootloader() = 0;
 
     /**
-     * Is the device in bootloader mode?
+     * Is the robot in bootloader mode?
      *
-     * @return If device is in bootloader mode, it will return true. Otherwise false.
+     * @return If robot is in bootloader mode, it will return true. Otherwise false.
      */
     virtual bool isInBootloaderMode() const = 0;
 
@@ -107,7 +107,7 @@ protected:
     /**
      * Constructs the interface.
      */
-    IDevice()
+    IRobot()
     {
     }
 
@@ -118,5 +118,5 @@ private:
  * Functions
  *****************************************************************************/
 
-#endif /* IDEVICE_H */
+#endif /* IROBOT_H */
 /** @} */
