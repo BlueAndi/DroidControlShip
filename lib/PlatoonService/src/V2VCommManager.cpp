@@ -758,6 +758,10 @@ bool V2VCommManager::sendPlatoonHeartbeat()
     {
         LOG_ERROR("Failed to publish MQTT message to %s.", m_platoonHeartbeatTopic.c_str());
     }
+    else if (timestamp == m_lastPlatoonHeartbeatTimestamp)
+    {
+        LOG_ERROR("Leader about to send heartbeat with old timestamp: %d.", timestamp);
+    }
     else
     {
         /* Save last timestamp in which the follower heartbeat was present. May be used for debugging in the future. */
