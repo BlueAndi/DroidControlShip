@@ -117,7 +117,8 @@ void DrivingState::process(StateMachine& sm)
                 /* Do nothing. */
             }
         }
-        else if (MAX_INVALID_WAYPOINTS <= m_invalidWaypointCounter)
+
+        if (MAX_INVALID_WAYPOINTS <= m_invalidWaypointCounter)
         {
             /* Go to Error state. Too many invalid waypoints received. Are we going in the right direction? */
             LOG_ERROR("Too many invalid waypoints received. Going into error state.");
