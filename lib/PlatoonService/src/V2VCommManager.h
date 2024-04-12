@@ -80,6 +80,7 @@ public:
     {
         V2V_STATUS_OK = 0U,        /**< Status OK */
         V2V_STATUS_NOT_INIT,       /**< Not initialized */
+        V2V_STATUS_NO_CONNECTION,  /**< Lost connection */
         V2V_STATUS_LOST_FOLLOWER,  /**< Lost follower */
         V2V_STATUS_FOLLOWER_ERROR, /**< Follower error */
         V2V_STATUS_OLD_WAYPOINT,   /**< Old waypoint received*/
@@ -190,6 +191,9 @@ private:
     /** Send platoon heartbeat timer interval in ms. */
     static const uint32_t PLATOON_HEARTBEAT_TIMER_INTERVAL = 2U * VEHICLE_HEARTBEAT_TIMEOUT_TIMER_INTERVAL;
 
+    /** Connection timeout timer interval in ms. */
+    static const uint32_t CONNECTION_TIMEOUT_TIMER_INTERVAL = 2000U;
+
     /** MQTT subtopic name for waypoint reception. */
     static const char* TOPIC_NAME_WAYPOINT_RX;
 
@@ -283,6 +287,9 @@ private:
 
     /** Vehicle heartbeat timeout timer. */
     SimpleTimer m_vehicleHeartbeatTimeoutTimer;
+
+    /** Connection Timeout timer. */
+    SimpleTimer m_connectionTimeoutTimer;
 
     /** Current Status. */
     V2VStatus m_v2vStatus;

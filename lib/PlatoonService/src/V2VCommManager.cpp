@@ -104,6 +104,7 @@ V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_followerResponseCounter(0U),
     m_platoonHeartbeatTimer(),
     m_vehicleHeartbeatTimeoutTimer(),
+    m_connectionTimeoutTimer(),
     m_v2vStatus(V2V_STATUS_NOT_INIT),
     m_vehicleStatus(),
     m_followers{},
@@ -204,8 +205,25 @@ V2VCommManager::V2VStatus V2VCommManager::process(VehicleStatus status)
     m_vehicleStatus = status;
 
     /* Is MQTT client connected? */
-    if ((true == m_mqttClient.isConnected()) && (V2V_STATUS_OK == m_v2vStatus))
+    if (false == m_mqttClient.isConnected())
     {
+        if (false == m_connectionTimeoutTimer.isTimerRunning())
+        {
+            m_connectionTimeoutTimer.start(CONNECTION_TIMEOUT_TIMER_INTERVAL);
+        }
+        else if (true == m_connectionTimeoutTimer.isTimeout())
+        {
+            m_v2vStatus = V2V_STATUS_NO_CONNECTION;
+        }
+    }
+    else if (V2V_STATUS_OK == m_v2vStatus)
+    {
+        /* Stop connection timer. */
+        if (true == m_connectionTimeoutTimer.isTimerRunning())
+        {
+            m_connectionTimeoutTimer.stop();
+        }
+
         /* Check participants heartbeats. Only active as leader. */
         if (true == m_vehicleHeartbeatTimeoutTimer.isTimeout())
         {

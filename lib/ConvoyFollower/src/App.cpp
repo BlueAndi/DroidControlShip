@@ -505,6 +505,8 @@ void App::processV2VCommunication()
             setErrorState();
             break;
 
+        case V2VCommManager::V2V_STATUS_NO_CONNECTION:
+            /* Fallthrough */
         case V2VCommManager::V2V_STATUS_GENERAL_ERROR:
             LOG_ERROR("V2V Communication error.");
             setErrorState();
