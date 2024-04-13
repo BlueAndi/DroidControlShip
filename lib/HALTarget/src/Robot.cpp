@@ -25,123 +25,107 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Device realization
+ * @brief  Robot realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
- *
- * @addtogroup HALTarget
- *
- * @{
  */
-
-#ifndef DEVICE_H
-#define DEVICE_H
-
-/******************************************************************************
- * Compile Switches
- *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "IDevice.h"
-#include "USBHost.h"
-#include <SimpleTimer.hpp>
+#include "Robot.h"
+#include "GPIO.h"
+
+/******************************************************************************
+ * Compiler Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and Classes
+ * Types and classes
  *****************************************************************************/
-
-/** This class provides access to the robot's device. */
-class Device : public IDevice
-{
-public:
-    /**
-     * Constructs the device adapter.
-     */
-    Device() : IDevice(), m_usbHost(), m_resetTimer(), m_waitTimer(), m_bootloaderModeRequest(false)
-    {
-    }
-
-    /**
-     * Destroys the device adapter.
-     */
-    virtual ~Device()
-    {
-    }
-
-    /**
-     * Initialize device driver.
-     *
-     * @return If successfully initialized, returns true. Otherwise, false.
-     */
-    bool init() final;
-
-    /**
-     * Process communication with the device.
-     *
-     * @return If communication is successful, returns true. Otherwise, false.
-     */
-    bool process() final;
-
-    /**
-     * Get comunication Stream.
-     *
-     * @return Device data Stream.
-     */
-    Stream& getStream() final;
-
-    /**
-     * Reset the device.
-     */
-    void reset() final;
-
-    /**
-     * Enter Bootloader mode.
-     */
-    void enterBootloader() final;
-
-    /**
-     * Is the device in bootloader mode?
-     *
-     * @return If device is in bootloader mode, it will return true. Otherwise false.
-     */
-    bool isInBootloaderMode() const final;
-
-private:
-    /** Time to hold the reset line active in milliseconds. */
-    static const uint32_t RESET_TIME_MS = 50U;
-
-    /** Time to wait between resets to enter bootloader mode in milliseconds. */
-    static const uint32_t WAIT_TIME_BOOTLOADER_MODE_MS = 100U;
-
-    /**
-     * USB Host driver.
-     */
-    USBHost m_usbHost;
-
-    /**
-     * Simple Timer for reset of device.
-     */
-    SimpleTimer m_resetTimer;
-
-    /**
-     * Simple Timer for waiting to enter bootloader mode.
-     */
-    SimpleTimer m_waitTimer;
-
-    /**
-     * Bootloader mode request flag.
-     */
-    bool m_bootloaderModeRequest;
-};
 
 /******************************************************************************
- * Functions
+ * Prototypes
  *****************************************************************************/
 
-#endif /* DEVICE_H */
-/** @} */
+/******************************************************************************
+ * Local Variables
+ *****************************************************************************/
+
+/******************************************************************************
+ * Public Methods
+ *****************************************************************************/
+
+bool Robot::init()
+{
+    reset();
+    return m_usbHost.init();
+}
+
+bool Robot::process()
+{
+    if (true == m_resetTimer.isTimeout())
+    {
+        GpioPins::resetDevicePin.write(LOW);
+        m_resetTimer.stop();
+
+        if (true == m_bootloaderModeRequest)
+        {
+            m_bootloaderModeRequest = false;
+            m_waitTimer.start(WAIT_TIME_BOOTLOADER_MODE_MS);
+        }
+    }
+
+    if (true == m_waitTimer.isTimeout())
+    {
+        reset();
+        m_waitTimer.stop();
+    }
+
+    return m_usbHost.process();
+}
+
+Stream& Robot::getStream()
+{
+    return m_usbHost;
+}
+
+void Robot::reset()
+{
+    if (false == m_resetTimer.isTimerRunning())
+    {
+        GpioPins::resetDevicePin.write(HIGH);
+        m_resetTimer.start(RESET_TIME_MS);
+    }
+}
+
+void Robot::enterBootloader()
+{
+    m_bootloaderModeRequest = true;
+    m_usbHost.requestBootloaderMode();
+    reset();
+}
+
+bool Robot::isInBootloaderMode() const
+{
+    return m_usbHost.isBootloaderModeActive();
+}
+
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * External Functions
+ *****************************************************************************/
+
+/******************************************************************************
+ * Local Functions
+ *****************************************************************************/

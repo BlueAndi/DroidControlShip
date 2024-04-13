@@ -80,10 +80,10 @@ bool Board::init()
         /* Log Button Driver error */
         LOG_ERROR("Button driver initialization failed.");
     }
-    else if (false == m_device.init())
+    else if (false == m_hostRobot.init())
     {
-        /* Log Device error */
-        LOG_ERROR("Device initialization failed.");
+        /* Log Robot error */
+        LOG_ERROR("Robot initialization failed.");
     }
     else if (false == m_network.init())
     {
@@ -103,10 +103,10 @@ bool Board::process()
 {
     bool isSuccess = false;
 
-    if (false == m_device.process())
+    if (false == m_hostRobot.process())
     {
-        /* Log Device error */
-        LOG_ERROR("Device process failed.");
+        /* Log robot error */
+        LOG_ERROR("Robot process failed.");
     }
     else if (false == m_network.process())
     {
@@ -129,6 +129,19 @@ bool Board::process()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+Board::Board() :
+    IBoard(),
+    m_battery(),
+    m_button(),
+    m_ledBlue(),
+    m_ledGreen(),
+    m_ledRed(),
+    m_network(),
+    m_hostRobot(),
+    m_configFilePath(CONFIG_FILE_PATH)
+{
+}
 
 /******************************************************************************
  * External Functions
