@@ -549,7 +549,7 @@ static int createConfigFile(const PrgArguments& prgArgs)
 
             if (nullptr == fd)
             {
-                printf("Failed to create config file.\n");
+                printf("Failed to create config file %s.\n", prgArgs.cfgFilePath);
                 retValue = -1;
             }
             else
