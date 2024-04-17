@@ -120,6 +120,13 @@ Board::Board() :
 {
 }
 
+void Board::enableSimulationDevices()
+{
+    const int timeStep = m_simTime.getTimeStep();
+
+    m_robot.getReceiver(RECEIVER_NAME_SERIAL)->enable(timeStep);
+}
+
 /******************************************************************************
  * External Functions
  *****************************************************************************/
