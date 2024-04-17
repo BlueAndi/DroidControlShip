@@ -48,6 +48,7 @@
 #include <MqttClient.h>
 #include <SerialMuxProtServer.hpp>
 #include "SerialMuxChannels.h"
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
@@ -69,8 +70,10 @@ public:
         m_serialMuxProtChannelIdRemoteCtrl(0U),
         m_serialMuxProtChannelIdMotorSpeeds(0U),
         m_serialMuxProtChannelInitialVehicleData(0U),
+        m_serialMuxProtChannelIdStatus(0U),
         m_mqttClient(),
-        m_initialDataSent(false)
+        m_initialDataSent(false),
+        m_statusTimer()
     {
     }
 
@@ -113,6 +116,9 @@ private:
     /** SerialMuxProt Channel id for sending initial position data. */
     uint8_t m_serialMuxProtChannelInitialVehicleData;
 
+    /** SerialMuxProt Channel id for sending system status. */
+    uint8_t m_serialMuxProtChannelIdStatus;
+
     /**
      * SerialMuxProt Server Instance
      *
@@ -127,6 +133,11 @@ private:
 
     /** Flag for setting initial data through SMP. */
     bool m_initialDataSent;
+
+    /**
+     * Timer for sending system status to RU.
+     */
+    SimpleTimer m_statusTimer;
 
 private:
     /**

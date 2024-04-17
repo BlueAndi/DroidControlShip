@@ -164,8 +164,7 @@ void App::setup()
             m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
             m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
             m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME, App_currentVehicleChannelCallback);
-            m_serialMuxProtChannelInitialVehicleData =
-                m_smpServer.createChannel(INITIAL_VEHICLE_DATA_CHANNEL_NAME, INITIAL_VEHICLE_DATA_CHANNEL_DLC);
+            m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
 
             if (false == m_mqttClient.init())
             {
@@ -193,8 +192,7 @@ void App::setup()
                     LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_CMD);
                 }
                 /* Subscribe to Motor Speeds Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, true,
-                                                         [this](const String& payload)
+                else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, true, [this](const String& payload)
                                                          { motorSpeedsTopicCallback(payload); }))
                 {
                     LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
@@ -202,6 +200,7 @@ void App::setup()
                 else
                 {
                     isSuccessful = true;
+                    m_statusTimer.start(1000U);
                 }
             }
         }
@@ -244,6 +243,18 @@ void App::loop()
             m_initialDataSent = true;
         }
     }
+
+    if ((true == m_statusTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
+        {
+            LOG_WARNING("Failed to send current status to RU.");
+        }
+
+        m_statusTimer.restart();
+    }
 }
 
 /******************************************************************************
@@ -280,11 +291,53 @@ void App::cmdTopicCallback(const String& payload)
 
         if (false == command.isNull())
         {
+            bool    isValid = true;
             Command cmd;
-            cmd.commandId = command.as<uint8_t>();
+            uint8_t cmdId = command.as<uint8_t>();
 
-            if (true ==
-                m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, reinterpret_cast<uint8_t*>(&cmd), sizeof(cmd)))
+            switch (cmdId)
+            {
+            case 0U:
+                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_IDLE;
+                break;
+
+            case 1U:
+                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_START_LINE_SENSOR_CALIB;
+                break;
+
+            case 2U:
+                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_START_MOTOR_SPEED_CALIB;
+                break;
+
+            case 3U:
+                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_REINIT_BOARD;
+                break;
+
+            case 4U:
+                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_GET_MAX_SPEED;
+                break;
+
+            case 5U:
+                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_START_DRIVING;
+                break;
+
+            case 6U:
+                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_SET_INIT_POS;
+                LOG_WARNING("Setting initial position is not supported.");
+                isValid = false;
+                break;
+
+            default:
+                isValid = false;
+                break;
+            }
+
+            if (false == isValid)
+            {
+                LOG_ERROR("Invalid command ID %d.", cmdId);
+            }
+            else if (true == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, reinterpret_cast<uint8_t*>(&cmd),
+                                                  sizeof(cmd)))
             {
                 LOG_DEBUG("Command %d sent.", cmd.commandId);
             }
@@ -360,7 +413,7 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
         const CommandResponse* cmdRsp = reinterpret_cast<const CommandResponse*>(payload);
         LOG_DEBUG("CMD_RSP: ID: 0x%02X , RSP: 0x%02X", cmdRsp->commandId, cmdRsp->responseId);
 
-        if (RemoteControl::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
+        if (SMPChannelPayload::CmdId::CMD_ID_GET_MAX_SPEED == cmdRsp->commandId)
         {
             LOG_DEBUG("Max Speed: %d", cmdRsp->maxMotorSpeed);
         }
