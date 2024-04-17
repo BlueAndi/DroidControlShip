@@ -143,28 +143,6 @@ public:
      */
     void unsubscribe(const String& topic, const bool useClientIdAsBaseTopic) final;
 
-public:
-    /**
-     * Callback function, which is called on connect.
-     *
-     * @param[in] rc    Result code.
-     */
-    void onConnectCallback(int rc);
-
-    /**
-     * Callback function, which is called on disconnect.
-     *
-     * @param[in] rc    Result code.
-     */
-    void onDisconnectCallback(int rc);
-
-    /**
-     * Callback function, which is called on message reception.
-     *
-     * @param[in] msg   Message received.
-     */
-    void onMessageCallback(const mosquitto_message* msg);
-
 private:
     /** MQTT Service States. */
     enum State
@@ -248,7 +226,10 @@ private:
     /** User disconnection request. */
     bool m_disconnectRequest;
 
-private:
+    /* Not allowed. */
+    MqttClient(const MqttClient& src);            /**< Copy construction of an instance. */
+    MqttClient& operator=(const MqttClient& rhs); /**< Assignment of an instance. */
+
     /**
      * Process the Idle state.
      */
@@ -284,10 +265,56 @@ private:
      */
     void attemptConnection();
 
-private:
-    /* Not allowed. */
-    MqttClient(const MqttClient& src);            /**< Copy construction of an instance. */
-    MqttClient& operator=(const MqttClient& rhs); /**< Assignment of an instance. */
+    /**
+     * Callback function, which is called on connect.
+     * Attention, the function is called in a different thread context!
+     *
+     * @param[in] rc    Result code.
+     */
+    void onConnectCallback(int rc);
+
+    /**
+     * Callback function, which is called on disconnect.
+     * Attention, the function is called in a different thread context!
+     *
+     * @param[in] rc    Result code.
+     */
+    void onDisconnectCallback(int rc);
+
+    /**
+     * Callback function, which is called on message reception.
+     * Attention, the function is called in a different thread context!
+     *
+     * @param[in] msg   Message received.
+     */
+    void onMessageCallback(const mosquitto_message* msg);
+
+    /**
+     * Callback function, which is called on connect.
+     *
+     * @param[in] mosq  Mosquitto instance.
+     * @param[in] obj   Object passed on mosquitto_new.
+     * @param[in] rc    Result code.
+     */
+    friend void onConnect(mosquitto* mosq, void* obj, int rc);
+
+    /**
+     * Callback function, which is called on disconnect.
+     *
+     * @param[in] mosq  Mosquitto instance.
+     * @param[in] obj   Object passed on mosquitto_new.
+     * @param[in] rc    Result code.
+     */
+    friend void onDisconnect(mosquitto* mosq, void* obj, int rc);
+
+    /**
+     * Callback function, which is called on message reception.
+     *
+     * @param[in] mosq  Mosquitto instance.
+     * @param[in] obj   Object passed on mosquitto_new.
+     * @param[in] msg   Message received.
+     */
+    friend void onMessage(mosquitto* mosq, void* obj, const mosquitto_message* msg);
 };
 
 /******************************************************************************

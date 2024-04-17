@@ -51,9 +51,9 @@
  * Prototypes
  *****************************************************************************/
 
-static void onConnect(mosquitto* mosq, void* obj, int rc);
-static void onDisconnect(mosquitto* mosq, void* obj, int rc);
-static void onMessage(mosquitto* mosq, void* obj, const mosquitto_message* msg);
+extern void onConnect(mosquitto* mosq, void* obj, int rc);
+extern void onDisconnect(mosquitto* mosq, void* obj, int rc);
+extern void onMessage(mosquitto* mosq, void* obj, const mosquitto_message* msg);
 
 /******************************************************************************
  * Local Variables
@@ -88,7 +88,7 @@ MqttClient::~MqttClient()
 {
     if (nullptr != m_mqttClient)
     {
-        mosquitto_loop_stop(m_mqttClient, true);
+        (void)mosquitto_loop_stop(m_mqttClient, true);
         mosquitto_destroy(m_mqttClient);
         m_mqttClient = nullptr;
         m_state      = STATE_UNINITIALIZED;
@@ -354,49 +354,6 @@ void MqttClient::unsubscribe(const String& topic, const bool useClientIdAsBaseTo
     }
 }
 
-void MqttClient::onConnectCallback(int rc)
-{
-    LOG_DEBUG("MQTT client connected to broker. rc=%d", rc);
-    resubscribe();
-    m_state = STATE_CONNECTED;
-
-    /* Publish birth message. */
-    (void)publish(m_birthTopic, false, m_birthMessage);
-}
-
-void MqttClient::onDisconnectCallback(int rc)
-{
-    LOG_DEBUG("MQTT client disconnected from broker with return code %d", rc);
-    m_state = STATE_DISCONNECTED;
-
-    if (0 == rc)
-    {
-        /* User has called disconnect(), so reconnect is not necessary. */
-        m_reconnect = false;
-    }
-}
-
-void MqttClient::onMessageCallback(const mosquitto_message* msg)
-{
-    SubscriberList::const_iterator it;
-    char*                          payloadCStr = static_cast<char*>(msg->payload);
-    String                         payloadStr  = String(payloadCStr, msg->payloadlen);
-
-    for (it = m_subscriberList.begin(); it != m_subscriberList.end(); ++it)
-    {
-        if (nullptr != (*it))
-        {
-            if (0 == strcmp((*it)->topic.c_str(), msg->topic))
-            {
-                Subscriber* subscriber = *it;
-
-                subscriber->callback(payloadStr);
-                break;
-            }
-        }
-    }
-}
-
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/
@@ -604,12 +561,51 @@ void MqttClient::attemptConnection()
     }
 }
 
-/******************************************************************************
- * External Functions
- *****************************************************************************/
+void MqttClient::onConnectCallback(int rc)
+{
+    LOG_DEBUG("MQTT client connected to broker. rc=%d", rc);
+    resubscribe();
+    m_state = STATE_CONNECTED;
+
+    /* Publish birth message. */
+    (void)publish(m_birthTopic, false, m_birthMessage);
+}
+
+void MqttClient::onDisconnectCallback(int rc)
+{
+    LOG_DEBUG("MQTT client disconnected from broker with return code %d", rc);
+    m_state = STATE_DISCONNECTED;
+
+    if (0 == rc)
+    {
+        /* User has called disconnect(), so reconnect is not necessary. */
+        m_reconnect = false;
+    }
+}
+
+void MqttClient::onMessageCallback(const mosquitto_message* msg)
+{
+    SubscriberList::const_iterator it;
+    char*                          payloadCStr = static_cast<char*>(msg->payload);
+    String                         payloadStr  = String(payloadCStr, msg->payloadlen);
+
+    for (it = m_subscriberList.begin(); it != m_subscriberList.end(); ++it)
+    {
+        if (nullptr != (*it))
+        {
+            if (0 == strcmp((*it)->topic.c_str(), msg->topic))
+            {
+                Subscriber* subscriber = *it;
+
+                subscriber->callback(payloadStr);
+                break;
+            }
+        }
+    }
+}
 
 /******************************************************************************
- * Local Functions
+ * External Functions
  *****************************************************************************/
 
 /**
@@ -619,7 +615,7 @@ void MqttClient::attemptConnection()
  * @param[in] obj   Object passed on mosquitto_new.
  * @param[in] rc    Result code.
  */
-void onConnect(mosquitto* mosq, void* obj, int rc)
+extern void onConnect(mosquitto* mosq, void* obj, int rc)
 {
     MqttClient* mqttClient = static_cast<MqttClient*>(obj);
 
@@ -636,7 +632,7 @@ void onConnect(mosquitto* mosq, void* obj, int rc)
  * @param[in] obj   Object passed on mosquitto_new.
  * @param[in] rc    Result code.
  */
-void onDisconnect(mosquitto* mosq, void* obj, int rc)
+extern void onDisconnect(mosquitto* mosq, void* obj, int rc)
 {
     MqttClient* mqttClient = static_cast<MqttClient*>(obj);
 
@@ -653,7 +649,7 @@ void onDisconnect(mosquitto* mosq, void* obj, int rc)
  * @param[in] obj   Object passed on mosquitto_new.
  * @param[in] msg   Message received.
  */
-void onMessage(mosquitto* mosq, void* obj, const mosquitto_message* msg)
+extern void onMessage(mosquitto* mosq, void* obj, const mosquitto_message* msg)
 {
     MqttClient* mqttClient = static_cast<MqttClient*>(obj);
 
@@ -662,3 +658,7 @@ void onMessage(mosquitto* mosq, void* obj, const mosquitto_message* msg)
         mqttClient->onMessageCallback(msg);
     }
 }
+
+/******************************************************************************
+ * Local Functions
+ *****************************************************************************/
