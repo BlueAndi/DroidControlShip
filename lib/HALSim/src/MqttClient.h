@@ -289,31 +289,8 @@ private:
      */
     void onMessageCallback(const mosquitto_message* msg);
 
-    /**
-     * Callback function, which is called on connect.
-     *
-     * @param[in] mosq  Mosquitto instance.
-     * @param[in] obj   Object passed on mosquitto_new.
-     * @param[in] rc    Result code.
-     */
     friend void onConnect(mosquitto* mosq, void* obj, int rc);
-
-    /**
-     * Callback function, which is called on disconnect.
-     *
-     * @param[in] mosq  Mosquitto instance.
-     * @param[in] obj   Object passed on mosquitto_new.
-     * @param[in] rc    Result code.
-     */
     friend void onDisconnect(mosquitto* mosq, void* obj, int rc);
-
-    /**
-     * Callback function, which is called on message reception.
-     *
-     * @param[in] mosq  Mosquitto instance.
-     * @param[in] obj   Object passed on mosquitto_new.
-     * @param[in] msg   Message received.
-     */
     friend void onMessage(mosquitto* mosq, void* obj, const mosquitto_message* msg);
 };
 
