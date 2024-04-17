@@ -212,22 +212,33 @@ void WebotsSerialDrv::println(int32_t value)
 
 size_t WebotsSerialDrv::write(const uint8_t* buffer, size_t length)
 {
-    return m_emitter->send(buffer, length);
+    int32_t       result  = m_emitter->send(buffer, length);
+    const int32_t SUCCESS = 1;
+
+    return (SUCCESS == result) ? length : 0;
 }
 
 int WebotsSerialDrv::available() const
 {
-    int32_t dataSize;
+    int32_t dataSize = 0;
 
     /* If in the last read not all data was read, return the remaining bytes. */
     if (0U < m_dataRemains)
     {
         dataSize = m_dataRemains;
     }
-    /* Otherwise return the size of the current head packet. */
-    else
+    /* Otherwise return the size of the current head packet.
+     * Attention, calling the getDataSize() is illegal in case the queue is
+     * empty!
+     */
+    else if (0 < m_receiver->getQueueLength())
     {
         dataSize = m_receiver->getDataSize();
+    }
+    else
+    {
+        /* Nothing to do. */
+        ;
     }
 
     return dataSize;
@@ -235,48 +246,55 @@ int WebotsSerialDrv::available() const
 
 size_t WebotsSerialDrv::readBytes(uint8_t* buffer, size_t length)
 {
-    const uint8_t* message     = static_cast<const uint8_t*>(m_receiver->getData());
-    int32_t        messageSize = m_receiver->getDataSize();
-    size_t         read        = 0U;
+    size_t read = 0U;
 
-    /* If in the last read not all data was read, return the remaining bytes. */
-    if (0U < m_dataRemains)
+    /* Attention, calling the getData() or getDataSize() is illegal in case the
+     * queue is empty!
+     */
+    if (0 < m_receiver->getQueueLength())
     {
-        /* Partial read? */
-        if (m_dataRemains > length)
+        const uint8_t* message     = static_cast<const uint8_t*>(m_receiver->getData());
+        int32_t        messageSize = m_receiver->getDataSize();
+
+        /* If in the last read not all data was read, return the remaining bytes. */
+        if (0U < m_dataRemains)
         {
-            read = length;
+            /* Partial read? */
+            if (m_dataRemains > length)
+            {
+                read = length;
+            }
+            /* Read all. */
+            else
+            {
+                read = m_dataRemains;
+            }
+
+            (void)memcpy(buffer, &message[messageSize - m_dataRemains], read);
+            m_dataRemains -= read;
         }
-        /* Read all. */
         else
         {
-            read = m_dataRemains;
+            /* Partial read? */
+            if (messageSize > length)
+            {
+                read = length;
+            }
+            /* Read all. */
+            else
+            {
+                read = messageSize;
+            }
+
+            (void)memcpy(buffer, message, read);
+            m_dataRemains = messageSize - read;
         }
 
-        (void)memcpy(buffer, &message[messageSize - m_dataRemains], read);
-        m_dataRemains -= read;
-    }
-    else
-    {
-        /* Partial read? */
-        if (messageSize > length)
+        /* If the complete head packet is read, it will be thrown away. */
+        if (0U == m_dataRemains)
         {
-            read = length;
+            m_receiver->nextPacket();
         }
-        /* Read all. */
-        else
-        {
-            read = messageSize;
-        }
-
-        (void)memcpy(buffer, message, read);
-        m_dataRemains = messageSize - read;
-    }
-
-    /* If the complete head packet is read, it will be thrown away. */
-    if (0U == m_dataRemains)
-    {
-        m_receiver->nextPacket();
     }
 
     return read;
