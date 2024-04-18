@@ -34,6 +34,7 @@
  *****************************************************************************/
 #include "Board.h"
 #include <Logging.h>
+#include "RobotDeviceNames.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -58,12 +59,6 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
-/* Name of the serial emitter in the DCS simulation. */
-const char* Board::EMITTER_NAME_SERIAL = "serialComTx";
-
-/* Name of the serial receiver in the DCS simulation. */
-const char* Board::RECEIVER_NAME_SERIAL = "serialComRx";
 
 /******************************************************************************
  * Public Methods
@@ -108,7 +103,8 @@ Board::Board() :
     IBoard(),
     m_robot(),
     m_simTime(m_robot),
-    m_serialDrv(m_robot.getEmitter(EMITTER_NAME_SERIAL), m_robot.getReceiver(RECEIVER_NAME_SERIAL)),
+    m_serialDrv(m_robot.getEmitter(RobotDeviceNames::EMITTER_NAME_SERIAL),
+                m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)),
     m_battery(),
     m_button(),
     m_ledBlue(),
@@ -124,7 +120,7 @@ void Board::enableSimulationDevices()
 {
     const int timeStep = m_simTime.getTimeStep();
 
-    m_robot.getReceiver(RECEIVER_NAME_SERIAL)->enable(timeStep);
+    m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)->enable(timeStep);
 }
 
 /******************************************************************************

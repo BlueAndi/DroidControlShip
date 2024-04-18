@@ -177,11 +177,6 @@ public:
     }
 
 private:
-    /** Name of the serial emitter in the DCS simulation. */
-    static const char* EMITTER_NAME_SERIAL;
-
-    /** Name of the serial receiver in the DCS simulation. */
-    static const char* RECEIVER_NAME_SERIAL;
 
     /** Simulated DCS robot instance. */
     webots::Robot m_robot;
