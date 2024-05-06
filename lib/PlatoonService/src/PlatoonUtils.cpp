@@ -86,9 +86,8 @@ bool PlatoonUtils::calculateHeading(const Waypoint& targetWaypoint, const Waypoi
     if ((0 != deltaX) || (0 != deltaY))
     {
         /* Calculate target heading. */
-        float angle = atan2(deltaY, deltaX) * 1000.0F;         /* Angle in mrad. */
-        angle += (FP_2PI() + 0.5F);                            /* Shift angle by 360 degree. */
-        heading      = static_cast<int32_t>(angle) % FP_2PI(); /* Fixed point heading. */
+        float angle  = atan2(deltaY, deltaX) * 1000.0F;               /* Angle in mrad. */
+        heading      = static_cast<int32_t>(angle + 0.5F) % FP_2PI(); /* Fixed point heading. */
         isSuccessful = true;
     }
 
@@ -117,13 +116,29 @@ bool PlatoonUtils::areWaypointsEqual(const Waypoint& waypoint1, const Waypoint& 
 
 int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t referenceHeading)
 {
-    int32_t equivalentHeading = targetHeading;
+    /* Make sure the target heading is in the range [-2PI, 2PI]. */
+    int32_t equivalentHeading = targetHeading % FP_2PI();
+
+    /* Move equivalent heading to the range of the refence heading if required. */
+    if (FP_2PI() == referenceHeading)
+    {
+        equivalentHeading += FP_2PI();
+    }
+    else if (-FP_2PI() == referenceHeading)
+    {
+        equivalentHeading -= FP_2PI();
+    }
 
     /* Calculate delta between the two headings. */
     int32_t absoluteDelta = equivalentHeading - referenceHeading;
 
+    /* Headings are equal. */
+    if (0 == absoluteDelta)
+    {
+        /* Nothing to do. */
+    }
     /* Current heading is positive and delta is negative. */
-    if ((absoluteDelta < 0) && (0 < referenceHeading))
+    else if ((absoluteDelta < 0) && (0 <= referenceHeading))
     {
         /* Relative delta when going counter-clockwise. */
         int32_t deltaCounterClockwise = (equivalentHeading + FP_2PI()) - referenceHeading;
@@ -134,11 +149,12 @@ int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t 
         /* Choose the shortest path. */
         if (deltaCounterClockwise < deltaClockwise)
         {
+            /* Shortest path is counter-clockwise. Result may reach 3PI. */
             equivalentHeading += FP_2PI();
         }
     }
     /* Current heading is positive and delta is positive. */
-    else if ((absoluteDelta > 0) && (0 < referenceHeading))
+    else if ((absoluteDelta > 0) && (0 <= referenceHeading))
     {
         /* Relative delta when going counter-clockwise. */
         int32_t deltaCounterClockwise = equivalentHeading - referenceHeading;
@@ -149,6 +165,7 @@ int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t 
         /* Choose the shortest path. */
         if (deltaCounterClockwise > deltaClockwise)
         {
+            /* Shortest path is clockwise. */
             equivalentHeading -= FP_2PI();
         }
     }
@@ -164,6 +181,7 @@ int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t 
         /* Choose the shortest path. */
         if (deltaCounterClockwise < deltaClockwise)
         {
+            /* Shortest path is counter-clockwise. */
             equivalentHeading += FP_2PI();
         }
     }
@@ -179,6 +197,7 @@ int32_t PlatoonUtils::calculateEquivalentHeading(int32_t targetHeading, int32_t 
         /* Choose the shortest path. */
         if (deltaCounterClockwise > deltaClockwise)
         {
+            /* Shortest path is clockwise. Result may reach -3PI. */
             equivalentHeading -= FP_2PI();
         }
     }

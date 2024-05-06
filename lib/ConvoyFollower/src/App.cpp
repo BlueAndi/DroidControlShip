@@ -44,6 +44,7 @@
 #include "IdleState.h"
 #include "DrivingState.h"
 #include "ErrorState.h"
+#include <Telemetry.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -223,6 +224,11 @@ void App::loop()
 
     /* Process periodic tasks. */
     processPeriodicTasks();
+}
+
+void App::setLatestVehicleData(const Waypoint& waypoint)
+{
+    m_latestVehicleData = waypoint;
 }
 
 void App::setErrorState()
@@ -598,7 +604,12 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
         App*               application        = reinterpret_cast<App*>(userData);
-        DrivingState::getInstance().setVehicleData(*currentVehicleData);
+        Telemetry          data(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
+                                currentVehicleData->left, currentVehicleData->right, currentVehicleData->center,
+                                currentVehicleData->proximity);
+
+        DrivingState::getInstance().setVehicleData(data);
+        application->setLatestVehicleData(data.asWaypoint());
     }
     else
     {

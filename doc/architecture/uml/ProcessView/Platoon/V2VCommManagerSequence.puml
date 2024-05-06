@@ -1,0 +1,57 @@
+@startuml VCMSequence
+
+autoactivate on
+
+participant "MQTT Client" as MQTT
+participant "V2V Communication\Manager" as VCM
+participant "Platoon Application\nController" as PAC
+participant "Waypoint\nAlgorithm" as WA
+
+group Leader [Done in periodic interval]
+    VCM -> MQTT: V2V Event: HearbeatRequest.
+    deactivate
+end
+
+group Leader [Done in periodic interval]
+    MQTT -> VCM: V2V Event: HearbeatResponse.
+    VCM -> VCM: Check Heartbeat responses.
+    return
+    deactivate
+end
+
+group Leader [On-demand by application]
+    PAC -> VCM : New Waypoint.
+    VCM -> MQTT: V2V Event: Waypoint.
+    return
+    deactivate
+end
+
+group Leader [Feedback Event received]
+    MQTT -> VCM: V2V Event: Feedback.
+    VCM -> PAC: Last follower's feedback.
+    return
+    deactivate
+end
+
+group Follower [Waypoint Event received]
+    MQTT -> VCM: V2V Event: Waypoint.
+    VCM -> WA:  Next Waypoint.
+    return
+    deactivate
+end
+
+group Follower [Waypoint Event passed on]
+    WA -> VCM:  Next Waypoint.
+    VCM -> MQTT: V2V Event: Waypoint.
+    return
+    deactivate
+end
+
+group Follower [HeartbeatRequest Event received]
+    MQTT -> VCM: V2V Event: HearbeatRequest.
+    VCM -> MQTT: V2V Event: HearbeatResponse.
+    return
+    deactivate
+end
+
+@enduml

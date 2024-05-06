@@ -283,6 +283,11 @@ private:
      * Attempt to establish connection to the broker.
      */
     void attemptConnection();
+
+private:
+    /* Not allowed. */
+    MqttClient(const MqttClient& src);            /**< Copy construction of an instance. */
+    MqttClient& operator=(const MqttClient& rhs); /**< Assignment of an instance. */
 };
 
 /******************************************************************************

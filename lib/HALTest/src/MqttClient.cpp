@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Driving state.
+ * @brief  MQTTClient realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include "DrivingState.h"
+#include "MqttClient.h"
 #include <Logging.h>
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -60,50 +60,73 @@
  * Public Methods
  *****************************************************************************/
 
-void DrivingState::entry()
+MqttClient::MqttClient() : IMqttClient()
 {
-    m_isActive = true;
 }
 
-void DrivingState::process(StateMachine& sm)
+MqttClient::~MqttClient()
 {
-    /* Check if the state is active. */
-    if (false == m_isActive)
-    {
-        m_currentSpeedSetpoint = 0;
-    }
-    else
-    {
-        m_currentSpeedSetpoint = m_maxMotorSpeed;
-    }
 }
 
-void DrivingState::exit()
+bool MqttClient::init()
 {
-    m_isActive = false;
+    LOG_WARNING("MQTT client not implemented for test environment.");
+    return false;
 }
 
-void DrivingState::setMaxMotorSpeed(int16_t maxSpeed)
+bool MqttClient::process()
 {
-    m_maxMotorSpeed = maxSpeed;
+    LOG_WARNING("MQTT client not implemented for test environment.");
+    return false;
 }
 
-bool DrivingState::getTopMotorSpeed(int16_t& topMotorSpeed) const
+bool MqttClient::setConfig(const MqttSettings& settings)
 {
-    topMotorSpeed = m_currentSpeedSetpoint;
-
-    /* Only valid if the state is active. */
-    return m_isActive;
+    UTIL_NOT_USED(settings);
+    LOG_WARNING("MQTT client not implemented for test environment.");
+    return false;
 }
 
-void DrivingState::setVehicleData(const Telemetry& data)
+bool MqttClient::connect()
 {
-    m_vehicleData = data;
+    LOG_WARNING("MQTT client not implemented for test environment.");
+    return false;
 }
 
-void DrivingState::setLastFollowerFeedback(const Telemetry& feedback)
+void MqttClient::disconnect()
 {
-    m_followerFeedback = feedback;
+    LOG_WARNING("MQTT client not implemented for test environment.");
+}
+
+bool MqttClient::isConnected() const
+{
+    LOG_WARNING("MQTT client not implemented for test environment.");
+    return false;
+}
+
+bool MqttClient::publish(const String& topic, const bool useClientIdAsBaseTopic, const String& message)
+{
+    UTIL_NOT_USED(topic);
+    UTIL_NOT_USED(useClientIdAsBaseTopic);
+    UTIL_NOT_USED(message);
+    LOG_WARNING("MQTT client not implemented for test environment.");
+    return false;
+}
+
+bool MqttClient::subscribe(const String& topic, const bool useClientIdAsBaseTopic, TopicCallback callback)
+{
+    UTIL_NOT_USED(topic);
+    UTIL_NOT_USED(useClientIdAsBaseTopic);
+    UTIL_NOT_USED(callback);
+    LOG_WARNING("MQTT client not implemented for test environment.");
+    return false;
+}
+
+void MqttClient::unsubscribe(const String& topic, const bool useClientIdAsBaseTopic)
+{
+    UTIL_NOT_USED(topic);
+    UTIL_NOT_USED(useClientIdAsBaseTopic);
+    LOG_WARNING("MQTT client not implemented for test environment.");
 }
 
 /******************************************************************************

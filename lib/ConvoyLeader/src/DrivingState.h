@@ -47,6 +47,7 @@
 #include <IState.h>
 #include <StateMachine.h>
 #include "SerialMuxChannels.h"
+#include <Telemetry.h>
 
 /******************************************************************************
  * Macros
@@ -111,16 +112,16 @@ public:
     /**
      * Set latest vehicle data.
      *
-     * @param[in] vehicleData   Latest vehicle data.
+     * @param[in] data   Latest vehicle data.
      */
-    void setVehicleData(const VehicleData& vehicleData);
+    void setVehicleData(const Telemetry& data);
 
     /**
      * Set last follower feedback.
      *
      * @param[in] feedback  Last follower feedback.
      */
-    void setLastFollowerFeedback(const VehicleData& feedback);
+    void setLastFollowerFeedback(const Telemetry& feedback);
 
 protected:
 private:
@@ -133,14 +134,14 @@ private:
     /** Maximum motor speed. */
     int16_t m_maxMotorSpeed;
 
-    /** Calculated top motor speed. */
-    int16_t m_topMotorSpeed;
+    /** Current linear speed setpoint to apply to the vehicle. */
+    int16_t m_currentSpeedSetpoint;
 
     /** Latest vehicle data. */
-    VehicleData m_vehicleData;
+    Telemetry m_vehicleData;
 
     /** Last follower feedback. */
-    VehicleData m_followerFeedback;
+    Telemetry m_followerFeedback;
 
     /**
      * Default constructor.
@@ -149,9 +150,9 @@ private:
         IState(),
         m_isActive(false),
         m_maxMotorSpeed(0),
-        m_topMotorSpeed(0),
-        m_vehicleData{0},
-        m_followerFeedback{0}
+        m_currentSpeedSetpoint(0),
+        m_vehicleData(),
+        m_followerFeedback()
     {
     }
 

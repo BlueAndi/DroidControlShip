@@ -25,27 +25,21 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Driving state.
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *  @brief  File Handler
+ *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
 
-#include "DrivingState.h"
+#include "FileHandler.h"
+#include <stdio.h>
 #include <Logging.h>
-
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <Util.h>
 
 /******************************************************************************
  * Macros
- *****************************************************************************/
-
-/******************************************************************************
- * Types and classes
  *****************************************************************************/
 
 /******************************************************************************
@@ -60,62 +54,34 @@
  * Public Methods
  *****************************************************************************/
 
-void DrivingState::entry()
+FileHandler::FileHandler()
 {
-    m_isActive = true;
 }
 
-void DrivingState::process(StateMachine& sm)
+FileHandler::~FileHandler()
 {
-    /* Check if the state is active. */
-    if (false == m_isActive)
-    {
-        m_currentSpeedSetpoint = 0;
-    }
-    else
-    {
-        m_currentSpeedSetpoint = m_maxMotorSpeed;
-    }
 }
 
-void DrivingState::exit()
+size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const
 {
-    m_isActive = false;
+    UTIL_NOT_USED(fileName);
+    UTIL_NOT_USED(outBuffer);
+    UTIL_NOT_USED(maxBufferSize);
+    LOG_WARNING("FileHandler::readFile not implemented for test environment.");
+    return 0U;
 }
 
-void DrivingState::setMaxMotorSpeed(int16_t maxSpeed)
+size_t FileHandler::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
 {
-    m_maxMotorSpeed = maxSpeed;
+    UTIL_NOT_USED(fileName);
+    UTIL_NOT_USED(buffer);
+    UTIL_NOT_USED(bufferSize);
+    LOG_WARNING("FileHandler::writeFile not implemented for test environment.");
+    return 0U;
 }
-
-bool DrivingState::getTopMotorSpeed(int16_t& topMotorSpeed) const
-{
-    topMotorSpeed = m_currentSpeedSetpoint;
-
-    /* Only valid if the state is active. */
-    return m_isActive;
-}
-
-void DrivingState::setVehicleData(const Telemetry& data)
-{
-    m_vehicleData = data;
-}
-
-void DrivingState::setLastFollowerFeedback(const Telemetry& feedback)
-{
-    m_followerFeedback = feedback;
-}
-
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
 
 /******************************************************************************
  * Private Methods
- *****************************************************************************/
-
-/******************************************************************************
- * External Functions
  *****************************************************************************/
 
 /******************************************************************************

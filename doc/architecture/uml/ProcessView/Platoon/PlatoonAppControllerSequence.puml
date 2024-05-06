@@ -1,0 +1,36 @@
+@startuml PACSequence
+
+autoactivate on
+
+participant "Application" as app
+participant "Platoon Application\nController" as PAC
+participant "Collision Avoidance" as CAV
+participant "V2V Comm.\nManager" as VCM
+entity "Follower" as follower
+
+group Loop
+    follower ->> VCM : Status
+    VCM -> app: Follower status.
+    deactivate
+    VCM -> app: Last follower's position.
+    deactivate
+    deactivate
+    
+    app -> PAC:  Calculate linear speed setpoint.
+    return
+
+    app -> CAV: Limit speed setpoint. 
+    return
+    
+    
+    
+    app ->VCM: Send Waypoint
+        VCM -> follower : Waypoint Event
+        deactivate
+    return
+
+    app -> app : Apply speed setpoint
+    return
+end
+
+@enduml
