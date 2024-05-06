@@ -151,7 +151,6 @@ void App::setup()
         if (true == settings.getRobotName().isEmpty())
         {
             String robotName = WiFi.macAddress();
-
             /* Remove MAC separators from robot name. */
             robotName.replace(":", "");
 
@@ -202,7 +201,8 @@ void App::loop()
         LOG_FATAL("HAL process failed.");
         halt();
     }
-
+    
+ 
     /* Initialize WebServer. Must be done after the network has been processed at least once. */
     if ((false == m_isWebServerInitialized) && (Board::getInstance().getNetwork().isUp()))
     {
@@ -212,8 +212,6 @@ void App::loop()
         m_webServer.handleUpdateRequest();
         m_isWebServerInitialized = true;
     }
-
-
     while(false == Board::getInstance().getDevice().isInBootloaderMode())
     {
         if (false ==Board::getInstance().process())
@@ -227,21 +225,6 @@ void App::loop()
     while(true == Board::getInstance().getDevice().isInBootloaderMode())
     {
         Board::getInstance().process();
-        String fileName = m_webServer.getFirmwareName();
-        if(fileName.isEmpty())
-        {
-            LOG_ERROR("Empty File");
-        }
-        else
-        {
-            //LOG_DEBUG("fileName von App = %s", fileName.c_str());
-        }
-        
-        if (false == fileName.startsWith("/"))
-        {
-            fileName = "/" + fileName;
-        }
-        m_bootloader.setFirmwareName(fileName);
         m_bootloader.process();
     }
     LOG_INFO("Not in Bootloader Mode!");

@@ -14,6 +14,7 @@
             min-height: 100vh;
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
+            background-image: url('ZumoRobot.jpg');
             background-position: center;
             background-repeat: no-repeat;
             background-size: cover;
@@ -104,7 +105,7 @@
 </head>
 
 <body>
-    <h1>Welcome to the homepage!</h1>
+    <h1>Zumo32U4 Firmware Upload Page!</h1>
     <p>You have the option here to either upload a file or perform the robot update via OTA.</p>
     <p>To upload a file, please click on the 'Upload Page' button. This will take you to a new page.</p>
     <p>To update the firmware on the robot, please click on the 'Perform OTA Update' button.</p>
@@ -128,15 +129,19 @@
 
     <ul>
         <li><a href="/upload" class="custom-link" target="_blank">Upload Page</a></li>
-        <li><a href="/otaUpdate" class="custom-link" target="_blank">Perform OTA Update</a></li>
+        <li><a href="/uploadFirmware" class="custom-link" target="_blank">Perform OTA Update</a></li>
 
     </ul>
     <script>
-        function toggleForm() {
+        function toggleForm()
+        {
             var form = document.getElementById("profileForm");
-            if (form.style.display === "none") {
+            if (form.style.display === "none")
+            {
                 form.style.display = "block";
-            } else {
+            } 
+            else 
+            {
                 form.style.display = "none";
             }
         }
@@ -144,7 +149,8 @@
 
 
         /* The function that submits the form and updates the profile. */
-        function updateProfile(event) {
+        function updateProfile(event)
+        {
             /* Prevents the default behavior of the form (in this case, submission). */
             event.preventDefault();
 
@@ -157,18 +163,19 @@
             xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
             xhr.send(JSON.stringify({ newUsername: newUsername, newPassword: newPassword }));
 
-            xhr.onload = function () {
+            xhr.onload = function ()
+            {
                 /* Handle the response here if necessary. */
-                if (xhr.status === 200) {
+                if (xhr.status === 200)
+                {
                     alert("Profile successfully updated!");
-                } else {
+                } 
+                else
+                {
                     alert("Error updating the profile. Please try again.");
                 }
             };
         }
-
-        /* The form receives an onsubmit handler that calls updateProfile.*/
-        document.getElementById("profileForm").onsubmit = updateProfile;
     </script>
 </body>
 

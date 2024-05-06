@@ -68,12 +68,13 @@
 
 <script>
     /* Function to load the file list */
-    function loadFileList() {
+    function loadFileList()
+    {
         fetch('/listFirmwareFiles')
             .then(response => response.text())
             .then(data => {
                 document.getElementById('fileList').innerHTML = data;
-                document.getElementById('fileList').style.display = 'block'; // Display the file list
+                document.getElementById('fileList').style.display = 'block'; /**<Display the file list.*/
             });
     }
 
@@ -81,41 +82,38 @@
 function handleFileSelection(event)
 {
     let selectedFile = event.target.textContent.trim();
-    // Display the selected file
+    /*Display the selected file.*/
     alert('Selected file: ' + selectedFile);
 
-    // Display the file size
-    let fileSize = event.target.dataset.size;
-    alert('File size: ' + fileSize);
+    /*Save the selected file in a hidden field.*/
+    document.getElementById('file_id').value = selectedFile;
 
-    // Save the selected file in a hidden field
-    document.getElementById('file_id').value = selectedFile;  //.text
-    //fileInput.value = selectedFile;
-                
-    // Hide the 'Choose Firmware File' button and display the 'Firmware Update' button 
+    /*Show the 'Choose Firmware File' button and display the 'Firmware Update' button.*/ 
     document.getElementById('firmwareFileButton').style.display = 'block';
     document.getElementById('firmwareUpdateButton').style.display = 'block';
 }
 
 
     /* Function for firmware update */
-    function performFirmwareUpdate() {
-        // Retrieve selected file
+    function performFirmwareUpdate()
+    {
+        /*Retrieve selected file.*/
         let selectedFile = document.getElementById('file_id').value;
         
-        // Debugging: Log the selected file to the console
+        /*Debugging: Log the selected file to the console.*/
         console.log('Selected file:', selectedFile);
         
-        if (!selectedFile) {
+        if (!selectedFile)
+        {
             alert('No file selected.');
             return;
         }
 
-        // Initiate firmware update
+        /*Initiate firmware update.*/
         const formData = new FormData();
         formData.append('firmware', selectedFile);
 
-        // Debugging: Log the formData to the console
+        /*Debugging: Log the formData to the console.*/
         console.log('FormData:', formData);
 
         fetch('/uploadFirmware', {
@@ -123,11 +121,14 @@ function handleFileSelection(event)
             body: formData,
         })
         .then(response => {
-            if (response.ok) {
-                // Firmware update initiated successfully
+            if (response.ok)
+            {
+                /*Firmware update initiated successfully.*/
                 alert('Firmware update initiated! Robot will now enter bootloader mode.');
-            } else {
-                // Error during Firmware update
+            }
+            else
+            {
+                /*Error during Firmware update.*/
                 alert('Error during firmware update!');
             }
         })

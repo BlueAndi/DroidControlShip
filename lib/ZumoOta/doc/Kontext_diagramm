@@ -1,0 +1,96 @@
+@startuml
+
+title KontextDiagram
+
+ 
+
+ 
+
+package ZumoCOMSystem as ComSyS {
+
+  package ESP32 {
+
+    package FileSystem as FL {
+
+      [Web Pages] as WebPages #00FF00
+
+      [Upload Folder] as UpLdFldr
+
+    }
+
+ 
+
+    [EspSoftware] #00FF00
+
+    [WIFI]
+
+  }
+
+ 
+
+  [ComSysUSB]
+  [EspGpio]
+
+}
+
+ 
+
+package PC as PC {
+
+  [WebBrowser] as WebBrowser
+
+  [NewFirmware]
+
+ 
+
+}
+
+ 
+
+package ZumoRoboter as Roboter {
+
+  package Controller as UC {
+
+    [firmware]
+
+    [bootloader]
+
+  }
+
+  [USB]
+
+  [GpIo]
+
+}
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+WebBrowser --> WIFI : HTTP
+
+WIFI <-> EspSoftware
+
+WebPages -down-> EspSoftware : <<use>>
+
+EspSoftware -up-> UpLdFldr : <<FileIO>>
+
+EspGpio -down-> GpIo
+
+EspSoftware -down-> EspGpio : <<Reset Trigger>>
+
+ESP32 -down-> ComSysUSB : <<USB Bootloader Protocol>>
+
+ComSysUSB -down-> USB
+
+GpIo --> UC
+
+USB  --> bootloader : <<program>>
+
+@enduml

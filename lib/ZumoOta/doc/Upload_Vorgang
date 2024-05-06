@@ -1,0 +1,18 @@
+@startuml
+
+participant Client
+participant WebServer
+participant LittleFS
+
+Client -> WebServer: GET /upload
+WebServer -> Client: Send upload.html
+Client -> WebServer: POST /upload (File upload)
+WebServer -> LittleFS: Open file for writing
+loop Until all data is received
+    Client -> WebServer: Data block
+    WebServer -> LittleFS: Write data to file
+end
+WebServer -> LittleFS: Close file
+WebServer -> Client: Redirect to /filelist
+
+@enduml
