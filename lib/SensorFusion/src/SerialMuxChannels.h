@@ -56,12 +56,6 @@
 /** DLC of Sensordata Channel */
 #define SENSORDATA_CHANNEL_DLC (sizeof(SensorData))
 
-/** Name of Channel to End Line Detected Signal. */
-#define ENDLINE_CHANNEL_NAME "END_LINE"
-
-/** DLC of End Line Channel */
-#define ENDLINE_CHANNEL_DLC (sizeof(EndLineFlag))
-
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
@@ -99,4 +93,4 @@ typedef struct _SensorData
  *****************************************************************************/
 
 #endif /* SERIAL_MUX_CHANNELS_H_ */
-/** @} */
+       /** @} */
