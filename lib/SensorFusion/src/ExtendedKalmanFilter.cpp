@@ -78,25 +78,26 @@ constexpr float ODOMETRY_VELOCITY_VARIANCE = ODOMETRY_POSITION_VARIANCE * 2;
 constexpr float ODOMETRY_ANGLE_VARIANCE = 6.0F;
 
 /** The observation model Matrix (notation in literature: H). */
-const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_STATES_N> ExtendedKalmanFilter::OBSERVATION_MATRIX_H{
-    {1.0F, 0.0F, 0.0F, 0.0F},
-    {0.0F, 1.0F, 0.0F, 0.0F},
-    {0.0F, 0.0F, 1.0F, 0.0F},
-    {0.0F, 0.0F, 0.0F, 1.0F}};
+const Eigen::Matrix<float, ExtendedKalmanFilter::NUMBER_OF_MEASUREMENTS_M, ExtendedKalmanFilter::NUMBER_OF_STATES_N>
+    ExtendedKalmanFilter::OBSERVATION_MATRIX_H{{1.0F, 0.0F, 0.0F, 0.0F},
+                                               {0.0F, 1.0F, 0.0F, 0.0F},
+                                               {0.0F, 0.0F, 1.0F, 0.0F},
+                                               {0.0F, 0.0F, 0.0F, 1.0F}};
 
 /** The covariance of the observation noise Matrix (notation in literature: R). */
-const Eigen::Matrix<float, NUMBER_OF_MEASUREMENTS_M, NUMBER_OF_MEASUREMENTS_M>
+const Eigen::Matrix<float, ExtendedKalmanFilter::NUMBER_OF_MEASUREMENTS_M,
+                    ExtendedKalmanFilter::NUMBER_OF_MEASUREMENTS_M>
     ExtendedKalmanFilter::OBSERVATION_NOISE_MATRIX_R{{ODOMETRY_POSITION_VARIANCE, 0.0F, 0.0F, 0.0F},
                                                      {0.0F, ODOMETRY_POSITION_VARIANCE, 0.0F, 0.0F},
                                                      {0.0F, 0.0F, ODOMETRY_VELOCITY_VARIANCE, 0.0F},
                                                      {0.0F, 0.0F, 0.0F, ODOMETRY_ANGLE_VARIANCE}};
 
 /** The covariance matrix of the process noise Matrix (notation in literature: Q). */
-const Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> ExtendedKalmanFilter::PROCESS_COVARIANCE_MATRIX_Q{
-    {0.0F, 0.0F, 0.0F, 0.0F},
-    {0.0F, 0.0F, 0.0F, 0.0F},
-    {0.0F, 0.0F, ACCELERATION_VARIANCE, 0.0F},
-    {0.0F, 0.0F, 0.0F, TURNRATE_VARIANCE}};
+const Eigen::Matrix<float, ExtendedKalmanFilter::NUMBER_OF_STATES_N, ExtendedKalmanFilter::NUMBER_OF_STATES_N>
+    ExtendedKalmanFilter::PROCESS_COVARIANCE_MATRIX_Q{{0.0F, 0.0F, 0.0F, 0.0F},
+                                                      {0.0F, 0.0F, 0.0F, 0.0F},
+                                                      {0.0F, 0.0F, ACCELERATION_VARIANCE, 0.0F},
+                                                      {0.0F, 0.0F, 0.0F, TURNRATE_VARIANCE}};
 
 /******************************************************************************
  * Public Methods
@@ -159,7 +160,7 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep()
             .inverse();
 
     /* Perform the update step of the state vector  */
-    m_stateVector                               = m_stateVector + kalmanGainMatrix * innovationVectorY;
+    m_stateVector = m_stateVector + kalmanGainMatrix * innovationVectorY;
 
     /* Perform the update step of the covariance matrix  */
     Eigen::Matrix<float, NUMBER_OF_STATES_N, NUMBER_OF_STATES_N> identityMatrix =
@@ -182,10 +183,10 @@ IKalmanFilter::PositionData ExtendedKalmanFilter::updateStep()
  *****************************************************************************/
 void ExtendedKalmanFilter::updateMeasurementVector(KalmanParameter& kalmanParameter)
 {
-    m_measurementVector[IDX_POSITION_X_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryX;        /* In mm */
-    m_measurementVector[IDX_POSITION_Y_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryY;        /* In mm */
-    m_measurementVector[IDX_VELOCITY_MEASUREMENT_VECTOR]    = kalmanParameter.velocityOdometry;         /* In mm/s */
-    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = kalmanParameter.angleOdometry; /* In mrad */
+    m_measurementVector[IDX_POSITION_X_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryX; /* In mm */
+    m_measurementVector[IDX_POSITION_Y_MEASUREMENT_VECTOR]  = kalmanParameter.positionOdometryY; /* In mm */
+    m_measurementVector[IDX_VELOCITY_MEASUREMENT_VECTOR]    = kalmanParameter.velocityOdometry;  /* In mm/s */
+    m_measurementVector[IDX_ORIENTATION_MEASUREMENT_VECTOR] = kalmanParameter.angleOdometry;     /* In mrad */
 }
 
 void ExtendedKalmanFilter::updateControlInputVector(KalmanParameter& kalmanParameter)

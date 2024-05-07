@@ -55,15 +55,6 @@
  * Types and Classes
  *****************************************************************************/
 
-/** Number of states used in the state vector x (notation in literature: N). */
-static const uint8_t NUMBER_OF_STATES_N = 4U;
-
-/** Number of measurements in the measurement vector z (notation in literature: M). */
-static const uint8_t NUMBER_OF_MEASUREMENTS_M = 4U;
-
-/** Number of control inputs in the control input vector u (notation in literature: L). */
-static const uint8_t NUMBER_OF_CONTROL_INPUTS_L = 2U;
-
 /** This class provides an Extended Kalman filter. */
 class ExtendedKalmanFilter : public IKalmanFilter
 {
@@ -96,7 +87,7 @@ public:
 
     /**
      * Prediction of the covariance and the state of the Kalman Filter.
-     * 
+     *
      * @param[in] timeStep Measured Time Step in ms.
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter
      */
@@ -104,13 +95,22 @@ public:
 
     /**
      * Update of the covariance and the state of the Kalman Filter.
-     * 
+     *
      * @return Estimated Position as a PositionData struct.
      *
      */
     virtual PositionData updateStep() final;
 
 private:
+    /** Number of states used in the state vector x (notation in literature: N). */
+    static const uint8_t NUMBER_OF_STATES_N = 4U;
+
+    /** Number of measurements in the measurement vector z (notation in literature: M). */
+    static const uint8_t NUMBER_OF_MEASUREMENTS_M = 4U;
+
+    /** Number of control inputs in the control input vector u (notation in literature: L). */
+    static const uint8_t NUMBER_OF_CONTROL_INPUTS_L = 2U;
+
     /** Estimated state vector [positionX in mm, positionY in mm, velocity in mm/s, orientation in mrad/s]^T */
     Eigen::Vector<float, NUMBER_OF_STATES_N> m_stateVector;
 
