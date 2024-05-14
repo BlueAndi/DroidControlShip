@@ -30,7 +30,7 @@ jobs:
     needs: intro
     strategy:
       matrix:
-        environment: ["ConvoyLeaderTarget", "ConvoyFollowerTarget", "RemoteControlTarget"]
+        environment: ["ConvoyLeaderTarget", "ConvoyFollowerTarget", "RemoteControlTarget", "SensorFusionTarget"]
 
     # Steps represent a sequence of tasks that will be executed as part of the job.
     steps:
@@ -71,7 +71,7 @@ jobs:
     needs: intro
     strategy:
       matrix:
-        environment: ["ConvoyLeaderTarget", "ConvoyFollowerTarget", "RemoteControlTarget", "Test"]
+        environment: ["ConvoyLeaderTarget", "ConvoyFollowerTarget", "RemoteControlTarget", "SensorFusionTarget", "Test"]
 
     steps:
     - name: Checkout repository
@@ -148,7 +148,7 @@ jobs:
     needs: intro
     strategy:
       matrix:
-        environment: ["ConvoyLeaderTarget", "ConvoyFollowerTarget", "ConvoyLeaderSim", "ConvoyFollowerSim", "RemoteControlTarget", "RemoteControlSim"]
+        environment: ["ConvoyLeaderTarget", "ConvoyFollowerTarget", "ConvoyLeaderSim", "ConvoyFollowerSim", "RemoteControlTarget", "RemoteControlSim", "SensorFusionTarget", "SensorFusionSim"]
 
     steps:
     - name: Checkout repository
