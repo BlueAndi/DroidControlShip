@@ -65,7 +65,7 @@ public:
     /**
      * Construct the Sensor Fusion application.
      */
-    App() : m_sensorFusion(), m_smpServer(Board::getInstance().getDevice().getStream(), this), m_mqttClient()
+    App() : m_sensorFusion(), m_smpServer(Board::getInstance().getRobot().getStream(), this), m_mqttClient()
     {
     }
 
