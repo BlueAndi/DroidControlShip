@@ -1,4 +1,4 @@
-@echo on
+@echo off
 
 set PATH=%PATH%;
 set WEBOTS_CONTROLLER="%WEBOTS_HOME%\msys64\mingw64\bin\webots-controller.exe"
