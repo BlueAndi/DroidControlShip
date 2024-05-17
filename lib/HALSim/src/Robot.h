@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Abstract device interface
+ * @brief  Robot realization
  * @author Andreas Merkle <web@blue-andi.de>
  *
- * @addtogroup HALInterfaces
+ * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef IDEVICE_H
-#define IDEVICE_H
+#ifndef ROBOT_H
+#define ROBOT_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,8 +43,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdbool.h>
-#include <Stream.h>
+#include "IRobot.h"
+#include "IRobotNative.h"
+#include "WebotsSerialDrv.h"
 
 /******************************************************************************
  * Macros
@@ -54,69 +55,83 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The abstract device interface. */
-class IDevice
+/** This class provides access to the simulation robot. */
+class Robot : public IRobot, public IRobotNative
 {
 public:
     /**
-     * Destroys the interface.
+     * Constructs the robot adapter.
      */
-    virtual ~IDevice()
+    Robot(WebotsSerialDrv& serialDrv) : IRobot(), IRobotNative(), m_serialDrv(serialDrv)
     {
     }
 
     /**
-     * Initialize device driver.
+     * Destroys the robot adapter.
+     */
+    virtual ~Robot()
+    {
+    }
+
+    /**
+     * Initialize robot driver.
      *
      * @return If successfully initialized, returns true. Otherwise, false.
      */
-    virtual bool init() = 0;
+    bool init() final;
 
     /**
-     * Process communication with the device.
+     * Process communication with the robot.
      *
      * @return If communication is successful, returns true. Otherwise, false.
      */
-    virtual bool process() = 0;
+    bool process() final;
 
     /**
-     * Get comunication Stream.
+     * Get comunication stream.
      *
-     * @return Device data Stream.
+     * @return Robot data stream.
      */
-    virtual Stream& getStream() = 0;
+    Stream& getStream() final;
 
     /**
-     * Reset the device.
+     * Reset the robot.
      */
-    virtual void reset() = 0;
+    void reset() final;
 
     /**
-     * Enter Bootloader mode.
+     * Enter bootloader mode.
      */
-    virtual void enterBootloader() = 0;
+    void enterBootloader() final;
 
     /**
-     * Is the device in bootloader mode?
+     * Is the robot in bootloader mode?
      *
-     * @return If device is in bootloader mode, it will return true. Otherwise false.
+     * @return If robot is in bootloader mode, it will return true. Otherwise false.
      */
-    virtual bool isInBootloaderMode() const = 0;
+    bool isInBootloaderMode() const final;
 
-protected:
     /**
-     * Constructs the interface.
+     * Set the serial receive channel id.
+     *
+     * @param[in] channelId Channel ID, shall be positive for inter-robot communication.
      */
-    IDevice()
-    {
-    }
+    void setRxChannel(int32_t channelId) final;
+
+    /**
+     * Set the serial sender channel id.
+     *
+     * @param[in] channelId Channel ID, shall be positive for inter-robot communication.
+     */
+    void setTxChannel(int32_t channelId) final;
 
 private:
+    WebotsSerialDrv& m_serialDrv; /**< Webots serial driver. */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IDEVICE_H */
+#endif /* ROBOT_H */
 /** @} */

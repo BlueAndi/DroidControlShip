@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Device realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Simulation time
+ * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef DEVICE_H
-#define DEVICE_H
+#ifndef SIM_TIME_H
+#define SIM_TIME_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,9 +43,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "IDevice.h"
-#include "IDeviceNative.h"
-#include "SocketClient.h"
+#include <webots/Robot.hpp>
 
 /******************************************************************************
  * Macros
@@ -55,104 +53,77 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the simulation device. */
-class Device : public IDevice, public IDeviceNative
+/**
+ * Simulation time handler
+ * Its responsibility is to provide elapsed time information since reset and
+ * to step the simulation time forward.
+ */
+class SimTime
 {
 public:
     /**
-     * Constructs the device adapter.
+     * Construct simulation time handler.
+     *
+     * @param[in] robot The simulation environment.
      */
-    Device() :
-        IDevice(),
-        IDeviceNative(),
-        m_retryConnectionCounter(0U),
-        m_socket(),
-        m_address(DEFAULT_SERVER_ADDRESS),
-        m_port(DEFAULT_SERVER_PORT)
+    SimTime(webots::Robot& robot) :
+        m_robot(robot),
+        m_timeStep(static_cast<int>(m_robot.getBasicTimeStep())),
+        m_elapsedTimeSinceReset(0)
     {
     }
 
     /**
-     * Destroys the device adapter.
+     * Destroy the simulation time handler.
      */
-    virtual ~Device()
+    ~SimTime()
     {
     }
 
     /**
-     * Initialize device driver.
+     * Step the simulation one single step forward.
+     * How long one step is depends on the basic basic time step configured in
+     * the webots simulation. See there in the world information.
      *
-     * @return If successfully initialized, returns true. Otherwise, false.
+     * @return If successful stepped, it will return true otherwise false.
      */
-    bool init() final;
+    bool step()
+    {
+        int result = m_robot.step(m_timeStep);
+        m_elapsedTimeSinceReset += m_timeStep;
+
+        return (-1 != result);
+    }
 
     /**
-     * Process communication with the device.
+     * Get basic time step in [ms].
      *
-     * @return If communication is successful, returns true. Otherwise, false.
+     * @return Basic time step [ms]
      */
-    bool process() final;
+    int getTimeStep() const
+    {
+        return m_timeStep;
+    }
 
     /**
-     * Get comunication Stream.
+     * Get the elapsed time since reset in [ms].
      *
-     * @return Device data Stream.
+     * @return Elapsed time since reset [ms]
      */
-    Stream& getStream() final;
-
-    /**
-     * Reset the device.
-     */
-    void reset() final;
-
-    /**
-     * Enter Bootloader mode.
-     */
-    void enterBootloader() final;
-
-    /**
-     * Is the device in bootloader mode?
-     *
-     * @return If device is in bootloader mode, it will return true. Otherwise false.
-     */
-    bool isInBootloaderMode() const final;
-
-    /**
-     * Set the server address and port of the device.
-     *
-     * @param[in] address   Server address. Set nullptr to use the default address.
-     * @param[in] port      Server port number. Set nullptr to use the default port.
-     */
-    void setServer(const char* address, const char* port) final;
+    unsigned long int getElapsedTimeSinceReset() const
+    {
+        return m_elapsedTimeSinceReset;
+    }
 
 private:
-    /** Default server address of the device. */
-    static const char* DEFAULT_SERVER_ADDRESS;
-
-    /** Default server port of the device. */
-    static const char* DEFAULT_SERVER_PORT;
-
-    /** Maximum number of connection retries. */
-    static const uint8_t MAX_CONN_RETRY_COUNT;
-
-    /** Retry connection counter. */
-    uint8_t m_retryConnectionCounter;
-
-    /**
-     * Socket stream for communication with the device.
-     */
-    SocketClient m_socket;
-
-    /** Server Address. */
-    const char* m_address;
-
-    /** Server Port Number. */
-    const char* m_port;
+    webots::Robot&    m_robot;                 /**< Simulation environment, used to step the simulation forward. */
+    int               m_timeStep;              /**< Time in ms of one simulation step. */
+    unsigned long int m_elapsedTimeSinceReset; /**< Elapsed time since reset in [ms] */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* DEVICE_H */
+#endif /* SIM_TIME_H */
 /** @} */

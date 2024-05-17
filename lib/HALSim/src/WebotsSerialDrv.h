@@ -25,22 +25,23 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Socket Client for Inter-Process Communication
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Webots serial driver
+ * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef SOCKET_CLIENT_H
-#define SOCKET_CLIENT_H
+#ifndef WEBOTS_SERIAL_DRV_H
+#define WEBOTS_SERIAL_DRV_H
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
 #include "Stream.h"
+#include <webots/emitter.hpp>
+#include <webots/receiver.hpp>
 
 /******************************************************************************
  * Macros
@@ -51,183 +52,180 @@
  *****************************************************************************/
 
 /**
- * Socket Client for Inter-Process Communication.
+ * Webots serial driver.
  */
-class SocketClient : public Stream
+class WebotsSerialDrv : public Stream
 {
 public:
     /**
-     * Construct a SocketClient.
+     * Construct a Webots serial driver.
+     *
+     * @param[in] emitter   Webots emitter used to send data over simulated serial.
+     * @param[in] receiver  Webots receiver used to receive data over simulated serial.
      */
-    SocketClient();
+    WebotsSerialDrv(webots::Emitter* emitter, webots::Receiver* receiver);
 
     /**
-     * Destruct the SocketClient.
+     * Destruct the Webots serial driver.
      */
-    virtual ~SocketClient();
+    virtual ~WebotsSerialDrv();
 
     /**
-     * Initialize the SocketClient.
-     * @param[in] serverAddress Address of Server.
-     * @param[in] portNumber Port number to set the Socket to.
-     * @returns true if server has been succesfully set-up.
+     * Set the serial receive channel id.
+     *
+     * @param[in] channelId Channel ID, shall be positive for inter-robot communication.
      */
-    bool init(const char* serverAddress, const char* portNumber);
+    void setRxChannel(int32_t channelId);
 
     /**
-     * Print argument to the Output Stream.
+     * Set the serial sender channel id.
+     *
+     * @param[in] channelId Channel ID, shall be positive for inter-robot communication.
+     */
+    void setTxChannel(int32_t channelId);
+
+    /**
+     * Print argument to the output stream.
+     *
      * @param[in] str Argument to print.
      */
     void print(const char str[]) final;
 
     /**
-     * Print argument to the Output Stream.
+     * Print argument to the output stream.
+     *
      * @param[in] value Argument to print.
      */
     void print(uint8_t value) final;
 
     /**
-     * Print argument to the Output Stream.
+     * Print argument to the output stream.
+     *
      * @param[in] value Argument to print.
      */
     void print(uint16_t value) final;
 
     /**
-     * Print argument to the Output Stream.
+     * Print argument to the output stream.
+     *
      * @param[in] value Argument to print.
      */
     void print(uint32_t value) final;
 
     /**
-     * Print argument to the Output Stream.
+     * Print argument to the output stream.
+     *
      * @param[in] value Argument to print.
      */
     void print(int8_t value) final;
 
     /**
-     * Print argument to the Output Stream.
+     * Print argument to the output stream.
+     *
      * @param[in] value Argument to print.
      */
     void print(int16_t value) final;
 
     /**
-     * Print argument to the Output Stream.
+     * Print argument to the output stream.
+     *
      * @param[in] value Argument to print.
      */
     void print(int32_t value) final;
 
     /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
+     * Print argument to the output stream.
+     * Appends carriage return at the end of the argument.
+     *
      * @param[in] str Argument to print.
      */
     void println(const char str[]) final;
 
     /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
+     * Print argument to the output stream.
+     * Appends carriage return at the end of the argument.
+     *
      * @param[in] value Argument to print.
      */
     void println(uint8_t value) final;
 
     /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
+     * Print argument to the output stream.
+     * Appends carriage return at the end of the argument.
+     *
      * @param[in] value Argument to print.
      */
     void println(uint16_t value) final;
 
     /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
+     * Print argument to the output stream.
+     * Appends carriage return at the end of the argument.
+     *
      * @param[in] value Argument to print.
      */
     void println(uint32_t value) final;
 
     /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
+     * Print argument to the output stream.
+     * Appends carriage return at the end of the argument.
+     *
      * @param[in] value Argument to print.
      */
     void println(int8_t value) final;
 
     /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
+     * Print argument to the output stream.
+     * Appends carriage return at the end of the argument.
+     *
      * @param[in] value Argument to print.
      */
     void println(int16_t value) final;
 
     /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
+     * Print argument to the output stream.
+     * Appends carriage return at the end of the argument.
+     *
      * @param[in] value Argument to print.
      */
     void println(int32_t value) final;
 
     /**
-     * Send a message to the socket.
-     * @param[in] buffer Byte buffer to send
-     * @param[in] length Number of bytes to send
-     * @returns Number of bytes written
+     * Write data buffer to serial.
+     *
+     * @param[in] buffer Byte buffer to send.
+     * @param[in] length Number of bytes to send.
+     *
+     * @return Number of bytes written.
      */
     size_t write(const uint8_t* buffer, size_t length) final;
 
     /**
      * Check if any data has been received.
-     * @returns number of available bytes.
+     *
+     * @return Number of available bytes.
      */
     int available() const final;
 
     /**
-     * Read bytes into a buffer.
-     * @param[in] buffer Array to write bytes to.
-     * @param[in] length number of bytes to be read.
-     * @returns Number of bytes read from Stream.
+     * Read data from serial.
+     *
+     * @param[in] buffer Array to read data in.
+     * @param[in] length Number of bytes to be read.
+     *
+     * @return Number of bytes read from stream.
      */
     size_t readBytes(uint8_t* buffer, size_t length) final;
 
-    /**
-     * Process the receiving of messages and client connections.
-     *
-     * @returns true if connection is active. Otherwise, false.
-     */
-    bool process();
-
 private:
-    /** Maximum amount of available bytes allowed before issuing a warning. */
-    static const uint16_t CANARY_WARNING_LIMIT = 500U;
+    webots::Emitter*  m_emitter;     /**< The emitter used to send data. */
+    webots::Receiver* m_receiver;    /**< The receiver used to receive data. */
+    size_t            m_dataRemains; /**< Number of bytes which are remaining in head packet. */
 
-    /** Struct for Implementation of PIMPL Idiom. */
-    struct SocketClientImpl;
-
-    /** SocketClient Members. PIMPL Idiom. */
-    SocketClientImpl* m_members;
-
-    /**
-     * Connect to the socket server.
-     *
-     * @returns true if successfully connected to socket server. Otherwise, false.
-     */
-    bool connectSocket();
-
-    /**
-     * Close the listening socket connection.
-     */
-    void closeListeningSocket();
-
-    /**
-     * Get a Byte from the receiving buffer, if any.
-     * @param[out] byte buffer to write the byte to.
-     * @returns If a received byte has been succesfully written to the buffer, returns true. Otherwise, false.
-     */
-    bool getByte(uint8_t& byte);
-
-private:
     /* Not allowed. */
-    SocketClient(const SocketClient& srv);            /**< Copy construction of an instance. */
-    SocketClient& operator=(const SocketClient& srv); /**< Assignment of an instance. */
+    WebotsSerialDrv();
+    WebotsSerialDrv(const WebotsSerialDrv& srv);            /**< Copy construction of an instance. */
+    WebotsSerialDrv& operator=(const WebotsSerialDrv& srv); /**< Assignment of an instance. */
 };
 
-#endif /* SOCKET_SERVER_H_ */
+#endif /* WEBOTS_SERIAL_DRV_H */
 /** @} */

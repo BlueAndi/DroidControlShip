@@ -45,12 +45,12 @@
 #include <IBoard.h>
 #include "Battery.h"
 #include "Button.h"
-#include "Device.h"
 #include "LedBlue.h"
 #include "LedGreen.h"
 #include "LedRed.h"
 #include "Network.h"
 #include "ButtonDrv.h"
+#include "Robot.h"
 
 /******************************************************************************
  * Macros
@@ -113,16 +113,6 @@ public:
     }
 
     /**
-     * Get Device driver.
-     *
-     * @return Device driver.
-     */
-    IDevice& getDevice() final
-    {
-        return m_device;
-    }
-
-    /**
      * Get yellow LED driver.
      *
      * @return Yellow LED driver.
@@ -163,6 +153,16 @@ public:
     }
 
     /**
+     * Get robot driver.
+     *
+     * @return Robot driver.
+     */
+    IRobot& getRobot() final
+    {
+        return m_hostRobot;
+    }
+
+    /**
      * Get the file path of the configuration (settings).
      *
      * @return Configuration file path
@@ -180,9 +180,6 @@ private:
     /** Button driver */
     Button m_button;
 
-    /** Device driver */
-    Device m_device;
-
     /** Blue LED driver */
     LedBlue m_ledBlue;
 
@@ -195,24 +192,16 @@ private:
     /** Network driver */
     Network m_network;
 
+    /** Robot driver to communicate with the host robot, DCS is connected to. */
+    Robot m_hostRobot;
+
     /** Configuration file path */
     const String m_configFilePath;
 
     /**
      * Constructs the concrete board.
      */
-    Board() :
-        IBoard(),
-        m_battery(),
-        m_button(),
-        m_device(),
-        m_ledBlue(),
-        m_ledGreen(),
-        m_ledRed(),
-        m_network(),
-        m_configFilePath(CONFIG_FILE_PATH)
-    {
-    }
+    Board();
 
     /**
      * Destroys the concrete board.

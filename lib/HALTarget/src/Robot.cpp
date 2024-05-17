@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  The target board realization.
+ * @brief  Robot realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Board.h"
+#include "Robot.h"
 #include "GPIO.h"
-#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -53,10 +52,6 @@
  *****************************************************************************/
 
 /******************************************************************************
- * Global Variables
- *****************************************************************************/
-
-/******************************************************************************
  * Local Variables
  *****************************************************************************/
 
@@ -64,62 +59,59 @@
  * Public Methods
  *****************************************************************************/
 
-bool Board::init()
+bool Robot::init()
 {
-    bool isReady = false;
-
-    GpioPins::init();
-
-    /* Turn LEDs off. */
-    m_ledRed.enable(false);
-    m_ledGreen.enable(false);
-    m_ledBlue.enable(false);
-
-    if (false == ButtonDrv::getInstance().init())
-    {
-        /* Log Button Driver error */
-        LOG_ERROR("Button driver initialization failed.");
-    }
-    else if (false == m_hostRobot.init())
-    {
-        /* Log Robot error */
-        LOG_ERROR("Robot initialization failed.");
-    }
-    else if (false == m_network.init())
-    {
-        /* Log Network error */
-        LOG_ERROR("Network initialization failed.");
-    }
-    else
-    {
-        /* Ready */
-        isReady = true;
-    }
-
-    return isReady;
+    reset();
+    return m_usbHost.init();
 }
 
-bool Board::process()
+bool Robot::process()
 {
-    bool isSuccess = false;
+    if (true == m_resetTimer.isTimeout())
+    {
+        GpioPins::resetDevicePin.write(LOW);
+        m_resetTimer.stop();
 
-    if (false == m_hostRobot.process())
-    {
-        /* Log robot error */
-        LOG_ERROR("Robot process failed.");
-    }
-    else if (false == m_network.process())
-    {
-        /* Log Network error */
-        LOG_ERROR("Network process failed.");
-    }
-    else
-    {
-        /* No Errors */
-        isSuccess = true;
+        if (true == m_bootloaderModeRequest)
+        {
+            m_bootloaderModeRequest = false;
+            m_waitTimer.start(WAIT_TIME_BOOTLOADER_MODE_MS);
+        }
     }
 
-    return isSuccess;
+    if (true == m_waitTimer.isTimeout())
+    {
+        reset();
+        m_waitTimer.stop();
+    }
+
+    return m_usbHost.process();
+}
+
+Stream& Robot::getStream()
+{
+    return m_usbHost;
+}
+
+void Robot::reset()
+{
+    if (false == m_resetTimer.isTimerRunning())
+    {
+        GpioPins::resetDevicePin.write(HIGH);
+        m_resetTimer.start(RESET_TIME_MS);
+    }
+}
+
+void Robot::enterBootloader()
+{
+    m_bootloaderModeRequest = true;
+    m_usbHost.requestBootloaderMode();
+    reset();
+}
+
+bool Robot::isInBootloaderMode() const
+{
+    return m_usbHost.isBootloaderModeActive();
 }
 
 /******************************************************************************
@@ -129,19 +121,6 @@ bool Board::process()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-Board::Board() :
-    IBoard(),
-    m_battery(),
-    m_button(),
-    m_ledBlue(),
-    m_ledGreen(),
-    m_ledRed(),
-    m_network(),
-    m_hostRobot(),
-    m_configFilePath(CONFIG_FILE_PATH)
-{
-}
 
 /******************************************************************************
  * External Functions

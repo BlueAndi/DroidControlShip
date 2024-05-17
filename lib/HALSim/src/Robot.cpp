@@ -25,136 +25,96 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Board interface, which abstracts the physical board
+ * @brief  Robot realization
  * @author Andreas Merkle <web@blue-andi.de>
- *
- * @addtogroup HALInterfaces
- *
- * @{
  */
-
-#ifndef IBOARD_H
-#define IBOARD_H
-
-/******************************************************************************
- * Compile Switches
- *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdint.h>
-#include "IBattery.h"
-#include "IButton.h"
-#include "ILed.h"
-#include "INetwork.h"
-#include "IRobot.h"
+#include "Robot.h"
+
+/******************************************************************************
+ * Compiler Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and Classes
+ * Types and classes
  *****************************************************************************/
-
-/**
- * Abstracts the physical board interface.
- */
-class IBoard
-{
-public:
-    /**
-     * Destroys the board interface.
-     */
-    virtual ~IBoard()
-    {
-    }
-
-    /**
-     * Initialize the hardware.
-     *
-     * @returns If all components are correctly initialized, returns true. Otherwise, false.
-     */
-    virtual bool init() = 0;
-
-    /**
-     * Process board components.
-     *
-     * @returns If all components are processed correctly, returns true. Otherwise, false.
-     */
-    virtual bool process() = 0;
-
-    /**
-     * Get battery driver.
-     *
-     * @return Battery driver.
-     */
-    virtual IBattery& getBattery() = 0;
-
-    /**
-     * Get button driver.
-     *
-     * @return Button driver.
-     */
-    virtual IButton& getButton() = 0;
-
-    /**
-     * Get red LED driver.
-     *
-     * @return Red LED driver.
-     */
-    virtual ILed& getRedLed() = 0;
-
-    /**
-     * Get green LED driver.
-     *
-     * @return Green LED driver.
-     */
-    virtual ILed& getGreenLed() = 0;
-
-    /**
-     * Get yellow LED driver.
-     *
-     * @return Yellow LED driver.
-     */
-    virtual ILed& getBlueLed() = 0;
-
-    /**
-     * Get Network driver.
-     *
-     * @return Network driver.
-     */
-    virtual INetwork& getNetwork() = 0;
-
-    /**
-     * Get robot driver.
-     *
-     * @return Robot driver.
-     */
-    virtual IRobot& getRobot() = 0;
-
-    /**
-     * Get the file path of the configuration (settings).
-     * 
-     * @return Configuration file path
-     */
-    virtual const String& getConfigFilePath() const = 0;
-
-protected:
-    /**
-     * Constructs the board interface.
-     */
-    IBoard()
-    {
-    }
-
-private:
-};
 
 /******************************************************************************
- * Functions
+ * Prototypes
  *****************************************************************************/
 
-#endif /* IBOARD_H */
-/** @} */
+/******************************************************************************
+ * Local Variables
+ *****************************************************************************/
+
+/******************************************************************************
+ * Public Methods
+ *****************************************************************************/
+
+bool Robot::init()
+{
+    bool isSuccess = true;
+
+    return isSuccess;
+}
+
+bool Robot::process()
+{
+    bool isSuccess = true;
+
+    return isSuccess;
+}
+
+Stream& Robot::getStream()
+{
+    return m_serialDrv;
+}
+
+void Robot::reset()
+{
+    /* Simulation doesn't support reset behavior. */
+}
+
+void Robot::enterBootloader()
+{
+    /* Simulation doesn't support bootloader mode. */
+}
+
+bool Robot::isInBootloaderMode() const
+{
+    /* Simulation doesn't support bootloader mode. */
+    return false;
+}
+
+void Robot::setRxChannel(int32_t channelId)
+{
+    m_serialDrv.setRxChannel(channelId);
+}
+
+void Robot::setTxChannel(int32_t channelId)
+{
+    m_serialDrv.setTxChannel(channelId);
+}
+
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * External Functions
+ *****************************************************************************/
+
+/******************************************************************************
+ * Local Functions
+ *****************************************************************************/

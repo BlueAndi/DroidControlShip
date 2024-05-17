@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Device realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Abstract robot interface
+ * @author Andreas Merkle <web@blue-andi.de>
  *
- * @addtogroup HALTarget
+ * @addtogroup HALInterfaces
  *
  * @{
  */
 
-#ifndef DEVICE_H
-#define DEVICE_H
+#ifndef IROBOT_H
+#define IROBOT_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,9 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "IDevice.h"
-#include "USBHost.h"
-#include <SimpleTimer.hpp>
+#include <stdbool.h>
+#include <Stream.h>
 
 /******************************************************************************
  * Macros
@@ -55,93 +54,69 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the robot's device. */
-class Device : public IDevice
+/** The abstract robot interface. */
+class IRobot
 {
 public:
     /**
-     * Constructs the device adapter.
+     * Destroys the interface.
      */
-    Device() : IDevice(), m_usbHost(), m_resetTimer(), m_waitTimer(), m_bootloaderModeRequest(false)
+    virtual ~IRobot()
     {
     }
 
     /**
-     * Destroys the device adapter.
-     */
-    virtual ~Device()
-    {
-    }
-
-    /**
-     * Initialize device driver.
+     * Initialize robot driver.
      *
      * @return If successfully initialized, returns true. Otherwise, false.
      */
-    bool init() final;
+    virtual bool init() = 0;
 
     /**
-     * Process communication with the device.
+     * Process communication with the robot.
      *
      * @return If communication is successful, returns true. Otherwise, false.
      */
-    bool process() final;
+    virtual bool process() = 0;
 
     /**
-     * Get comunication Stream.
+     * Get comunication stream.
      *
-     * @return Device data Stream.
+     * @return Robot data stream.
      */
-    Stream& getStream() final;
+    virtual Stream& getStream() = 0;
 
     /**
-     * Reset the device.
+     * Reset the robot.
      */
-    void reset() final;
+    virtual void reset() = 0;
 
     /**
-     * Enter Bootloader mode.
+     * Enter bootloader mode.
      */
-    void enterBootloader() final;
+    virtual void enterBootloader() = 0;
 
     /**
-     * Is the device in bootloader mode?
+     * Is the robot in bootloader mode?
      *
-     * @return If device is in bootloader mode, it will return true. Otherwise false.
+     * @return If robot is in bootloader mode, it will return true. Otherwise false.
      */
-    bool isInBootloaderMode() const final;
+    virtual bool isInBootloaderMode() const = 0;
+
+protected:
+    /**
+     * Constructs the interface.
+     */
+    IRobot()
+    {
+    }
 
 private:
-    /** Time to hold the reset line active in milliseconds. */
-    static const uint32_t RESET_TIME_MS = 50U;
-
-    /** Time to wait between resets to enter bootloader mode in milliseconds. */
-    static const uint32_t WAIT_TIME_BOOTLOADER_MODE_MS = 100U;
-
-    /**
-     * USB Host driver.
-     */
-    USBHost m_usbHost;
-
-    /**
-     * Simple Timer for reset of device.
-     */
-    SimpleTimer m_resetTimer;
-
-    /**
-     * Simple Timer for waiting to enter bootloader mode.
-     */
-    SimpleTimer m_waitTimer;
-
-    /**
-     * Bootloader mode request flag.
-     */
-    bool m_bootloaderModeRequest;
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* DEVICE_H */
+#endif /* IROBOT_H */
 /** @} */

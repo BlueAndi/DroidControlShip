@@ -25,14 +25,14 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Device realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Simulation time
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Device.h"
+#include "SimTime.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -54,91 +54,9 @@
  * Local Variables
  *****************************************************************************/
 
-/* Default server address of the device. */
-const char* Device::DEFAULT_SERVER_ADDRESS = "localhost";
-
-/* Default server port of the device. */
-const char* Device::DEFAULT_SERVER_PORT = "65432";
-
-/* Maximum number of connection retries. */
-const uint8_t Device::MAX_CONN_RETRY_COUNT = 2U;
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
-
-bool Device::init()
-{
-    return m_socket.init(m_address, m_port);
-}
-
-bool Device::process()
-{
-    bool isSuccess = true;
-
-    /* Process SocketClient. */
-    if (false == m_socket.process())
-    {
-        m_retryConnectionCounter++;
-
-        /* Device can retry to connect before returning an error. */
-        if (MAX_CONN_RETRY_COUNT <= m_retryConnectionCounter)
-        {
-            isSuccess = false;
-        }
-    }
-    else
-    {
-        /* Reset connection counter. */
-        if (0U < m_retryConnectionCounter)
-        {
-            m_retryConnectionCounter = 0U;
-        }
-    }
-
-    return isSuccess;
-}
-
-Stream& Device::getStream()
-{
-    return m_socket;
-}
-
-void Device::reset()
-{
-    /* Not Implemented. */
-}
-
-void Device::enterBootloader()
-{
-    /* Not Implemented. */
-}
-
-bool Device::isInBootloaderMode() const
-{
-    return false;
-}
-
-void Device::setServer(const char* address, const char* port)
-{
-    if (nullptr == address)
-    {
-        m_address = DEFAULT_SERVER_ADDRESS;
-    }
-    else
-    {
-        m_address = address;
-    }
-
-    if (nullptr == port)
-    {
-        m_port = DEFAULT_SERVER_PORT;
-    }
-    else
-    {
-        m_port = port;
-    }
-}
 
 /******************************************************************************
  * Protected Methods

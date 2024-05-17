@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Abstract native device interface
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Robot device names in Webots
+ * @author Andreas Merkle <web@blue-andi.de>
  *
- * @addtogroup HALSim
+ * @addtogroup HALInterfaces
  *
  * @{
  */
 
-#ifndef IDEVICENATIVE_H
-#define IDEVICENATIVE_H
+#ifndef ROBOT_DEVICE_NAMES_H
+#define ROBOT_DEVICE_NAMES_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,6 +43,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -52,39 +53,22 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The abstract native device interface. */
-class IDeviceNative
+/**
+ * Robot device names in Webots.
+ */
+namespace RobotDeviceNames
 {
-public:
-    /**
-     * Destroys the interface.
-     */
-    virtual ~IDeviceNative()
-    {
-    }
+    /** Name of the serial emitter in the DroidControlShip simulation. */
+    static const char* EMITTER_NAME_SERIAL = "serialComTx";
 
-    /**
-     * Set the server address and port of the device.
-     *
-     * @param[in] address   Server address. Set nullptr to use the default address.
-     * @param[in] port      Server port number. Set nullptr to use the default port.
-     */
-    virtual void setServer(const char* address, const char* port) = 0;
+    /** Name of the serial receiver in the DroidControlShip simulation. */
+    static const char* RECEIVER_NAME_SERIAL = "serialComRx";
 
-protected:
-    /**
-     * Constructs the interface.
-     */
-    IDeviceNative()
-    {
-    }
-
-private:
-};
+}; /* namespace RobotDeviceNames */
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IDEVICENATIVE_H */
+#endif /* ROBOT_DEVICE_NAMES_H */
 /** @} */

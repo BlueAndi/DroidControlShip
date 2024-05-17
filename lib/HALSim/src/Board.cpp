@@ -34,6 +34,7 @@
  *****************************************************************************/
 #include "Board.h"
 #include <Logging.h>
+#include "RobotDeviceNames.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -65,23 +66,9 @@
 
 bool Board::init()
 {
-    bool isReady = false;
+    bool isReady = true;
 
-    if (false == m_device.init())
-    {
-        /* Log Device error */
-        LOG_ERROR("Device initialization failed.");
-    }
-    else if (false == m_network.init())
-    {
-        /* Log Network error */
-        LOG_ERROR("Network initialization failed.");
-    }
-    else
-    {
-        /* Ready */
-        isReady = true;
-    }
+    /* Nothing to do. */
 
     return isReady;
 }
@@ -90,12 +77,7 @@ bool Board::process()
 {
     bool isSuccess = false;
 
-    if (false == m_device.process())
-    {
-        /* Log Device error */
-        LOG_ERROR("Device process failed.");
-    }
-    else if (false == m_network.process())
+    if (false == m_network.process())
     {
         /* Log Network error */
         LOG_ERROR("Network process failed.");
@@ -116,6 +98,30 @@ bool Board::process()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+Board::Board() :
+    IBoard(),
+    m_robot(),
+    m_simTime(m_robot),
+    m_serialDrv(m_robot.getEmitter(RobotDeviceNames::EMITTER_NAME_SERIAL),
+                m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)),
+    m_battery(),
+    m_button(),
+    m_ledBlue(),
+    m_ledGreen(),
+    m_ledRed(),
+    m_network(),
+    m_hostRobot(m_serialDrv),
+    m_configFilePath()
+{
+}
+
+void Board::enableSimulationDevices()
+{
+    const int timeStep = m_simTime.getTimeStep();
+
+    m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)->enable(timeStep);
+}
 
 /******************************************************************************
  * External Functions

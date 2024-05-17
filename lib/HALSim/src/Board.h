@@ -46,11 +46,15 @@
 #include <WString.h>
 #include "Battery.h"
 #include "Button.h"
-#include "Device.h"
 #include "LedBlue.h"
 #include "LedGreen.h"
 #include "LedRed.h"
 #include "Network.h"
+#include "Robot.h"
+#include "WebotsSerialDrv.h"
+
+#include <webots/Robot.hpp>
+#include <SimTime.h>
 
 /******************************************************************************
  * Macros
@@ -113,26 +117,6 @@ public:
     }
 
     /**
-     * Get Device driver.
-     *
-     * @return Device driver.
-     */
-    IDevice& getDevice() final
-    {
-        return m_device;
-    }
-
-    /**
-     * Get Native Device driver.
-     *
-     * @return Native Device driver.
-     */
-    IDeviceNative& getDeviceNative()
-    {
-        return m_device;
-    }
-
-    /**
      * Get yellow LED driver.
      *
      * @return Yellow LED driver.
@@ -173,6 +157,16 @@ public:
     }
 
     /**
+     * Get robot driver.
+     *
+     * @return Robot driver.
+     */
+    IRobot& getRobot() final
+    {
+        return m_hostRobot;
+    }
+
+    /**
      * Get the file path of the configuration (settings).
      *
      * @return Configuration file path
@@ -182,16 +176,22 @@ public:
         return m_configFilePath;
     }
 
-protected:
 private:
+
+    /** Simulated DCS robot instance. */
+    webots::Robot m_robot;
+
+    /** Simulation time handler */
+    SimTime m_simTime;
+
+    /** Serial driver to communicate with the host robot, DCS is connected to. */
+    WebotsSerialDrv m_serialDrv;
+
     /** Battery driver */
     Battery m_battery;
 
     /** Button driver */
     Button m_button;
-
-    /** Device driver */
-    Device m_device;
 
     /** Blue LED driver */
     LedBlue m_ledBlue;
@@ -205,24 +205,16 @@ private:
     /** Network driver */
     Network m_network;
 
+    /** Robot driver to communicate with the host robot, DCS is connected to. */
+    Robot m_hostRobot;
+
     /** Configuration file path */
     String m_configFilePath;
 
     /**
      * Constructs the concrete board.
      */
-    Board() :
-        IBoard(),
-        m_battery(),
-        m_button(),
-        m_device(),
-        m_ledBlue(),
-        m_ledGreen(),
-        m_ledRed(),
-        m_network(),
-        m_configFilePath()
-    {
-    }
+    Board();
 
     /**
      * Destroys the concrete board.
@@ -240,6 +232,34 @@ private:
     {
         m_configFilePath = configFilePath;
     }
+
+    /**
+     * Get the simulation time handler.
+     *
+     * @return Simulation time handler
+     */
+    SimTime& getSimTime()
+    {
+        return m_simTime;
+    }
+
+    /**
+     * Get the simulation serial driver, which is connected within Webots.
+     *
+     * @return If serial driver is available, it will return a pointer to it, otherwise nullptr.
+     */
+    WebotsSerialDrv* getSimSerial()
+    {
+        return &m_serialDrv;
+    }
+
+    /**
+     * Enable all simulation devices.
+     * It is called by the main entry only.
+     * Devices must be enabled before they can be used, and a simulation step must be performed before the application
+     * initialization.
+     */
+    void enableSimulationDevices();
 
     /**
      * The main entry needs access to be able to set the configuration file path.

@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Board interface, which abstracts the physical board
+ * @brief  Abstract native robot interface
  * @author Andreas Merkle <web@blue-andi.de>
  *
- * @addtogroup HALInterfaces
+ * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef IBOARD_H
-#define IBOARD_H
+#ifndef IROBOTNATIVE_H
+#define IROBOTNATIVE_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +43,6 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdint.h>
-#include "IBattery.h"
-#include "IButton.h"
-#include "ILed.h"
-#include "INetwork.h"
-#include "IRobot.h"
 
 /******************************************************************************
  * Macros
@@ -58,94 +52,36 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Abstracts the physical board interface.
- */
-class IBoard
+/** The abstract native robot interface. */
+class IRobotNative
 {
 public:
     /**
-     * Destroys the board interface.
+     * Destroys the interface.
      */
-    virtual ~IBoard()
+    virtual ~IRobotNative()
     {
     }
 
     /**
-     * Initialize the hardware.
+     * Set the serial receive channel id.
      *
-     * @returns If all components are correctly initialized, returns true. Otherwise, false.
+     * @param[in] channelId Channel ID, shall be positive for inter-robot communication.
      */
-    virtual bool init() = 0;
+    virtual void setRxChannel(int32_t channelId) = 0;
 
     /**
-     * Process board components.
+     * Set the serial sender channel id.
      *
-     * @returns If all components are processed correctly, returns true. Otherwise, false.
+     * @param[in] channelId Channel ID, shall be positive for inter-robot communication.
      */
-    virtual bool process() = 0;
-
-    /**
-     * Get battery driver.
-     *
-     * @return Battery driver.
-     */
-    virtual IBattery& getBattery() = 0;
-
-    /**
-     * Get button driver.
-     *
-     * @return Button driver.
-     */
-    virtual IButton& getButton() = 0;
-
-    /**
-     * Get red LED driver.
-     *
-     * @return Red LED driver.
-     */
-    virtual ILed& getRedLed() = 0;
-
-    /**
-     * Get green LED driver.
-     *
-     * @return Green LED driver.
-     */
-    virtual ILed& getGreenLed() = 0;
-
-    /**
-     * Get yellow LED driver.
-     *
-     * @return Yellow LED driver.
-     */
-    virtual ILed& getBlueLed() = 0;
-
-    /**
-     * Get Network driver.
-     *
-     * @return Network driver.
-     */
-    virtual INetwork& getNetwork() = 0;
-
-    /**
-     * Get robot driver.
-     *
-     * @return Robot driver.
-     */
-    virtual IRobot& getRobot() = 0;
-
-    /**
-     * Get the file path of the configuration (settings).
-     * 
-     * @return Configuration file path
-     */
-    virtual const String& getConfigFilePath() const = 0;
+    virtual void setTxChannel(int32_t channelId) = 0;
 
 protected:
     /**
-     * Constructs the board interface.
+     * Constructs the interface.
      */
-    IBoard()
+    IRobotNative()
     {
     }
 
@@ -156,5 +92,5 @@ private:
  * Functions
  *****************************************************************************/
 
-#endif /* IBOARD_H */
+#endif /* IROBOTNATIVE_H */
 /** @} */
