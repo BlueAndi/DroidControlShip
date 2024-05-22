@@ -1,0 +1,15 @@
+{
+    "name": "MainNative",
+    "version": "0.1.0",
+    "description": "...",
+    "authors": [{
+        "name": "Gabryel Reyes",
+        "email": "gabryelrdiaz@gmail.com",
+        "url": "https://github.com/gabryelreyes",
+        "maintainer": true
+    }],
+    "license": "MIT",
+    "dependencies": [],
+    "frameworks": "*",
+    "platforms": "*"
+}
