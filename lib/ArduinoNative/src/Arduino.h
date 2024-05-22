@@ -90,7 +90,7 @@ namespace Arduino
      */
     void loop();
 
-} // namespace Arduino
+} /* namespace Arduino */
 
 /**
  * Returns the number of milliseconds passed since the system start.
