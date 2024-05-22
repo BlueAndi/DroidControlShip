@@ -25,87 +25,100 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Arduino native
- * @author Andreas Merkle <web@blue-andi.de>
- *
- * @addtogroup HALSim
- *
- * @{
+ * @brief  Main entry point
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
-
-#ifndef ARDUINO_H
-#define ARDUINO_H
-
-/******************************************************************************
- * Compile Switches
- *****************************************************************************/
-
-#define _USE_MATH_DEFINES
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
+
 #include <stdio.h>
-#include "Stream.h"
-#include "WString.h"
-#include "Serial.h"
+#include <Arduino.h>
+#include <time.h>
+
+/******************************************************************************
+ * Compiler Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
-#define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
-
-#define PI M_PI
+/******************************************************************************
+ * Types and classes
+ *****************************************************************************/
 
 /******************************************************************************
- * Types and Classes
+ * Prototypes
+ *****************************************************************************/
+
+static unsigned long getSystemTick();
+static void          systemDelay(unsigned long ms);
+
+/******************************************************************************
+ * Local Variables
+ *****************************************************************************/
+
+/******************************************************************************
+ * Public Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * External Functions
  *****************************************************************************/
 
 /**
- * This type defines the prototype to get the system tick counter in ms.
+ * Main program entry point.
+ *
+ * @param[in] argc  Number of arguments
+ * @param[in] argv  Array of arguments
+ *
+ * @return Status
  */
-typedef unsigned long (*GetSystemTick)();
-
-/**
- * This type defines the prototype to delay for a specific time in ms.
- */
-typedef void (*SystemDelay)(unsigned long ms);
-
-/******************************************************************************
- * Functions
- *****************************************************************************/
-
-/** Arduino internal specific functionality.*/
-namespace Arduino
+extern int main(int argc, char** argv)
 {
-    /**
-     * Setup the Arduino library and call the application setup() function.
-     */
-    void setup(GetSystemTick getSystemTickFunc, SystemDelay systemDelayFunc);
+    Arduino::setup(getSystemTick, systemDelay);
+    Arduino::loop();
 
-    /**
-     * Loop shall be called periodically and handles Arduino library
-     * functionality and call the application loop() function.
-     */
-    void loop();
+    return 0;
+}
 
-} /* namespace Arduino */
+/******************************************************************************
+ * Local Functions
+ *****************************************************************************/
 
 /**
- * Returns the number of milliseconds passed since the system start.
+ * Get the system tick in ms.
  *
- * @return The number of milliseconds.
+ * @return Timestamp (system tick) in ms
  */
-extern unsigned long millis();
+static unsigned long getSystemTick()
+{
+    clock_t now = clock();
+
+    return (now * 1000UL) / CLOCKS_PER_SEC;
+}
 
 /**
- * Delays the program for the specified amount of milliseconds. In the mean time the
- * simulation still steps to prevent an endless loop.
+ * Delay for a specific time in ms.
  *
- * @param[in] ms The amount of milliseconds that the program should be delayed by.
+ * @param[in] ms    Time in ms.
  */
-extern void delay(unsigned long ms);
+static void systemDelay(unsigned long ms)
+{
+    unsigned long timestamp = millis();
 
-#endif /* ARDUINO_H */
-/** @} */
+    while ((millis() - timestamp) < ms)
+    {
+        ;
+    }
+}
