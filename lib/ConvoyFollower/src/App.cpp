@@ -41,7 +41,6 @@
 #include <WiFi.h>
 #include <Util.h>
 #include "StartupState.h"
-#include "IdleState.h"
 #include "DrivingState.h"
 #include "ErrorState.h"
 #include <PlatoonUtils.h>
@@ -85,9 +84,6 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
-
-/* MQTT topic name for release messages. */
-const char* App::TOPIC_NAME_RELEASE = "release";
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
@@ -313,19 +309,7 @@ bool App::setupMqttClient()
     }
     else
     {
-        /* Create Callbacks. */
-        IMqttClient::TopicCallback releaseTopicCallback = [this](const String& payload)
-        { IdleState::getInstance().requestRelease(); };
-
-        /* Register MQTT client callbacks. */
-        if (false == m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, releaseTopicCallback))
-        {
-            LOG_ERROR("Failed to subscribe to release topic.");
-        }
-        else
-        {
-            isSuccessful = true;
-        }
+        isSuccessful = true;
     }
 
     return isSuccessful;
