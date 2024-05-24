@@ -46,7 +46,6 @@
 #include <Waypoint.h>
 #include <queue>
 #include <SimpleTimer.hpp>
-#include "Follower.h"
 #include "V2VEvent.h"
 
 /******************************************************************************
@@ -64,6 +63,9 @@ public:
     /** Platoon leader vehicle ID. */
     static const uint8_t PLATOON_LEADER_ID = 0U;
 
+    /** Number of followers. */
+    static const uint8_t NUMBER_OF_FOLLOWERS = 2U;
+
     /** Type of platoon participant. */
     enum ParticipantType : uint8_t
     {
@@ -78,6 +80,7 @@ public:
     {
         V2V_STATUS_OK = 0U,        /**< Status OK */
         V2V_STATUS_NOT_INIT,       /**< Not initialized */
+        V2V_STATUS_NO_CONNECTION,  /**< Lost connection */
         V2V_STATUS_LOST_FOLLOWER,  /**< Lost follower */
         V2V_STATUS_FOLLOWER_ERROR, /**< Follower error */
         V2V_STATUS_OLD_WAYPOINT,   /**< Old waypoint received*/
@@ -134,6 +137,24 @@ public:
     bool sendWaypoint(const Waypoint& waypoint);
 
     /**
+     * Send the current vehicle status data as a Waypoint to the debug topic.
+     *
+     * @param[in] waypoint  Waypoint to send.
+     *
+     * @return If the waypoint was sent successfully, returns true. Otherwise, false.
+     */
+    bool sendStatus(const Waypoint& waypoint) const;
+
+    /**
+     * Send the current IVS to the leader.
+     *
+     * @param[in] ivs  Inter Vehicle Space (IVS) in mm.
+     *
+     * @return If the IVS was sent successfully, returns true. Otherwise, false.
+     */
+    bool sendIVS(const int32_t ivs) const;
+
+    /**
      * Get the next recevied V2V Event from the V2V communication manager.
      * The V2V Event is a generic event that can be used to send any type of event.
      * The event type is defined by the V2VEventType enum.
@@ -152,18 +173,26 @@ public:
      */
     void triggerEmergencyStop();
 
+    /**
+     * Get the calculated platoon length.
+     * The platoon length is calculated as the sum of the Inter Vehicle Space (IVS) of all the followers.
+     *
+     * @return Platoon length in mm.
+     */
+    int32_t getPlatoonLength() const;
+
 private:
     /** Max topic length */
     static const uint8_t MAX_TOPIC_LENGTH = 64U;
-
-    /** Number of followers. */
-    static const uint8_t NUMBER_OF_FOLLOWERS = 1U;
 
     /** Vehicle heartbeat timeout timer interval in ms. */
     static const uint32_t VEHICLE_HEARTBEAT_TIMEOUT_TIMER_INTERVAL = 1000U;
 
     /** Send platoon heartbeat timer interval in ms. */
     static const uint32_t PLATOON_HEARTBEAT_TIMER_INTERVAL = 2U * VEHICLE_HEARTBEAT_TIMEOUT_TIMER_INTERVAL;
+
+    /** Connection timeout timer interval in ms. */
+    static const uint32_t CONNECTION_TIMEOUT_TIMER_INTERVAL = 2000U;
 
     /** MQTT subtopic name for waypoint reception. */
     static const char* TOPIC_NAME_WAYPOINT_RX;
@@ -177,8 +206,32 @@ private:
     /** MQTT subtopic name for platoon emergency stop. */
     static const char* TOPIC_NAME_EMERGENCY;
 
+    /** MQTT topic name for platoon debug. */
+    static const char* TOPIC_NAME_DEBUG;
+
+    /** MQTT subtopic name for Inter Vehicle Space. */
+    static const char* TOPIC_NAME_IVS;
+
+    /** MQTT subtopic name for Platoon Length. */
+    static const char* TOPIC_NAME_PLATOON_LENGTH;
+
     /** Maximum number of events to queue. */
     static const size_t MAX_EVENT_QUEUE_SIZE = 20U;
+
+    /** Follower. */
+    struct Follower
+    {
+        uint32_t      m_timestamp; /**< Timestamp of the last received heartbeat. */
+        VehicleStatus m_status;    /**< Status of the vehicle. */
+        int32_t       m_ivs;       /**< Inter Vehicle Space (IVS) in mm. */
+
+        /**
+         * Construct a follower.
+         */
+        Follower() : m_timestamp(0U), m_status(VEHICLE_STATUS_UNKNOWN), m_ivs(0)
+        {
+        }
+    };
 
     /** MQTTClient Instance. */
     MqttClient& m_mqttClient;
@@ -208,6 +261,12 @@ private:
     /** Topic to receive last follower feedback waypoints. */
     String m_feedbackTopic;
 
+    /** Topic to send the IVS. */
+    String m_ivsTopic;
+
+    /** Topic to send the platoon length. */
+    String m_platoonLengthTopic;
+
     /** Type of Platoon Participant.*/
     ParticipantType m_participantType;
 
@@ -228,6 +287,9 @@ private:
 
     /** Vehicle heartbeat timeout timer. */
     SimpleTimer m_vehicleHeartbeatTimeoutTimer;
+
+    /** Connection Timeout timer. */
+    SimpleTimer m_connectionTimeoutTimer;
 
     /** Current Status. */
     V2VStatus m_v2vStatus;
@@ -257,7 +319,7 @@ private:
      *
      * @return If the topics were setup successfully, returns true. Otherwise, false.
      */
-    bool setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId);
+    bool setupCommonTopics(uint8_t platoonId, uint8_t vehicleId);
 
     /**
      * Setup heartbeat input and output topics.
@@ -292,7 +354,7 @@ private:
      *
      * @return If the event was published successfully, returns true. Otherwise, false.
      */
-    bool publishEvent(const String& topic, V2VEventType type, const String& data);
+    bool publishEvent(const String& topic, V2VEventType type, const String& data) const;
 
     /**
      * Publish an event to the specified topic.
@@ -303,7 +365,7 @@ private:
      *
      * @return If the event was published successfully, returns true. Otherwise, false.
      */
-    bool publishEvent(const String& topic, V2VEventType type, const JsonObject& data);
+    bool publishEvent(const String& topic, V2VEventType type, const JsonObject& data) const;
 
     /**
      * Process the vehicle heartbeat of a follower.
@@ -313,6 +375,15 @@ private:
      * @param[in] eventDataStatus      Status of the vehicle.
      */
     void processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t eventDataTimestamp, uint8_t eventDataStatus);
+
+    /**
+     * Send the current platoon length to the platoon topic.
+     *
+     * @param[in] length  Platoon Length in mm.
+     *
+     * @return If the platoon length was sent successfully, returns true. Otherwise, false.
+     */
+    bool sendPlatoonLength(const int32_t length) const;
 
     /**
      * Default constructor.

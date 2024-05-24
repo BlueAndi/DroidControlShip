@@ -41,10 +41,9 @@
 #include <WiFi.h>
 #include <Util.h>
 #include "StartupState.h"
-#include "IdleState.h"
 #include "DrivingState.h"
 #include "ErrorState.h"
-#include <Telemetry.h>
+#include <PlatoonUtils.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -85,9 +84,6 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "will";
-
-/* MQTT topic name for release messages. */
-const char* App::TOPIC_NAME_RELEASE = "release";
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
@@ -313,19 +309,7 @@ bool App::setupMqttClient()
     }
     else
     {
-        /* Create Callbacks. */
-        IMqttClient::TopicCallback releaseTopicCallback = [this](const String& payload)
-        { IdleState::getInstance().requestRelease(); };
-
-        /* Register MQTT client callbacks. */
-        if (false == m_mqttClient.subscribe(TOPIC_NAME_RELEASE, true, releaseTopicCallback))
-        {
-            LOG_ERROR("Failed to subscribe to release topic.");
-        }
-        else
-        {
-            isSuccessful = true;
-        }
+        isSuccessful = true;
     }
 
     return isSuccessful;
@@ -375,24 +359,34 @@ void App::processPeriodicTasks()
 
     if ((true == m_sendWaypointTimer.isTimeout()) && (true == m_mqttClient.isConnected()))
     {
-        Waypoint      payload;
-        DrivingState& drivingState = DrivingState::getInstance();
+        /* Send debug status. */
+        if (false == m_v2vCommManager.sendStatus(m_latestVehicleData))
+        {
+            LOG_WARNING("Status could not be sent.");
+        }
 
-        if (false == drivingState.isActive())
+        if (true == DrivingState::getInstance().isActive())
         {
-            /* Not in the correct state. Do nothing. */
-        }
-        else if (false == drivingState.getWaypoint(payload))
-        {
-            LOG_WARNING("Failed to get waypoint from driving state.");
-        }
-        else if (false == m_v2vCommManager.sendWaypoint(payload))
-        {
-            LOG_WARNING("Waypoint could not be sent.");
-        }
-        else
-        {
-            /* Nothing to do. */
+            /* Send lastReachedWaypoint to next follower. */
+            Waypoint lastReachedWaypoint = DrivingState::getInstance().getLastReachedWaypoint();
+
+            if (false == PlatoonUtils::areWaypointsEqual(m_lastWaypointSent, lastReachedWaypoint))
+            {
+                if (false == m_v2vCommManager.sendWaypoint(lastReachedWaypoint))
+                {
+                    LOG_WARNING("Waypoint could not be sent.");
+                }
+                else
+                {
+                    m_lastWaypointSent = lastReachedWaypoint;
+                }
+            }
+
+            /* Send average IVS to the leader. */
+            if (false == m_v2vCommManager.sendIVS(DrivingState::getInstance().getAvgIVS()))
+            {
+                LOG_WARNING("IVS could not be sent.");
+            }
         }
 
         m_sendWaypointTimer.restart();
@@ -495,6 +489,8 @@ void App::processV2VCommunication()
             setErrorState();
             break;
 
+        case V2VCommManager::V2V_STATUS_NO_CONNECTION:
+            /* Fallthrough */
         case V2VCommManager::V2V_STATUS_GENERAL_ERROR:
             LOG_ERROR("V2V Communication error.");
             setErrorState();
@@ -604,9 +600,46 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
         App*               application        = reinterpret_cast<App*>(userData);
-        Telemetry          data(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
-                                currentVehicleData->left, currentVehicleData->right, currentVehicleData->center,
-                                currentVehicleData->proximity);
+
+        Telemetry::Range proximity = Telemetry::Range::RANGE_0_5;
+
+        switch (currentVehicleData->proximity)
+        {
+        case SMPChannelPayload::Range::RANGE_NO_OBJECT:
+            proximity = Telemetry::Range::RANGE_NO_OBJECT;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_25_30:
+            proximity = Telemetry::Range::RANGE_25_30;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_20_25:
+            proximity = Telemetry::Range::RANGE_20_25;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_15_20:
+            proximity = Telemetry::Range::RANGE_15_20;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_10_15:
+            proximity = Telemetry::Range::RANGE_10_15;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_5_10:
+            proximity = Telemetry::Range::RANGE_5_10;
+            break;
+
+        case SMPChannelPayload::Range::RANGE_0_5:
+            proximity = Telemetry::Range::RANGE_0_5;
+            break;
+
+        default:
+            LOG_DEBUG("Unknown proximity range: %u", currentVehicleData->proximity);
+            break;
+        }
+
+        Telemetry data(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
+                       currentVehicleData->left, currentVehicleData->right, currentVehicleData->center, proximity);
 
         DrivingState::getInstance().setVehicleData(data);
         application->setLatestVehicleData(data.asWaypoint());

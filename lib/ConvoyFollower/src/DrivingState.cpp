@@ -36,11 +36,7 @@
 #include "DrivingState.h"
 #include "ErrorState.h"
 #include <Logging.h>
-#include <ProcessingChainFactory.h>
-#include "LongitudinalController.h"
-#include "LongitudinalSafetyPolicy.h"
-#include "LateralController.h"
-#include "LateralSafetyPolicy.h"
+#include <PlatoonUtils.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -70,50 +66,106 @@ void DrivingState::entry()
 {
     m_isActive = true;
 
-    if (false == m_isInitSuccessful)
-    {
-        m_isInitSuccessful = setupPlatoonController();
-    }
+    /* First target is the current location. */
+    m_targetWaypoint      = m_vehicleData.asWaypoint();
+    m_lastReachedWaypoint = m_targetWaypoint;
 
-    if (false == m_isInitSuccessful)
-    {
-        LOG_FATAL("Could not initialize Platoon Controller.");
-    }
+    /* Configure PID. */
+    m_ivsPidController.clear();
+    m_ivsPidController.setPFactor(IVS_PID_FACTORS::PID_P_NUMERATOR, IVS_PID_FACTORS::PID_P_DENOMINATOR);
+    m_ivsPidController.setIFactor(IVS_PID_FACTORS::PID_I_NUMERATOR, IVS_PID_FACTORS::PID_I_DENOMINATOR);
+    m_ivsPidController.setDFactor(IVS_PID_FACTORS::PID_D_NUMERATOR, IVS_PID_FACTORS::PID_D_DENOMINATOR);
+    m_ivsPidController.setSampleTime(IVS_PID_PROCESS_PERIOD);
+    m_ivsPidController.setLimits(-m_maxMotorSpeed, m_maxMotorSpeed);
+    m_ivsPidController.setDerivativeOnMeasurement(true);
+    m_ivsPidProcessTimer.start(0); /* Immediate */
+
+    /* Configure heading finder. */
+    m_headingFinder.setPIDFactors(
+        HEADING_FINDER_PID_FACTORS::PID_P_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_P_DENOMINATOR,
+        HEADING_FINDER_PID_FACTORS::PID_I_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_I_DENOMINATOR,
+        HEADING_FINDER_PID_FACTORS::PID_D_NUMERATOR, HEADING_FINDER_PID_FACTORS::PID_D_DENOMINATOR);
 }
 
 void DrivingState::process(StateMachine& sm)
 {
-    /* Check initialization is successful. */
-    if (false == m_isInitSuccessful)
+    /* Check if the state is active. */
+    if (false == m_isActive)
     {
-        sm.setState(&ErrorState::getInstance());
+        /* Stop motors. */
+        m_leftMotorSpeed  = 0;
+        m_rightMotorSpeed = 0;
     }
     else
     {
-        /* Check if the state is active. */
-        if (false == m_isActive)
+        /* Check if target waypoint is reached. */
+        if (true ==
+            PlatoonUtils::areWaypointsEqual(m_targetWaypoint, m_vehicleData.asWaypoint(), TARGET_WAYPOINT_ERROR_MARGIN))
         {
-            /* Stop motors. */
-            m_leftMotorSpeed  = 0;
-            m_rightMotorSpeed = 0;
+            /* Get next waypoint from the queue. */
+            if (false == processNextWaypoint())
+            {
+                /* No more waypoints in the queue. */
+                LOG_INFO("No more waypoints in the queue.");
+
+                /* Stop motors. */
+                m_leftMotorSpeed  = 0;
+                m_rightMotorSpeed = 0;
+            }
+            else
+            {
+                /* Do nothing. */
+            }
+        }
+
+        if (MAX_INVALID_WAYPOINTS <= m_invalidWaypointCounter)
+        {
+            /* Go to Error state. Too many invalid waypoints received. Are we going in the right direction? */
+            LOG_ERROR("Too many invalid waypoints received. Going into error state.");
+            sm.setState(&ErrorState::getInstance());
         }
         else
         {
-            /* Set latest vehicle data. */
-            Waypoint vehicleDataAsWaypoint(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation,
-                                           m_vehicleData.left, m_vehicleData.right, m_vehicleData.center);
+            int32_t pidDelta            = 0;
+            int16_t centerSpeedSetpoint = 0;
 
-            m_platoonController.setLatestVehicleData(vehicleDataAsWaypoint);
-
-            /* Process PlatoonController. */
-            m_platoonController.process(m_inputWaypointQueue.size());
-
-            /* Get invalid waypoint count. */
-            if (MAX_INVALID_WAYPOINTS <= m_platoonController.getInvalidWaypointCounter())
+            /* Longitudinal controller. */
+            if (true == m_ivsPidProcessTimer.isTimeout())
             {
-                /* Go to Error state. Too many invalid waypoints received. Are we going in the right direction? */
-                LOG_ERROR("Too many invalid waypoints received. Going into error state.");
-                sm.setState(&ErrorState::getInstance());
+                int32_t distanceToTargetWaypoint = 0;
+                int32_t distanceToPredecessor    = 0;
+
+                /* Calculate distance to target waypoint. */
+                distanceToTargetWaypoint =
+                    PlatoonUtils::calculateAbsoluteDistance(m_targetWaypoint, m_vehicleData.asWaypoint());
+
+                /* Calculate distance to predecessor for platoon length calculation of the leader. */
+                distanceToPredecessor = m_avgIvs.write(m_cumulativeQueueDistance + distanceToTargetWaypoint);
+
+                /* Calculate PID delta. Objective is for distance to reach and maintain the IVS. */
+                pidDelta = m_ivsPidController.calculate(m_ivsSetpoint, distanceToPredecessor);
+
+                /* Restart timer. */
+                m_ivsPidProcessTimer.start(IVS_PID_PROCESS_PERIOD);
+
+                /* Center speedpoint is relative to the center speed of the target waypoint. */
+                centerSpeedSetpoint = constrain(m_targetWaypoint.center - pidDelta, 0, m_maxMotorSpeed);
+
+                /* Lateral controller. */
+                /* Set current input values. */
+                m_headingFinder.setOdometryData(m_vehicleData.xPos, m_vehicleData.yPos, m_vehicleData.orientation);
+                m_headingFinder.setMotorSpeedData(centerSpeedSetpoint, centerSpeedSetpoint);
+                m_headingFinder.setTargetHeading(m_targetWaypoint.xPos, m_targetWaypoint.yPos);
+
+                /* Calculate differential motor speed setpoints to reach target. */
+                m_headingFinder.process(m_leftMotorSpeed, m_rightMotorSpeed);
+
+                /* Collision Avoidance. */
+                m_collisionAvoidance.limitSpeedToAvoidCollision(m_leftMotorSpeed, m_rightMotorSpeed, m_vehicleData);
+
+                /* Prevent going backwards. */
+                m_leftMotorSpeed  = constrain(m_leftMotorSpeed, 0, m_maxMotorSpeed);
+                m_rightMotorSpeed = constrain(m_rightMotorSpeed, 0, m_maxMotorSpeed);
             }
         }
     }
@@ -138,13 +190,6 @@ bool DrivingState::getMotorSpeedSetpoints(int16_t& leftMotorSpeed, int16_t& righ
     return m_isActive;
 }
 
-bool DrivingState::setMotorSpeedSetpoints(const int16_t leftMotorSpeed, const int16_t rightMotorSpeed)
-{
-    m_leftMotorSpeed  = leftMotorSpeed;
-    m_rightMotorSpeed = rightMotorSpeed;
-    return true;
-}
-
 void DrivingState::setVehicleData(const Telemetry& vehicleData)
 {
     m_vehicleData = vehicleData;
@@ -163,20 +208,28 @@ bool DrivingState::pushWaypoint(Waypoint* waypoint)
         }
         else
         {
+            /* Calculate distance to predecessor.*/
+            if (false == m_inputWaypointQueue.empty())
+            {
+                /* Distance to last received waypoint to prevent direct line. */
+                Waypoint* predecessor = m_inputWaypointQueue.back();
+
+                if (false == PlatoonUtils::areWaypointsEqual(*predecessor, *waypoint, TARGET_WAYPOINT_ERROR_MARGIN))
+                {
+                    m_cumulativeQueueDistance += PlatoonUtils::calculateAbsoluteDistance(*predecessor, *waypoint);
+                }
+            }
+            else
+            {
+                m_cumulativeQueueDistance = 0;
+            }
+
             m_inputWaypointQueue.push(waypoint);
             isSuccessful = true;
         }
     }
 
     return isSuccessful;
-}
-
-bool DrivingState::getWaypoint(Waypoint& waypoint)
-{
-    waypoint = m_outputWaypoint;
-
-    /* Only valid if the state is active. */
-    return m_isActive;
 }
 
 /******************************************************************************
@@ -187,57 +240,82 @@ bool DrivingState::getWaypoint(Waypoint& waypoint)
  * Private Methods
  *****************************************************************************/
 
-bool DrivingState::setupPlatoonController()
+bool DrivingState::processNextWaypoint()
 {
     bool isSuccessful = false;
 
-    ProcessingChainFactory& processingChainFactory = ProcessingChainFactory::getInstance();
-
-    PlatoonController::InputWaypointCallback lambdaInputWaypointCallback = [this](Waypoint& waypoint)
+    /* Get latest waypoint. */
+    if (false == m_inputWaypointQueue.empty())
     {
-        bool isSuccessful = false;
+        /* Retrieve next waypoint. */
+        Waypoint* nextWaypoint = m_inputWaypointQueue.front();
+        m_inputWaypointQueue.pop();
 
-        if (false == m_inputWaypointQueue.empty())
+        /* Check for invalid waypoint. */
+        int32_t headingDelta = 0;
+        if (false == PlatoonUtils::calculateRelativeHeading(*nextWaypoint, m_vehicleData.asWaypoint(), headingDelta))
         {
-            /* Retrieve next waypoint. */
-            Waypoint* nextWaypoint = m_inputWaypointQueue.front();
-            m_inputWaypointQueue.pop();
+            LOG_ERROR("Failed to calculate relative heading for (%d, %d)", nextWaypoint->xPos, nextWaypoint->yPos);
+        }
+        /* Target is in the forward cone. */
+        else if ((headingDelta > -FORWARD_CONE_APERTURE) && (headingDelta < FORWARD_CONE_APERTURE))
+        {
+            /* Distance to old target waypoint. */
+            int32_t distance = PlatoonUtils::calculateAbsoluteDistance(*nextWaypoint, m_targetWaypoint);
+
+            /* Update cumulative distance. */
+            m_cumulativeQueueDistance = constrain((m_cumulativeQueueDistance - distance), 0, INT32_MAX);
 
             /* Copy waypoint. */
-            waypoint = *nextWaypoint;
+            m_lastReachedWaypoint = m_targetWaypoint;
+            m_targetWaypoint      = *nextWaypoint;
 
-            /* Delete queued waypoint. */
-            delete nextWaypoint;
+            LOG_DEBUG("New Waypoint: (%d, %d) Vc=%d", m_targetWaypoint.xPos, m_targetWaypoint.yPos,
+                      m_targetWaypoint.center);
 
-            isSuccessful = true;
+            /* Reset counter once a valid waypoint is received. */
+            m_invalidWaypointCounter = 0U;
+        }
+        else
+        {
+            LOG_ERROR("Invalid target waypoint (%d, %d)", nextWaypoint->xPos, nextWaypoint->yPos);
+
+            /* Prevent wrap-around. */
+            if (UINT8_MAX > m_invalidWaypointCounter)
+            {
+                /* Increase counter. */
+                ++m_invalidWaypointCounter;
+            }
         }
 
-        return isSuccessful;
-    };
-    PlatoonController::OutputWaypointCallback lambdaOutputWaypointCallback = [this](const Waypoint& waypoint)
-    {
-        m_outputWaypoint = waypoint;
-        return true;
-    };
-    PlatoonController::MotorSetpointCallback lambdaMotorSetpointCallback =
-        [this](const int16_t left, const int16_t right) { return this->setMotorSpeedSetpoints(left, right); };
+        /* Delete queued waypoint. */
+        delete nextWaypoint;
 
-    processingChainFactory.registerLongitudinalControllerCreateFunc(LongitudinalController::create);
-    processingChainFactory.registerLongitudinalSafetyPolicyCreateFunc(LongitudinalSafetyPolicy::create);
-    processingChainFactory.registerLateralControllerCreateFunc(LateralController::create);
-    processingChainFactory.registerLateralSafetyPolicyCreateFunc(LateralSafetyPolicy::create);
-
-    if (false == m_platoonController.init(lambdaInputWaypointCallback, lambdaOutputWaypointCallback,
-                                          lambdaMotorSetpointCallback))
-    {
-        LOG_FATAL("Could not initialize Platoon Controller.");
-    }
-    else
-    {
         isSuccessful = true;
     }
 
     return isSuccessful;
+}
+
+DrivingState::DrivingState() :
+    IState(),
+    m_isActive(false),
+    m_maxMotorSpeed(0),
+    m_leftMotorSpeed(0),
+    m_rightMotorSpeed(0),
+    m_vehicleData(),
+    m_inputWaypointQueue(),
+    m_collisionAvoidance(Telemetry::Range::RANGE_0_5, Telemetry::Range::RANGE_10_15),
+    m_targetWaypoint(),
+    m_lastReachedWaypoint(),
+    m_invalidWaypointCounter(0U),
+    m_ivsPidController(),
+    m_ivsPidProcessTimer(),
+    m_ivsSetpoint(DEFAULT_IVS),
+    m_headingFinder(),
+    m_cumulativeQueueDistance(0),
+    m_avgIvs()
+{
 }
 
 /******************************************************************************

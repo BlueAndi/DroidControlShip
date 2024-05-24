@@ -68,6 +68,15 @@ const char* V2VCommManager::TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE = "heartbeatRe
 /* MQTT subtopic name for platoon emergency stop. */
 const char* V2VCommManager::TOPIC_NAME_EMERGENCY = "emergency";
 
+/* MQTT topic name for platoon debug. */
+const char* V2VCommManager::TOPIC_NAME_DEBUG = "debug/waypoint";
+
+/* MQTT subtopic name for Inter Vehicle Space. */
+const char* V2VCommManager::TOPIC_NAME_IVS = "ivs";
+
+/* MQTT subtopic name for Platoon Length. */
+const char* V2VCommManager::TOPIC_NAME_PLATOON_LENGTH = "length";
+
 /** Buffer size for JSON serialization of heartbeat messages. */
 static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 128U;
 
@@ -86,6 +95,8 @@ V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_platoonHeartbeatTopic(),
     m_heartbeatResponseTopic(),
     m_feedbackTopic(),
+    m_ivsTopic(),
+    m_platoonLengthTopic(),
     m_participantType(PARTICIPANT_TYPE_UNKNOWN),
     m_platoonId(0U),
     m_vehicleId(0U),
@@ -93,6 +104,7 @@ V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_followerResponseCounter(0U),
     m_platoonHeartbeatTimer(),
     m_vehicleHeartbeatTimeoutTimer(),
+    m_connectionTimeoutTimer(),
     m_v2vStatus(V2V_STATUS_NOT_INIT),
     m_vehicleStatus(),
     m_followers{},
@@ -161,7 +173,7 @@ bool V2VCommManager::init(uint8_t platoonId, uint8_t vehicleId)
     {
         LOG_ERROR("Failed to determine participant type.");
     }
-    else if (false == setupWaypointTopics(platoonId, m_vehicleId))
+    else if (false == setupCommonTopics(platoonId, m_vehicleId))
     {
         LOG_ERROR("Failed to setup waypoint topics.");
     }
@@ -193,8 +205,25 @@ V2VCommManager::V2VStatus V2VCommManager::process(VehicleStatus status)
     m_vehicleStatus = status;
 
     /* Is MQTT client connected? */
-    if ((true == m_mqttClient.isConnected()) && (V2V_STATUS_OK == m_v2vStatus))
+    if (false == m_mqttClient.isConnected())
     {
+        if (false == m_connectionTimeoutTimer.isTimerRunning())
+        {
+            m_connectionTimeoutTimer.start(CONNECTION_TIMEOUT_TIMER_INTERVAL);
+        }
+        else if (true == m_connectionTimeoutTimer.isTimeout())
+        {
+            m_v2vStatus = V2V_STATUS_NO_CONNECTION;
+        }
+    }
+    else if (V2V_STATUS_OK == m_v2vStatus)
+    {
+        /* Stop connection timer. */
+        if (true == m_connectionTimeoutTimer.isTimerRunning())
+        {
+            m_connectionTimeoutTimer.stop();
+        }
+
         /* Check participants heartbeats. Only active as leader. */
         if (true == m_vehicleHeartbeatTimeoutTimer.isTimeout())
         {
@@ -266,6 +295,56 @@ bool V2VCommManager::sendWaypoint(const Waypoint& waypoint)
     return isSuccessful;
 }
 
+bool V2VCommManager::sendStatus(const Waypoint& waypoint) const
+{
+    bool         isSuccessful = false;
+    V2VEventType type         = V2V_EVENT_WAYPOINT;
+    String       payload;
+    waypoint.serialize(payload);
+
+    if (true == payload.isEmpty())
+    {
+        LOG_ERROR("Failed to serialize waypoint.");
+    }
+    else if (false == publishEvent(TOPIC_NAME_DEBUG, type, payload))
+    {
+        LOG_ERROR("Failed to publish Waypoint Event");
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
+bool V2VCommManager::sendIVS(const int32_t ivs) const
+{
+    bool         isSuccessful = false;
+    V2VEventType type         = V2V_EVENT_IVS;
+
+    /* Create JSON document. */
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    String                                    payload;
+
+    jsonPayload["ivs"] = ivs;
+
+    if (0U == serializeJson(jsonPayload, payload))
+    {
+        LOG_ERROR("Failed to serialize IVS.");
+    }
+    else if (false == publishEvent(m_ivsTopic, type, payload))
+    {
+        LOG_ERROR("Failed to publish IVS Event");
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
 bool V2VCommManager::getEvent(V2VEvent& event)
 {
     bool isSuccessful = false;
@@ -290,6 +369,21 @@ void V2VCommManager::triggerEmergencyStop()
         m_v2vStatus = V2V_STATUS_EMERGENCY;
         publishEvent(TOPIC_NAME_EMERGENCY, V2V_EVENT_EMERGENCY, "{}");
     }
+}
+
+int32_t V2VCommManager::getPlatoonLength() const
+{
+    int32_t platoonLength = 0;
+
+    for (size_t followerArrayIdx = 0; followerArrayIdx < NUMBER_OF_FOLLOWERS; followerArrayIdx++)
+    {
+        platoonLength += m_followers[followerArrayIdx].m_ivs;
+    }
+
+    /* Send calculated platoon length to external monitor. */
+    (void)sendPlatoonLength(platoonLength);
+
+    return platoonLength;
 }
 
 /******************************************************************************
@@ -417,6 +511,35 @@ void V2VCommManager::eventCallback(const String& payload)
                 }
                 break;
 
+            case V2V_EVENT_IVS:
+                if (PLATOON_LEADER_ID == eventVehicleId)
+                {
+                    /* This is me, the leader! */
+                }
+                else if (eventVehicleId > NUMBER_OF_FOLLOWERS)
+                {
+                    LOG_ERROR("Received IVS from unknown vehicle %d.", eventVehicleId);
+                }
+                else
+                {
+                    JsonVariant jsonEventDataIVS = eventDataAsJson["ivs"]; /* Inter Vehicle Space. */
+
+                    if (false == jsonEventDataIVS.isNull())
+                    {
+                        int32_t   ivs                = jsonEventDataIVS.as<int32_t>();
+                        uint8_t   followerArrayIndex = eventVehicleId - 1U; /*Already checked id != 0U */
+                        Follower& follower           = m_followers[followerArrayIndex];
+
+                        /* Update follower. */
+                        follower.m_ivs = ivs;
+                    }
+                    else
+                    {
+                        LOG_ERROR("Null value in IVS.");
+                    }
+                }
+                break;
+
             case V2V_EVENT_TYPE_UNKNOWN:
                 /* Fallthrough */
             default:
@@ -442,7 +565,7 @@ void V2VCommManager::eventCallback(const String& payload)
     }
 }
 
-bool V2VCommManager::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
+bool V2VCommManager::setupCommonTopics(uint8_t platoonId, uint8_t vehicleId)
 {
     bool    isSuccessful         = false;
     uint8_t nextVehicleId        = vehicleId + 1U;           /* Output is published to next vehicle. */
@@ -450,6 +573,8 @@ bool V2VCommManager::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
     char    inputTopicBuffer[MAX_TOPIC_LENGTH];
     char    outputTopicBuffer[MAX_TOPIC_LENGTH];
     char    feedbackTopicBuffer[MAX_TOPIC_LENGTH];
+    char    ivsTopicBuffer[MAX_TOPIC_LENGTH];
+    char    platoonLengthTopicBuffer[MAX_TOPIC_LENGTH];
 
     /* Input Topic. */
     if (0 >= snprintf(inputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", platoonId, vehicleId,
@@ -469,17 +594,31 @@ bool V2VCommManager::setupWaypointTopics(uint8_t platoonId, uint8_t vehicleId)
     {
         LOG_ERROR("Failed to create feedback topic.");
     }
+    /* IVS Topic. */
+    else if (0 >= snprintf(ivsTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/%s", platoonId, TOPIC_NAME_IVS))
+    {
+        LOG_ERROR("Failed to create IVS topic.");
+    }
+    /* Platoon Length Topic. */
+    else if (0 >= snprintf(platoonLengthTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/%s", platoonId,
+                           TOPIC_NAME_PLATOON_LENGTH))
+    {
+        LOG_ERROR("Failed to create Platoon Length topic.");
+    }
     else
     {
         /* Set topics. */
         m_waypointInputTopic  = inputTopicBuffer;
         m_waypointOutputTopic = outputTopicBuffer;
         m_feedbackTopic       = feedbackTopicBuffer;
+        m_ivsTopic            = ivsTopicBuffer;
+        m_platoonLengthTopic  = platoonLengthTopicBuffer;
 
         if ((true == m_waypointInputTopic.isEmpty()) || (true == m_waypointOutputTopic.isEmpty()) ||
-            (true == m_feedbackTopic.isEmpty()))
+            (true == m_feedbackTopic.isEmpty()) || (true == m_ivsTopic.isEmpty()) ||
+            (true == m_platoonLengthTopic.isEmpty()))
         {
-            LOG_ERROR("Failed to create Waypoint MQTT topics.");
+            LOG_ERROR("Failed to create MQTT topics.");
         }
         else
         {
@@ -573,6 +712,10 @@ bool V2VCommManager::setupLeaderTopics()
     {
         LOG_ERROR("Failed to create Leader Feedback MQTT topic.");
     }
+    else if (true == m_ivsTopic.isEmpty())
+    {
+        LOG_ERROR("Failed to create IVS MQTT topic.");
+    }
     /* Subscribe to Vehicles Heartbeat Topics. */
     else if (false == m_mqttClient.subscribe(m_heartbeatResponseTopic, false, lambdaEventCallback))
     {
@@ -582,6 +725,11 @@ bool V2VCommManager::setupLeaderTopics()
     else if (false == m_mqttClient.subscribe(m_feedbackTopic, false, lambdaEventCallback))
     {
         LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_feedbackTopic.c_str());
+    }
+    /* Subscribe to IVS Topic. */
+    else if (false == m_mqttClient.subscribe(m_ivsTopic, false, lambdaEventCallback))
+    {
+        LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_ivsTopic.c_str());
     }
     else
     {
@@ -610,6 +758,10 @@ bool V2VCommManager::sendPlatoonHeartbeat()
     {
         LOG_ERROR("Failed to publish MQTT message to %s.", m_platoonHeartbeatTopic.c_str());
     }
+    else if (timestamp == m_lastPlatoonHeartbeatTimestamp)
+    {
+        LOG_ERROR("Leader about to send heartbeat with old timestamp: %d.", timestamp);
+    }
     else
     {
         /* Save last timestamp in which the follower heartbeat was present. May be used for debugging in the future. */
@@ -620,7 +772,7 @@ bool V2VCommManager::sendPlatoonHeartbeat()
     return isSuccessful;
 }
 
-bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const String& data)
+bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const String& data) const
 {
     bool isSuccessful = false;
 
@@ -649,7 +801,7 @@ bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const 
     return isSuccessful;
 }
 
-bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const JsonObject& data)
+bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const JsonObject& data) const
 {
     bool   isSuccessful = false;
     String payload;
@@ -682,8 +834,8 @@ void V2VCommManager::processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t e
         Follower& follower           = m_followers[followerArrayIndex];
 
         /* Update follower. */
-        follower.setLastHeartbeatTimestamp(eventDataTimestamp);
-        follower.setStatus(eventDataStatus);
+        follower.m_timestamp = eventDataTimestamp;
+        follower.m_status    = static_cast<VehicleStatus>(eventDataStatus);
 
         /* Increment counter regardless of the status. */
         ++m_followerResponseCounter;
@@ -699,6 +851,33 @@ void V2VCommManager::processFollowerHeartbeat(uint8_t eventVehicleId, uint32_t e
             /* Nothing to do. */
         }
     }
+}
+
+bool V2VCommManager::sendPlatoonLength(const int32_t length) const
+{
+    bool         isSuccessful = false;
+    V2VEventType type         = V2V_EVENT_IVS;
+
+    /* Create JSON document. */
+    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    String                                    payload;
+
+    jsonPayload["length"] = length;
+
+    if (0U == serializeJson(jsonPayload, payload))
+    {
+        LOG_ERROR("Failed to serialize platoon length.");
+    }
+    else if (false == publishEvent(m_platoonLengthTopic, type, payload))
+    {
+        LOG_ERROR("Failed to publish platoon length Event");
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
 }
 
 /******************************************************************************

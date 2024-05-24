@@ -61,7 +61,8 @@ enum V2VEventType : uint8_t
     V2V_EVENT_FEEDBACK,          /**< Feedback event. */
     V2V_EVENT_EMERGENCY,         /**< Emergency event. */
     V2V_EVENT_VEHICLE_HEARTBEAT, /**< Vehicle heartbeat event. */
-    V2V_EVENT_PLATOON_HEARTBEAT  /**< Platoon heartbeat event. */
+    V2V_EVENT_PLATOON_HEARTBEAT, /**< Platoon heartbeat event. */
+    V2V_EVENT_IVS                /**< IVS event. */
 };
 
 /** V2V Event definition. */

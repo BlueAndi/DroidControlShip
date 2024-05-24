@@ -63,6 +63,8 @@
 void DrivingState::entry()
 {
     m_isActive = true;
+    LOG_DEBUG("DEFAULT_IVS: %d", DEFAULT_IVS);
+    LOG_DEBUG("MAX_PLATOON_LENGTH: %d", MAX_PLATOON_LENGTH);
 }
 
 void DrivingState::process(StateMachine& sm)
@@ -74,7 +76,37 @@ void DrivingState::process(StateMachine& sm)
     }
     else
     {
-        m_currentSpeedSetpoint = m_maxMotorSpeed;
+        /* Compact implementation of the "Platoon Application Controller". */
+
+        /* Drive as fast as possible */
+        int16_t linearSpeedSetpoint = m_maxMotorSpeed;
+        int16_t controlSpeed        = m_maxMotorSpeed;
+
+        /* Constrain the setpoint based on platoon length. */
+        platoonLengthController(linearSpeedSetpoint);
+
+        if (controlSpeed > linearSpeedSetpoint)
+        {
+            LOG_DEBUG("Speed limited by Platoon Length Controller. Length: %d", m_platoonLength);
+            controlSpeed = linearSpeedSetpoint;
+        }
+
+        /* Constrain the setpoint using collision avoidance module. */
+        m_collisionAvoidance.limitSpeedToAvoidCollision(linearSpeedSetpoint, m_vehicleData);
+
+        if (controlSpeed > linearSpeedSetpoint)
+        {
+            LOG_DEBUG("Speed limited by Collision Avoidance.");
+            controlSpeed = linearSpeedSetpoint;
+        }
+
+        /* Constrain setpoint to max and min motor speeds. */
+        m_currentSpeedSetpoint = constrain(linearSpeedSetpoint, 0, m_maxMotorSpeed);
+
+        if (controlSpeed > m_currentSpeedSetpoint)
+        {
+            LOG_DEBUG("Speed limited by constrain.");
+        }
     }
 }
 
@@ -86,6 +118,7 @@ void DrivingState::exit()
 void DrivingState::setMaxMotorSpeed(int16_t maxSpeed)
 {
     m_maxMotorSpeed = maxSpeed;
+    LOG_DEBUG("DrivingState: Max motor speed: %d", m_maxMotorSpeed);
 }
 
 bool DrivingState::getTopMotorSpeed(int16_t& topMotorSpeed) const
@@ -101,9 +134,13 @@ void DrivingState::setVehicleData(const Telemetry& data)
     m_vehicleData = data;
 }
 
-void DrivingState::setLastFollowerFeedback(const Telemetry& feedback)
+void DrivingState::setPlatoonLength(const int32_t platoonLength)
 {
-    m_followerFeedback = feedback;
+    /*
+     * Platoon length was calculated using the center points, not the vehicle edges.
+     * Vehicle length is added to take front and back of first and last vehicles into account.
+     */
+    m_platoonLength = platoonLength + VEHICLE_LENGTH;
 }
 
 /******************************************************************************
@@ -113,6 +150,28 @@ void DrivingState::setLastFollowerFeedback(const Telemetry& feedback)
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+void DrivingState::platoonLengthController(int16_t& linearCenterSpeedSetpoint)
+{
+    /* Limit the speed setpoint if platoon length greater than maximum allowed. */
+    if (m_platoonLength > MAX_PLATOON_LENGTH)
+    {
+        int16_t maxPossibleSpeed = linearCenterSpeedSetpoint;
+
+        maxPossibleSpeed = maxPossibleSpeed - (m_platoonLength * maxPossibleSpeed / (MAX_PLATOON_LENGTH * 10));
+
+        if (m_platoonLength > 2 * MAX_PLATOON_LENGTH)
+        {
+            maxPossibleSpeed = 0;
+        }
+
+        /* Make sure the speed is constraint. */
+        if (maxPossibleSpeed < linearCenterSpeedSetpoint)
+        {
+            linearCenterSpeedSetpoint = maxPossibleSpeed;
+        }
+    }
+}
 
 /******************************************************************************
  * External Functions

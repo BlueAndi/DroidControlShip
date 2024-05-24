@@ -46,8 +46,8 @@
 #include <stdint.h>
 #include <IState.h>
 #include <StateMachine.h>
-#include "SerialMuxChannels.h"
-#include <Telemetry.h>
+#include <CollisionAvoidance.h>
+#include <V2VCommManager.h>
 
 /******************************************************************************
  * Macros
@@ -117,21 +117,37 @@ public:
     void setVehicleData(const Telemetry& data);
 
     /**
-     * Set last follower feedback.
+     * Set the platoon length in mm.
      *
-     * @param[in] feedback  Last follower feedback.
+     * @param[in] platoonLength  Platoon length in mm.
      */
-    void setLastFollowerFeedback(const Telemetry& feedback);
+    void setPlatoonLength(const int32_t platoonLength);
+
+    /**
+     * Is state active?
+     *
+     * @return If state is active, it will return true otherwise false.
+     */
+    bool isActive() const
+    {
+        return m_isActive;
+    }
 
 protected:
 private:
-    /** Number of proximity Sensor ranges. */
-    static const uint8_t NUM_PROXIMITY_SENSOR_RANGES = SMPChannelPayload::RANGE_0_5;
+    /** Vehicle length in mm. */
+    static const uint8_t VEHICLE_LENGTH = 100U;
+
+    /** Maximum inter vehicle space in mm. */
+    static const uint16_t DEFAULT_IVS = 200U;
+
+    /** Maximum platoon length allowed in mm. */
+    static const uint16_t MAX_PLATOON_LENGTH = (VEHICLE_LENGTH + (V2VCommManager::NUMBER_OF_FOLLOWERS * DEFAULT_IVS));
 
     /** Flag: State is active. */
     bool m_isActive;
 
-    /** Maximum motor speed. */
+    /** Maximum motor speed in steps/s. */
     int16_t m_maxMotorSpeed;
 
     /** Current linear speed setpoint to apply to the vehicle. */
@@ -140,8 +156,18 @@ private:
     /** Latest vehicle data. */
     Telemetry m_vehicleData;
 
-    /** Last follower feedback. */
-    Telemetry m_followerFeedback;
+    /** Length of the platoon from start of leader to the end of the last follower in mm. */
+    int32_t m_platoonLength;
+
+    /** Collision Avoidance instance. */
+    CollisionAvoidance m_collisionAvoidance;
+
+    /**
+     * Limit the speed setpoint based on the platoon length.
+     *
+     * @param[out] speedSetpoint The speed setpoint.
+     */
+    void platoonLengthController(int16_t& speedSetpoint);
 
     /**
      * Default constructor.
@@ -152,7 +178,8 @@ private:
         m_maxMotorSpeed(0),
         m_currentSpeedSetpoint(0),
         m_vehicleData(),
-        m_followerFeedback()
+        m_platoonLength(),
+        m_collisionAvoidance(Telemetry::Range::RANGE_0_5, Telemetry::Range::RANGE_20_25)
     {
     }
 

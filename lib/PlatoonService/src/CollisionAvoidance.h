@@ -25,27 +25,26 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Idle State.
+ * @brief  Collision Avoidance Module.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup Application
+ * @addtogroup PlatoonService
  *
  * @{
  */
-#ifndef IDLE_STATE_H
-#define IDLE_STATE_H
+#ifndef COLLISION_AVOIDANCE_H
+#define COLLISION_AVOIDANCE_H
 
 /******************************************************************************
  * Compile Switches
  *****************************************************************************/
 
+#include "Telemetry.h"
+#include <Logging.h>
+
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include <IState.h>
-#include <StateMachine.h>
-#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -55,78 +54,80 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The system idle state. */
-class IdleState : public IState
+/**
+ * Collision avoidance class.
+ */
+class CollisionAvoidance
 {
 public:
     /**
-     * Get state instance.
+     * Collision avoidance constructor
      *
-     * @return State instance.
+     * @param[in] closestProximityRangeValue Value equivalent to the closest proximity range that can be measured.
+     * @param[in] rangeThreshold Range at which the vehicle should stop to avoid collision.
      */
-    static IdleState& getInstance()
+    CollisionAvoidance(Telemetry::Range closestProximityRangeValue, Telemetry::Range rangeThreshold) :
+        m_closestProximityRangeValue(closestProximityRangeValue),
+        m_rangeThreshold(rangeThreshold){};
+
+    /**
+     * Default Destructor.
+     */
+    ~CollisionAvoidance()
     {
-        static IdleState instance;
-
-        /* Singleton idiom to force initialization during first usage. */
-
-        return instance;
     }
 
     /**
-     * If the state is entered, this method will called once.
-     */
-    void entry() final;
-
-    /**
-     * Processing the state.
+     * Limit the speed of the vehicle to avoid collision.
      *
-     * @param[in] sm State machine, which is calling this state.
+     * @param[out] speedSetpoint The speed setpoint to be limited in steps/s.
+     * @param[in] vehicleData The vehicle data structure.
      */
-    void process(StateMachine& sm) final;
+    void limitSpeedToAvoidCollision(int16_t& speedSetpoint, const Telemetry& vehicleData) const
+    {
+        /* Is vehicle is closer than the threshold? */
+        if (vehicleData.proximity >= m_rangeThreshold)
+        {
+            speedSetpoint = 0;
+            LOG_WARNING("Collision Avoidance: Setpoint limited!");
+        }
+    }
 
     /**
-     * If the state is left, this method will be called once.
-     */
-    void exit() final;
-
-    /**
-     * Release the vehicle to start driving.
+     * Limit the speed of the vehicle to avoid collision.
      *
-     * @return If the request to release the vehicle is successful, returns true. Otherwise, false.
+     * @param[out] leftSpeedSetpoint The left motor speed setpoint to be limited in steps/s.
+     * @param[out] rightSpeedSetpoint The right motor speed setpoint to be limited in steps/s.
+     * @param[in] vehicleData The vehicle data structure.
      */
-    bool requestRelease();
+    void limitSpeedToAvoidCollision(int16_t& leftSpeedSetpoint, int16_t& rightSpeedSetpoint,
+                                    const Telemetry& vehicleData) const
+    {
+        /* Is vehicle is closer than the threshold? */
+        if (vehicleData.proximity >= m_rangeThreshold)
+        {
+            leftSpeedSetpoint  = 0;
+            rightSpeedSetpoint = 0;
+            LOG_WARNING("Collision Avoidance: Setpoint limited!");
+        }
+    }
 
-protected:
 private:
-    /** Flag: State is active. */
-    bool m_isActive;
+    /** Closest proximity range value [brightness levels]. */
+    Telemetry::Range m_closestProximityRangeValue;
 
-    /** Flag: Release is requested. */
-    bool m_releaseRequested;
+    /** Range threshold [brightness levels]. */
+    Telemetry::Range m_rangeThreshold;
 
     /**
      * Default constructor.
      */
-    IdleState() : IState(), m_isActive(false), m_releaseRequested(false)
-    {
-    }
-
-    /**
-     * Default destructor.
-     */
-    virtual ~IdleState()
-    {
-    }
-
-    /* Not allowed. */
-    IdleState(const IdleState& state);            /**< Copy construction of an instance. */
-    IdleState& operator=(const IdleState& state); /**< Assignment of an instance. */
+    CollisionAvoidance();
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IDLE_STATE_H */
+#endif /* COLLISION_AVOIDANCE_H */
 /** @} */

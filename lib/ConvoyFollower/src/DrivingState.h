@@ -43,13 +43,18 @@
  * Includes
  *****************************************************************************/
 
+#include <Arduino.h>
+#include <math.h>
+#include <FPMath.h>
 #include <stdint.h>
 #include <IState.h>
-#include <PlatoonController.h>
 #include <queue>
 #include <StateMachine.h>
-#include "SerialMuxChannels.h"
-#include <Telemetry.h>
+#include <CollisionAvoidance.h>
+#include <PIDController.h>
+#include <SimpleTimer.hpp>
+#include <HeadingFinder.h>
+#include <MovAvg.hpp>
 
 /******************************************************************************
  * Macros
@@ -112,16 +117,6 @@ public:
     bool getMotorSpeedSetpoints(int16_t& leftMotorSpeed, int16_t& rightMotorSpeed) const;
 
     /**
-     * Set the calculated motor speed setpoints. Shall only be called internally and not by the user.
-     *
-     * @param[in] leftMotorSpeed The calculated left motor speed.
-     * @param[in] rightMotorSpeed The calculated right motor speed.
-     *
-     * @returns true, as the assignment cannot fail.
-     */
-    bool setMotorSpeedSetpoints(const int16_t leftMotorSpeed, const int16_t rightMotorSpeed);
-
-    /**
      * Set latest vehicle data.
      *
      * @param[in] vehicleData   Latest vehicle data.
@@ -138,13 +133,14 @@ public:
     bool pushWaypoint(Waypoint* waypoint);
 
     /**
-     * Get latest waypoint to be sent to follower.
+     * Get the last reached waypoint.
      *
-     * @param[out] waypoint  Latest waypoint.
-     *
-     * @return If successful returns true, otherwise false.
+     * @return Last reached waypoint.
      */
-    bool getWaypoint(Waypoint& waypoint);
+    Waypoint getLastReachedWaypoint() const
+    {
+        return m_lastReachedWaypoint;
+    }
 
     /**
      * Is state active?
@@ -156,16 +152,88 @@ public:
         return m_isActive;
     }
 
+    /**
+     * Get the current average Inter Vehicle Space (IVS) in mm.
+     *
+     * @return Current average IVS in mm.
+     */
+    int32_t getAvgIVS() const
+    {
+        return m_avgIvs.getResult();
+    }
+
 protected:
 private:
     /** Maximum invalid waypoints allowed before going into error state. */
     static const uint8_t MAX_INVALID_WAYPOINTS = 3U;
 
+    /** Aperture angle of the forward cone in mrad. */
+    static const int32_t FORWARD_CONE_APERTURE = FP_2PI() / 5;
+
+    /** Period in ms for PID processing. */
+    static const uint32_t IVS_PID_PROCESS_PERIOD = 50U;
+
+    /** Default Inter Vehicle Space in mm. */
+    static const int32_t DEFAULT_IVS = 200;
+
+    /**
+     * Number of measurements to be taken into account in the average IVS.
+     * Calculated as the number of measurements in a second.
+     */
+    static const uint8_t IVS_MOVAVG_NUMBER_OF_MEASUREMENTS = 500U / IVS_PID_PROCESS_PERIOD;
+
+    /**
+     * Error margin in mm for target waypoint.
+     * Used to determine if target waypoint has been reached.
+     */
+    static const int32_t TARGET_WAYPOINT_ERROR_MARGIN = 50;
+
+    /** PID factors for the Inter Vehicle Space Controller. */
+    struct IVS_PID_FACTORS
+    {
+        /** The PID proportional factor numerator for the Inter Vehicle Space Controller. */
+        static const int32_t PID_P_NUMERATOR = 3;
+
+        /** The PID proportional factor denominator for the Inter Vehicle Space Controller.*/
+        static const int32_t PID_P_DENOMINATOR = 4;
+
+        /** The PID integral factor numerator for the Inter Vehicle Space Controller. */
+        static const int32_t PID_I_NUMERATOR = 0;
+
+        /** The PID integral factor denominator for the Inter Vehicle Space Controller. */
+        static const int32_t PID_I_DENOMINATOR = 10;
+
+        /** The PID derivative factor numerator for the Inter Vehicle Space Controller. */
+        static const int32_t PID_D_NUMERATOR = 1;
+
+        /** The PID derivative factor denominator for the Inter Vehicle Space Controller. */
+        static const int32_t PID_D_DENOMINATOR = 5;
+    };
+
+    /** PID factors for the Heading. */
+    struct HEADING_FINDER_PID_FACTORS
+    {
+        /** The PID proportional factor numerator for the Heading Finder. */
+        static const int32_t PID_P_NUMERATOR = 5;
+
+        /** The PID proportional factor denominator for the Heading Finder.*/
+        static const int32_t PID_P_DENOMINATOR = 4;
+
+        /** The PID integral factor numerator for the Heading Finder. */
+        static const int32_t PID_I_NUMERATOR = 1;
+
+        /** The PID integral factor denominator for the Heading Finder. */
+        static const int32_t PID_I_DENOMINATOR = 10;
+
+        /** The PID derivative factor numerator for the Heading Finder. */
+        static const int32_t PID_D_NUMERATOR = 1;
+
+        /** The PID derivative factor denominator for the Heading Finder. */
+        static const int32_t PID_D_DENOMINATOR = 10;
+    };
+
     /** Flag: State is active. */
     bool m_isActive;
-
-    /** Flag: initialization is successful. */
-    bool m_isInitSuccessful;
 
     /** Maximum motor speed. */
     int16_t m_maxMotorSpeed;
@@ -179,45 +247,57 @@ private:
     /** Latest vehicle data. */
     Telemetry m_vehicleData;
 
-    /** Platoon controller. */
-    PlatoonController m_platoonController;
-
-    /** Outgoing Waypoint. */
-    Waypoint m_outputWaypoint;
-
     /**
      * Queue for the received waypoints.
      * Stores pointers to the waypoints in the queue when received in the callback.
-     * The queue is emptied by the getNextWaypoint() method.
-     * The queue is filled by the targetWaypointTopicCallback() method.
+     * The queue is emptied by the processNextWaypoint() method.
+     * The queue is filled by the pushWaypoint() method.
      *
      * @tparam Waypoint*    Pointer to a Waypoint.
      */
     std::queue<Waypoint*> m_inputWaypointQueue;
 
+    /** Collision Avoidance instance. */
+    CollisionAvoidance m_collisionAvoidance;
+
+    /** Target waypoint. */
+    Waypoint m_targetWaypoint;
+
+    /** Last waypoint. */
+    Waypoint m_lastReachedWaypoint;
+
+    /** Counter of invalid waypoints. */
+    uint8_t m_invalidWaypointCounter;
+
+    /** PID controller, used for maintaining IVS. */
+    PIDController<int32_t> m_ivsPidController;
+
+    /** Timer used for periodically PID processing. */
+    SimpleTimer m_ivsPidProcessTimer;
+
+    /** Inter Vehicle Space (IVS) Setpoint in mm. */
+    int32_t m_ivsSetpoint;
+
+    /** Heading finder. */
+    HeadingFinder m_headingFinder;
+
+    /** Cumulative distance of waypoints in queue in mm */
+    int32_t m_cumulativeQueueDistance;
+
+    /** Average distance to the predecessor in mm. */
+    MovAvg<int32_t, IVS_MOVAVG_NUMBER_OF_MEASUREMENTS> m_avgIvs;
+
     /**
-     * Setup the platoon controller.
+     * Get latest waypoint from the queue, validate it and set it to as the current target.
      *
-     * @return If successful returns true, otherwise false.
+     * @return If successfully received and validated a waypoint, it will return true. Otherwise false.
      */
-    bool setupPlatoonController();
+    bool processNextWaypoint();
 
     /**
      * Default constructor.
      */
-    DrivingState() :
-        IState(),
-        m_isActive(false),
-        m_isInitSuccessful(false),
-        m_maxMotorSpeed(0),
-        m_leftMotorSpeed(0),
-        m_rightMotorSpeed(0),
-        m_vehicleData(),
-        m_platoonController(),
-        m_outputWaypoint(),
-        m_inputWaypointQueue()
-    {
-    }
+    DrivingState();
 
     /**
      * Default destructor.
