@@ -345,7 +345,7 @@ void V2VCommManager::triggerEmergencyStop()
     {
         LOG_INFO("Emergency Stop triggered.");
         m_v2vStatus = V2V_STATUS_EMERGENCY;
-        publishEvent(TOPIC_NAME_EMERGENCY, V2V_EVENT_EMERGENCY, "{}");
+        publishEvent(m_emergencyTopic, V2V_EVENT_EMERGENCY, "{}");
     }
 }
 
