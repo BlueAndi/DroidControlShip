@@ -56,6 +56,9 @@
  * Local Variables
  *****************************************************************************/
 
+/* MQTT topic platoon root. */
+const char* V2VCommManager::TOPIC_PLATOON_ROOT = "dcs/platoons";
+
 /* MQTT subtopic name for waypoint reception. */
 const char* V2VCommManager::TOPIC_NAME_WAYPOINT_RX = "inputWaypoint";
 
@@ -67,9 +70,6 @@ const char* V2VCommManager::TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE = "heartbeatRe
 
 /* MQTT subtopic name for platoon emergency stop. */
 const char* V2VCommManager::TOPIC_NAME_EMERGENCY = "emergency";
-
-/* MQTT topic name for platoon debug. */
-const char* V2VCommManager::TOPIC_NAME_DEBUG = "debug/waypoint";
 
 /* MQTT subtopic name for Inter Vehicle Space. */
 const char* V2VCommManager::TOPIC_NAME_IVS = "ivs";
@@ -97,6 +97,7 @@ V2VCommManager::V2VCommManager(MqttClient& mqttClient) :
     m_feedbackTopic(),
     m_ivsTopic(),
     m_platoonLengthTopic(),
+    m_emergencyTopic(),
     m_participantType(PARTICIPANT_TYPE_UNKNOWN),
     m_platoonId(0U),
     m_vehicleId(0U),
@@ -284,29 +285,6 @@ bool V2VCommManager::sendWaypoint(const Waypoint& waypoint)
         LOG_ERROR("Failed to serialize waypoint.");
     }
     else if (false == publishEvent(m_waypointOutputTopic, type, payload))
-    {
-        LOG_ERROR("Failed to publish Waypoint Event");
-    }
-    else
-    {
-        isSuccessful = true;
-    }
-
-    return isSuccessful;
-}
-
-bool V2VCommManager::sendStatus(const Waypoint& waypoint) const
-{
-    bool         isSuccessful = false;
-    V2VEventType type         = V2V_EVENT_WAYPOINT;
-    String       payload;
-    waypoint.serialize(payload);
-
-    if (true == payload.isEmpty())
-    {
-        LOG_ERROR("Failed to serialize waypoint.");
-    }
-    else if (false == publishEvent(TOPIC_NAME_DEBUG, type, payload))
     {
         LOG_ERROR("Failed to publish Waypoint Event");
     }
@@ -575,35 +553,42 @@ bool V2VCommManager::setupCommonTopics(uint8_t platoonId, uint8_t vehicleId)
     char    feedbackTopicBuffer[MAX_TOPIC_LENGTH];
     char    ivsTopicBuffer[MAX_TOPIC_LENGTH];
     char    platoonLengthTopicBuffer[MAX_TOPIC_LENGTH];
+    char    emergencyTopicBuffer[MAX_TOPIC_LENGTH];
 
     /* Input Topic. */
-    if (0 >= snprintf(inputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", platoonId, vehicleId,
-                      TOPIC_NAME_WAYPOINT_RX))
+    if (0 >= snprintf(inputTopicBuffer, MAX_TOPIC_LENGTH, "%s/%d/vehicles/%d/%s", TOPIC_PLATOON_ROOT, platoonId,
+                      vehicleId, TOPIC_NAME_WAYPOINT_RX))
     {
         LOG_ERROR("Failed to create input topic.");
     }
     /* Output Topic. */
-    else if (0 >= snprintf(outputTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", platoonId, nextVehicleId,
-                           TOPIC_NAME_WAYPOINT_RX))
+    else if (0 >= snprintf(outputTopicBuffer, MAX_TOPIC_LENGTH, "%s/%d/vehicles/%d/%s", TOPIC_PLATOON_ROOT, platoonId,
+                           nextVehicleId, TOPIC_NAME_WAYPOINT_RX))
     {
         LOG_ERROR("Failed to create output topic.");
     }
     /* Feedback Topic. */
-    if (0 >= snprintf(feedbackTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/vehicles/%d/%s", m_platoonId,
+    if (0 >= snprintf(feedbackTopicBuffer, MAX_TOPIC_LENGTH, "%s/%d/vehicles/%d/%s", TOPIC_PLATOON_ROOT, platoonId,
                       lastFollowerOutputId, TOPIC_NAME_WAYPOINT_RX))
     {
         LOG_ERROR("Failed to create feedback topic.");
     }
     /* IVS Topic. */
-    else if (0 >= snprintf(ivsTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/%s", platoonId, TOPIC_NAME_IVS))
+    else if (0 >= snprintf(ivsTopicBuffer, MAX_TOPIC_LENGTH, "%s/%d/%s", TOPIC_PLATOON_ROOT, platoonId, TOPIC_NAME_IVS))
     {
         LOG_ERROR("Failed to create IVS topic.");
     }
     /* Platoon Length Topic. */
-    else if (0 >= snprintf(platoonLengthTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/%s", platoonId,
+    else if (0 >= snprintf(platoonLengthTopicBuffer, MAX_TOPIC_LENGTH, "%s/%d/%s", TOPIC_PLATOON_ROOT, platoonId,
                            TOPIC_NAME_PLATOON_LENGTH))
     {
         LOG_ERROR("Failed to create Platoon Length topic.");
+    }
+    /* Emergency Topic. */
+    else if (0 >= snprintf(emergencyTopicBuffer, MAX_TOPIC_LENGTH, "%s/%d/%s", TOPIC_PLATOON_ROOT, platoonId,
+                           TOPIC_NAME_EMERGENCY))
+    {
+        LOG_ERROR("Failed to create Emergency topic.");
     }
     else
     {
@@ -613,10 +598,11 @@ bool V2VCommManager::setupCommonTopics(uint8_t platoonId, uint8_t vehicleId)
         m_feedbackTopic       = feedbackTopicBuffer;
         m_ivsTopic            = ivsTopicBuffer;
         m_platoonLengthTopic  = platoonLengthTopicBuffer;
+        m_emergencyTopic      = emergencyTopicBuffer;
 
         if ((true == m_waypointInputTopic.isEmpty()) || (true == m_waypointOutputTopic.isEmpty()) ||
             (true == m_feedbackTopic.isEmpty()) || (true == m_ivsTopic.isEmpty()) ||
-            (true == m_platoonLengthTopic.isEmpty()))
+            (true == m_platoonLengthTopic.isEmpty()) || (true == m_emergencyTopic.isEmpty()))
         {
             LOG_ERROR("Failed to create MQTT topics.");
         }
@@ -630,6 +616,11 @@ bool V2VCommManager::setupCommonTopics(uint8_t platoonId, uint8_t vehicleId)
             if (false == m_mqttClient.subscribe(m_waypointInputTopic, false, lambdaWaypointInputTopicCallback))
             {
                 LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_waypointInputTopic.c_str());
+            }
+            /* Subscribe to emergency topic. */
+            else if (false == m_mqttClient.subscribe(m_emergencyTopic, false, lambdaWaypointInputTopicCallback))
+            {
+                LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_emergencyTopic);
             }
             else
             {
@@ -650,13 +641,13 @@ bool V2VCommManager::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
     char vehicleHeartbeatTopicBuffer[MAX_TOPIC_LENGTH];
 
     /* Platoon Heartbeat Topic. */
-    if (0 >= snprintf(platoonHeartbeatTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/%s", platoonId,
+    if (0 >= snprintf(platoonHeartbeatTopicBuffer, MAX_TOPIC_LENGTH, "%s/%d/%s", TOPIC_PLATOON_ROOT, platoonId,
                       TOPIC_NAME_PLATOON_HEARTBEAT))
     {
         LOG_ERROR("Failed to create Platoon Heartbeat topic.");
     }
     /* Heartbeat Response Topic. */
-    else if (0 >= snprintf(vehicleHeartbeatTopicBuffer, MAX_TOPIC_LENGTH, "platoons/%d/%s", platoonId,
+    else if (0 >= snprintf(vehicleHeartbeatTopicBuffer, MAX_TOPIC_LENGTH, "%s/%d/%s", TOPIC_PLATOON_ROOT, platoonId,
                            TOPIC_NAME_PLATOON_HEARTBEAT_RESPONSE))
     {
         LOG_ERROR("Failed to create Heartbeat Response topic.");
@@ -682,12 +673,6 @@ bool V2VCommManager::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
             {
                 LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_platoonHeartbeatTopic.c_str());
             }
-            /* Subscribe to emergency topic. */
-            else if (false == m_mqttClient.subscribe(TOPIC_NAME_EMERGENCY, false, lambdaHeartbeatInputTopicCallback))
-            {
-                LOG_ERROR("Could not subcribe to MQTT Topic: %s.", TOPIC_NAME_EMERGENCY);
-            }
-            else
             {
                 isSuccessful = true;
             }

@@ -137,15 +137,6 @@ public:
     bool sendWaypoint(const Waypoint& waypoint);
 
     /**
-     * Send the current vehicle status data as a Waypoint to the debug topic.
-     *
-     * @param[in] waypoint  Waypoint to send.
-     *
-     * @return If the waypoint was sent successfully, returns true. Otherwise, false.
-     */
-    bool sendStatus(const Waypoint& waypoint) const;
-
-    /**
      * Send the current IVS to the leader.
      *
      * @param[in] ivs  Inter Vehicle Space (IVS) in mm.
@@ -194,6 +185,9 @@ private:
     /** Connection timeout timer interval in ms. */
     static const uint32_t CONNECTION_TIMEOUT_TIMER_INTERVAL = 2000U;
 
+    /** MQTT topic platoon root. */
+    static const char* TOPIC_PLATOON_ROOT;
+
     /** MQTT subtopic name for waypoint reception. */
     static const char* TOPIC_NAME_WAYPOINT_RX;
 
@@ -205,9 +199,6 @@ private:
 
     /** MQTT subtopic name for platoon emergency stop. */
     static const char* TOPIC_NAME_EMERGENCY;
-
-    /** MQTT topic name for platoon debug. */
-    static const char* TOPIC_NAME_DEBUG;
 
     /** MQTT subtopic name for Inter Vehicle Space. */
     static const char* TOPIC_NAME_IVS;
@@ -266,6 +257,9 @@ private:
 
     /** Topic to send the platoon length. */
     String m_platoonLengthTopic;
+
+    /** Topic to send the platoon emergency events. */
+    String m_emergencyTopic;
 
     /** Type of Platoon Participant.*/
     ParticipantType m_participantType;

@@ -150,9 +150,6 @@ private:
     /** MQTT topic name for will messages. */
     static const char* TOPIC_NAME_WILL;
 
-    /** MQTT topic name for release messages. */
-    static const char* TOPIC_NAME_RELEASE;
-
     /** SerialMuxProt Channel id for sending remote control commands. */
     uint8_t m_serialMuxProtChannelIdRemoteCtrl;
 
