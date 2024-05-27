@@ -80,10 +80,10 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 
 /* MQTT topic name for birth messages. */
-const char* App::TOPIC_NAME_BIRTH = "birth";
+const char* App::TOPIC_NAME_BIRTH = "dcs/birth";
 
 /* MQTT topic name for will messages. */
-const char* App::TOPIC_NAME_WILL = "will";
+const char* App::TOPIC_NAME_WILL = "dcs/will";
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
@@ -363,11 +363,6 @@ void App::processPeriodicTasks()
 
     if ((true == m_sendWaypointTimer.isTimeout()) && (true == m_mqttClient.isConnected()))
     {
-        if (false == m_v2vCommManager.sendStatus(m_latestVehicleData))
-        {
-            LOG_WARNING("Status could not be sent.");
-        }
-
         if ((true == DrivingState::getInstance().isActive()) &&
             (WAYPOINT_DISTANCE_INTERVAL <=
              PlatoonUtils::calculateAbsoluteDistance(m_lastWaypointSent, m_latestVehicleData)))
