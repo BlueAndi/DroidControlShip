@@ -1,0 +1,73 @@
+@startuml ClassDiagramSensorFusion
+
+
+package "SensorFusion" as SensorFusionPackage
+{
+    class SensorFusion{
+        - m_kalmanFilter : IKalmanFilter
+        - m_isFirstIteration : bool
+        + estimateNewState(SensorData& newData) : void
+    }
+
+    interface IKalmanFilter  <<Interface>>{
+        + {abstract} init(KalmanParameter& initialParameter) : void
+        + {abstract} predictionStep(const uint16_t timeStep, KalmanParameter& kalmanParameter) : void
+        + {abstract} updateStep() : PositionData
+        + {abstract} updateMeasurementVector(KalmanParameter& kalmanParameter) : void
+        + {abstract} updateControlInputVector(KalmanParameter& kalmanParameter) : void
+    }
+
+    struct PositionData
+    {
+        + positionX: float
+        + positionY: float
+        + angle: float
+    }
+
+    class ExtendedKalmanFilter {
+        - OBSERVATION_MATRIX_H : Eigen::MatrixXf
+        - OBSERVATION_NOISE_MATRIX_R : Eigen::MatrixXf
+        - PROCESS_COVARIANCE_MATRIX_Q : Eigen::MatrixXf
+        - m_controlInputVector : Eigen::VectorXf
+        - m_measurementVector : Eigen::VectorXf
+        - m_stateVector : Eigen::VectorXf
+        - m_covarianceMatrix : Eigen::MatrixXf
+        - wrapAngle(float inputAngle) : float
+        + NUMBER_OF_STATES_N : uint8_t
+        + NUMBER_OF_MEASUREMENTS_M : uint8_t
+        + NUMBER_OF_CONTROL_INPUTS_L : uint8_t
+    }
+    class SensorConstants << namespace >> {
+        + ACCELEROMETER_SENSITIVITY_FACTOR : float
+        + GYRO_SENSITIVITY_FACTOR : float
+    }
+
+
+    struct SensorData {
+        + positionOdometryX : int32_t
+        + positionOdometryY : int32_t
+        + orientationOdometry : int32_t
+        + accelerationX : int16_t
+        + turnrate : int16_t
+        + timePeriod : int16_t
+    }
+
+    struct KalmanParameter {
+        +positionOdometryX  : float
+        +positionOdometryY  : float
+        +angleOdometry  : float
+        +accelerationX : float
+        +turnRate : float
+    }
+
+
+
+}
+IKalmanFilter<|..ExtendedKalmanFilter: <<realize>>
+SensorFusion *--> IKalmanFilter
+SensorFusion --> SensorConstants : <<use>>
+IKalmanFilter --> PositionData : <<use>>
+IKalmanFilter -> KalmanParameter : <<use>>
+SensorFusion -> SensorData : <<use>>
+
+@enduml
