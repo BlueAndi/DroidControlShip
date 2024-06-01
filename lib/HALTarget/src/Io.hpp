@@ -117,9 +117,23 @@ private:
     const uint8_t m_pinNo;   /**< Arduino pin number */
     const uint8_t m_pinMode; /**< Arduino pin mode */
 
-    /* An instance shall not be copied. */
-    IoPin(const IoPin& ioPin);            /**< Copy construction of an instance. */
-    IoPin& operator=(const IoPin& ioPin); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] ioPin Source instance.
+     */
+    IoPin(const IoPin& ioPin);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] ioPin Source instance.
+     *
+     * @returns Reference to IoPin instance.
+     */
+    IoPin& operator=(const IoPin& ioPin);
 };
 
 /**
@@ -167,9 +181,23 @@ public:
     }
 
 private:
-    /* An instance shall not be copied. */
-    DOutPin(const DOutPin& dOutPin);            /**< Copy construction of an instance. */
-    DOutPin& operator=(const DOutPin& dOutPin); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] dOutPin Source instance.
+     */
+    DOutPin(const DOutPin& dOutPin);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] dOutPin Source instance.
+     *
+     * @returns Reference to DOutPin instance.
+     */
+    DOutPin& operator=(const DOutPin& dOutPin);
 };
 
 /**
@@ -194,9 +222,23 @@ private:
     {
     }
 
-    /* An instance shall not be copied. */
-    DInPin(const DInPin& dInPin);            /**< Copy construction of an instance. */
-    DInPin& operator=(const DInPin& dInPin); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] dInPin Source instance.
+     */
+    DInPin(const DInPin& dInPin);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] dInPin Source instance.
+     *
+     * @returns Reference to DInPin instance.
+     */
+    DInPin& operator=(const DInPin& dInPin);
 };
 
 /**
@@ -231,9 +273,23 @@ public:
     }
 
 private:
-    /* An instance shall not be copied. */
-    DInPin(const DInPin& dInPin);            /**< Copy construction of an instance. */
-    DInPin& operator=(const DInPin& dInPin); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] dInPin Source instance.
+     */
+    DInPin(const DInPin& dInPin);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] dInPin Source instance.
+     *
+     * @returns Reference to DInPin instance.
+     */
+    DInPin& operator=(const DInPin& dInPin);
 };
 
 /**
@@ -268,9 +324,23 @@ public:
     }
 
 private:
-    /* An instance shall not be copied. */
-    DInPin(const DInPin& dInPin);            /**< Copy construction of an instance. */
-    DInPin& operator=(const DInPin& dInPin); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] dInPin Source instance.
+     */
+    DInPin(const DInPin& dInPin);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] dInPin Source instance.
+     *
+     * @returns Reference to DInPin instance.
+     */
+    DInPin& operator=(const DInPin& dInPin);
 };
 
 /**
@@ -305,9 +375,23 @@ public:
     }
 
 private:
-    /* An instance shall not be copied. */
-    DInPin(const DInPin& dInPin);            /**< Copy construction of an instance. */
-    DInPin& operator=(const DInPin& dInPin); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] dInPin Source instance.
+     */
+    DInPin(const DInPin& dInPin);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] dInPin Source instance.
+     *
+     * @returns Reference to DInPin instance.
+     */
+    DInPin& operator=(const DInPin& dInPin);
 };
 
 /**
@@ -352,9 +436,23 @@ public:
     }
 
 private:
-    /* Not allowed. */
-    AnalogPin(const AnalogPin& analogPin);            /**< Copy construction of an instance. */
-    AnalogPin& operator=(const AnalogPin& analogPin); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] analogPin Source instance.
+     */
+    AnalogPin(const AnalogPin& analogPin);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] analogPin Source instance.
+     *
+     * @returns Reference to AnalogPin instance.
+     */
+    AnalogPin& operator=(const AnalogPin& analogPin);
 };
 
 /******************************************************************************

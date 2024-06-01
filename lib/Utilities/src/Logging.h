@@ -376,9 +376,23 @@ private:
     {
     }
 
-    /* Not allowed. */
-    Logging(const Logging&);            /**< Copy construction of an instance. */
-    Logging& operator=(const Logging&); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] logging Logging instance
+     */
+    Logging(const Logging& logging);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] logging Logging instance
+     *
+     * @return Reference to Logging instance
+     */
+    Logging& operator=(const Logging& logging);
 };
 
 /**

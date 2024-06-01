@@ -61,6 +61,8 @@ class Robot : public IRobot, public IRobotNative
 public:
     /**
      * Constructs the robot adapter.
+     *
+     * @param[in] serialDrv Webots serial driver.
      */
     Robot(WebotsSerialDrv& serialDrv) : IRobot(), IRobotNative(), m_serialDrv(serialDrv)
     {

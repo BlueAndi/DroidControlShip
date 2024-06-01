@@ -226,9 +226,23 @@ private:
     /** User disconnection request. */
     bool m_disconnectRequest;
 
-    /* Not allowed. */
-    MqttClient(const MqttClient& src);            /**< Copy construction of an instance. */
-    MqttClient& operator=(const MqttClient& rhs); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] src Source instance.
+     */
+    MqttClient(const MqttClient& src);
+
+    /**
+     * Assignment operation.
+     * Not allowed.
+     *
+     * @param[in] rhs Right hand side instance.
+     *
+     * @returns Reference to MqttClient instance.
+     */
+    MqttClient& operator=(const MqttClient& rhs);
 
     /**
      * Process the Idle state.

@@ -225,9 +225,23 @@ private:
         /* Never called. */
     }
 
-    /* Not allowed. */
-    ButtonDrv(const ButtonDrv& drv);            /**< Copy construction of an instance. */
-    ButtonDrv& operator=(const ButtonDrv& drv); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] drv source instance
+     */
+    ButtonDrv(const ButtonDrv& drv);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] drv source instance
+     *
+     * @return Button driver instance.
+     */
+    ButtonDrv& operator=(const ButtonDrv& drv);
 
     /**
      * Set button state.

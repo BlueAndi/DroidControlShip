@@ -124,6 +124,8 @@ public:
 
     /**
      * Initializes the USB Host.
+     *
+     * @returns true if initialization is successful. Otherwise, false.
      */
     bool init();
 
@@ -220,9 +222,23 @@ private:
     bool getByte(uint8_t& byte);
 
 private:
-    /* Not Allowed. */
-    USBHost(const USBHost& usbhost);            /**< Copy construction of an instance. */
-    USBHost& operator=(const USBHost& usbhost); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] usbhost Source instance.
+     */
+    USBHost(const USBHost& usbhost);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] usbhost Source instance.
+     *
+     * @returns Reference to USBHost instance.
+     */
+    USBHost& operator=(const USBHost& usbhost);
 };
 
 /******************************************************************************

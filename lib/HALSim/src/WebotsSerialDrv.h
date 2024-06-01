@@ -221,10 +221,29 @@ private:
     webots::Receiver* m_receiver;    /**< The receiver used to receive data. */
     size_t            m_dataRemains; /**< Number of bytes which are remaining in head packet. */
 
-    /* Not allowed. */
+    /**
+     * Default constructor.
+     * Not allowed.
+     */
     WebotsSerialDrv();
-    WebotsSerialDrv(const WebotsSerialDrv& srv);            /**< Copy construction of an instance. */
-    WebotsSerialDrv& operator=(const WebotsSerialDrv& srv); /**< Assignment of an instance. */
+
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] srv Source instance.
+     */
+    WebotsSerialDrv(const WebotsSerialDrv& srv);
+
+    /**
+     * Assignment operation.
+     * Not allowed.
+     *
+     * @param[in] srv Right hand side instance.
+     *
+     * @returns Reference to WebotsSerialDrv instance.
+     */
+    WebotsSerialDrv& operator=(const WebotsSerialDrv& srv);
 };
 
 #endif /* WEBOTS_SERIAL_DRV_H */
