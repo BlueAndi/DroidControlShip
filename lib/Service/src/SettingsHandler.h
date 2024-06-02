@@ -346,9 +346,23 @@ private:
     ~SettingsHandler();
 
 private:
-    /* Not allowed. */
-    SettingsHandler(const SettingsHandler& handler);            /**< Copy construction of an instance. */
-    SettingsHandler& operator=(const SettingsHandler& handler); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] handler Source instance.
+     */
+    SettingsHandler(const SettingsHandler& handler);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] handler Source instance.
+     *
+     * @returns Reference to SettingsHandler instance.
+     */
+    SettingsHandler& operator=(const SettingsHandler& handler);
 };
 
 /******************************************************************************

@@ -385,14 +385,22 @@ private:
     V2VCommManager();
 
     /**
-     * Copy constructor.
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] vcm Source instance.
      */
-    V2VCommManager(const V2VCommManager&);
+    V2VCommManager(const V2VCommManager& vcm);
 
     /**
-     * Assignment operator.
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] vcm Source instance.
+     *
+     * @returns Reference to V2VCommManager instance.
      */
-    V2VCommManager& operator=(const V2VCommManager&);
+    V2VCommManager& operator=(const V2VCommManager& vcm);
 };
 
 /******************************************************************************

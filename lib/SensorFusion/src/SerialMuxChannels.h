@@ -86,6 +86,7 @@ typedef struct _SensorData
 
     /** Time passed since the last sensor value in milliseconds. */
     uint16_t timePeriod;
+
 } __attribute__((packed)) SensorData;
 
 /******************************************************************************
@@ -93,4 +94,4 @@ typedef struct _SensorData
  *****************************************************************************/
 
 #endif /* SERIAL_MUX_CHANNELS_H_ */
-       /** @} */
+/** @} */

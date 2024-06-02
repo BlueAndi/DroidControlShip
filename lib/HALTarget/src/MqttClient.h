@@ -282,9 +282,23 @@ private:
     void onMessageCallback(char* topic, uint8_t* payload, uint32_t length);
 
 private:
-    /* Not allowed. */
-    MqttClient(const MqttClient& src);            /**< Copy construction of an instance. */
-    MqttClient& operator=(const MqttClient& rhs); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] src Source instance.
+     */
+    MqttClient(const MqttClient& src);
+
+    /**
+     * Assignment operation.
+     * Not allowed.
+     *
+     * @param[in] rhs Right hand side instance.
+     *
+     * @returns Reference to MqttClient instance.
+     */
+    MqttClient& operator=(const MqttClient& rhs);
 };
 
 /******************************************************************************

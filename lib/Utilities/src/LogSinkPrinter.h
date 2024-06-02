@@ -150,9 +150,23 @@ private:
     String m_name;   /**< Name of the sink */
     Print* m_output; /**< Log sink output */
 
-    /* Not allowed. */
-    LogSinkPrinter(const LogSinkPrinter& sink);            /**< Copy construction of an instance. */
-    LogSinkPrinter& operator=(const LogSinkPrinter& sink); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] sink source instance
+     */
+    LogSinkPrinter(const LogSinkPrinter& sink);
+
+    /**
+     * Assignment operation of an instance.
+     * Not allowed.
+     *
+     * @param[in] sink source instance
+     *
+     * @return Reference to Logging instance
+     */
+    LogSinkPrinter& operator=(const LogSinkPrinter& sink);
 
     /**
      * Get a string representation of the given logLevel.

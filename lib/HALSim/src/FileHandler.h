@@ -88,9 +88,23 @@ public:
     size_t writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize) final;
 
 private:
-    /* Not allowed. */
-    FileHandler(const FileHandler& src);            /**< Copy construction of an instance. */
-    FileHandler& operator=(const FileHandler& rhs); /**< Assignment of an instance. */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] src Source instance.
+     */
+    FileHandler(const FileHandler& src);
+
+    /**
+     * Assignment operation.
+     * Not allowed.
+     *
+     * @param[in] rhs Right hand side instance.
+     *
+     * @returns Reference to FileHandler instance.
+     */
+    FileHandler& operator=(const FileHandler& rhs);
 };
 
 /******************************************************************************

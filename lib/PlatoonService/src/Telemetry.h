@@ -134,6 +134,8 @@ struct Telemetry
      * Assignment operator
      *
      * @param[in] telemetry Telemetry data.
+     *
+     * @returns Reference to telemetry data.
      */
     Telemetry& operator=(const Telemetry& telemetry)
     {
