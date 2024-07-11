@@ -112,7 +112,8 @@ Board::Board() :
     m_ledRed(),
     m_network(),
     m_hostRobot(m_serialDrv),
-    m_configFilePath()
+    m_configFilePath(),
+    m_gps(m_robot.getGPS(RobotDeviceNames::GPS_NAME))
 {
 }
 
@@ -121,6 +122,7 @@ void Board::enableSimulationDevices()
     const int timeStep = m_simTime.getTimeStep();
 
     m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)->enable(timeStep);
+    m_robot.getGPS(RobotDeviceNames::GPS_NAME)->enable(timeStep);
 }
 
 /******************************************************************************
