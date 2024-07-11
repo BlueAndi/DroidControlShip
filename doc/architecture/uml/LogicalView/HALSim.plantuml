@@ -12,7 +12,7 @@ package "HALSim" as hal {
         + getLedRed() : ILed&
         + getLedGreen() : iLed&
         + getLedBlue() : ILed&
-        + getGps() : IGps&
+        + getGps() : IGps*
     }
 
     package "Interfaces" as interfaces {
