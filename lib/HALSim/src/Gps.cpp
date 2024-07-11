@@ -55,6 +55,12 @@
  * Local Variables
  *****************************************************************************/
 
+/** Index of the x-coordinate in the position vector. */
+static const size_t GPS_POSITION_X_INDEX = 0U;
+
+/** Index of the y-coordinate in the position vector. */
+static const size_t GPS_POSITION_Y_INDEX = 1U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -69,8 +75,21 @@ Gps::~Gps()
 
 bool Gps::getPosition(int32_t& xPos, int32_t& yPos)
 {
-    /* Not implemented. */
-    return false;
+    bool isPositionValid = false;
+
+    if (nullptr != m_gps)
+    {
+        const double* positionVector = m_gps->getValues();
+
+        if (nullptr != positionVector)
+        {
+            xPos            = static_cast<int32_t>((positionVector[GPS_POSITION_X_INDEX] * 1000.0F) + 1.0F);
+            yPos            = static_cast<int32_t>((positionVector[GPS_POSITION_Y_INDEX] * 1000.0F) + 1.0F);
+            isPositionValid = true;
+        }
+    }
+
+    return isPositionValid;
 }
 
 /******************************************************************************
