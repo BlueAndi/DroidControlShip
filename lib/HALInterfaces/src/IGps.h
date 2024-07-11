@@ -65,10 +65,10 @@ public:
     }
 
     /**
-     * Get the current position.
+     * Get the current position coordinates in millimeters.
      *
-     * @param[out] xPos  The X position.
-     * @param[out] yPos  The Y position.
+     * @param[out] xPos  The X position in mm.
+     * @param[out] yPos  The Y position in mm.
      *
      * @return If the position was successfully retrieved.
      */

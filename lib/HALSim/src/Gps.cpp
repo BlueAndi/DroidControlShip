@@ -79,10 +79,12 @@ bool Gps::getPosition(int32_t& xPos, int32_t& yPos)
 
     if (nullptr != m_gps)
     {
+        /* Get 3D position vector from Webots in meters. */
         const double* positionVector = m_gps->getValues();
 
         if (nullptr != positionVector)
         {
+            /* Cast to millimeters. */
             xPos            = static_cast<int32_t>((positionVector[GPS_POSITION_X_INDEX] * 1000.0F) + 1.0F);
             yPos            = static_cast<int32_t>((positionVector[GPS_POSITION_Y_INDEX] * 1000.0F) + 1.0F);
             isPositionValid = true;
