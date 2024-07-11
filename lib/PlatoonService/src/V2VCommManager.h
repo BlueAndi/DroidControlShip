@@ -64,7 +64,7 @@ public:
     static const uint8_t PLATOON_LEADER_ID = 0U;
 
     /** Number of followers. */
-    static const uint8_t NUMBER_OF_FOLLOWERS = 2U;
+    static const uint8_t NUMBER_OF_FOLLOWERS = 10U;
 
     /** Type of platoon participant. */
     enum ParticipantType : uint8_t

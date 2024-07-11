@@ -19,7 +19,7 @@ echo Start convoy leader.
 start "ZumoComSystem Convoy Leader" ""%WEBOTS_CONTROLLER%"" --robot-name=ZumoComSystemLeader --stdout-redirect %CONVOY_LEADER_PROGRAM_PATH%\%PROGRAM_NAME% --cfgFilePath "../../../data/config/leader.json" --serialRxCh=%CONVOY_LEADER_RX_CHANNEL% --serialTxCh=%CONVOY_LEADER_TX_CHANNEL% -v"
 
 rem Start the followers
-for /L %%i in (1, 1, 2) do (
+for /L %%i in (1, 1, 10) do (
     call :start_follower %%i
 )
 
