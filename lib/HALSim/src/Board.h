@@ -52,6 +52,7 @@
 #include "Network.h"
 #include "Robot.h"
 #include "WebotsSerialDrv.h"
+#include "Gps.h"
 
 #include <webots/Robot.hpp>
 #include <SimTime.h>
@@ -176,8 +177,17 @@ public:
         return m_configFilePath;
     }
 
-private:
+    /**
+     * Get GPS driver.
+     *
+     * @return If GPS is available, it will return a pointer to it, otherwise nullptr.
+     */
+    IGps* getGps() final
+    {
+        return &m_gps;
+    }
 
+private:
     /** Simulated DCS robot instance. */
     webots::Robot m_robot;
 
@@ -210,6 +220,9 @@ private:
 
     /** Configuration file path */
     String m_configFilePath;
+
+    /** GPS driver */
+    Gps m_gps;
 
     /**
      * Constructs the concrete board.

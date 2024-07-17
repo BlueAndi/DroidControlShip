@@ -570,6 +570,8 @@ void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize
  */
 void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
+    IGps* gps = Board::getInstance().getGps();
+
     if ((nullptr != payload) && (CURRENT_VEHICLE_DATA_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
@@ -614,6 +616,23 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
 
         Telemetry data(currentVehicleData->xPos, currentVehicleData->yPos, currentVehicleData->orientation,
                        currentVehicleData->left, currentVehicleData->right, currentVehicleData->center, proximity);
+
+        /* Check if a GPS is available. */
+        if (gps != nullptr)
+        {
+            int32_t xPos = 0;
+            int32_t yPos = 0;
+
+            if (true == gps->getPosition(xPos, yPos))
+            {
+                /*
+                 * Overwrite the Odometry data with the GPS data.
+                 * Allows using more accurate data for positioning and driving algorithms.
+                 */
+                data.xPos = xPos;
+                data.yPos = yPos;
+            }
+        }
 
         DrivingState::getInstance().setVehicleData(data);
         application->setLatestVehicleData(data.asWaypoint());

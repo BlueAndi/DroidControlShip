@@ -172,6 +172,16 @@ public:
         return m_configFilePath;
     }
 
+    /**
+     * Get GPS driver.
+     *
+     * @return If GPS is available, it will return a pointer to it, otherwise nullptr.
+     */
+    IGps* getGps() final
+    {
+        return nullptr;
+    }
+
 protected:
 private:
     /** Battery driver */

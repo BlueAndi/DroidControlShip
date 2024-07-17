@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  The simulation board realization.
+ * @brief  Global Positioning Sensor (GPS) module.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Board.h"
-#include <Logging.h>
-#include "RobotDeviceNames.h"
+
+#include "Gps.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -53,42 +52,46 @@
  *****************************************************************************/
 
 /******************************************************************************
- * Global Variables
- *****************************************************************************/
-
-/******************************************************************************
  * Local Variables
  *****************************************************************************/
+
+/** Index of the x-coordinate in the position vector. */
+static const size_t GPS_POSITION_X_INDEX = 0U;
+
+/** Index of the y-coordinate in the position vector. */
+static const size_t GPS_POSITION_Y_INDEX = 1U;
 
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-bool Board::init()
+Gps::Gps(webots::GPS* gps) : IGps(), m_gps(gps)
 {
-    bool isReady = true;
-
-    /* Nothing to do. */
-
-    return isReady;
 }
 
-bool Board::process()
+Gps::~Gps()
 {
-    bool isSuccess = false;
+}
 
-    if (false == m_network.process())
+bool Gps::getPosition(int32_t& xPos, int32_t& yPos)
+{
+    bool isPositionValid = false;
+
+    if (nullptr != m_gps)
     {
-        /* Log Network error */
-        LOG_ERROR("Network process failed.");
-    }
-    else
-    {
-        /* No Errors */
-        isSuccess = true;
+        /* Get 3D position vector from Webots in meters. */
+        const double* positionVector = m_gps->getValues();
+
+        if (nullptr != positionVector)
+        {
+            /* Cast to millimeters. */
+            xPos            = static_cast<int32_t>((positionVector[GPS_POSITION_X_INDEX] * 1000.0F) + 1.0F);
+            yPos            = static_cast<int32_t>((positionVector[GPS_POSITION_Y_INDEX] * 1000.0F) + 1.0F);
+            isPositionValid = true;
+        }
     }
 
-    return isSuccess;
+    return isPositionValid;
 }
 
 /******************************************************************************
@@ -98,32 +101,6 @@ bool Board::process()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
-
-Board::Board() :
-    IBoard(),
-    m_robot(),
-    m_simTime(m_robot),
-    m_serialDrv(m_robot.getEmitter(RobotDeviceNames::EMITTER_NAME_SERIAL),
-                m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)),
-    m_battery(),
-    m_button(),
-    m_ledBlue(),
-    m_ledGreen(),
-    m_ledRed(),
-    m_network(),
-    m_hostRobot(m_serialDrv),
-    m_configFilePath(),
-    m_gps(m_robot.getGPS(RobotDeviceNames::GPS_NAME))
-{
-}
-
-void Board::enableSimulationDevices()
-{
-    const int timeStep = m_simTime.getTimeStep();
-
-    m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)->enable(timeStep);
-    m_robot.getGPS(RobotDeviceNames::GPS_NAME)->enable(timeStep);
-}
 
 /******************************************************************************
  * External Functions

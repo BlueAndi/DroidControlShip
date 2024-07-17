@@ -64,6 +64,9 @@ namespace RobotDeviceNames
     /** Name of the serial receiver in the DroidControlShip simulation. */
     static const char* RECEIVER_NAME_SERIAL = "serialComRx";
 
+    /** Name of the GPS device in the DroidControlShip simulation. */
+    static const char* GPS_NAME = "gps";
+
 }; /* namespace RobotDeviceNames */
 
 /******************************************************************************

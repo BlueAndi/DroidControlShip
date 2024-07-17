@@ -1,0 +1,99 @@
+@startuml Sim_HAL_Class_Diag
+
+Title Sim HAL Class Diagram
+
+package "HALSim" as hal {
+
+    class Board << namespace >> {
+        + getButton() : IButton&
+        + getBattery() : IBattery&
+        + getRobot() : IRobot&
+        + getNetwork() : INetwork&
+        + getLedRed() : ILed&
+        + getLedGreen() : iLed&
+        + getLedBlue() : ILed&
+        + getGps() : IGps*
+    }
+
+    package "Interfaces" as interfaces {
+        interface "IButton" as iButton {
+            + {abstract} isShortPressed() : bool
+            + {abstract} isLongPressed()  : bool
+            + {abstract} waitForRelease() : void
+        }
+
+        interface "IBattery" as iBattery {
+            + {abstract} getBatteryVoltage() : uint32_t
+            + {abstract} getChargeLevel()    : uint8_t
+        }
+
+        interface "IRobot" as iRobot {
+            + {abstract} init() : bool
+            + {abstract} process() : bool
+            + {abstract} getStream() : Stream
+            + {abstract} resetRobot() : void
+        }
+
+        interface "INetwork" as iNetwork {
+            + {abstract} init() : bool
+            + {abstract} process() : bool
+            + {abstract} getStream() : Stream
+        }
+
+        interface "ILed" as iLed {
+            + {abstract} enable(enableIt : bool) : void
+        }
+
+        interface "IGps" as iGps {
+            + {abstract} getGpsData() : GpsData
+        }
+    }
+
+    package "Sim" as target {
+        class "Button" as Button
+        class "Battery" as Battery
+        class "Robot" as Robot
+        class "MQTT" as Network
+        class "LedRed" as LedRed
+        class "LedGreen" as LedGreen
+        class "LedBlue" as LedBlue
+        class "Gps" as Gps
+        class "WebotsSerialDrv" as WebotsSerialDrv
+    }
+
+    iButton <|... Button : <<realize>>
+    iBattery <|... Battery : <<realize>>
+    iRobot <|... Robot : <<realize>>
+    iNetwork <|... Network : <<realize>>
+    iLed <|... LedRed : <<realize>>
+    iLed <|... LedGreen : <<realize>>
+    iLed <|... LedBlue : <<realize>>
+    iGps <|... Gps : <<realize>>
+
+}
+
+package "Libraries" as libs
+{
+    class "Mosquitto" as NetworkLib
+
+    package "Webots" as webots {
+        class "Emitter" as WebotsEmitter
+        class "Receiver" as WebotsReceiver
+        class "GPS" as WebotsGps
+    }
+
+    package "ArduinoNative" as arduino {
+        class "Stream" as Stream
+    }
+}
+
+Robot *--> WebotsSerialDrv
+Network *--> NetworkLib
+
+WebotsSerialDrv *--> Stream
+WebotsSerialDrv *--> WebotsEmitter
+WebotsSerialDrv *--> WebotsReceiver
+Gps *--> WebotsGps
+Network *--> Stream
+
+@enduml

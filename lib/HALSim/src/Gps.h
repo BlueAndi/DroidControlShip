@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Board interface, which abstracts the physical board
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Global Positioning Sensor (GPS) module.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALInterfaces
+ * @addtogroup HALSim
  *
  * @{
  */
-
-#ifndef IBOARD_H
-#define IBOARD_H
+#ifndef GPS_H
+#define GPS_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,13 +42,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <stdint.h>
-#include "IBattery.h"
-#include "IButton.h"
-#include "ILed.h"
-#include "INetwork.h"
-#include "IRobot.h"
-#include "IGps.h"
+
+#include <IGps.h>
+#include <webots/GPS.hpp>
 
 /******************************************************************************
  * Macros
@@ -60,109 +55,64 @@
  *****************************************************************************/
 
 /**
- * Abstracts the physical board interface.
+ * Global Positioning Sensor (GPS) module.
  */
-class IBoard
+class Gps : public IGps
 {
 public:
     /**
-     * Destroys the board interface.
-     */
-    virtual ~IBoard()
-    {
-    }
-
-    /**
-     * Initialize the hardware.
+     * Construct a GPS module.
      *
-     * @returns If all components are correctly initialized, returns true. Otherwise, false.
+     * @param[in] gps Webots GPS device.
      */
-    virtual bool init() = 0;
+    Gps(webots::GPS* gps);
 
     /**
-     * Process board components.
+     * Destruct the GPS module.
+     */
+    ~Gps();
+
+    /**
+     * Get the current position coordinates in millimeters.
      *
-     * @returns If all components are processed correctly, returns true. Otherwise, false.
-     */
-    virtual bool process() = 0;
-
-    /**
-     * Get battery driver.
+     * @param[out] xPos  The X position in mm.
+     * @param[out] yPos  The Y position in mm.
      *
-     * @return Battery driver.
+     * @return If the position was successfully retrieved.
      */
-    virtual IBattery& getBattery() = 0;
-
-    /**
-     * Get button driver.
-     *
-     * @return Button driver.
-     */
-    virtual IButton& getButton() = 0;
-
-    /**
-     * Get red LED driver.
-     *
-     * @return Red LED driver.
-     */
-    virtual ILed& getRedLed() = 0;
-
-    /**
-     * Get green LED driver.
-     *
-     * @return Green LED driver.
-     */
-    virtual ILed& getGreenLed() = 0;
-
-    /**
-     * Get yellow LED driver.
-     *
-     * @return Yellow LED driver.
-     */
-    virtual ILed& getBlueLed() = 0;
-
-    /**
-     * Get Network driver.
-     *
-     * @return Network driver.
-     */
-    virtual INetwork& getNetwork() = 0;
-
-    /**
-     * Get robot driver.
-     *
-     * @return Robot driver.
-     */
-    virtual IRobot& getRobot() = 0;
-
-    /**
-     * Get the file path of the configuration (settings).
-     *
-     * @return Configuration file path
-     */
-    virtual const String& getConfigFilePath() const = 0;
-
-    /**
-     * Get GPS driver.
-     *
-     * @return If GPS is available, it will return a pointer to it, otherwise nullptr.
-     */
-    virtual IGps* getGps() = 0;
-
-protected:
-    /**
-     * Constructs the board interface.
-     */
-    IBoard()
-    {
-    }
+    bool getPosition(int32_t& xPos, int32_t& yPos) final;
 
 private:
+    webots::GPS* m_gps; /**< Webots GPS device */
+
+    /**
+     * Default constructor.
+     * Not allowed.
+     */
+    Gps();
+
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] src Source instance.
+     */
+    Gps(const Gps& src);
+
+    /**
+     * Assignment operation.
+     * Not allowed.
+     *
+     * @param[in] src Source instance.
+     *
+     * @returns Reference to GPS instance.
+     */
+    Gps& operator=(const Gps& src);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IBOARD_H */
+#endif /* GPS_H */
 /** @} */

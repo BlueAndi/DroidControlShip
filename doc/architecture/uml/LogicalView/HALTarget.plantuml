@@ -2,16 +2,17 @@
 
 Title Target HAL Class Diagram
 
-package "HAL" as hal {
+package "HALTarget" as hal {
 
     class Board << namespace >> {
         + getButton() : IButton&
         + getBattery() : IBattery&
-        + getDevice() : IDevice&
+        + getRobot() : IRobot&
         + getNetwork() : INetwork&
         + getLedRed() : ILed&
         + getLedGreen() : iLed&
         + getLedBlue() : ILed&
+        + getGps() : nullptr
     }
 
     package "Interfaces" as interfaces {
@@ -26,11 +27,11 @@ package "HAL" as hal {
             + {abstract} getChargeLevel()    : uint8_t
         }
 
-        interface "IDevice" as iDevice {
+        interface "IRobot" as iRobot {
             + {abstract} init() : bool
             + {abstract} process() : bool
             + {abstract} getStream() : Stream
-            + {abstract} resetDevice() : void
+            + {abstract} reset() : void
         }
 
         interface "INetwork" as iNetwork {
@@ -42,12 +43,16 @@ package "HAL" as hal {
         interface "ILed" as iLed {
             + {abstract} enable(enableIt : bool) : void
         }
+
+        interface "IGps" as iGps {
+            + {abstract} getGpsData() : GpsData
+        }
     }
 
     package "Target" as target {
         class "Button" as Button
         class "Battery" as Battery
-        class "USB-Host" as Device
+        class "USB-Host" as Robot
         class "MQTT" as Network
         class "LedRed" as LedRed
         class "LedGreen" as LedGreen
@@ -56,7 +61,7 @@ package "HAL" as hal {
 
     iButton <|... Button : <<realize>>
     iBattery <|... Battery : <<realize>>
-    iDevice <|... Device : <<realize>>
+    iRobot <|... Robot : <<realize>>
     iNetwork <|... Network : <<realize>>
     iLed <|... LedRed : <<realize>>
     iLed <|... LedGreen : <<realize>>
@@ -67,7 +72,7 @@ package "HAL" as hal {
 package "Libraries" as libs
 {
     class "PubSubClient" as NetworkLib
-    class "USB_Host_Shield_2.0" as DeviceLib
+    class "USB_Host_Shield_2.0" as RobotLib
 
     package "Arduino" as arduino {
         class "IO" as IO
@@ -75,10 +80,10 @@ package "Libraries" as libs
     }
 }
 
-Device *--> DeviceLib
+Robot *--> RobotLib
 Network *--> NetworkLib
 
-Device *--> Stream
+Robot *--> Stream
 Network *--> Stream
 Button ..> IO : <<use>>
 Battery ..> IO : <<use>>
