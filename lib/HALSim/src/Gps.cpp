@@ -34,6 +34,9 @@
  *****************************************************************************/
 
 #include "Gps.h"
+#include <Arduino.h>
+#include <math.h>
+#include <FPMath.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -55,17 +58,17 @@
  * Local Variables
  *****************************************************************************/
 
-/** Index of the x-coordinate in the position vector. */
-static const size_t GPS_POSITION_X_INDEX = 0U;
+/** Index of the x-component in a vector. */
+static const size_t X_COMPONENT_INDEX = 0U;
 
-/** Index of the y-coordinate in the position vector. */
-static const size_t GPS_POSITION_Y_INDEX = 1U;
+/** Index of the y-component in a vector. */
+static const size_t Y_COMPONENT_INDEX = 1U;
 
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
-Gps::Gps(webots::GPS* gps) : IGps(), m_gps(gps)
+Gps::Gps(webots::GPS* gps, webots::Compass* compass) : IGps(), m_gps(gps), m_compass(compass)
 {
 }
 
@@ -85,13 +88,43 @@ bool Gps::getPosition(int32_t& xPos, int32_t& yPos)
         if (nullptr != positionVector)
         {
             /* Cast to millimeters. */
-            xPos            = static_cast<int32_t>((positionVector[GPS_POSITION_X_INDEX] * 1000.0F) + 1.0F);
-            yPos            = static_cast<int32_t>((positionVector[GPS_POSITION_Y_INDEX] * 1000.0F) + 1.0F);
+            xPos            = static_cast<int32_t>((positionVector[X_COMPONENT_INDEX] * 1000.0F) + 1.0F);
+            yPos            = static_cast<int32_t>((positionVector[Y_COMPONENT_INDEX] * 1000.0F) + 1.0F);
             isPositionValid = true;
         }
     }
 
     return isPositionValid;
+}
+
+bool Gps::getOrientation(int32_t& orientation)
+{
+    bool isOrientationValid = false;
+
+    if (nullptr != m_compass)
+    {
+        /* Get vector that points to the "North" direction. */
+        const double* orientationVector = m_compass->getValues();
+
+        if (nullptr != orientationVector)
+        {
+            double orientationComponentX = orientationVector[X_COMPONENT_INDEX];
+            double orientationComponentY = orientationVector[Y_COMPONENT_INDEX];
+
+            /* atan2(0,0) has undefined behavior. */
+            if ((0 != orientationComponentX) || (0 != orientationComponentY))
+            {
+                /* Calculate target heading. */
+                float angle = atan2(orientationComponentY, orientationComponentX) * 1000.0F; /* Angle in mrad. */
+                orientation = static_cast<int32_t>(angle + 0.5F) % FP_2PI();                 /* Fixed point heading. */
+                orientation -= ENU_CORRECTION_ANGLE; /* Correct the angle for ENU convention. */
+                orientation *= -1;                   /* Invert the orientation for right-hand rule convention. */
+                isOrientationValid = true;
+            }
+        }
+    }
+
+    return isOrientationValid;
 }
 
 /******************************************************************************

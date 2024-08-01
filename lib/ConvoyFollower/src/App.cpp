@@ -640,8 +640,9 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
         /* Check if a GPS is available. */
         if (gps != nullptr)
         {
-            int32_t xPos = 0;
-            int32_t yPos = 0;
+            int32_t xPos        = 0;
+            int32_t yPos        = 0;
+            int32_t orientation = 0;
 
             if (true == gps->getPosition(xPos, yPos))
             {
@@ -651,6 +652,15 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
                  */
                 data.xPos = xPos;
                 data.yPos = yPos;
+            }
+
+            if (true == gps->getOrientation(orientation))
+            {
+                /**
+                 * Overwrite the Odometry data with the GPS data.
+                 * Allows using more accurate data for positioning and driving algorithms.
+                 */
+                data.orientation = orientation;
             }
         }
 

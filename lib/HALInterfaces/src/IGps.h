@@ -70,9 +70,18 @@ public:
      * @param[out] xPos  The X position in mm.
      * @param[out] yPos  The Y position in mm.
      *
-     * @return If the position was successfully retrieved.
+     * @return If the position was successfully retrieved, return true. Otherwise, false.
      */
     virtual bool getPosition(int32_t& xPos, int32_t& yPos) = 0;
+
+    /**
+     * Get the current orientation in mrad.
+     *
+     * @param[out] orientation The orientation in mrad.
+     *
+     * @return If the orientation was successfully retrieved, return true. Otherwise, false.
+     */
+    virtual bool getOrientation(int32_t& orientation) = 0;
 
 protected:
     /**
