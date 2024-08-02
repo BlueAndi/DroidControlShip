@@ -45,6 +45,7 @@
 
 #include <IGps.h>
 #include <webots/GPS.hpp>
+#include <webots/Compass.hpp>
 
 /******************************************************************************
  * Macros
@@ -64,8 +65,9 @@ public:
      * Construct a GPS module.
      *
      * @param[in] gps Webots GPS device.
+     * @param[in] compass Webots compass device.
      */
-    Gps(webots::GPS* gps);
+    Gps(webots::GPS* gps, webots::Compass* compass);
 
     /**
      * Destruct the GPS module.
@@ -82,8 +84,28 @@ public:
      */
     bool getPosition(int32_t& xPos, int32_t& yPos) final;
 
+    /**
+     * Get the current orientation in mrad.
+     *
+     * @param[out] orientation The orientation in mrad.
+     *
+     * @return If the orientation was successfully retrieved, return true. Otherwise, false.
+     */
+    bool getOrientation(int32_t& orientation) final;
+
 private:
-    webots::GPS* m_gps; /**< Webots GPS device */
+    webots::GPS*     m_gps;     /**< Webots GPS device */
+    webots::Compass* m_compass; /**< Webots compass device */
+
+    /**
+     * Correction Angle for ENU world coordinate system.
+     * The ENU world coordinate system is used in Webots.
+     * East is along the x-axis, north is along the y-axis, and up is along the z-axis.
+     * Compass points to the north in the ENU world coordinate system,
+     * but the robot's system is oriented to the east.
+     * The angle is in mrad.
+     */
+    static const uint32_t ENU_CORRECTION_ANGLE = 1587U;
 
     /**
      * Default constructor.

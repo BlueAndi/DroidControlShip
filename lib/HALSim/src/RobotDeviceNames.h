@@ -67,6 +67,9 @@ namespace RobotDeviceNames
     /** Name of the GPS device in the DroidControlShip simulation. */
     static const char* GPS_NAME = "gps";
 
+    /** Name of the Compass device in the DroidControlShip simulation. */
+    static const char* COMPASS_NAME = "compass";
+
 }; /* namespace RobotDeviceNames */
 
 /******************************************************************************
