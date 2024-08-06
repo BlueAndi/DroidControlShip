@@ -1,0 +1,98 @@
+@startuml
+
+node "ZumoComSystem" as zumoComSystem {
+    component "DroidControlShip\nSoftware" as dcs {
+        
+        package "Application" as app {
+            component "Node"  <<ros2-node>> as ros2Node
+
+            note top of ros2Node
+                The application can contain
+                several ROS2 nodes. The single
+                node below is just as an example.
+
+                It runs in the loop task.
+            end note
+        }
+
+        package "micro-ROS Stack" as microRos {
+            component "Client Library" as clientLibrary
+            component "DDS Client" as ddsClient
+
+            note bottom of clientLibrary
+                The ROS_DOMAIN_ID shall be set
+                by the application, used to configure
+                the ROS2 logical network.
+            end note
+        }
+
+        package "RTOS" as rtos {
+            component "FreeRTOS" as freeRTOS
+        }
+
+        ros2Node --- clientLibrary
+        clientLibrary -- ddsClient
+        ddsClient -- freeRTOS
+
+        note top of microRos
+            micro-ROS is used for resource
+            constrained devices.
+        end note
+    }
+}
+
+node "Zumo" as zumo {
+    component "RadonUlzer\nSoftware" as ru
+}
+
+note top of zumo
+    Contains all sensors
+    and actors.
+end note
+
+node "PC" as pc {
+    package "turtlesim" {
+        node "teleop_turtle" <<executable>> as teleopTurtle {
+            component "Node" <<ros2-node>> as turtleRos2Node
+        }
+    }
+
+    cloud "ROS2 Logical Network" as ros2LogicalNetwork
+    node "micro-ROS\nAgent" <<executable>> as agent
+
+    interface "DDS over network" as iDDS
+
+    ros2LogicalNetwork -- iDDS
+    iDDS )-- agent
+
+    turtleRos2Node -- ros2LogicalNetwork
+
+    note left of agent
+        The micro-ROS agent is required to
+        connect to ROS2 logical networks and
+        bridges between DDS-XRCE and DDS protocol.
+
+        It can connect to several logical networks,
+        which depends on the configured ROS_DOMAIN_ID
+        in the connected micro-ROS nodes.
+
+        It takes care about computationally intensive
+        discovery tasks and QoS mechanism for the
+        embedded devices.
+    end note
+
+    note left of ros2LogicalNetwork
+        A logical network is unique defined
+        by its ROS_DOMAIN_ID.
+    end note
+}
+
+interface "DDS-XRCE over wifi" as iDdsXrce
+interface "SerMuxProt over serial" as iSerMuxProt
+
+agent -- iDdsXrce
+iDdsXrce )- ddsClient
+ros2Node -( iSerMuxProt
+iSerMuxProt -- ru
+
+@enduml
