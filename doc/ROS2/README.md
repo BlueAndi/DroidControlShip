@@ -2,6 +2,7 @@
 
 All information around ROS2 for DCS
 
-## Installation
-    * [WSL with Ubuntu](./setup/wsl.md)
-    * ROS2 Jazzy
+## Installation Steps
+
+* [WSL with Ubuntu](./setup/wsl.md)
+* [ROS2 Jazzy](./setup/ROS2_Jazzy.md)
