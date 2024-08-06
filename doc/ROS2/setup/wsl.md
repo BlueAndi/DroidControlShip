@@ -26,7 +26,8 @@ later whenever you install software.
 
 ![Ubuntu First Time](./img/wsl_ubuntu_1st_start.png)
 
-If no window opens, start a ubuntu console from start menu:
+If no window opens, or you get an error message here, try rebooting. Windows may
+require updates to install for WSL. Then start an Ubuntu console from start menu:
 
 ![Ubuntu Start Menu](./img/ubuntu_start_menu.png)
 
@@ -35,12 +36,11 @@ If no window opens, start a ubuntu console from start menu:
 Check that you have the right distribution installed (Ubuntu 24.04 LTS):
 
 ```bash
-    $ lsb_release -a
     No LSB modules are available.
     Distributor ID: Ubuntu
-    Description:    Ubuntu 22.04.4 LTS
-    Release:        22.04
-    Codename:       jammy
+    Description:    Ubuntu 24.04 LTS
+    Release:        24.04
+    Codename:       noble
 ```
 
 ## New Terminal Window
