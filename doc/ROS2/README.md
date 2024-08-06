@@ -6,3 +6,4 @@ All information around ROS2 for DCS
 
 * [WSL with Ubuntu](./setup/wsl.md)
 * [ROS2 Jazzy](./setup/ROS2_Jazzy.md)
+* [Webots](./setup/Webots.md)
