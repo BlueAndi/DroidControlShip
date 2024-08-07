@@ -86,3 +86,9 @@ ros2 interface show turtlesim/action/RotateAbsolute
 ```
 
 The section of this message above the first --- is the structure (data type and name) of the goal request. The next section is the structure of the result. The last section is the structure of the feedback.
+
+## rqt_graph
+
+Using `rqt_graph`, the following topic graph is generated:
+
+![topic_graph](./rosgraph.png)
