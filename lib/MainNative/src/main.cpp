@@ -37,7 +37,7 @@
 #include <Terminal.h>
 #include <Board.h>
 #include <getopt.h>
-#include <direct.h>
+#include <sys/stat.h>
 #include <ArduinoJson.h>
 #include <ConfigurationKeys.h>
 
@@ -48,6 +48,12 @@
 /******************************************************************************
  * Macros
  *****************************************************************************/
+
+#ifdef _WIN32
+#define MKDIR(dir) mkdir(dir) /**< Make new directory in Windows OS. Does not accept permissions argument. */
+#else
+#define MKDIR(dir) mkdir(dir, 0755) /**< Make new directory in Linux OS. Uses 0755 as default permissions. */
+#endif
 
 /******************************************************************************
  * Types and classes
@@ -583,7 +589,7 @@ static int makeDirRecursively(const char* path)
                 /* Temporarily truncate the string. */
                 dir[idx] = '\0';
 
-                if ((_mkdir(dir) != 0) && (errno != EEXIST))
+                if ((MKDIR(dir) != 0) && (errno != EEXIST))
                 {
                     printf("Failed to create directory: %s\n", dir);
                     retVal = -1;
@@ -600,7 +606,7 @@ static int makeDirRecursively(const char* path)
 
         if (0 == retVal)
         {
-            if ((_mkdir(dir) != 0) && (errno != EEXIST))
+            if ((MKDIR(dir) != 0) && (errno != EEXIST))
             {
                 printf("Failed to create directory: %s\n", dir);
                 retVal = -1;
