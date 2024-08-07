@@ -54,7 +54,7 @@ See Task 2 from this [Jazzy documentaion page](https://docs.ros.org/en/jazzy/Tut
 
 ```bash
     export WEBOTS_HOME=/usr/local/webots
-    cd ros2_webots_ws/src/
+    cd ros2_webots_ws
     source install/local_setup.bash
 
     ros2 launch webots_ros2_universal_robot multirobot_launch.py
