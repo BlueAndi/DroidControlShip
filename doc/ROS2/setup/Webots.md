@@ -63,3 +63,8 @@ See Task 2 from this [Jazzy documentaion page](https://docs.ros.org/en/jazzy/Tut
 You should get the following simulation on the screen:
 
 ![Webots ROS2 Example](./img/Webots_ros2_example.png)
+
+## Setting up a Webots Simulation with ROS2 controller
+
+Read [this article](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Setting-Up-Simulation-Webots-Basic.html)
+to learn how to create a ROS2 controller package for the Webots simulation.
