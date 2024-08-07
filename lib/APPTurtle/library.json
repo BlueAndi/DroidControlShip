@@ -1,0 +1,24 @@
+{
+    "name": "APPTurtle",
+    "version": "0.1.0",
+    "description": "Application that emulates Turtlesim",
+    "authors": [
+        {
+            "name": "Gabryel Reyes",
+            "email": "gabryelrdiaz@gmail.com",
+            "url": "https://github.com/gabryelreyes",
+            "maintainer": true
+        }
+    ],
+    "license": "MIT",
+    "dependencies": [
+        {
+            "name": "Service"
+        },
+        {
+            "name": "HALInterfaces"
+        }
+    ],
+    "frameworks": "*",
+    "platforms": "*"
+}
