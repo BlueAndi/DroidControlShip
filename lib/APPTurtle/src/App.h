@@ -44,6 +44,13 @@
  *****************************************************************************/
 #include <Arduino.h>
 
+#include <micro_ros_platformio.h>
+#include <rcl/rcl.h>
+#include <rclc/rclc.h>
+#include <rclc/executor.h>
+
+#include <geometry_msgs/msg/twist.h>
+
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -79,6 +86,32 @@ public:
      * Process the application periodically.
      */
     void loop();
+
+private:
+    /**
+     * micro-ROS node handle
+     */
+    rcl_node_t m_node;
+
+    /**
+     * micro-ROS subscriber for cmd_vel topic
+     */
+    rcl_subscription_t m_subscriber;
+
+    /**
+     * micro-ROS executor
+     */
+    rclc_executor_t m_executor;
+
+    /**
+     * micro-ROS allocator
+     */
+    rcl_allocator_t m_allocator;
+
+    /**
+     * micro-ROS message for cmd_vel topic
+     */
+    geometry_msgs__msg__Twist m_msg;
 
 private:
     /**
