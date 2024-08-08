@@ -48,6 +48,9 @@ micro-ROS supports a variety of external build system beyond the micro_ros_setup
 # ROS 2 in DCS
 This section describes the integration of micro-ROS in the existing workspace, extending it by implementing a ROS 2 node and the micro-ROS stack. The goal is to connect the ZumoComSystem with the DDS network using DDS-XRCE, making the robot controllable via ROS messages to mimic turtle graphics drawing using the robot.
 
+Webots integeration is discussed on the 
+[Webots subpage](./webots/webots.md).
+
 ## Component Deployment 
 The following diagram illustrates the component deployment of micro-ROS in the DroidControlSystem.
 

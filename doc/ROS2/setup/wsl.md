@@ -20,13 +20,13 @@ A Windows message dialog may popup in the background, to ask for elevated rights
 Check for such a window if the installation does not progress.
 
 ## First time use
-A console window should appear with installation messages. At the it will ask you
-for a user name and password. Use values your remember as you need this password
+A console window should appear with installation messages. It will ask you
+for a user name and password. Use values you remember, as you need this password
 later whenever you install software.
 
 ![Ubuntu First Time](./img/wsl_ubuntu_1st_start.png)
 
-If no window opens, or you get an error message here, try rebooting. Windows may
+If no window opens, or you get an error message, try rebooting. Windows may
 require updates to install for WSL. Then start an Ubuntu console from start menu:
 
 ![Ubuntu Start Menu](./img/ubuntu_start_menu.png)
@@ -36,6 +36,7 @@ require updates to install for WSL. Then start an Ubuntu console from start menu
 Check that you have the right distribution installed (Ubuntu 24.04 LTS):
 
 ```bash
+    $  lsb_release -a
     No LSB modules are available.
     Distributor ID: Ubuntu
     Description:    Ubuntu 24.04 LTS
@@ -45,7 +46,7 @@ Check that you have the right distribution installed (Ubuntu 24.04 LTS):
 
 ## New Terminal Window
 
-Is is higly recommended to install the new Microsoft Terminal Window 
+Is is recommended to install the new Microsoft Terminal Window 
 if not done already. It is available from
 
 [Github Microsoft Terminal](https://github.com/microsoft/terminal).
