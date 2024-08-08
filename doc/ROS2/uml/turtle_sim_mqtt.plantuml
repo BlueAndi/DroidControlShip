@@ -1,0 +1,62 @@
+@startuml
+
+node "PC" as pc {
+
+    
+        package "RemoteControl" {
+            component "Node"  <<executable>> as rcApp
+        }
+
+        package "Webots" {
+            component "World-file"  <<world>> as world
+            component "WebotsSim"  <<executable>> as wbsim
+            component "Zumo"  <<proto>> as wbZumo
+        }
+
+        node MqttServer as mqttS {
+
+        } 
+    
+
+    note bottom of Webots
+                Standard Zumo World Setup
+    end note
+
+    wbsim ..> world
+    wbsim ..> wbZumo
+
+    package "ROS2" {
+        cloud "ROS2 Logical Network" as ros2LogicalNetwork
+
+        node "teleop_turtle" <<executable>> as teleopTurtle {
+            component "Node" <<ros2-node>> as turtleRos2Node
+        }
+
+        node "ros2_mqtt_client" <<executable>> as rosMqttC {
+            component "Node" <<ros2-node>> as rosMqttNode
+        }
+
+        node "ros2_dcs_mqtt" <<executable>> as dcsMqtt  #YellowGreen {
+            component "Node" <<ros2-node>> as dcsNode
+        }
+
+        note left of dcsMqtt
+            Convert turte messages to what RemoteControl expects.
+        end note
+        
+        teleopTurtle -->dcsMqtt
+        dcsMqtt --> rosMqttC
+    }
+
+    cloud "ROS2 Logical Network" as ros2LogicalNetwork
+
+    wbsim -u-( Stream
+    rcApp -d-() Stream
+
+    rosMqttC <--> mqttS : tcpip
+    mqttS <--> rcApp : tcpip
+}
+
+
+
+@enduml
