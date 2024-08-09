@@ -51,6 +51,7 @@ The simulation is based on the open source robot simulator *Webots*. The applica
 1. Install the native compiler toolchain:
     * Linux
         * Install the gcc toolchain, depended on your distribution.
+        * Install libmosquitto-dev, depended on your distribution.
     * Windows
         * Install the [MSYS2](https://www.msys2.org) toolchain.
         * Open MSYS2 shell.

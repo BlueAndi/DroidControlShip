@@ -37,7 +37,7 @@
 #include <Terminal.h>
 #include <Board.h>
 #include <getopt.h>
-#include <direct.h>
+#include <sys/stat.h>
 #include <ArduinoJson.h>
 #include <ConfigurationKeys.h>
 
@@ -82,6 +82,7 @@ static int           makeDirRecursively(const char* path);
 static void          extractDirectoryPath(const char* filePath, char* buffer, size_t bufferSize);
 static unsigned long getSystemTick();
 static void          systemDelay(unsigned long ms);
+static inline bool   createDir(const char* path);
 
 /******************************************************************************
  * Local Variables
@@ -583,7 +584,7 @@ static int makeDirRecursively(const char* path)
                 /* Temporarily truncate the string. */
                 dir[idx] = '\0';
 
-                if ((_mkdir(dir) != 0) && (errno != EEXIST))
+                if ((false == createDir(dir)) && (errno != EEXIST))
                 {
                     printf("Failed to create directory: %s\n", dir);
                     retVal = -1;
@@ -600,7 +601,7 @@ static int makeDirRecursively(const char* path)
 
         if (0 == retVal)
         {
-            if ((_mkdir(dir) != 0) && (errno != EEXIST))
+            if ((false == createDir(dir)) && (errno != EEXIST))
             {
                 printf("Failed to create directory: %s\n", dir);
                 retVal = -1;
@@ -674,4 +675,24 @@ static void systemDelay(unsigned long ms)
             break;
         }
     }
+}
+
+/**
+ * Create a directory.
+ *
+ * @param[in] path  Path of the directory.
+ *
+ * @return If successful, it will return true otherwise false.
+ */
+static inline bool createDir(const char* path)
+{
+    int retval = -1;
+
+#ifdef _WIN32
+    retval = mkdir(path); /**< Make new directory in Windows OS. Does not accept permissions argument. */
+#else
+    retval = mkdir(path, 0755); /**< Make new directory in Linux OS. Uses 0755 as default permissions. */
+#endif
+
+    return (0 == retval);
 }

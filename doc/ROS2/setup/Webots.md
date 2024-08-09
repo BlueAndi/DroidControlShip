@@ -51,9 +51,11 @@ transcript:
 
 See Task 2 from this [Jazzy documentaion page](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Installation-Ubuntu.html#launch-the-webots-ros2-universal-robot-example)
 
-
 ```bash
     export WEBOTS_HOME=/usr/local/webots
+    export WEBOTS_CONTROLLER_LIB_PATH=$WEBOTS_HOME/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$WEBOTS_CONTROLLER_LIB_PATH/controller
+
     cd ros2_webots_ws
     source install/local_setup.bash
 

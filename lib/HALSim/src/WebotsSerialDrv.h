@@ -40,8 +40,8 @@
  * Includes
  *****************************************************************************/
 #include "Stream.h"
-#include <webots/emitter.hpp>
-#include <webots/receiver.hpp>
+#include <webots/Emitter.hpp>
+#include <webots/Receiver.hpp>
 
 /******************************************************************************
  * Macros
