@@ -50,6 +50,7 @@
 #include <rclc/executor.h>
 
 #include <geometry_msgs/msg/twist.h>
+#include <std_msgs/msg/int32.h>
 
 /******************************************************************************
  * Macros
@@ -68,6 +69,7 @@ public:
      */
     App()
     {
+        isMicroRosconfigured = false;
     }
 
     /**
@@ -113,11 +115,15 @@ private:
      */
     geometry_msgs__msg__Twist m_msg;
 
+    bool isMicroRosconfigured;
+
 private:
     /**
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();
+
+    bool configureMicroRos();
 
     /**
      * Copy construction of an instance.
