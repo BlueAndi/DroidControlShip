@@ -51,24 +51,6 @@
 #define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
 #endif /* CONFIG_LOG_SEVERITY */
 
-#define RCCHECK(fn)                                                                                                    \
-    {                                                                                                                  \
-        rcl_ret_t temp_rc = fn;                                                                                        \
-        if ((temp_rc != RCL_RET_OK))                                                                                   \
-        {                                                                                                              \
-            LOG_FATAL("Function %s failed with error code: %d", #fn, temp_rc);                                         \
-            fatalErrorHandler();                                                                                       \
-        }                                                                                                              \
-    }
-
-#define RCSOFTCHECK(fn)                                                                                                \
-    {                                                                                                                  \
-        rcl_ret_t temp_rc = fn;                                                                                        \
-        if ((temp_rc != RCL_RET_OK))                                                                                   \
-        {                                                                                                              \
-        }                                                                                                              \
-    }
-
 /******************************************************************************
  * Types and classes
  *****************************************************************************/
@@ -76,11 +58,6 @@
 /******************************************************************************
  * Prototypes
  *****************************************************************************/
-
-/**
- * Handler for motor speeds topic subscriber callback
- */
-static void App_motorSpeedsTopicCallback(const void* msgin);
 
 /******************************************************************************
  * Local Variables
@@ -145,6 +122,10 @@ void App::setup()
         {
             LOG_ERROR("Network configuration could not be set.");
         }
+        else if (false == m_ros.setAgent(settings.getMqttBrokerAddress(), settings.getMqttPort()))
+        {
+            LOG_ERROR("Micro-ROS Agent could not be configured.");
+        }
         else
         {
             isSuccessful = true;
@@ -180,20 +161,11 @@ void App::loop()
         fatalErrorHandler();
     }
 
-    if (true == network.isUp())
+    /* Process Micro ROS client. */
+    if (false == m_ros.process())
     {
-        if (true == isMicroRosconfigured)
-        {
-            // I try spinning, that's a good trick!
-            rclc_executor_spin_some(&m_executor, RCL_MS_TO_NS(100));
-        }
-        else
-        {
-            isMicroRosconfigured = configureMicroRos();
-            Board::getInstance().getGreenLed().enable(true);
-            delay(100U);
-            Board::getInstance().getGreenLed().enable(false);
-        }
+        LOG_FATAL("ROS process failed.");
+        fatalErrorHandler();
     }
 }
 
@@ -216,35 +188,6 @@ void App::fatalErrorHandler()
     }
 }
 
-bool App::configureMicroRos()
-{
-    static struct micro_ros_agent_locator locator;
-    locator.address = IPAddress(192, 168, 137, 54);
-    locator.port    = 1233;
-
-    rmw_uros_set_custom_transport(false, (void*)&locator, platformio_transport_open, platformio_transport_close,
-                                  platformio_transport_write, platformio_transport_read);
-
-    LOG_INFO("Starting ROS init ...");
-    m_allocator = rcl_get_default_allocator();
-    rclc_support_t     support;
-    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-
-    RCCHECK(rclc_support_init(&support, 0, NULL, &m_allocator));
-
-    RCCHECK(rclc_node_init_default(&m_node, "zumo_node", "", &support));
-
-    RCCHECK(rclc_subscription_init_default(&m_subscriber, &m_node,
-                                           ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), "cmd"));
-
-    RCCHECK(rclc_executor_init(&m_executor, &support.context, 1, &m_allocator));
-
-    RCCHECK(
-        rclc_executor_add_subscription(&m_executor, &m_subscriber, &m_msg, App_motorSpeedsTopicCallback, ON_NEW_DATA));
-
-    return true;
-}
-
 /******************************************************************************
  * External Functions
  *****************************************************************************/
@@ -252,12 +195,3 @@ bool App::configureMicroRos()
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
-
-static void App_motorSpeedsTopicCallback(const void* msgin)
-{
-    // TODO implement message converstion to DifferentialDrive SerialMuxProt message
-    LOG_INFO("MOTOR_SPEEDS_TOPIC_CALLBACK");
-    Board::getInstance().getBlueLed().enable(true);
-    delay(50U);
-    Board::getInstance().getBlueLed().enable(false);
-}

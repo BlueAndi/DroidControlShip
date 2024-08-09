@@ -45,14 +45,6 @@
 #include <Arduino.h>
 #include "MicroRosClient.h"
 
-#include <micro_ros_platformio.h>
-#include <rcl/rcl.h>
-#include <rclc/rclc.h>
-#include <rclc/executor.h>
-
-#include <geometry_msgs/msg/twist.h>
-#include <std_msgs/msg/int32.h>
-
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -68,9 +60,8 @@ public:
     /**
      * Construct the Turtle application.
      */
-    App()
+    App() : m_ros()
     {
-        isMicroRosconfigured = false;
     }
 
     /**
@@ -92,39 +83,14 @@ public:
 
 private:
     /**
-     * micro-ROS node handle
+     * Instance of the MicroRosClient.
      */
-    rcl_node_t m_node;
+    MicroRosClient m_ros;
 
-    /**
-     * micro-ROS subscriber for cmd_vel topic
-     */
-    rcl_subscription_t m_subscriber;
-
-    /**
-     * micro-ROS executor
-     */
-    rclc_executor_t m_executor;
-
-    /**
-     * micro-ROS allocator
-     */
-    rcl_allocator_t m_allocator;
-
-    /**
-     * micro-ROS message for cmd_vel topic
-     */
-    geometry_msgs__msg__Twist m_msg;
-
-    bool isMicroRosconfigured;
-
-private:
     /**
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();
-
-    bool configureMicroRos();
 
     /**
      * Copy construction of an instance.
