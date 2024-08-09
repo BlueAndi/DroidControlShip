@@ -691,7 +691,7 @@ static inline bool createDir(const char* path)
 #ifdef _WIN32
     retval = mkdir(path); /**< Make new directory in Windows OS. Does not accept permissions argument. */
 #else
-    retval = mkdir(dir, 0755); /**< Make new directory in Linux OS. Uses 0755 as default permissions. */
+    retval = mkdir(path, 0755); /**< Make new directory in Linux OS. Uses 0755 as default permissions. */
 #endif
 
     return (0 == retval);
