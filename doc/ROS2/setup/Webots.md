@@ -70,3 +70,11 @@ You should get the following simulation on the screen:
 
 Read [this article](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Setting-Up-Simulation-Webots-Basic.html)
 to learn how to create a ROS2 controller package for the Webots simulation.
+
+## Webots Supervisor
+
+Right now it is not clear if we need the ROS2 supervisor in Webots. 
+A good explanation about the purpose of the supervisor is 
+[here](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Simulation-Supervisor.html#the-ros2supervisor).
+
+The clock topic might be important.

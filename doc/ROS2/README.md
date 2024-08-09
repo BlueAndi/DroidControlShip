@@ -7,6 +7,8 @@ ROS 2 is a powerful framework for developing robot applications, while micro-ROS
 - [What has improved since ROS 1](#what-has-improved-since-ros-1)
 - [What is micro-ROS?](#what-is-micro-ros)
 - [micro-ROS Project Components](#what-is-micro-ros)
+- [Webots Integration](#webots-integration)
+- [Installation Steps](#installation-steps)
 
 ## What is ROS 2?
 ROS 2 is the second major version of the Robot Operating System (ROS), an open-source framework to build complex robot applications.
@@ -45,17 +47,18 @@ micro-ROS supports a variety of external build system beyond the micro_ros_setup
 
 ![uros_ws](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/feature/ROS2/doc/ROS2/uml/micro-ros_build_system.puml)
 
-# ROS 2 in DCS
+## ROS 2 in DCS
 This section describes the integration of micro-ROS in the existing workspace, extending it by implementing a ROS 2 node and the micro-ROS stack. The goal is to connect the ZumoComSystem with the DDS network using DDS-XRCE, making the robot controllable via ROS messages to mimic turtle graphics drawing using the robot.
 
-## Component Deployment 
+### Component Deployment 
 The following diagram illustrates the component deployment of micro-ROS in the DroidControlSystem.
 
 ![turtle_sim](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/feature/ROS2/doc/ROS2/uml/turtle_sim.plantuml)
 
+### Webots Integration
+The Webots integration is discussed on the [Webots subpage](./webots/webots.md).
 
 ## Installation Steps
-
 * [WSL with Ubuntu](./setup/wsl.md)
 * [ROS2 Jazzy](./setup/ROS2_Jazzy.md)
 * [Webots](./setup/Webots.md)
