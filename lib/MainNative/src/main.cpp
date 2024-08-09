@@ -82,7 +82,7 @@ static int           makeDirRecursively(const char* path);
 static void          extractDirectoryPath(const char* filePath, char* buffer, size_t bufferSize);
 static unsigned long getSystemTick();
 static void          systemDelay(unsigned long ms);
-inline bool          createDir(const char* path);
+static inline bool   createDir(const char* path);
 
 /******************************************************************************
  * Local Variables
@@ -684,7 +684,7 @@ static void systemDelay(unsigned long ms)
  *
  * @return If successful, it will return true otherwise false.
  */
-inline bool createDir(const char* path)
+static inline bool createDir(const char* path)
 {
     int retval = -1;
 
