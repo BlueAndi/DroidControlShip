@@ -68,13 +68,24 @@ MicroRosClient::MicroRosClient() :
     m_isConfigured(false),
     m_node(),
     m_executor(),
-    m_allocator()
+    m_allocator(),
+    m_subscribers{nullptr},
+    m_numberOfHandles(0U)
 {
 }
 
 MicroRosClient::~MicroRosClient()
 {
     rcl_ret_t ret = RCL_RET_OK;
+
+    for (size_t idx = 0; idx < RMW_UXRCE_MAX_SUBSCRIPTIONS; idx++)
+    {
+        if (nullptr != m_subscribers[idx])
+        {
+            /* TODO: Clean up subscriptions. */
+        }
+    }
+
     ret += rcl_node_fini(&m_node);
 
     if (RCL_RET_OK != ret)
@@ -125,6 +136,32 @@ bool MicroRosClient::process()
     return isSuccessful;
 }
 
+bool MicroRosClient::createSubscriber(BaseSubscriber* pSubscriber)
+{
+    bool isSuccessful = false;
+
+    if (nullptr == pSubscriber)
+    {
+        LOG_ERROR("Subscriber is nullptr.");
+    }
+    else if (true == m_isConfigured)
+    {
+        LOG_ERROR("Subscriptions must be performed before calling process() for the first time!");
+    }
+    else if (RMW_UXRCE_MAX_SUBSCRIPTIONS <= m_numberOfHandles)
+    {
+        LOG_ERROR("Maximum number of subscribtions reached.");
+    }
+    else
+    {
+        m_subscribers[m_numberOfHandles] = pSubscriber;
+        m_numberOfHandles++;
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/
@@ -139,9 +176,6 @@ bool MicroRosClient::configureClient()
     rclc_support_t     support;
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     m_allocator                     = rcl_get_default_allocator();
-
-    uint8_t numberOfHandles =
-        RMW_UXRCE_MAX_SUBSCRIPTIONS + RMW_UXRCE_MAX_SERVICES + RMW_UXRCE_MAX_CLIENTS + RMW_UXRCE_MAX_GUARD_CONDITION;
 
     if ((true == m_nodeName.isEmpty()))
     {
@@ -161,13 +195,40 @@ bool MicroRosClient::configureClient()
     {
         LOG_ERROR("Failed to initialize node.");
     }
-    else if (RCL_RET_OK != rclc_executor_init(&m_executor, &support.context, numberOfHandles, &m_allocator))
+    else if (RCL_RET_OK != rclc_executor_init(&m_executor, &support.context, m_numberOfHandles, &m_allocator))
     {
         LOG_ERROR("Failed to initialize executor.");
     }
     else
     {
-        isSuccessful = true;
+        bool subcribtionsCreated = true;
+
+        for (size_t idx = 0; idx < RMW_UXRCE_MAX_SUBSCRIPTIONS; idx++)
+        {
+            if (nullptr != m_subscribers[idx])
+            {
+                /* TODO: Create subscriptions. */
+
+                rcl_ret_t ret = rclc_subscription_init_default(&m_subscribers[idx]->m_subscriber, &m_node,
+                                                               m_subscribers[idx]->m_typeSupport,
+                                                               m_subscribers[idx]->m_topicName.c_str());
+
+                if (RCL_RET_OK != ret)
+                {
+                    LOG_ERROR("Failed to subscribe to " + m_subscribers[idx]->m_topicName);
+                    subcribtionsCreated = false;
+                }
+                else
+                {
+                    /* TODO: figure out how to do this. */
+                    ret = rclc_executor_add_subscription_with_context(
+                        &m_executor, &m_subscribers[idx]->m_subscriber, &m_subscribers[idx]->m_allocatedBuffer,
+                        &m_subscribers[idx]->m_callback, this, ON_NEW_DATA);
+                }
+            }
+        }
+
+        isSuccessful = subcribtionsCreated;
     }
 
     return isSuccessful;

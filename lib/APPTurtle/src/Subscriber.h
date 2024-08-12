@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Abstraction of Micro-ROS Client.
+ * @brief  Subscriber Class.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup Application
  *
  * @{
  */
-#ifndef MICRO_ROS_AGENT_H
-#define MICRO_ROS_AGENT_H
+#ifndef SUBSCRIBER_H
+#define SUBSCRIBER_H
 
 /******************************************************************************
  * Compile Switches
@@ -42,13 +42,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include "Subscriber.h"
-
-#include <micro_ros_platformio.h>
+#include <Arduino.h>
 #include <rcl/rcl.h>
 #include <rclc/rclc.h>
-#include <rclc/executor.h>
 
 /******************************************************************************
  * Macros
@@ -58,107 +54,58 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Micro-ROS Client.
- */
-class MicroRosClient
+class BaseSubscriber
 {
 public:
-    /**
-     * Default Constructor
-     */
-    MicroRosClient();
+    String                               m_topicName;
+    const rosidl_message_type_support_t* m_typeSupport;
+    rcl_subscription_t                   m_subscriber;
 
-    /**
-     * Default destructor.
-     */
-    ~MicroRosClient();
+protected:
+    BaseSubscriber(const String& topicName, const rosidl_message_type_support_t* typeSupport) :
+        m_topicName(topicName),
+        m_typeSupport(typeSupport),
+        m_subscriber()
+    {
+    }
 
-    /**
-     * Set the Client configuration.
-     *
-     * @param[in] nodeName Name of the ROS2 Node.
-     * @param[in] nodeNamespace Namespace of the ROS2 Node. Can be empty.
-     * @param[in] agentIpAddress IP address of the Micro-ROS agent.
-     * @param[in] agentPort Port of the Micro-ROS agent.
-     *
-     * @returns If the parameters are valid, returns true. Otherwise, false.
-     */
-    bool setConfiguration(const String& nodeName, const String& nodeNamespace, const String& agentIpAddress,
-                          uint16_t agentPort);
+    ~BaseSubscriber()
+    {
+    }
+};
 
-    /**
-     * Process the Micro-Ros node and its executors.
-     *
-     * @returns If connection to the agent cannot be established, returns false. Otherwise, true.
-     */
-    bool process();
+template<typename T>
+class Subscriber : public BaseSubscriber
+{
+public:
+    typedef std::function<void(const T*)> RosTopicCallback;
 
-    /**
-     * Create a subscriber to a ROS Topic.
-     *
-     * @param[in] pSubscriber Pointer to a new subscriber. It shall be instanced using new. The MicroRosClient will
-     * delete the pointer once it is no longer used.
-     *
-     * @return If succesfully created, returns true. Otherwise, false.
-     */
-    bool createSubscriber(BaseSubscriber* pSubscriber);
+    Subscriber(const String& topicName, const rosidl_message_type_support_t* typeSupport, RosTopicCallback callback) :
+        BaseSubscriber(topicName, typeSupport),
+        m_callback(callback),
+        m_allocatedBuffer()
+    {
+    }
+
+    virtual ~Subscriber()
+    {
+    }
+
+    T getBuffer() final
+    {
+        return m_allocatedBuffer;
+    }
+
+    RosTopicCallback m_callback;
+    T                m_allocatedBuffer;
 
 private:
-    /**
-     * Name of the ROS2 Node.
-     */
-    String m_nodeName;
-
-    /**
-     * Namespace of the ROS2 Node.
-     */
-    String m_nodeNamespace;
-
-    /**
-     * Server configuration. Contains IP address and port of the Agent.
-     */
-    micro_ros_agent_locator m_agentConfiguration;
-
-    /**
-     * Flag: is the client configured?
-     */
-    bool m_isConfigured;
-
-    /**
-     * Micro-ROS node handle
-     */
-    rcl_node_t m_node;
-
-    /**
-     * Micro-ROS executor
-     */
-    rclc_executor_t m_executor;
-
-    /**
-     * Micro-ROS allocator
-     */
-    rcl_allocator_t m_allocator;
-
-    /**
-     * Array of pointers to subscribers.
-     */
-    BaseSubscriber* m_subscribers[RMW_UXRCE_MAX_SUBSCRIPTIONS];
-
-    /**
-     * Counter of subscribtions.
-     */
-    size_t m_numberOfHandles;
-
-    /**
-     * Configure the client.
-     */
-    bool configureClient();
+    Subscriber();
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* MICRO_ROS_AGENT_H */
+#endif /* SUBSCRIBER_H */
 /** @} */

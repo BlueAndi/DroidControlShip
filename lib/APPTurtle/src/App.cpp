@@ -38,6 +38,8 @@
 #include <LogSinkPrinter.h>
 #include <SettingsHandler.h>
 #include <WiFi.h>
+#include <Subscriber.h>
+#include <geometry_msgs/msg/twist.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -129,6 +131,28 @@ void App::setup()
         }
         else
         {
+            typedef Subscriber<geometry_msgs__msg__Twist> twistSubscriberType;
+
+            twistSubscriberType::RosTopicCallback twistCallback = [this](const geometry_msgs__msg__Twist*)
+            {
+                LOG_DEBUG("Twist Callback is here.");
+                Board::getInstance().getBlueLed().enable(true);
+                delay(50U);
+                Board::getInstance().getBlueLed().enable(false);
+            };
+
+            twistSubscriberType* pSubs = new (std::nothrow)
+                twistSubscriberType("cmd", ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), twistCallback);
+
+            if (nullptr == pSubs)
+            {
+                LOG_ERROR("Error on instance of Twist subscriber");
+            }
+            else
+            {
+                (void)m_ros.createSubscriber(pSubs);
+            }
+
             isSuccessful = true;
         }
     }
