@@ -68,23 +68,12 @@ public:
     /**
      * Default Constructor
      */
-    MicroRosClient() :
-        m_nodeName(""),
-        m_nodeNamespace(""),
-        m_agentConfiguration(),
-        m_isConfigured(false),
-        m_node(),
-        m_executor(),
-        m_allocator()
-    {
-    }
+    MicroRosClient();
 
     /**
      * Default destructor.
      */
-    ~MicroRosClient()
-    {
-    }
+    ~MicroRosClient();
 
     /**
      * Set the Client configuration.

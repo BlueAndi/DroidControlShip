@@ -61,6 +61,28 @@
  * Public Methods
  *****************************************************************************/
 
+MicroRosClient::MicroRosClient() :
+    m_nodeName(""),
+    m_nodeNamespace(""),
+    m_agentConfiguration(),
+    m_isConfigured(false),
+    m_node(),
+    m_executor(),
+    m_allocator()
+{
+}
+
+MicroRosClient::~MicroRosClient()
+{
+    rcl_ret_t ret = RCL_RET_OK;
+    ret += rcl_node_fini(&m_node);
+
+    if (RCL_RET_OK != ret)
+    {
+        LOG_ERROR("Failed to destroy the nodes.");
+    }
+}
+
 bool MicroRosClient::setConfiguration(const String& nodeName, const String& nodeNamespace, const String& agentIpAddress,
                                       uint16_t agentPort)
 {
