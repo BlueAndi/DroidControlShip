@@ -66,10 +66,13 @@ static void cmdTopicCallback(const void* msgin, void* context);
  * Public Methods
  *****************************************************************************/
 
-bool MicroRosClient::setAgent(const String& ipAddress, uint16_t port)
+bool MicroRosClient::setConfiguration(const String& nodeName, const String& nodeNamespace, const String& agentIpAddress,
+                                      uint16_t agentPort)
 {
-    m_agentConfiguration.address.fromString(ipAddress);
-    m_agentConfiguration.port = port;
+    m_nodeName      = nodeName;
+    m_nodeNamespace = nodeNamespace;
+    m_agentConfiguration.address.fromString(agentIpAddress);
+    m_agentConfiguration.port = agentPort;
     return true;
 }
 
@@ -83,12 +86,21 @@ bool MicroRosClient::process()
         if (false == m_isConfigured)
         {
             m_isConfigured = configureClient();
+
+            if (false == m_isConfigured)
+            {
+                isSuccessful = false;
+            }
+            else
+            {
+                LOG_DEBUG("MicroROSClient configured.");
+            }
         }
         else
         {
-            if (RCL_RET_ERROR != rclc_executor_spin_some(&m_executor, RCL_MS_TO_NS(100)))
+            if (RCL_RET_ERROR == rclc_executor_spin_some(&m_executor, RCL_MS_TO_NS(100)))
             {
-                isSuccessful = true;
+                isSuccessful = false;
             }
         }
     }
@@ -111,16 +123,26 @@ bool MicroRosClient::configureClient()
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     m_allocator                     = rcl_get_default_allocator();
 
-    if (RCL_RET_OK != rmw_uros_set_custom_transport(false, (void*)&m_agentConfiguration, platformio_transport_open,
-                                                    platformio_transport_close, platformio_transport_write,
-                                                    platformio_transport_read))
+    uint8_t numberOfHandles =
+        RMW_UXRCE_MAX_SUBSCRIPTIONS + RMW_UXRCE_MAX_SERVICES + RMW_UXRCE_MAX_CLIENTS + RMW_UXRCE_MAX_GUARD_CONDITION;
+
+    if ((true == m_nodeName.isEmpty()))
     {
+        LOG_ERROR("Node name is empty.");
+    }
+    else if (RCL_RET_OK != rmw_uros_set_custom_transport(false, (void*)&m_agentConfiguration, platformio_transport_open,
+                                                         platformio_transport_close, platformio_transport_write,
+                                                         platformio_transport_read))
+    {
+        LOG_ERROR("Failed to set custom transport for Micro-ROS.");
     }
     else if (RCL_RET_OK != rclc_support_init(&support, 0, NULL, &m_allocator))
     {
+        LOG_ERROR("Failed to initialize support structure.");
     }
-    else if (RCL_RET_OK != rclc_node_init_default(&m_node, "zumo_node", "", &support))
+    else if (RCL_RET_OK != rclc_node_init_default(&m_node, m_nodeName.c_str(), m_nodeNamespace.c_str(), &support))
     {
+        LOG_ERROR("Failed to initialize node.");
     }
     else if (RCL_RET_OK != rclc_subscription_init_default(
                                &m_subscriber, &m_node, ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), "cmd"))
@@ -128,6 +150,7 @@ bool MicroRosClient::configureClient()
     }
     else if (RCL_RET_OK != rclc_executor_init(&m_executor, &support.context, 1, &m_allocator))
     {
+        LOG_ERROR("Failed to initialize executor.");
     }
     else if (RCL_RET_OK != rclc_executor_add_subscription_with_context(&m_executor, &m_subscriber, &m_msg,
                                                                        cmdTopicCallback, this, ON_NEW_DATA))

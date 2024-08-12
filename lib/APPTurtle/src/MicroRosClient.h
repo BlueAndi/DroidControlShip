@@ -68,7 +68,16 @@ public:
     /**
      * Default Constructor
      */
-    MicroRosClient() : m_isConfigured(false), m_node(), m_subscriber(), m_executor(), m_allocator(), m_msg()
+    MicroRosClient() :
+        m_nodeName(""),
+        m_nodeNamespace(""),
+        m_agentConfiguration(),
+        m_isConfigured(false),
+        m_node(),
+        m_subscriber(),
+        m_executor(),
+        m_allocator(),
+        m_msg()
     {
     }
 
@@ -80,14 +89,17 @@ public:
     }
 
     /**
-     * Set the Agent configuration.
+     * Set the Client configuration.
      *
-     * @param[in] address IP address of the Micro-ROS agent.
-     * @param[in] port Port of the Micro-ROS agent.
+     * @param[in] nodeName Name of the ROS2 Node.
+     * @param[in] nodeNamespace Namespace of the ROS2 Node. Can be empty.
+     * @param[in] agentIpAddress IP address of the Micro-ROS agent.
+     * @param[in] agentPort Port of the Micro-ROS agent.
      *
      * @returns If the parameters are valid, returns true. Otherwise, false.
      */
-    bool setAgent(const String& ipAddress, uint16_t port);
+    bool setConfiguration(const String& nodeName, const String& nodeNamespace, const String& agentIpAddress,
+                          uint16_t agentPort);
 
     /**
      * Process the Micro-Ros node and its executors.
@@ -97,6 +109,16 @@ public:
     bool process();
 
 private:
+    /**
+     * Name of the ROS2 Node.
+     */
+    String m_nodeName;
+
+    /**
+     * Namespace of the ROS2 Node.
+     */
+    String m_nodeNamespace;
+
     /**
      * Server configuration. Contains IP address and port of the Agent.
      */
