@@ -74,10 +74,8 @@ public:
         m_agentConfiguration(),
         m_isConfigured(false),
         m_node(),
-        m_subscriber(),
         m_executor(),
-        m_allocator(),
-        m_msg()
+        m_allocator()
     {
     }
 
@@ -135,11 +133,6 @@ private:
     rcl_node_t m_node;
 
     /**
-     * Micro-ROS subscriber for cmd_vel topic
-     */
-    rcl_subscription_t m_subscriber;
-
-    /**
      * Micro-ROS executor
      */
     rclc_executor_t m_executor;
@@ -148,11 +141,6 @@ private:
      * Micro-ROS allocator
      */
     rcl_allocator_t m_allocator;
-
-    /**
-     * Micro-ROS message for cmd_vel topic
-     */
-    geometry_msgs__msg__Twist m_msg;
 
     /**
      * Configure the client.

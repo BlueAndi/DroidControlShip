@@ -53,11 +53,6 @@
  * Prototypes
  *****************************************************************************/
 
-/**
- * Callback for the cmd topic.
- */
-static void cmdTopicCallback(const void* msgin, void* context);
-
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -144,17 +139,9 @@ bool MicroRosClient::configureClient()
     {
         LOG_ERROR("Failed to initialize node.");
     }
-    else if (RCL_RET_OK != rclc_subscription_init_default(
-                               &m_subscriber, &m_node, ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), "cmd"))
-    {
-    }
-    else if (RCL_RET_OK != rclc_executor_init(&m_executor, &support.context, 1, &m_allocator))
+    else if (RCL_RET_OK != rclc_executor_init(&m_executor, &support.context, numberOfHandles, &m_allocator))
     {
         LOG_ERROR("Failed to initialize executor.");
-    }
-    else if (RCL_RET_OK != rclc_executor_add_subscription_with_context(&m_executor, &m_subscriber, &m_msg,
-                                                                       cmdTopicCallback, this, ON_NEW_DATA))
-    {
     }
     else
     {
@@ -171,13 +158,3 @@ bool MicroRosClient::configureClient()
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
-
-static void cmdTopicCallback(const void* msgin, void* context)
-{
-    (void)msgin;
-    (void)context;
-    LOG_INFO("CMD Topic Callback");
-    Board::getInstance().getBlueLed().enable(true);
-    delay(50U);
-    Board::getInstance().getBlueLed().enable(false);
-}
