@@ -100,7 +100,7 @@ public:
      * @param[in] pSubscriber Pointer to a new subscriber. It shall be instanced using new. The MicroRosClient will
      * delete the pointer once it is no longer used.
      *
-     * @return If succesfully created, returns true. Otherwise, false.
+     * @returns If succesfully created, returns true. Otherwise, false.
      */
     bool createSubscriber(BaseSubscriber* pSubscriber);
 
@@ -152,6 +152,8 @@ private:
 
     /**
      * Configure the client.
+     *
+     * @returns If succesfully configured, returns true. Otherwise, false.
      */
     bool configureClient();
 };

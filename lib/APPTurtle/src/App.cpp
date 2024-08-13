@@ -133,12 +133,18 @@ void App::setup()
         {
             typedef Subscriber<geometry_msgs__msg__Twist> twistSubscriberType;
 
-            twistSubscriberType::RosTopicCallback twistCallback = [this](const geometry_msgs__msg__Twist*)
+            twistSubscriberType::RosTopicCallback twistCallback = [this](const geometry_msgs__msg__Twist* msgData)
             {
                 LOG_DEBUG("Twist Callback is here.");
-                Board::getInstance().getBlueLed().enable(true);
-                delay(50U);
-                Board::getInstance().getBlueLed().enable(false);
+
+                if (nullptr != msgData)
+                {
+                    Board::getInstance().getBlueLed().enable(true);
+                    delay(50U);
+                    Board::getInstance().getBlueLed().enable(false);
+
+                    LOG_DEBUG("%f %f %f", msgData->linear.x, msgData->linear.y, msgData->linear.z);
+                }
             };
 
             twistSubscriberType* pSubs = new (std::nothrow)

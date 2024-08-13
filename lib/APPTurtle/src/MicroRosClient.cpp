@@ -78,14 +78,20 @@ MicroRosClient::~MicroRosClient()
 {
     rcl_ret_t ret = RCL_RET_OK;
 
+    /* Cleanup of Subscribtions. */
     for (size_t idx = 0; idx < RMW_UXRCE_MAX_SUBSCRIPTIONS; idx++)
     {
+        BaseSubscriber* currentSubscriber = m_subscribers[idx];
+
         if (nullptr != m_subscribers[idx])
         {
-            /* TODO: Clean up subscriptions. */
+            ret += rcl_subscription_fini(&currentSubscriber->m_subscriber, &m_node);
+
+            delete currentSubscriber;
         }
     }
 
+    /* Cleanup of node. */
     ret += rcl_node_fini(&m_node);
 
     if (RCL_RET_OK != ret)
@@ -97,11 +103,26 @@ MicroRosClient::~MicroRosClient()
 bool MicroRosClient::setConfiguration(const String& nodeName, const String& nodeNamespace, const String& agentIpAddress,
                                       uint16_t agentPort)
 {
-    m_nodeName      = nodeName;
-    m_nodeNamespace = nodeNamespace;
-    m_agentConfiguration.address.fromString(agentIpAddress);
-    m_agentConfiguration.port = agentPort;
-    return true;
+    bool isSuccessful = false;
+
+    if (true == nodeName.isEmpty())
+    {
+        LOG_ERROR("Node name cannot be empty!");
+    }
+    else if (true == agentIpAddress.isEmpty())
+    {
+        LOG_ERROR("Agent IP cannot be empty!");
+    }
+    else
+    {
+        m_nodeName      = nodeName;
+        m_nodeNamespace = nodeNamespace;
+        m_agentConfiguration.address.fromString(agentIpAddress);
+        m_agentConfiguration.port = agentPort;
+        isSuccessful              = true;
+    }
+
+    return isSuccessful;
 }
 
 bool MicroRosClient::process()
@@ -201,34 +222,21 @@ bool MicroRosClient::configureClient()
     }
     else
     {
-        bool subcribtionsCreated = true;
+        isSuccessful = true;
 
         for (size_t idx = 0; idx < RMW_UXRCE_MAX_SUBSCRIPTIONS; idx++)
         {
-            if (nullptr != m_subscribers[idx])
+            BaseSubscriber* currentSubscriber = m_subscribers[idx];
+
+            if (nullptr != currentSubscriber)
             {
-                /* TODO: Create subscriptions. */
-
-                rcl_ret_t ret = rclc_subscription_init_default(&m_subscribers[idx]->m_subscriber, &m_node,
-                                                               m_subscribers[idx]->m_typeSupport,
-                                                               m_subscribers[idx]->m_topicName.c_str());
-
-                if (RCL_RET_OK != ret)
+                if (false == currentSubscriber->init(&m_node, &m_executor))
                 {
-                    LOG_ERROR("Failed to subscribe to " + m_subscribers[idx]->m_topicName);
-                    subcribtionsCreated = false;
-                }
-                else
-                {
-                    /* TODO: figure out how to do this. */
-                    ret = rclc_executor_add_subscription_with_context(
-                        &m_executor, &m_subscribers[idx]->m_subscriber, &m_subscribers[idx]->m_allocatedBuffer,
-                        &m_subscribers[idx]->m_callback, this, ON_NEW_DATA);
+                    LOG_DEBUG("Failed to create subscriber for topic %s", currentSubscriber->m_topicName.c_str());
+                    isSuccessful = false;
                 }
             }
         }
-
-        isSuccessful = subcribtionsCreated;
     }
 
     return isSuccessful;
