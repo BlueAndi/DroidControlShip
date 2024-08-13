@@ -1,11 +1,11 @@
 {
   "robotName": "",
   "wifi": {
-    "ssid": "TheForce",
-    "pswd": "hanshotfirst"
+    "ssid": "",
+    "pswd": ""
   },
   "mqtt": {
-    "host": "127.0.0.1",
+    "host": "localhost",
     "port": "1883"
   },
   "ap": {
