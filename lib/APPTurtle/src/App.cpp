@@ -39,6 +39,8 @@
 #include <SettingsHandler.h>
 #include <WiFi.h>
 
+#include <geometry_msgs/msg/twist.h>
+
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -68,6 +70,9 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 
 /** Serial log sink */
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
+
+/* ROS topic name for the velocity commands. */
+const char* App::TOPIC_NAME_CMD_VEL = "cmd_vel";
 
 /******************************************************************************
  * Public Methods
@@ -122,9 +127,55 @@ void App::setup()
         {
             LOG_ERROR("Network configuration could not be set.");
         }
+        else if (false == m_ros.setConfiguration(settings.getRobotName(), "", settings.getMqttBrokerAddress(),
+                                                 settings.getMqttPort()))
+        {
+            LOG_ERROR("Micro-ROS Agent could not be configured.");
+        }
         else
         {
-            isSuccessful = true;
+            /* Subscriber for Geometry Twist ROS messages. */
+            typedef Subscriber<geometry_msgs__msg__Twist> CmdVelSubscriber;
+
+            /* Create the Subscriber Callback. */
+            CmdVelSubscriber::RosTopicCallback twistCallback = [this](const geometry_msgs__msg__Twist* msgData)
+            {
+                if (nullptr == msgData)
+                {
+                    LOG_ERROR("TwistCallback received nullptr.");
+                }
+                else
+                {
+                    LOG_DEBUG("Twist data received.");
+
+                    /* Short blink to indicate reception. */
+                    Board::getInstance().getBlueLed().enable(true);
+
+                    /* Process data. */
+                    LOG_DEBUG("Linear: %f %f %f", msgData->linear.x, msgData->linear.y, msgData->linear.z);
+                    LOG_DEBUG("Angular: %f %f %f", msgData->angular.x, msgData->angular.y, msgData->angular.z);
+
+                    Board::getInstance().getBlueLed().enable(false);
+                }
+            };
+
+            /* Create instance of CmdVelSubscriber. Will be deleted by the MicroRosClient. */
+            CmdVelSubscriber* twistSub = new (std::nothrow) CmdVelSubscriber(
+                TOPIC_NAME_CMD_VEL, ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), twistCallback);
+
+            /* Register the subscriber. */
+            if (nullptr == twistSub)
+            {
+                LOG_ERROR("Could not create instance of CmdVelSubscriber");
+            }
+            else if (false == m_ros.registerSubscriber(twistSub))
+            {
+                LOG_ERROR("Could not register the CmdVelSubscriber.");
+            }
+            else
+            {
+                isSuccessful = true;
+            }
         }
     }
 
@@ -146,11 +197,20 @@ void App::setup()
 
 void App::loop()
 {
+    Board& board = Board::getInstance();
+
     /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
+    if (false == board.process())
     {
         /* Log and Handle Board processing error */
         LOG_FATAL("HAL process failed.");
+        fatalErrorHandler();
+    }
+
+    /* Process Micro ROS client. */
+    if (false == m_ros.process())
+    {
+        LOG_FATAL("ROS process failed.");
         fatalErrorHandler();
     }
 }
