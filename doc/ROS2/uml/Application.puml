@@ -1,0 +1,77 @@
+@startuml Application Class Diagram
+
+Title Application Class Diagram
+
+package "APPTurtle" as app_package {
+    class "App" as app {
+        - m_ros : MicroRosClient
+        + setup() : void
+        + loop() : void
+    }
+
+    class "MicroRosClient" as ros_wrapper {
+        - m_node : rcl_node_t
+        - m_executor : rclc_executor_t
+        - m_allocator : rcl_allocator_t
+        - m_agentConfiguration : micro_ros_agent_locator
+        - m_subscribers : BaseSubscriber* [MAX_SUBSCRIPTIONS]
+        - m_numberOfHandles : size_t
+        - m_nodeName : String
+        - m_nodeNamespace : String
+        + MicroRosClient()
+        + setConfiguration(const String& nodeName, const String& nodeNamespace, const String& agentIpAddress, uint16_t agentPort) : bool
+        + process() : bool
+        + createSubscriber(BaseSubscriber* pSubscriber) : bool
+    }
+
+    class "BaseSubscriber" as baseSub
+    {
+        + m_topicName : String   
+        + m_typeSupport : const rosidl_message_type_support_t*
+        + m_subscriber : rcl_subscription_t
+        + BaseSubscriber(const String& topicName, const rosidl_message_type_support_t* typeSupport)
+    }
+
+    class "Subscriber"<typename messageType> {
+        - m_buffer : messageType
+        - m_callback : RosTopicCallback
+        + typedef std::function<void(const messageType* msgData)> RosTopicCallback;
+        + Subscriber(const String& topicName, const rosidl_message_type_support_t* typeSupport, RosTopicCallback callback)
+        + init(rcl_node_t* node, rclc_executor_t* executor) : bool
+        + topicCallback(const void* msgData) : void
+    }
+
+    app *--> ros_wrapper
+    ros_wrapper --|> Subscriber : <<use>>
+    Subscriber <|-- baseSub : <<inherit>>
+}
+
+package "RCLC" as rclc {
+    class "rcl_node_t" as rcl_node {
+    }
+
+    class "rclc_executor_t" as rclc_executor {
+    }
+
+    class "micro_ros_agent_locator" as micro_ros_agent_locator {
+    }
+
+    class "rcl_allocator_t" as rcl_allocator {
+    }
+
+    class "rclc_support_t" as rclc_support {
+    }
+
+    class "rcl_subscription_t" as rcl_subscription {
+    }
+}
+
+ros_wrapper *--> rcl_node
+ros_wrapper *--> rclc_executor
+ros_wrapper *--> micro_ros_agent_locator
+ros_wrapper --|> rcl_allocator : <<use>>
+ros_wrapper --|> rclc_support : <<use>>
+
+baseSub *--> rcl_subscription
+
+@enduml

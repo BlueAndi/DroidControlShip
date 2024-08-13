@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Turtle Application.
+ * @brief  Abstraction of Micro-ROS Client.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup Application
  *
  * @{
  */
-#ifndef APP_H
-#define APP_H
+#ifndef MICRO_ROS_AGENT_H
+#define MICRO_ROS_AGENT_H
 
 /******************************************************************************
  * Compile Switches
@@ -42,8 +42,13 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include "MicroRosClient.h"
+
+#include "Subscriber.h"
+
+#include <micro_ros_platformio.h>
+#include <rcl/rcl.h>
+#include <rclc/rclc.h>
+#include <rclc/executor.h>
 
 /******************************************************************************
  * Macros
@@ -53,72 +58,109 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Turtle application. */
-class App
+/**
+ * Micro-ROS Client.
+ */
+class MicroRosClient
 {
 public:
     /**
-     * Construct the Turtle application.
+     * Default Constructor
      */
-    App() : m_ros()
-    {
-    }
+    MicroRosClient();
 
     /**
-     * Destroy the Turtle application.
+     * Default destructor.
      */
-    ~App()
-    {
-    }
+    ~MicroRosClient();
 
     /**
-     * Setup the application.
+     * Set the Client configuration.
+     *
+     * @param[in] nodeName Name of the ROS2 Node.
+     * @param[in] nodeNamespace Namespace of the ROS2 Node. Can be empty.
+     * @param[in] agentIpAddress IP address of the Micro-ROS agent.
+     * @param[in] agentPort Port of the Micro-ROS agent.
+     *
+     * @returns If the parameters are valid, returns true. Otherwise, false.
      */
-    void setup();
+    bool setConfiguration(const String& nodeName, const String& nodeNamespace, const String& agentIpAddress,
+                          uint16_t agentPort);
 
     /**
-     * Process the application periodically.
+     * Process the Micro-Ros node and its executors.
+     *
+     * @returns If connection to the agent cannot be established, returns false. Otherwise, true.
      */
-    void loop();
+    bool process();
+
+    /**
+     * Register a subscriber to a ROS Topic.
+     *
+     * @param[in] subscriber Pointer to a new subscriber. It shall be instanced using new. The MicroRosClient will
+     * delete the pointer once it is no longer used. Checks if the instance is nullptr.
+     *
+     * @returns If succesfully created, returns true. Otherwise, false.
+     */
+    bool registerSubscriber(BaseSubscriber* subscriber);
 
 private:
     /**
-     * Instance of the MicroRosClient.
+     * Name of the ROS2 Node.
      */
-    MicroRosClient m_ros;
+    String m_nodeName;
 
     /**
-     * ROS topic name for the velocity commands.
+     * Namespace of the ROS2 Node.
      */
-    static const char* TOPIC_NAME_CMD_VEL;
+    String m_nodeNamespace;
 
     /**
-     * Handler of fatal errors in the Application.
+     * Server configuration. Contains IP address and port of the Agent.
      */
-    void fatalErrorHandler();
+    micro_ros_agent_locator m_agentConfiguration;
 
     /**
-     * Copy construction of an instance.
-     * Not allowed.
+     * Flag: is the client configured?
+     */
+    bool m_isConfigured;
+
+    /**
+     * Micro-ROS node handle
+     */
+    rcl_node_t m_node;
+
+    /**
+     * Micro-ROS executor
+     */
+    rclc_executor_t m_executor;
+
+    /**
+     * Micro-ROS allocator
+     */
+    rcl_allocator_t m_allocator;
+
+    /**
+     * Array of pointers to subscribers.
+     */
+    BaseSubscriber* m_subscribers[RMW_UXRCE_MAX_SUBSCRIPTIONS];
+
+    /**
+     * Counter of subscribtions.
+     */
+    size_t m_numberOfHandles;
+
+    /**
+     * Configure the client.
      *
-     * @param[in] app Source instance.
+     * @returns If succesfully configured, returns true. Otherwise, false.
      */
-    App(const App& app);
-
-    /**
-     * Assignment of an instance.
-     * Not allowed.
-     *
-     * @param[in] app Source instance.
-     *
-     * @returns Reference to App instance.
-     */
-    App& operator=(const App& app);
+    bool configureClient();
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* MICRO_ROS_AGENT_H */
 /** @} */
