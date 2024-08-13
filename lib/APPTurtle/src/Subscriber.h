@@ -213,6 +213,7 @@ public:
         }
     }
 
+private:
     /**
      * Callback for the subscription topic.
      */
@@ -223,7 +224,6 @@ public:
      */
     messageType m_buffer;
 
-private:
     /**
      * Default Constructor.
      * Not allowed.
