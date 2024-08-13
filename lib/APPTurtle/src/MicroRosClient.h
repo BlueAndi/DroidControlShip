@@ -95,14 +95,14 @@ public:
     bool process();
 
     /**
-     * Create a subscriber to a ROS Topic.
+     * Register a subscriber to a ROS Topic.
      *
-     * @param[in] pSubscriber Pointer to a new subscriber. It shall be instanced using new. The MicroRosClient will
-     * delete the pointer once it is no longer used.
+     * @param[in] subscriber Pointer to a new subscriber. It shall be instanced using new. The MicroRosClient will
+     * delete the pointer once it is no longer used. Checks if the instance is nullptr.
      *
      * @returns If succesfully created, returns true. Otherwise, false.
      */
-    bool createSubscriber(BaseSubscriber* pSubscriber);
+    bool registerSubscriber(BaseSubscriber* subscriber);
 
 private:
     /**

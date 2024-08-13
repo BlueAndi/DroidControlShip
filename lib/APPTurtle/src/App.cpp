@@ -38,7 +38,7 @@
 #include <LogSinkPrinter.h>
 #include <SettingsHandler.h>
 #include <WiFi.h>
-#include <Subscriber.h>
+
 #include <geometry_msgs/msg/twist.h>
 
 /******************************************************************************
@@ -57,6 +57,11 @@
  * Types and classes
  *****************************************************************************/
 
+/**
+ * Subscriber for Geometry Twist ROS messages.
+ */
+typedef Subscriber<geometry_msgs__msg__Twist> TwistSubscriber;
+
 /******************************************************************************
  * Prototypes
  *****************************************************************************/
@@ -70,6 +75,9 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 
 /** Serial log sink */
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
+
+/* ROS topic name for the velocity commands. */
+const char* App::TOPIC_NAME_CMD_VEL = "cmd_vel";
 
 /******************************************************************************
  * Public Methods
@@ -131,35 +139,45 @@ void App::setup()
         }
         else
         {
-            typedef Subscriber<geometry_msgs__msg__Twist> twistSubscriberType;
-
-            twistSubscriberType::RosTopicCallback twistCallback = [this](const geometry_msgs__msg__Twist* msgData)
+            /* Create the Subscriber Callback. */
+            TwistSubscriber::RosTopicCallback twistCallback = [this](const geometry_msgs__msg__Twist* msgData)
             {
-                LOG_DEBUG("Twist Callback is here.");
-
-                if (nullptr != msgData)
+                if (nullptr == msgData)
                 {
+                    LOG_ERROR("TwistCallback received nullptr.");
+                }
+                else
+                {
+                    LOG_DEBUG("Twist data received.");
+
+                    /* Short blink to indicate reception. */
                     Board::getInstance().getBlueLed().enable(true);
                     delay(50U);
                     Board::getInstance().getBlueLed().enable(false);
 
-                    LOG_DEBUG("%f %f %f", msgData->linear.x, msgData->linear.y, msgData->linear.z);
+                    /* Debug data. */
+                    LOG_DEBUG("Linear: %f %f %f", msgData->linear.x, msgData->linear.y, msgData->linear.z);
+                    LOG_DEBUG("Angular: %f %f %f", msgData->angular.x, msgData->angular.y, msgData->angular.z);
                 }
             };
 
-            twistSubscriberType* pSubs = new (std::nothrow)
-                twistSubscriberType("cmd", ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), twistCallback);
+            /* Create instance of TwistSubscriber. Will be deleted by the MicroRosClient. */
+            TwistSubscriber* twistSub = new (std::nothrow) TwistSubscriber(
+                TOPIC_NAME_CMD_VEL, ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), twistCallback);
 
-            if (nullptr == pSubs)
+            /* Register the subscriber. */
+            if (nullptr == twistSub)
             {
-                LOG_ERROR("Error on instance of Twist subscriber");
+                LOG_ERROR("Could not create instance of TwistSubscriber");
+            }
+            else if (false == m_ros.registerSubscriber(twistSub))
+            {
+                LOG_ERROR("Could not register the TwistSubscriber.");
             }
             else
             {
-                (void)m_ros.createSubscriber(pSubs);
+                isSuccessful = true;
             }
-
-            isSuccessful = true;
         }
     }
 
@@ -181,8 +199,7 @@ void App::setup()
 
 void App::loop()
 {
-    Board&    board   = Board::getInstance();
-    INetwork& network = board.getNetwork();
+    Board& board = Board::getInstance();
 
     /* Process Battery, Device and Network. */
     if (false == board.process())

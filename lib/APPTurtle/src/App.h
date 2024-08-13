@@ -88,6 +88,11 @@ private:
     MicroRosClient m_ros;
 
     /**
+     * ROS topic name for the velocity commands.
+     */
+    static const char* TOPIC_NAME_CMD_VEL;
+
+    /**
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();

@@ -157,11 +157,11 @@ bool MicroRosClient::process()
     return isSuccessful;
 }
 
-bool MicroRosClient::createSubscriber(BaseSubscriber* pSubscriber)
+bool MicroRosClient::registerSubscriber(BaseSubscriber* subscriber)
 {
     bool isSuccessful = false;
 
-    if (nullptr == pSubscriber)
+    if (nullptr == subscriber)
     {
         LOG_ERROR("Subscriber is nullptr.");
     }
@@ -175,7 +175,7 @@ bool MicroRosClient::createSubscriber(BaseSubscriber* pSubscriber)
     }
     else
     {
-        m_subscribers[m_numberOfHandles] = pSubscriber;
+        m_subscribers[m_numberOfHandles] = subscriber;
         m_numberOfHandles++;
         isSuccessful = true;
     }
