@@ -132,9 +132,9 @@ private:
 
 /**
  * Subscriber class for an specific message type.
- * @tparam T ROS2 Topic message type
+ * @tparam messageType ROS2 Topic message type
  */
-template<typename T>
+template<typename messageType>
 class Subscriber : public BaseSubscriber
 {
 public:
@@ -144,7 +144,7 @@ public:
      *
      * @param[in] msgData       Received data.
      */
-    typedef std::function<void(const T* msgData)> RosTopicCallback;
+    typedef std::function<void(const messageType* msgData)> RosTopicCallback;
 
     /**
      * Construct a subscriber.
@@ -209,7 +209,7 @@ public:
     {
         if (nullptr != msgData)
         {
-            m_callback(reinterpret_cast<const T*>(msgData));
+            m_callback(reinterpret_cast<const messageType*>(msgData));
         }
     }
 
@@ -221,7 +221,7 @@ public:
     /**
      * Buffer for the incomming messages.
      */
-    T m_buffer;
+    messageType m_buffer;
 
 private:
     /**
