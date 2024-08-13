@@ -57,11 +57,6 @@
  * Types and classes
  *****************************************************************************/
 
-/**
- * Subscriber for Geometry Twist ROS messages.
- */
-typedef Subscriber<geometry_msgs__msg__Twist> TwistSubscriber;
-
 /******************************************************************************
  * Prototypes
  *****************************************************************************/
@@ -139,8 +134,11 @@ void App::setup()
         }
         else
         {
+            /* Subscriber for Geometry Twist ROS messages. */
+            typedef Subscriber<geometry_msgs__msg__Twist> CmdVelSubscriber;
+
             /* Create the Subscriber Callback. */
-            TwistSubscriber::RosTopicCallback twistCallback = [this](const geometry_msgs__msg__Twist* msgData)
+            CmdVelSubscriber::RosTopicCallback twistCallback = [this](const geometry_msgs__msg__Twist* msgData)
             {
                 if (nullptr == msgData)
                 {
@@ -152,27 +150,27 @@ void App::setup()
 
                     /* Short blink to indicate reception. */
                     Board::getInstance().getBlueLed().enable(true);
-                    delay(50U);
-                    Board::getInstance().getBlueLed().enable(false);
 
-                    /* Debug data. */
+                    /* Process data. */
                     LOG_DEBUG("Linear: %f %f %f", msgData->linear.x, msgData->linear.y, msgData->linear.z);
                     LOG_DEBUG("Angular: %f %f %f", msgData->angular.x, msgData->angular.y, msgData->angular.z);
+
+                    Board::getInstance().getBlueLed().enable(false);
                 }
             };
 
-            /* Create instance of TwistSubscriber. Will be deleted by the MicroRosClient. */
-            TwistSubscriber* twistSub = new (std::nothrow) TwistSubscriber(
+            /* Create instance of CmdVelSubscriber. Will be deleted by the MicroRosClient. */
+            CmdVelSubscriber* twistSub = new (std::nothrow) CmdVelSubscriber(
                 TOPIC_NAME_CMD_VEL, ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), twistCallback);
 
             /* Register the subscriber. */
             if (nullptr == twistSub)
             {
-                LOG_ERROR("Could not create instance of TwistSubscriber");
+                LOG_ERROR("Could not create instance of CmdVelSubscriber");
             }
             else if (false == m_ros.registerSubscriber(twistSub))
             {
-                LOG_ERROR("Could not register the TwistSubscriber.");
+                LOG_ERROR("Could not register the CmdVelSubscriber.");
             }
             else
             {
