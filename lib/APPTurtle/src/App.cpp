@@ -38,8 +38,6 @@
 #include <SettingsHandler.h>
 #include <WiFi.h>
 
-#include <geometry_msgs/msg/twist.h>
-
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -141,6 +139,8 @@ void App::setup()
         }
         else
         {
+            /* Trigger immediately. */
+            m_turtleStepTimer.start(0U);
             isSuccessful = true;
         }
     }
@@ -194,6 +194,11 @@ void App::loop()
 
         m_statusTimer.restart();
     }
+
+    if (true == m_smpServer.isSynced())
+    {
+        handleTurtle();
+    }
 }
 
 /******************************************************************************
@@ -236,42 +241,8 @@ bool App::setupMicroRosClient()
             /* Short blink to indicate reception. */
             Board::getInstance().getBlueLed().enable(true);
 
-            /* Process data. */
-            LOG_DEBUG("Linear: %f %f %f", msgData->linear.x, msgData->linear.y, msgData->linear.z);
-            LOG_DEBUG("Angular: %f %f %f", msgData->angular.x, msgData->angular.y, msgData->angular.z);
-
-            uint32_t mod = ((uint32_t)msgData->linear.x) % 6;
-
-            LOG_DEBUG("Mod: %u", mod);
-
-            if (0 == mod)
-            {
-                SpeedData payload = {.left = 0, .right = 0, .center = 0};
-
-                if (false ==
-                    this->m_smpServer.sendData(this->m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
-                {
-                    LOG_ERROR("Failed to send speed data.");
-                }
-                else
-                {
-                    LOG_DEBUG("Speed data sent. %d %d %d", payload.left, payload.right, payload.center);
-                }
-            }
-            else if (3 == mod)
-            {
-                SpeedData payload = {.left = 2000, .right = -2000, .center = 0};
-
-                if (false ==
-                    this->m_smpServer.sendData(this->m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
-                {
-                    LOG_ERROR("Failed to send speed data.");
-                }
-                else
-                {
-                    LOG_DEBUG("Speed data sent. %d %d %d", payload.left, payload.right, payload.center);
-                }
-            }
+            m_turtleSpeedSetpoint      = *msgData;
+            m_isNewTurtleSpeedSetpoint = true;
 
             Board::getInstance().getBlueLed().enable(false);
         }
@@ -317,6 +288,56 @@ bool App::setupSerialMuxProtServer()
     }
 
     return isSuccessful;
+}
+
+void App::handleTurtle()
+{
+    /* Check for new data. */
+    if (true == m_isNewTurtleSpeedSetpoint)
+    {
+        m_isNewTurtleSpeedSetpoint = false;
+        LOG_DEBUG("New turtle speed setpoint received. %f", m_turtleSpeedSetpoint.linear.x);
+        SpeedData payload;
+
+        if (m_turtleSpeedSetpoint.linear.x > 0.0F)
+        {
+            payload.left  = 3000;
+            payload.right = 3000;
+        }
+        else if (m_turtleSpeedSetpoint.angular.z > 0.0F)
+        {
+            payload.left  = -3000;
+            payload.right = 3000;
+        }
+        else if (m_turtleSpeedSetpoint.angular.z < 0.0F)
+        {
+            payload.left  = 3000;
+            payload.right = -3000;
+        }
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
+        {
+            LOG_WARNING("Failed to send motor speeds to RU.");
+        }
+        else
+        {
+            m_turtleStepTimer.start(TURTLE_STEP_TIMER_INTERVAL);
+        }
+    }
+
+    if (true == m_turtleStepTimer.isTimeout())
+    {
+        SpeedData payload;
+        payload.left  = 0;
+        payload.right = 0;
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
+        {
+            LOG_WARNING("Failed to send motor speeds to RU.");
+        }
+
+        m_turtleStepTimer.stop();
+    }
 }
 
 /******************************************************************************

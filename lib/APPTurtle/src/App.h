@@ -48,6 +48,8 @@
 #include "MicroRosClient.h"
 #include "SerialMuxChannels.h"
 
+#include <geometry_msgs/msg/twist.h>
+
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -68,7 +70,10 @@ public:
         m_serialMuxProtChannelIdStatus(0U),
         m_serialMuxProtChannelIdMotorSpeeds(0U),
         m_smpServer(Board::getInstance().getRobot().getStream(), this),
-        m_statusTimer()
+        m_statusTimer(),
+        m_turtleStepTimer(),
+        m_turtleSpeedSetpoint(),
+        m_isNewTurtleSpeedSetpoint(true)
     {
     }
 
@@ -94,6 +99,11 @@ private:
      * Interval for sending system status to RU.
      */
     static const uint32_t STATUS_TIMER_INTERVAL = 1000U;
+
+    /**
+     * Interval of the duration of a turtle step.
+     */
+    static const uint32_t TURTLE_STEP_TIMER_INTERVAL = 1000U;
 
     /**
      * Instance of the MicroRosClient.
@@ -126,6 +136,21 @@ private:
     SimpleTimer m_statusTimer;
 
     /**
+     * Timer for the steps of the turtle.
+     */
+    SimpleTimer m_turtleStepTimer;
+
+    /**
+     * Turtle speed setpoint.
+     */
+    geometry_msgs__msg__Twist m_turtleSpeedSetpoint;
+
+    /**
+     * Flag: New turtle speed setpoint available.
+     */
+    bool m_isNewTurtleSpeedSetpoint;
+
+    /**
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();
@@ -143,6 +168,11 @@ private:
      * @returns true if successful, otherwise false.
      */
     bool setupSerialMuxProtServer();
+
+    /**
+     * Handle the Turtle behavior.
+     */
+    void handleTurtle();
 
     /**
      * Copy construction of an instance.
