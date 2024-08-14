@@ -43,7 +43,10 @@
  * Includes
  *****************************************************************************/
 #include <Arduino.h>
+#include <Board.h>
+#include <SimpleTimer.hpp>
 #include "MicroRosClient.h"
+#include "SerialMuxChannels.h"
 
 /******************************************************************************
  * Macros
@@ -60,7 +63,12 @@ public:
     /**
      * Construct the Turtle application.
      */
-    App() : m_ros()
+    App() :
+        m_ros(),
+        m_serialMuxProtChannelIdStatus(0U),
+        m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_smpServer(Board::getInstance().getRobot().getStream(), this),
+        m_statusTimer()
     {
     }
 
@@ -83,6 +91,11 @@ public:
 
 private:
     /**
+     * Interval for sending system status to RU.
+     */
+    static const uint32_t STATUS_TIMER_INTERVAL = 1000U;
+
+    /**
      * Instance of the MicroRosClient.
      */
     MicroRosClient m_ros;
@@ -93,9 +106,43 @@ private:
     static const char* TOPIC_NAME_CMD_VEL;
 
     /**
+     * SerialMuxProt Channel id for sending system status.
+     */
+    uint8_t m_serialMuxProtChannelIdStatus;
+
+    /**
+     * SerialMuxProt Channel id for sending motor speeds.
+     */
+    uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+
+    /**
+     * SerialMuxProt Server Instance
+     */
+    SMPServer m_smpServer;
+
+    /**
+     * Timer for sending system status to RU.
+     */
+    SimpleTimer m_statusTimer;
+
+    /**
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();
+
+    /**
+     * Setup the Micro ROS Client.
+     *
+     * @returns true if successful, otherwise false.
+     */
+    bool setupMicroRosClient();
+
+    /**
+     * Setup the SerialMuxProt Server.
+     *
+     * @returns true if successful, otherwise false.
+     */
+    bool setupSerialMuxProtServer();
 
     /**
      * Copy construction of an instance.
