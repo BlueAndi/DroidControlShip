@@ -38,7 +38,7 @@ Prepare the micro-ROS environment:
 ros2 run micro_ros_setup create_firmware_ws.sh generate_lib
 ```
 
-Copy the files [my_custom_toolchain.cmake](./my_custom_toolchain.cmake) and [my_custom_colcon.meta](./my_custom_colcon.meta) in the microros_ws
+Copy the files [my_custom_toolchain.cmake](./native_build/my_custom_toolchain.cmake) and [my_custom_colcon.meta](./native_build/my_custom_colcon.meta) in the microros_ws
 
 
 Now the library can be build by executing
