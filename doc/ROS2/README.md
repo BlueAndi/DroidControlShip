@@ -2,16 +2,13 @@
 ROS 2 is a powerful framework for developing robot applications, while micro-ROS extends ROS 2 capabilities to microcontrollers, enabling robotics applications on a wider range of hardware.
 
 ## Table of Contents
-- [ROS 2 and micro-ROS](#ros-2-and-micro-ros)
-  - [Table of Contents](#table-of-contents)
-  - [What is ROS 2?](#what-is-ros-2)
-  - [What has improved since ROS 1](#what-has-improved-since-ros-1)
-  - [What is micro-ROS?](#what-is-micro-ros)
-  - [External micro-ROS build system](#external-micro-ros-build-system)
-  - [ROS 2 in DCS](#ros-2-in-dcs)
-    - [Component Deployment](#component-deployment)
-    - [Webots Integration](#webots-integration)
-  - [Installation Steps](#installation-steps)
+- [What is ROS 2?](#what-is-ros-2)
+- [What is micro-ROS?](#what-is-micro-ros)
+- [What has improved since ROS 1](#what-has-improved-since-ros-1)
+- [What is micro-ROS?](#what-is-micro-ros)
+- [micro-ROS Project Components](#what-is-micro-ros)
+- [Webots Integration](#webots-integration)
+- [Installation Steps](#installation-steps)
 
 ## What is ROS 2?
 ROS 2 is the second major version of the Robot Operating System (ROS), an open-source framework to build complex robot applications.
