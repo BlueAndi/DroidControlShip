@@ -63,3 +63,4 @@ The Webots integration is discussed on the [Webots subpage](./webots/webots.md).
 * [ROS2 Jazzy](./setup/ROS2_Jazzy.md)
 * [Webots](./setup/Webots.md)
 * [Target](./setup/Target.md)
+* [micro-ROS Native](./setup/microROS_Native.md)
