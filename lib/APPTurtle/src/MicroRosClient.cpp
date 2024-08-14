@@ -147,7 +147,7 @@ bool MicroRosClient::process()
         }
         else
         {
-            if (RCL_RET_ERROR == rclc_executor_spin_some(&m_executor, RCL_MS_TO_NS(100)))
+            if (RCL_RET_ERROR == rclc_executor_spin_some(&m_executor, RCL_MS_TO_NS(5)))
             {
                 isSuccessful = false;
             }
