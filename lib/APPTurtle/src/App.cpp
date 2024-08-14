@@ -33,7 +33,6 @@
  * Includes
  *****************************************************************************/
 #include "App.h"
-#include <Board.h>
 #include <Logging.h>
 #include <LogSinkPrinter.h>
 #include <SettingsHandler.h>
@@ -132,50 +131,17 @@ void App::setup()
         {
             LOG_ERROR("Micro-ROS Agent could not be configured.");
         }
+        else if (false == setupMicroRosClient())
+        {
+            LOG_ERROR("Micro-ROS Client could not be setup.");
+        }
+        else if (false == setupSerialMuxProtServer())
+        {
+            LOG_ERROR("SerialMuxProt Server could not be setup.");
+        }
         else
         {
-            /* Subscriber for Geometry Twist ROS messages. */
-            typedef Subscriber<geometry_msgs__msg__Twist> CmdVelSubscriber;
-
-            /* Create the Subscriber Callback. */
-            CmdVelSubscriber::RosTopicCallback twistCallback = [this](const geometry_msgs__msg__Twist* msgData)
-            {
-                if (nullptr == msgData)
-                {
-                    LOG_ERROR("TwistCallback received nullptr.");
-                }
-                else
-                {
-                    LOG_DEBUG("Twist data received.");
-
-                    /* Short blink to indicate reception. */
-                    Board::getInstance().getBlueLed().enable(true);
-
-                    /* Process data. */
-                    LOG_DEBUG("Linear: %f %f %f", msgData->linear.x, msgData->linear.y, msgData->linear.z);
-                    LOG_DEBUG("Angular: %f %f %f", msgData->angular.x, msgData->angular.y, msgData->angular.z);
-
-                    Board::getInstance().getBlueLed().enable(false);
-                }
-            };
-
-            /* Create instance of CmdVelSubscriber. Will be deleted by the MicroRosClient. */
-            CmdVelSubscriber* twistSub = new (std::nothrow) CmdVelSubscriber(
-                TOPIC_NAME_CMD_VEL, ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), twistCallback);
-
-            /* Register the subscriber. */
-            if (nullptr == twistSub)
-            {
-                LOG_ERROR("Could not create instance of CmdVelSubscriber");
-            }
-            else if (false == m_ros.registerSubscriber(twistSub))
-            {
-                LOG_ERROR("Could not register the CmdVelSubscriber.");
-            }
-            else
-            {
-                isSuccessful = true;
-            }
+            isSuccessful = true;
         }
     }
 
@@ -191,7 +157,7 @@ void App::setup()
         delay(100U);
         Board::getInstance().getGreenLed().enable(false);
 
-        LOG_INFO("Turtle is ready.");
+        LOG_INFO(settings.getRobotName() + " is ready.");
     }
 }
 
@@ -213,6 +179,21 @@ void App::loop()
         LOG_FATAL("ROS process failed.");
         fatalErrorHandler();
     }
+
+    /* Process SerialMuxProt. */
+    m_smpServer.process(millis());
+
+    if ((true == m_statusTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+    {
+        Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
+        {
+            LOG_WARNING("Failed to send current status to RU.");
+        }
+
+        m_statusTimer.restart();
+    }
 }
 
 /******************************************************************************
@@ -232,6 +213,110 @@ void App::fatalErrorHandler()
     {
         ;
     }
+}
+
+bool App::setupMicroRosClient()
+{
+    bool isSuccessful = false;
+
+    /* Subscriber for Geometry Twist ROS messages. */
+    typedef Subscriber<geometry_msgs__msg__Twist> CmdVelSubscriber;
+
+    /* Create the Subscriber Callback. */
+    CmdVelSubscriber::RosTopicCallback twistCallback = [this](const geometry_msgs__msg__Twist* msgData)
+    {
+        if (nullptr == msgData)
+        {
+            LOG_ERROR("TwistCallback received nullptr.");
+        }
+        else
+        {
+            LOG_DEBUG("Twist data received.");
+
+            /* Short blink to indicate reception. */
+            Board::getInstance().getBlueLed().enable(true);
+
+            /* Process data. */
+            LOG_DEBUG("Linear: %f %f %f", msgData->linear.x, msgData->linear.y, msgData->linear.z);
+            LOG_DEBUG("Angular: %f %f %f", msgData->angular.x, msgData->angular.y, msgData->angular.z);
+
+            uint32_t mod = ((uint32_t)msgData->linear.x) % 6;
+
+            LOG_DEBUG("Mod: %u", mod);
+
+            if (0 == mod)
+            {
+                SpeedData payload = {.left = 0, .right = 0, .center = 0};
+
+                if (false ==
+                    this->m_smpServer.sendData(this->m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
+                {
+                    LOG_ERROR("Failed to send speed data.");
+                }
+                else
+                {
+                    LOG_DEBUG("Speed data sent. %d %d %d", payload.left, payload.right, payload.center);
+                }
+            }
+            else if (3 == mod)
+            {
+                SpeedData payload = {.left = 2000, .right = -2000, .center = 0};
+
+                if (false ==
+                    this->m_smpServer.sendData(this->m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
+                {
+                    LOG_ERROR("Failed to send speed data.");
+                }
+                else
+                {
+                    LOG_DEBUG("Speed data sent. %d %d %d", payload.left, payload.right, payload.center);
+                }
+            }
+
+            Board::getInstance().getBlueLed().enable(false);
+        }
+    };
+
+    /* Create instance of CmdVelSubscriber. Will be deleted by the MicroRosClient. */
+    CmdVelSubscriber* twistSub = new (std::nothrow)
+        CmdVelSubscriber(TOPIC_NAME_CMD_VEL, ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), twistCallback);
+
+    /* Register the subscriber. */
+    if (nullptr == twistSub)
+    {
+        LOG_ERROR("Could not create instance of CmdVelSubscriber");
+    }
+    else if (false == m_ros.registerSubscriber(twistSub))
+    {
+        LOG_ERROR("Could not register the CmdVelSubscriber.");
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
+bool App::setupSerialMuxProtServer()
+{
+    bool isSuccessful = false;
+
+    m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
+    m_serialMuxProtChannelIdMotorSpeeds =
+        m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+
+    if ((0U == m_serialMuxProtChannelIdStatus) || (0U == m_serialMuxProtChannelIdMotorSpeeds))
+    {
+        LOG_ERROR("Failed to create SerialMuxProt channels.");
+    }
+    else
+    {
+        isSuccessful = true;
+        m_statusTimer.start(STATUS_TIMER_INTERVAL);
+    }
+
+    return isSuccessful;
 }
 
 /******************************************************************************
