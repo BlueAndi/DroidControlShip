@@ -2,7 +2,7 @@
 
 ## Official Jazzy Setup Procedure
 Follow the official installation guide For Ubuntu (Debian packages) on the 
-[ROS2 Jazzy Webpage](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Installation-Windows.html).
+[ROS2 Jazzy Webpage](https://docs.ros.org/en/jazzy/Installation.html).
 
 It boils down to copy+paste the commands from
 [Ubuntu-Install-Debians](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debians.html)
