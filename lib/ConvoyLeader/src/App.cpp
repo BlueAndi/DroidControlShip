@@ -382,7 +382,7 @@ void App::processPeriodicTasks()
 
     if ((true == m_motorSpeedTimer.isTimeout()) && (true == m_smpServer.isSynced()))
     {
-        int16_t   centerSpeed = 0;
+        int32_t   centerSpeed = 0;
         SpeedData payload;
 
         if (false == DrivingState::getInstance().getTopMotorSpeed(centerSpeed))

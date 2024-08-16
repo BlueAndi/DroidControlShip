@@ -79,8 +79,8 @@ void DrivingState::process(StateMachine& sm)
         /* Compact implementation of the "Platoon Application Controller". */
 
         /* Drive as fast as possible */
-        int16_t linearSpeedSetpoint = m_maxMotorSpeed;
-        int16_t controlSpeed        = m_maxMotorSpeed;
+        int32_t linearSpeedSetpoint = m_maxMotorSpeed;
+        int32_t controlSpeed        = m_maxMotorSpeed;
 
         /* Constrain the setpoint based on platoon length. */
         platoonLengthController(linearSpeedSetpoint);
@@ -115,13 +115,13 @@ void DrivingState::exit()
     m_isActive = false;
 }
 
-void DrivingState::setMaxMotorSpeed(int16_t maxSpeed)
+void DrivingState::setMaxMotorSpeed(int32_t maxSpeed)
 {
     m_maxMotorSpeed = maxSpeed;
     LOG_DEBUG("DrivingState: Max motor speed: %d", m_maxMotorSpeed);
 }
 
-bool DrivingState::getTopMotorSpeed(int16_t& topMotorSpeed) const
+bool DrivingState::getTopMotorSpeed(int32_t& topMotorSpeed) const
 {
     topMotorSpeed = m_currentSpeedSetpoint;
 
@@ -151,12 +151,12 @@ void DrivingState::setPlatoonLength(const int32_t platoonLength)
  * Private Methods
  *****************************************************************************/
 
-void DrivingState::platoonLengthController(int16_t& linearCenterSpeedSetpoint)
+void DrivingState::platoonLengthController(int32_t& linearCenterSpeedSetpoint)
 {
     /* Limit the speed setpoint if platoon length greater than maximum allowed. */
     if (m_platoonLength > MAX_PLATOON_LENGTH)
     {
-        int16_t maxPossibleSpeed = linearCenterSpeedSetpoint;
+        int32_t maxPossibleSpeed = linearCenterSpeedSetpoint;
 
         maxPossibleSpeed = maxPossibleSpeed - (m_platoonLength * maxPossibleSpeed / (MAX_PLATOON_LENGTH * 10));
 

@@ -127,7 +127,7 @@ void DrivingState::process(StateMachine& sm)
         else
         {
             int32_t pidDelta            = 0;
-            int16_t centerSpeedSetpoint = 0;
+            int32_t centerSpeedSetpoint = 0;
 
             /* Longitudinal controller. */
             if (true == m_ivsPidProcessTimer.isTimeout())
@@ -176,12 +176,12 @@ void DrivingState::exit()
     m_isActive = false;
 }
 
-void DrivingState::setMaxMotorSpeed(int16_t maxSpeed)
+void DrivingState::setMaxMotorSpeed(int32_t maxSpeed)
 {
     m_maxMotorSpeed = maxSpeed;
 }
 
-bool DrivingState::getMotorSpeedSetpoints(int16_t& leftMotorSpeed, int16_t& rightMotorSpeed) const
+bool DrivingState::getMotorSpeedSetpoints(int32_t& leftMotorSpeed, int32_t& rightMotorSpeed) const
 {
     leftMotorSpeed  = m_leftMotorSpeed;
     rightMotorSpeed = m_rightMotorSpeed;
