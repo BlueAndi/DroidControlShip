@@ -96,18 +96,18 @@ public:
      * Set maximum motor speed.
      * This also sets the range factor as is dependent on the maximum motor speed.
      *
-     * @param[in] maxSpeed Maximum motor speed.
+     * @param[in] maxSpeed Maximum motor speed in mm/s.
      */
-    void setMaxMotorSpeed(int16_t maxSpeed);
+    void setMaxMotorSpeed(int32_t maxSpeed);
 
     /**
      * Get the calculated top motor speed.
      *
-     * @param[out] topMotorSpeed The calculated top motor speed.
+     * @param[out] topMotorSpeed The calculated top motor speed in mm/s.
      *
      * @returns true if the top motor speed is valid. Otherwise, false.
      */
-    bool getTopMotorSpeed(int16_t& topMotorSpeed) const;
+    bool getTopMotorSpeed(int32_t& topMotorSpeed) const;
 
     /**
      * Set latest vehicle data.
@@ -147,11 +147,11 @@ private:
     /** Flag: State is active. */
     bool m_isActive;
 
-    /** Maximum motor speed in steps/s. */
-    int16_t m_maxMotorSpeed;
+    /** Maximum motor speed in mm/s. */
+    int32_t m_maxMotorSpeed;
 
-    /** Current linear speed setpoint to apply to the vehicle. */
-    int16_t m_currentSpeedSetpoint;
+    /** Current linear speed setpoint to apply to the vehicle in mm/s. */
+    int32_t m_currentSpeedSetpoint;
 
     /** Latest vehicle data. */
     Telemetry m_vehicleData;
@@ -167,7 +167,7 @@ private:
      *
      * @param[out] speedSetpoint The speed setpoint.
      */
-    void platoonLengthController(int16_t& speedSetpoint);
+    void platoonLengthController(int32_t& speedSetpoint);
 
     /**
      * Default constructor.
