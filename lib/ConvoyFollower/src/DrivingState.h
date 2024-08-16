@@ -214,7 +214,7 @@ private:
     struct HEADING_FINDER_PID_FACTORS
     {
         /** The PID proportional factor numerator for the Heading Finder. */
-        static const int32_t PID_P_NUMERATOR = 5;
+        static const int32_t PID_P_NUMERATOR = 1;
 
         /** The PID proportional factor denominator for the Heading Finder.*/
         static const int32_t PID_P_DENOMINATOR = 4;
