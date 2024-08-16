@@ -370,8 +370,8 @@ void App::motorSpeedsTopicCallback(const String& payload)
         if ((false == leftSpeed.isNull()) && (false == rightSpeed.isNull()))
         {
             SpeedData motorSetpoints;
-            motorSetpoints.left  = leftSpeed.as<int16_t>();
-            motorSetpoints.right = rightSpeed.as<int16_t>();
+            motorSetpoints.left  = leftSpeed.as<int32_t>();
+            motorSetpoints.right = rightSpeed.as<int32_t>();
 
             if (true == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds,
                                              reinterpret_cast<uint8_t*>(&motorSetpoints), sizeof(motorSetpoints)))
