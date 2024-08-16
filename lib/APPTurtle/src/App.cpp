@@ -295,24 +295,32 @@ void App::handleTurtle()
     /* Check for new data. */
     if (true == m_isNewTurtleSpeedSetpoint)
     {
-        m_isNewTurtleSpeedSetpoint = false;
-        LOG_DEBUG("New turtle speed setpoint received. %f", m_turtleSpeedSetpoint.linear.x);
-        SpeedData payload;
+        /*
+        Max speed is currently unknown to DCS, but using a big value will ensure that
+        RU drives as fast as possible as it will cap the speed to its own maximum.
+        */
+        const int16_t MOTOR_MAX_SPEED = 5000;
+        SpeedData     payload;
 
+        /*
+        Move turtle regardless of the exact speed setpoint received.
+        */
         if (m_turtleSpeedSetpoint.linear.x > 0.0F)
         {
-            payload.left  = 3000;
-            payload.right = 3000;
+            payload.left  = MOTOR_MAX_SPEED;
+            payload.right = MOTOR_MAX_SPEED;
         }
+        /* Turn left. */
         else if (m_turtleSpeedSetpoint.angular.z > 0.0F)
         {
-            payload.left  = -3000;
-            payload.right = 3000;
+            payload.left  = -MOTOR_MAX_SPEED;
+            payload.right = MOTOR_MAX_SPEED;
         }
+        /* Turn right. */
         else if (m_turtleSpeedSetpoint.angular.z < 0.0F)
         {
-            payload.left  = 3000;
-            payload.right = -3000;
+            payload.left  = MOTOR_MAX_SPEED;
+            payload.right = -MOTOR_MAX_SPEED;
         }
 
         if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
@@ -321,6 +329,7 @@ void App::handleTurtle()
         }
         else
         {
+            m_isNewTurtleSpeedSetpoint = false;
             m_turtleStepTimer.start(TURTLE_STEP_TIMER_INTERVAL);
         }
     }
