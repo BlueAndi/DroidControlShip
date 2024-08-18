@@ -101,7 +101,7 @@ public:
     /**
      * Get the IP address.
      *
-     * @return P address if available, otherwise IPAddr(), which is 0.0.0.0.
+     * @return IP address if available, otherwise IPAddr(), which is 0.0.0.0.
      */
     IPAddress getIp() const final;
 
