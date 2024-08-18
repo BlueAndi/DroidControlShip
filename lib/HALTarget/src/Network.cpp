@@ -153,24 +153,24 @@ bool Network::isUp() const
     return ((STATE_UNINITIALIZED != m_state) && (STATE_SETUP != m_state) && (STATE_AP_SETUP != m_state));
 }
 
-String Network::getIp() const
+IPAddress Network::getIp() const
 {
-    String ipAddress;
+    IPAddress ipAddr;
 
     if (STATE_CONNECTED == m_state)
     {
-        ipAddress = WiFi.localIP().toString();
+        ipAddr = WiFi.localIP();
     }
     else if (STATE_AP_UP == m_state)
     {
-        ipAddress = WiFi.softAPIP().toString();
+        ipAddr = WiFi.softAPIP();
     }
     else
     {
-        /* Do nothing. */
+        ipAddr = IPAddress();
     }
 
-    return ipAddress;
+    return ipAddr;
 }
 
 /******************************************************************************

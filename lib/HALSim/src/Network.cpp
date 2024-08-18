@@ -139,10 +139,10 @@ bool Network::isUp() const
     return true;
 }
 
-String Network::getIp() const
+IPAddress Network::getIp() const
 {
     /* Simulation uses localhost IP. */
-    return "127.0.0.1";
+    return IPAddress(127, 0, 0, 1);
 }
 
 /******************************************************************************
