@@ -101,7 +101,7 @@ public:
      *
      * @return IP address if available, otherwise IPAddr(), which is 0.0.0.0.
      */
-    IPAddress getIp() const final;
+    IPAddress getIp() const;
 
 private:
     /** Network Service States. */
