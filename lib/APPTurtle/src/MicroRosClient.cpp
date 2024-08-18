@@ -130,7 +130,7 @@ bool MicroRosClient::process()
     bool      isSuccessful = true;
     INetwork& network      = Board::getInstance().getNetwork();
 
-    if ((true == network.isUp()) && (false == network.getIp().isEmpty()))
+    if ((true == network.isUp()) && (IPAddress() != network.getIp()))
     {
         if (false == m_isConfigured)
         {

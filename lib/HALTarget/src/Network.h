@@ -101,9 +101,9 @@ public:
     /**
      * Get the IP address.
      *
-     * @return IP address if available, otherwise an empty string.
+     * @return P address if available, otherwise IPAddr(), which is 0.0.0.0.
      */
-    String getIp() const final;
+    IPAddress getIp() const final;
 
 private:
     /** Network Service States. */
