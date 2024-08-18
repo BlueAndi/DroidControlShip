@@ -53,6 +53,7 @@
 
 static void testIPAddrConstruction(void);
 static void testIPAddrString(void);
+static void testIPAddrOperator(void);
 
 /******************************************************************************
  * Local Variables
@@ -88,6 +89,7 @@ extern int main(int argc, char** argv)
 
     RUN_TEST(testIPAddrConstruction);
     RUN_TEST(testIPAddrString);
+    RUN_TEST(testIPAddrOperator);
 
     return UNITY_END();
 }
@@ -147,4 +149,24 @@ static void testIPAddrString(void)
 
     String crab("The quick brown fox jumps over the lazy dog");
     TEST_ASSERT_FALSE(ip.fromString(crab));
+}
+
+static void testIPAddrOperator(void)
+{
+    IPAddress ip0;
+    
+    TEST_ASSERT_TRUE(ip0 == IPAddress());
+
+    IPAddress ip1(11,12,19,94);
+    IPAddress ip2(25,04,19,68);
+    
+    TEST_ASSERT_TRUE(ip1 != ip2);
+    TEST_ASSERT_FALSE(ip1 == ip2);
+
+    ip1 = ip2;
+    TEST_ASSERT_FALSE(ip1 != ip2);
+    TEST_ASSERT_TRUE(ip1 == ip2);
+
+    ip1 = ip1; /* self assignmet check */
+    TEST_ASSERT_TRUE(ip1 == ip2);
 }

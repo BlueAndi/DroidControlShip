@@ -61,15 +61,31 @@ class IPAddress
 public:
     /**
      * Default contstruction
+     *
+     * @param[in] addr raw 32bit IP V4 address (default: 0U)
      */
     IPAddress(uint32_t addr = 0U) : m_addr(addr)
     {
     }
 
     /**
-     *  Construction from octets
+     *  Construction from octets.
+     *
+     * @param[in] o1 address bits 24..31
+     * @param[in] o2 address bits 16..23
+     * @param[in] o3 address bits  8..15
+     * @param[in] 04 address vits  0.. 7
      */
     IPAddress(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4) : m_addr(toUint32(o1, o2, o3, o4))
+    {
+    }
+
+    /**
+     * Define copy constructor
+     *
+     * @param[in] other other IPAddress instance to clone.
+     */
+    IPAddress(const IPAddress& other) : m_addr(other.m_addr)
     {
     }
 
@@ -90,12 +106,15 @@ public:
      * Initialize from a "x.x.x.x" string.
      *
      * @param[in] str IPV4 string
+     *
      * @return bool true or false
      */
     bool fromString(const String& str);
 
     /**
-     * class assignment
+     * Define class comparison for equal.
+     *
+     * @param[in] other instance to compare with
      */
     bool operator==(const IPAddress& other) const
     {
@@ -103,8 +122,33 @@ public:
     }
 
     /**
+     * Define class comparison for not equal.
+     *
+     * @param[in] other instance to compare with
+     */
+    bool operator!=(const IPAddress& other) const
+    {
+        return m_addr != other.m_addr;
+    }
+
+    /**
+     * Define class assignment.
+     *
+     * @param[in] other instance to assign from
+     */
+    const IPAddress& operator=(const IPAddress& other)
+    {
+        if (this != &other)
+        {
+            m_addr = other.m_addr;
+        }
+
+        return *this;
+    }
+
+    /**
      * Get raw address value
-     * 
+     *
      * @return address value
      */
     uint32_t raw(void) const
