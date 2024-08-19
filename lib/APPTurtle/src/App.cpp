@@ -140,7 +140,7 @@ void App::setup()
         else
         {
             /* Trigger immediately. */
-            m_turtleStepTimer.start(0U);
+            m_turtleMovementTimer.start(0U);
             isSuccessful = true;
         }
     }
@@ -295,32 +295,30 @@ void App::handleTurtle()
     /* Check for new data. */
     if (true == m_isNewTurtleSpeedSetpoint)
     {
-        /*
-        Max speed is currently unknown to DCS, but using a big value will ensure that
-        RU drives as fast as possible as it will cap the speed to its own maximum.
-        */
-        const int32_t MOTOR_MAX_SPEED = 373;
-        SpeedData     payload;
+        SpeedData payload;
+        payload.left  = 0;
+        payload.right = 0;
 
-        /*
-        Move turtle regardless of the exact speed setpoint received.
-        */
-        if (m_turtleSpeedSetpoint.linear.x > 0.0F)
+        int32_t linearSpeed  = m_turtleSpeedSetpoint.linear.x * 1000;  /* Linear speed in mm/s */
+        int32_t angularSpeed = m_turtleSpeedSetpoint.angular.z * 1000; /* Angular speed in mm/s */
+
+        /* Linear speed has preference over angular speed. */
+        if (linearSpeed > 0.0F)
         {
-            payload.left  = MOTOR_MAX_SPEED;
-            payload.right = MOTOR_MAX_SPEED;
+            payload.left  = linearSpeed;
+            payload.right = linearSpeed;
         }
         /* Turn left. */
-        else if (m_turtleSpeedSetpoint.angular.z > 0.0F)
+        else if (angularSpeed > 0.0F)
         {
-            payload.left  = -MOTOR_MAX_SPEED;
-            payload.right = MOTOR_MAX_SPEED;
+            payload.left  = -angularSpeed;
+            payload.right = angularSpeed;
         }
         /* Turn right. */
-        else if (m_turtleSpeedSetpoint.angular.z < 0.0F)
+        else if (angularSpeed < 0.0F)
         {
-            payload.left  = MOTOR_MAX_SPEED;
-            payload.right = -MOTOR_MAX_SPEED;
+            payload.left  = angularSpeed;
+            payload.right = -angularSpeed;
         }
 
         if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
@@ -330,11 +328,11 @@ void App::handleTurtle()
         else
         {
             m_isNewTurtleSpeedSetpoint = false;
-            m_turtleStepTimer.start(TURTLE_STEP_TIMER_INTERVAL);
+            m_turtleMovementTimer.start(TURTLE_STEP_TIMER_INTERVAL);
         }
     }
 
-    if (true == m_turtleStepTimer.isTimeout())
+    if (true == m_turtleMovementTimer.isTimeout())
     {
         SpeedData payload;
         payload.left  = 0;
@@ -345,7 +343,7 @@ void App::handleTurtle()
             LOG_WARNING("Failed to send motor speeds to RU.");
         }
 
-        m_turtleStepTimer.stop();
+        m_turtleMovementTimer.stop();
     }
 }
 
