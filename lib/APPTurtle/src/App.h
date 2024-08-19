@@ -71,7 +71,7 @@ public:
         m_serialMuxProtChannelIdMotorSpeeds(0U),
         m_smpServer(Board::getInstance().getRobot().getStream(), this),
         m_statusTimer(),
-        m_turtleStepTimer(),
+        m_turtleMovementTimer(),
         m_turtleSpeedSetpoint(),
         m_isNewTurtleSpeedSetpoint(true)
     {
@@ -136,9 +136,9 @@ private:
     SimpleTimer m_statusTimer;
 
     /**
-     * Timer for the steps of the turtle.
+     * Timer for the movement of the turtle.
      */
-    SimpleTimer m_turtleStepTimer;
+    SimpleTimer m_turtleMovementTimer;
 
     /**
      * Turtle speed setpoint.
