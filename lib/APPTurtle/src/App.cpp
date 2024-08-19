@@ -274,10 +274,9 @@ bool App::setupSerialMuxProtServer()
     bool isSuccessful = false;
 
     m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
-    m_serialMuxProtChannelIdMotorSpeeds =
-        m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+    m_serialMuxProtChannelIdTurtle = m_smpServer.createChannel(TURTLE_CHANNEL_NAME, TURTLE_CHANNEL_DLC);
 
-    if ((0U == m_serialMuxProtChannelIdStatus) || (0U == m_serialMuxProtChannelIdMotorSpeeds))
+    if ((0U == m_serialMuxProtChannelIdStatus) || (0U == m_serialMuxProtChannelIdTurtle))
     {
         LOG_ERROR("Failed to create SerialMuxProt channels.");
     }
@@ -295,33 +294,16 @@ void App::handleTurtle()
     /* Check for new data. */
     if (true == m_isNewTurtleSpeedSetpoint)
     {
-        SpeedData payload;
-        payload.left  = 0;
-        payload.right = 0;
+        TurtleSpeed payload;
+        int32_t     linearSpeed  = m_turtleSpeedSetpoint.linear.x * 1000;  /* Linear speed in mm/s */
+        int32_t     angularSpeed = m_turtleSpeedSetpoint.angular.z * 1000; /* Angular speed in mrad/s */
 
-        int32_t linearSpeed  = m_turtleSpeedSetpoint.linear.x * 1000;  /* Linear speed in mm/s */
-        int32_t angularSpeed = m_turtleSpeedSetpoint.angular.z * 1000; /* Angular speed in mm/s */
+        payload.linearCenter = linearSpeed;
+        payload.angular      = angularSpeed;
 
-        /* Linear speed has preference over angular speed. */
-        if (linearSpeed > 0.0F)
-        {
-            payload.left  = linearSpeed;
-            payload.right = linearSpeed;
-        }
-        /* Turn left. */
-        else if (angularSpeed > 0.0F)
-        {
-            payload.left  = -angularSpeed;
-            payload.right = angularSpeed;
-        }
-        /* Turn right. */
-        else if (angularSpeed < 0.0F)
-        {
-            payload.left  = angularSpeed;
-            payload.right = -angularSpeed;
-        }
+        LOG_DEBUG("Linear speed: %d mm/s, Angular speed: %d mrad/s", payload.linearCenter, payload.angular);
 
-        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdTurtle, &payload, sizeof(payload)))
         {
             LOG_WARNING("Failed to send motor speeds to RU.");
         }
@@ -334,11 +316,11 @@ void App::handleTurtle()
 
     if (true == m_turtleMovementTimer.isTimeout())
     {
-        SpeedData payload;
-        payload.left  = 0;
-        payload.right = 0;
+        TurtleSpeed payload;
+        payload.linearCenter = 0;
+        payload.angular      = 0;
 
-        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdTurtle, &payload, sizeof(payload)))
         {
             LOG_WARNING("Failed to send motor speeds to RU.");
         }

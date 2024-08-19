@@ -68,7 +68,7 @@ public:
     App() :
         m_ros(),
         m_serialMuxProtChannelIdStatus(0U),
-        m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_serialMuxProtChannelIdTurtle(0U),
         m_smpServer(Board::getInstance().getRobot().getStream(), this),
         m_statusTimer(),
         m_turtleMovementTimer(),
@@ -121,9 +121,9 @@ private:
     uint8_t m_serialMuxProtChannelIdStatus;
 
     /**
-     * SerialMuxProt Channel id for sending motor speeds.
+     * SerialMuxProt Channel id for sending Turtle speeds.
      */
-    uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+    uint8_t m_serialMuxProtChannelIdTurtle;
 
     /**
      * SerialMuxProt Server Instance
