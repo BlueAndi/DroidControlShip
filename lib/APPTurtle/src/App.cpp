@@ -299,7 +299,7 @@ void App::handleTurtle()
         Max speed is currently unknown to DCS, but using a big value will ensure that
         RU drives as fast as possible as it will cap the speed to its own maximum.
         */
-        const int16_t MOTOR_MAX_SPEED = 5000;
+        const int32_t MOTOR_MAX_SPEED = 373;
         SpeedData     payload;
 
         /*
