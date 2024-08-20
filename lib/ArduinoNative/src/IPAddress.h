@@ -98,7 +98,7 @@ public:
 
     /**
      * Convert to IPV4 String
-     * 
+     *
      * @return string representation of address.
      */
     String toString() const;
@@ -148,11 +148,11 @@ public:
     }
 
     /**
-     * Get raw address value
+     * Get raw 32bit IP V4 address value.
      *
      * @return address value
      */
-    uint32_t raw(void) const
+    operator uint32_t() const
     {
         return m_addr;
     }
@@ -161,14 +161,15 @@ private:
     /**
      * Combine octets into 32bit IP V4 address value
      */
-    uint32_t toUint32(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4);
+    static uint32_t toUint32(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4);
 
     uint32_t m_addr; /**< IP V4 address value. */
 };
 
 inline uint32_t IPAddress::toUint32(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4)
 {
-    return ((uint32_t)o1 << 24) | ((uint32_t)o2 << 16) | ((uint32_t)o3 << 8) | ((uint32_t)o4 << 0);
+    return (static_cast<uint32_t>(o1) << 24) | (static_cast<uint32_t>(o2) << 16) | (static_cast<uint32_t>(o3) << 8) |
+           (static_cast<uint32_t>(o4) << 0);
 }
 
 #endif /* IPADDRESS_H */
