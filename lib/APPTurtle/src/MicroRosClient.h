@@ -44,12 +44,11 @@
  *****************************************************************************/
 
 #include "Subscriber.h"
+#include "CustomRosTransport.h"
 
-#include <rmw_microros/rmw_microros.h>
 #include <rcl/rcl.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
-#include <IPAddress.h>
 
 /******************************************************************************
  * Macros
@@ -58,12 +57,6 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
-
-struct micro_ros_agent_locator
-{
-    IPAddress address;
-    int       port;
-};
 
 /**
  * Micro-ROS Client.

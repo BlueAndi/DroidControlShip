@@ -53,30 +53,6 @@
  * Prototypes
  *****************************************************************************/
 
-static bool platformio_transport_open(struct uxrCustomTransport* transport)
-{
-    return true;
-}
-
-static bool platformio_transport_close(struct uxrCustomTransport* transport)
-{
-    return true;
-}
-
-static size_t platformio_transport_write(struct uxrCustomTransport* transport, const uint8_t* buf, size_t len,
-                                         uint8_t* errcode)
-{
-
-    return 0;
-}
-
-static size_t platformio_transport_read(struct uxrCustomTransport* transport, uint8_t* buf, size_t len, int timeout,
-                                        uint8_t* errcode)
-{
-
-    return 0;
-}
-
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -226,9 +202,9 @@ bool MicroRosClient::configureClient()
     {
         LOG_ERROR("Node name is empty.");
     }
-    else if (RCL_RET_OK != rmw_uros_set_custom_transport(false, (void*)&m_agentConfiguration, platformio_transport_open,
-                                                         platformio_transport_close, platformio_transport_write,
-                                                         platformio_transport_read))
+    else if (RCL_RET_OK != rmw_uros_set_custom_transport(false, (void*)&m_agentConfiguration, custom_transport_open,
+                                                         custom_transport_close, custom_transport_write,
+                                                         custom_transport_read))
     {
         LOG_ERROR("Failed to set custom transport for Micro-ROS.");
     }
