@@ -98,7 +98,7 @@ public:
 
     /**
      * Convert to IPV4 String
-     * 
+     *
      * @return string representation of address.
      */
     String toString() const;
@@ -148,7 +148,7 @@ public:
     }
 
     /**
-     * Get raw address value
+     * Get raw 32bit IP V4 address value.
      *
      * @return address value
      */
