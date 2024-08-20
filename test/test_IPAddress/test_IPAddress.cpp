@@ -53,6 +53,7 @@
 
 static void testIPAddrConstruction(void);
 static void testIPAddrString(void);
+static void testIPAddrOperator(void);
 
 /******************************************************************************
  * Local Variables
@@ -88,6 +89,7 @@ extern int main(int argc, char** argv)
 
     RUN_TEST(testIPAddrConstruction);
     RUN_TEST(testIPAddrString);
+    RUN_TEST(testIPAddrOperator);
 
     return UNITY_END();
 }
@@ -118,20 +120,20 @@ extern void tearDown(void)
 static void testIPAddrConstruction(void)
 {
     IPAddress ipDefault;
-    TEST_ASSERT_EQUAL_UINT32(0x00000000, ipDefault.raw());
+    TEST_ASSERT_EQUAL_UINT32(0x00000000, static_cast<uint32_t>(ipDefault));
 
     IPAddress ipInt32(0xBADCAFFE);
-    TEST_ASSERT_EQUAL_UINT32(0xBADCAFFE, ipInt32.raw());
+    TEST_ASSERT_EQUAL_UINT32(0xBADCAFFE, static_cast<uint32_t>(ipInt32));
 
     IPAddress ip;
     ip.fromString(String("192.168.1.42"));
-    TEST_ASSERT_EQUAL_UINT32(0xC0A8012A, ip.raw());
+    TEST_ASSERT_EQUAL_UINT32(0xC0A8012A, static_cast<uint32_t>(ip));
 
     IPAddress other(ip);
-    TEST_ASSERT_EQUAL_UINT32(0xC0A8012A, other.raw());
+    TEST_ASSERT_EQUAL_UINT32(0xC0A8012A, static_cast<uint32_t>(other));
 
     other = ipInt32;
-    TEST_ASSERT_EQUAL_UINT32(0xBADCAFFE, other.raw());
+    TEST_ASSERT_EQUAL_UINT32(0xBADCAFFE, static_cast<uint32_t>(other));
 }
 
 static void testIPAddrString(void)
@@ -140,11 +142,31 @@ static void testIPAddrString(void)
 
     String str("192.168.1.42");
     TEST_ASSERT_TRUE(ip.fromString(str));
-    TEST_ASSERT_EQUAL_UINT32(0xC0A8012A, ip.raw());
+    TEST_ASSERT_EQUAL_UINT32(0xC0A8012A, static_cast<uint32_t>(ip));
 
     String prn(ip.toString());
     TEST_ASSERT_EQUAL_STRING(str.c_str(), prn.c_str());
 
     String crab("The quick brown fox jumps over the lazy dog");
     TEST_ASSERT_FALSE(ip.fromString(crab));
+}
+
+static void testIPAddrOperator(void)
+{
+    IPAddress ip0;
+    
+    TEST_ASSERT_TRUE(ip0 == IPAddress());
+
+    IPAddress ip1(11,12,19,94);
+    IPAddress ip2(25,04,19,68);
+    
+    TEST_ASSERT_TRUE(ip1 != ip2);
+    TEST_ASSERT_FALSE(ip1 == ip2);
+
+    ip1 = ip2;
+    TEST_ASSERT_FALSE(ip1 != ip2);
+    TEST_ASSERT_TRUE(ip1 == ip2);
+
+    ip1 = ip1; /* self assignmet check */
+    TEST_ASSERT_TRUE(ip1 == ip2);
 }

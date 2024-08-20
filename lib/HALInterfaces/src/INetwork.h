@@ -45,6 +45,7 @@
  *****************************************************************************/
 #include <stdint.h>
 #include <WString.h>
+#include <IPAddress.h>
 
 /******************************************************************************
  * Macros
@@ -106,9 +107,9 @@ public:
     /**
      * Get the IP address.
      *
-     * @return IP address if available, otherwise an empty string.
+     * @return IP address if available, otherwise IPAddr(), which is 0.0.0.0.
      */
-    virtual String getIp() const = 0;
+    virtual IPAddress getIp() const = 0;
 
 protected:
     /**

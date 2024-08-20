@@ -61,15 +61,31 @@ class IPAddress
 public:
     /**
      * Default contstruction
+     *
+     * @param[in] addr The raw 32bit IP V4 address (default: 0U).
      */
     IPAddress(uint32_t addr = 0U) : m_addr(addr)
     {
     }
 
     /**
-     *  Construction from octets
+     *  Construction from octets.
+     *
+     * @param[in] o1 Address bits 24..31.
+     * @param[in] o2 Address bits 16..23.
+     * @param[in] o3 Address bits  8..15.
+     * @param[in] 04 Address vits  0.. 7.
      */
     IPAddress(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4) : m_addr(toUint32(o1, o2, o3, o4))
+    {
+    }
+
+    /**
+     * Define copy constructor
+     *
+     * @param[in] other The other IPAddress instance to clone.
+     */
+    IPAddress(const IPAddress& other) : m_addr(other.m_addr)
     {
     }
 
@@ -82,20 +98,24 @@ public:
 
     /**
      * Convert to IPV4 String
-     * @return string representation
+     *
+     * @return string representation of address.
      */
     String toString() const;
 
     /**
      * Initialize from a "x.x.x.x" string.
      *
-     * @param[in] str IPV4 string
+     * @param[in] str IPV4 numeric string
+     *
      * @return bool true or false
      */
     bool fromString(const String& str);
 
     /**
-     * class assignment
+     * Define class comparison for equal.
+     *
+     * @param[in] other The other instance to compare with.
      */
     bool operator==(const IPAddress& other) const
     {
@@ -103,11 +123,36 @@ public:
     }
 
     /**
-     * Get raw address value
-     * 
+     * Define class comparison for not equal.
+     *
+     * @param[in] other The Other instance to compare with.
+     */
+    bool operator!=(const IPAddress& other) const
+    {
+        return m_addr != other.m_addr;
+    }
+
+    /**
+     * Define class assignment.
+     *
+     * @param[in] other The other instance to assign from.
+     */
+    const IPAddress& operator=(const IPAddress& other)
+    {
+        if (this != &other)
+        {
+            m_addr = other.m_addr;
+        }
+
+        return *this;
+    }
+
+    /**
+     * Get raw 32bit IP V4 address value.
+     *
      * @return address value
      */
-    uint32_t raw(void) const
+    operator uint32_t() const
     {
         return m_addr;
     }
@@ -116,14 +161,15 @@ private:
     /**
      * Combine octets into 32bit IP V4 address value
      */
-    uint32_t toUint32(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4);
+    static uint32_t toUint32(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4);
 
     uint32_t m_addr; /**< IP V4 address value. */
 };
 
 inline uint32_t IPAddress::toUint32(uint8_t o1, uint8_t o2, uint8_t o3, uint8_t o4)
 {
-    return ((uint32_t)o1 << 24) | ((uint32_t)o2 << 16) | ((uint32_t)o3 << 8) | ((uint32_t)o4 << 0);
+    return (static_cast<uint32_t>(o1) << 24) | (static_cast<uint32_t>(o2) << 16) | (static_cast<uint32_t>(o3) << 8) |
+           (static_cast<uint32_t>(o4) << 0);
 }
 
 #endif /* IPADDRESS_H */
