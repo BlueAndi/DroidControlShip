@@ -140,7 +140,7 @@ void App::setup()
         else
         {
             /* Trigger immediately. */
-            m_turtleStepTimer.start(0U);
+            m_turtleMovementTimer.start(0U);
             isSuccessful = true;
         }
     }
@@ -274,10 +274,9 @@ bool App::setupSerialMuxProtServer()
     bool isSuccessful = false;
 
     m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
-    m_serialMuxProtChannelIdMotorSpeeds =
-        m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+    m_serialMuxProtChannelIdTurtle = m_smpServer.createChannel(TURTLE_CHANNEL_NAME, TURTLE_CHANNEL_DLC);
 
-    if ((0U == m_serialMuxProtChannelIdStatus) || (0U == m_serialMuxProtChannelIdMotorSpeeds))
+    if ((0U == m_serialMuxProtChannelIdStatus) || (0U == m_serialMuxProtChannelIdTurtle))
     {
         LOG_ERROR("Failed to create SerialMuxProt channels.");
     }
@@ -295,57 +294,39 @@ void App::handleTurtle()
     /* Check for new data. */
     if (true == m_isNewTurtleSpeedSetpoint)
     {
-        /*
-        Max speed is currently unknown to DCS, but using a big value will ensure that
-        RU drives as fast as possible as it will cap the speed to its own maximum.
-        */
-        const int16_t MOTOR_MAX_SPEED = 5000;
-        SpeedData     payload;
+        TurtleSpeed   payload;
+        const int32_t MILLI_CONVERSION_FACTOR = 1000;
+        int32_t       linearSpeed = m_turtleSpeedSetpoint.linear.x * MILLI_CONVERSION_FACTOR; /* Linear speed in mm/s */
+        int32_t angularSpeed = m_turtleSpeedSetpoint.angular.z * MILLI_CONVERSION_FACTOR; /* Angular speed in mrad/s */
 
-        /*
-        Move turtle regardless of the exact speed setpoint received.
-        */
-        if (m_turtleSpeedSetpoint.linear.x > 0.0F)
-        {
-            payload.left  = MOTOR_MAX_SPEED;
-            payload.right = MOTOR_MAX_SPEED;
-        }
-        /* Turn left. */
-        else if (m_turtleSpeedSetpoint.angular.z > 0.0F)
-        {
-            payload.left  = -MOTOR_MAX_SPEED;
-            payload.right = MOTOR_MAX_SPEED;
-        }
-        /* Turn right. */
-        else if (m_turtleSpeedSetpoint.angular.z < 0.0F)
-        {
-            payload.left  = MOTOR_MAX_SPEED;
-            payload.right = -MOTOR_MAX_SPEED;
-        }
+        payload.linearCenter = linearSpeed;
+        payload.angular      = angularSpeed;
 
-        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
+        LOG_DEBUG("Linear speed: %d mm/s, Angular speed: %d mrad/s", payload.linearCenter, payload.angular);
+
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdTurtle, &payload, sizeof(payload)))
         {
             LOG_WARNING("Failed to send motor speeds to RU.");
         }
         else
         {
             m_isNewTurtleSpeedSetpoint = false;
-            m_turtleStepTimer.start(TURTLE_STEP_TIMER_INTERVAL);
+            m_turtleMovementTimer.start(TURTLE_STEP_TIMER_INTERVAL);
         }
     }
 
-    if (true == m_turtleStepTimer.isTimeout())
+    if (true == m_turtleMovementTimer.isTimeout())
     {
-        SpeedData payload;
-        payload.left  = 0;
-        payload.right = 0;
+        TurtleSpeed payload;
+        payload.linearCenter = 0;
+        payload.angular      = 0;
 
-        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds, &payload, sizeof(payload)))
+        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdTurtle, &payload, sizeof(payload)))
         {
             LOG_WARNING("Failed to send motor speeds to RU.");
         }
 
-        m_turtleStepTimer.stop();
+        m_turtleMovementTimer.stop();
     }
 }
 
