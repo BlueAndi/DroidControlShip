@@ -35,6 +35,15 @@
 
 #include "WiFiUdp.h"
 #include <Util.h>
+#include <Logging.h>
+
+#include <bits/stdc++.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -62,30 +71,67 @@
 
 uint8_t WiFiUDP::begin(uint16_t port)
 {
-    UTIL_NOT_USED(port);
+    m_socket = socket(AF_INET, SOCK_DGRAM, 0);
+
+    // setup udp sockt with 10 us timout, would block calling function indefinitely
+    struct timeval read_timeout;
+    read_timeout.tv_sec  = 0;
+    read_timeout.tv_usec = 10;
+    setsockopt(m_socket, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof(read_timeout));
+
+    if (m_socket == -1)
+    {
+        LOG_ERROR("socket creation failed");
+    }
+    else
+    {
+        m_servaddr.sin_family = AF_INET;
+        return 1;
+    }
+
     return 0;
 }
 
 void WiFiUDP::stop()
 {
+    close(m_socket);
 }
 
 int WiFiUDP::beginPacket(IPAddress ip, uint16_t port) // NOLINT(performance-unnecessary-value-param)
 {
-    UTIL_NOT_USED(ip);
-    UTIL_NOT_USED(port);
-    return 0;
+    LOG_DEBUG("%s %d", ip.toString().c_str(), port);
+    m_servaddr.sin_port        = htons(port);
+    m_servaddr.sin_addr.s_addr = ip.raw();
+    m_outBufferLength          = 0;
+
+    const char* hello = "Hello from client";
+
+    sendto(m_socket, (const char*)hello, strlen(hello), 0, (const struct sockaddr*)&m_servaddr, sizeof(m_servaddr));
+    return 1;
 }
 
 size_t WiFiUDP::write(const uint8_t* buffer, size_t length)
 {
-    UTIL_NOT_USED(buffer);
-    UTIL_NOT_USED(length);
-    return 0U;
+    memcpy(m_outBuffer, buffer, length);
+    m_outBufferLength += length;
+    return m_outBufferLength;
 }
 
 int WiFiUDP::endPacket()
 {
+
+    int len = sendto(m_socket, reinterpret_cast<const char*>(m_outBuffer), m_outBufferLength, 0,
+                     (const struct sockaddr*)&m_servaddr, sizeof(m_servaddr));
+
+    if (len == -1)
+    {
+        LOG_ERROR("sendto failed");
+    }
+    else
+    {
+        LOG_INFO("message sent.");
+        return 1;
+    }
     return 0;
 }
 
@@ -100,12 +146,27 @@ void WiFiUDP::flush()
 
 int WiFiUDP::parsePacket()
 {
-    return 0;
+    struct sockaddr_in senderAddr;
+    socklen_t          senderAddrSize = sizeof(senderAddr);
+    ssize_t            packetSize     = 0;
+
+    packetSize = recvfrom(m_socket, m_inBuffer, sizeof(m_inBuffer), 0, (struct sockaddr*)&senderAddr, &senderAddrSize);
+
+    if (packetSize >= 0)
+    {
+        m_inBufferLength = packetSize;
+        return packetSize;
+    }
+    else
+    {
+        LOG_ERROR("recvfrom failed / timeout");
+        return 0;
+    }
 }
 
 int WiFiUDP::available() const
 {
-    return 0;
+    return m_inBufferLength;
 }
 
 int WiFiUDP::read(uint8_t* buffer, size_t size)
@@ -207,9 +268,28 @@ void WiFiUDP::println(int32_t value)
 
 size_t WiFiUDP::readBytes(uint8_t* buffer, size_t length)
 {
-    UTIL_NOT_USED(buffer);
-    UTIL_NOT_USED(length);
-    return 0;
+    if (m_inBufferLength == 0)
+    {
+        return 0;
+    }
+
+    size_t bytesToRead = std::min(length, m_inBufferLength);
+
+    // Log the received bytes
+    std::string hexString;
+    char        hex[4];
+    for (size_t i = 0; i < bytesToRead; ++i)
+    {
+        sprintf(hex, " %02X", buffer[i]);
+        hexString += hex;
+    }
+    LOG_INFO("%s", hexString.c_str());
+
+    memcpy(buffer, m_inBuffer, bytesToRead);
+    m_inBufferLength -= bytesToRead;
+    memmove(m_inBuffer, m_inBuffer + bytesToRead, m_inBufferLength);
+
+    return bytesToRead;
 }
 
 /******************************************************************************
