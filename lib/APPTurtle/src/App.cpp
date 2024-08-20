@@ -294,9 +294,10 @@ void App::handleTurtle()
     /* Check for new data. */
     if (true == m_isNewTurtleSpeedSetpoint)
     {
-        TurtleSpeed payload;
-        int32_t     linearSpeed  = m_turtleSpeedSetpoint.linear.x * 1000;  /* Linear speed in mm/s */
-        int32_t     angularSpeed = m_turtleSpeedSetpoint.angular.z * 1000; /* Angular speed in mrad/s */
+        TurtleSpeed   payload;
+        const int32_t MILLI_CONVERSION_FACTOR = 1000;
+        int32_t       linearSpeed = m_turtleSpeedSetpoint.linear.x * MILLI_CONVERSION_FACTOR; /* Linear speed in mm/s */
+        int32_t angularSpeed = m_turtleSpeedSetpoint.angular.z * MILLI_CONVERSION_FACTOR; /* Angular speed in mrad/s */
 
         payload.linearCenter = linearSpeed;
         payload.angular      = angularSpeed;
