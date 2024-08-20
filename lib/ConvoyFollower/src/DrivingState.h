@@ -102,19 +102,19 @@ public:
     /**
      * Set maximum motor speed.
      *
-     * @param[in] maxSpeed Maximum motor speed.
+     * @param[in] maxSpeed Maximum motor speed in mm/s.
      */
-    void setMaxMotorSpeed(int16_t maxSpeed);
+    void setMaxMotorSpeed(int32_t maxSpeed);
 
     /**
      * Get the calculated motor speed setpoints.
      *
-     * @param[out] leftMotorSpeed The calculated left motor speed.
-     * @param[out] rightMotorSpeed The calculated right motor speed.
+     * @param[out] leftMotorSpeed The calculated left motor speed in mm/s.
+     * @param[out] rightMotorSpeed The calculated right motor speed in mm/s.
      *
      * @returns true if the speed setpoints are valid. Otherwise, false.
      */
-    bool getMotorSpeedSetpoints(int16_t& leftMotorSpeed, int16_t& rightMotorSpeed) const;
+    bool getMotorSpeedSetpoints(int32_t& leftMotorSpeed, int32_t& rightMotorSpeed) const;
 
     /**
      * Set latest vehicle data.
@@ -214,7 +214,7 @@ private:
     struct HEADING_FINDER_PID_FACTORS
     {
         /** The PID proportional factor numerator for the Heading Finder. */
-        static const int32_t PID_P_NUMERATOR = 5;
+        static const int32_t PID_P_NUMERATOR = 1;
 
         /** The PID proportional factor denominator for the Heading Finder.*/
         static const int32_t PID_P_DENOMINATOR = 4;
@@ -235,14 +235,14 @@ private:
     /** Flag: State is active. */
     bool m_isActive;
 
-    /** Maximum motor speed. */
-    int16_t m_maxMotorSpeed;
+    /** Maximum motor speed in mm/s. */
+    int32_t m_maxMotorSpeed;
 
-    /** Calculated left motor speed. */
-    int16_t m_leftMotorSpeed;
+    /** Calculated left motor speed in mm/s. */
+    int32_t m_leftMotorSpeed;
 
-    /** Calculated left motor speed. */
-    int16_t m_rightMotorSpeed;
+    /** Calculated left motor speed in mm/s. */
+    int32_t m_rightMotorSpeed;
 
     /** Latest vehicle data. */
     Telemetry m_vehicleData;

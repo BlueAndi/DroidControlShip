@@ -93,9 +93,9 @@ void HeadingFinder::setPIDFactors(int32_t pNumerator, int32_t pDenominator, int3
     m_pidCtrl.setDFactor(dNumerator, dDenominator);
 }
 
-int16_t HeadingFinder::process(int16_t& targetSpeedLeft, int16_t& targetSpeedRight)
+int32_t HeadingFinder::process(int32_t& targetSpeedLeft, int32_t& targetSpeedRight)
 {
-    int16_t pidDelta = 0;
+    int32_t pidDelta = 0;
 
     /* Process PID controller when timer is done, new data is found, and the motors have a setpoint greater than 0. */
     if ((true == m_pidProcessTime.isTimeout()) && (true == m_newOdometryData) &&
@@ -152,7 +152,7 @@ void HeadingFinder::setOdometryData(int32_t xPos, int32_t yPos, int32_t heading)
     m_newOdometryData = true;
 }
 
-void HeadingFinder::setMotorSpeedData(int16_t speedLeft, int16_t speedRight)
+void HeadingFinder::setMotorSpeedData(int32_t speedLeft, int32_t speedRight)
 {
     /* Set motor speeds. */
     m_data.currentSpeedLeft  = speedLeft;

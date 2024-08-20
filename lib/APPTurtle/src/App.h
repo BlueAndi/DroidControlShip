@@ -43,7 +43,12 @@
  * Includes
  *****************************************************************************/
 #include <Arduino.h>
+#include <Board.h>
+#include <SimpleTimer.hpp>
 #include "MicroRosClient.h"
+#include "SerialMuxChannels.h"
+
+#include <geometry_msgs/msg/twist.h>
 
 /******************************************************************************
  * Macros
@@ -60,7 +65,15 @@ public:
     /**
      * Construct the Turtle application.
      */
-    App() : m_ros()
+    App() :
+        m_ros(),
+        m_serialMuxProtChannelIdStatus(0U),
+        m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_smpServer(Board::getInstance().getRobot().getStream(), this),
+        m_statusTimer(),
+        m_turtleStepTimer(),
+        m_turtleSpeedSetpoint(),
+        m_isNewTurtleSpeedSetpoint(true)
     {
     }
 
@@ -83,6 +96,16 @@ public:
 
 private:
     /**
+     * Interval for sending system status to RU.
+     */
+    static const uint32_t STATUS_TIMER_INTERVAL = 1000U;
+
+    /**
+     * Interval of the duration of a turtle step.
+     */
+    static const uint32_t TURTLE_STEP_TIMER_INTERVAL = 1000U;
+
+    /**
      * Instance of the MicroRosClient.
      */
     MicroRosClient m_ros;
@@ -93,9 +116,63 @@ private:
     static const char* TOPIC_NAME_CMD_VEL;
 
     /**
+     * SerialMuxProt Channel id for sending system status.
+     */
+    uint8_t m_serialMuxProtChannelIdStatus;
+
+    /**
+     * SerialMuxProt Channel id for sending motor speeds.
+     */
+    uint8_t m_serialMuxProtChannelIdMotorSpeeds;
+
+    /**
+     * SerialMuxProt Server Instance
+     */
+    SMPServer m_smpServer;
+
+    /**
+     * Timer for sending system status to RU.
+     */
+    SimpleTimer m_statusTimer;
+
+    /**
+     * Timer for the steps of the turtle.
+     */
+    SimpleTimer m_turtleStepTimer;
+
+    /**
+     * Turtle speed setpoint.
+     */
+    geometry_msgs__msg__Twist m_turtleSpeedSetpoint;
+
+    /**
+     * Flag: New turtle speed setpoint available.
+     */
+    bool m_isNewTurtleSpeedSetpoint;
+
+    /**
      * Handler of fatal errors in the Application.
      */
     void fatalErrorHandler();
+
+    /**
+     * Setup the Micro ROS Client.
+     *
+     * @returns true if successful, otherwise false.
+     */
+    bool setupMicroRosClient();
+
+    /**
+     * Setup the SerialMuxProt Server.
+     *
+     * @returns true if successful, otherwise false.
+     */
+    bool setupSerialMuxProtServer();
+
+    /**
+     * Handle the Turtle behavior.
+     */
+    void handleTurtle();
 
     /**
      * Copy construction of an instance.

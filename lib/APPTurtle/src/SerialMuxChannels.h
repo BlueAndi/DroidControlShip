@@ -80,6 +80,12 @@
 /** DLC of Status Channel */
 #define STATUS_CHANNEL_DLC (sizeof(Status))
 
+/** Name of the Channel to receive Line Sensor Data from. */
+#define LINE_SENSOR_CHANNEL_NAME "LINE_SENS"
+
+/** DLC of Line Sensor Channel */
+#define LINE_SENSOR_CHANNEL_DLC (sizeof(LineSensorData))
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
@@ -93,7 +99,7 @@ namespace SMPChannelPayload
     /** Remote control commands. */
     typedef enum : uint8_t
     {
-        CMD_ID_IDLE = 0U,               /**< Nothing to do. */
+        CMD_ID_IDLE = 0,                /**< Nothing to do. */
         CMD_ID_START_LINE_SENSOR_CALIB, /**< Start line sensor calibration. */
         CMD_ID_START_MOTOR_SPEED_CALIB, /**< Start motor speed calibration. */
         CMD_ID_REINIT_BOARD,            /**< Re-initialize the board. Required for webots simulation. */
@@ -106,7 +112,7 @@ namespace SMPChannelPayload
     /** Remote control command responses. */
     typedef enum : uint8_t
     {
-        RSP_ID_OK = 0U, /**< Command successful executed. */
+        RSP_ID_OK = 0,  /**< Command successful executed. */
         RSP_ID_PENDING, /**< Command is pending. */
         RSP_ID_ERROR    /**< Command failed. */
 
@@ -115,8 +121,8 @@ namespace SMPChannelPayload
     /** Status flags. */
     typedef enum : uint8_t
     {
-        STATUS_FLAG_OK = 0U, /**< Everything is fine. */
-        STATUS_FLAG_ERROR    /**< Something is wrong. */
+        STATUS_FLAG_OK = 0, /**< Everything is fine. */
+        STATUS_FLAG_ERROR   /**< Something is wrong. */
 
     } Status; /**< Status flag */
 
@@ -167,16 +173,16 @@ typedef struct _CommandResponse
     /** Response Payload. */
     union
     {
-        int32_t maxMotorSpeed; /**< Max speed [mm/s]. */
+        int16_t maxMotorSpeed; /**< Max speed [steps/s]. */
     };
 } __attribute__((packed)) CommandResponse;
 
 /** Struct of the "Speed" channel payload. */
 typedef struct _SpeedData
 {
-    int32_t left;   /**< Left motor speed [mm/s] */
-    int32_t right;  /**< Right motor speed [mm/s] */
-    int32_t center; /**< Center motor speed [mm/s] */
+    int16_t left;   /**< Left motor speed [steps/s] */
+    int16_t right;  /**< Right motor speed [steps/s] */
+    int16_t center; /**< Center motor speed [steps/s] */
 } __attribute__((packed)) SpeedData;
 
 /** Struct of the "Current Vehicle Data" channel payload. */
@@ -185,9 +191,9 @@ typedef struct _VehicleData
     int32_t                  xPos;        /**< X position [mm]. */
     int32_t                  yPos;        /**< Y position [mm]. */
     int32_t                  orientation; /**< Orientation [mrad]. */
-    int32_t                  left;        /**< Left motor speed [mm/s]. */
-    int32_t                  right;       /**< Right motor speed [mm/s]. */
-    int32_t                  center;      /**< Center speed [mm/s]. */
+    int16_t                  left;        /**< Left motor speed [steps/s]. */
+    int16_t                  right;       /**< Right motor speed [steps/s]. */
+    int16_t                  center;      /**< Center speed [steps/s]. */
     SMPChannelPayload::Range proximity;   /**< Range at which object is found [range]. */
 } __attribute__((packed)) VehicleData;
 
@@ -196,6 +202,12 @@ typedef struct _Status
 {
     SMPChannelPayload::Status status; /**< Status */
 } __attribute__((packed)) Status;
+
+/** Struct of the "Line Sensor" channel payload. */
+typedef struct _LineSensorData
+{
+    uint16_t lineSensorData[5U]; /**< Line sensor data [digits] normalized to max 1000 digits. */
+} __attribute__((packed)) LineSensorData;
 
 /******************************************************************************
  * Functions
