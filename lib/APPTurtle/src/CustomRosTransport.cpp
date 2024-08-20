@@ -114,11 +114,11 @@ bool custom_transport_close(uxrCustomTransport* transport)
     return true;
 }
 
-size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buffer, size_t length, uint8_t* errorCode)
+size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode)
 {
     size_t sent = 0;
 
-    if ((nullptr == transport) || (nullptr == buffer) || (0 == length) || (nullptr == errorCode))
+    if ((nullptr == transport) || (nullptr == buffer) || (0 == size) || (nullptr == errorCode))
     {
         LOG_ERROR("One or more parameters are invalid.");
     }
@@ -136,9 +136,9 @@ size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buff
         }
         else
         {
-            size_t bytesToWrite = udpClient.write(buffer, length);
+            size_t bytesToWrite = udpClient.write(buffer, size);
 
-            if (bytesToWrite != length)
+            if (bytesToWrite != size)
             {
                 LOG_ERROR("UDP write error");
             }
@@ -170,13 +170,13 @@ size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buff
     return sent;
 }
 
-size_t custom_transport_read(uxrCustomTransport* transport, uint8_t* buffer, size_t length, int timeout,
+size_t custom_transport_read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
                              uint8_t* errorCode)
 {
     UTIL_NOT_USED(transport);
     size_t readBytes = 0;
 
-    if ((nullptr == buffer) || (0 == length) || (0 == timeout) || (nullptr == errorCode))
+    if ((nullptr == buffer) || (0 == size) || (0 == timeout) || (nullptr == errorCode))
     {
         LOG_ERROR("One or more parameters are invalid.");
     }
@@ -199,11 +199,7 @@ size_t custom_transport_read(uxrCustomTransport* transport, uint8_t* buffer, siz
         }
         else
         {
-            /*
-             * Micro-ROS always wants to read 512 bytes.
-             * Therefore, not checking the amount of bytes read against expected.
-             */
-            readBytes = udpClient.read(buffer, length);
+            readBytes = udpClient.read(buffer, size);
         }
     }
 
