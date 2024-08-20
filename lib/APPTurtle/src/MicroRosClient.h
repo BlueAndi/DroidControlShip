@@ -49,6 +49,7 @@
 #include <rcl/rcl.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
+#include <IPAddress.h>
 
 /******************************************************************************
  * Macros
