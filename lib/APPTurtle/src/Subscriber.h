@@ -47,6 +47,7 @@
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 #include <Logging.h>
+#include <functional>
 
 /******************************************************************************
  * Macros
