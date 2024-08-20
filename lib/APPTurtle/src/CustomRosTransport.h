@@ -94,12 +94,12 @@ bool custom_transport_close(uxrCustomTransport* transport);
  *
  * @param[in]  transport The arguments passed through uxr_init_custom_transport.
  * @param[in]  buffer The buffer to write.
- * @param[in]  length The length of the buffer.
+ * @param[in]  size The size of the buffer.
  * @param[out] errorCode The error code.
  *
  * @return The number of bytes written.
  */
-size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buffer, size_t length, uint8_t* errorCode);
+size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode);
 
 /**
  * Read data from the custom transport.
@@ -107,13 +107,13 @@ size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buff
  *
  * @param[in]  transport The arguments passed through uxr_init_custom_transport.
  * @param[out] buffer The buffer to read into.
- * @param[in]  length The length of the buffer.
+ * @param[in]  size The size of the buffer.
  * @param[in]  timeout The timeout in milliseconds.
  * @param[out] errorCode The error code.
  *
  * @return The number of bytes read.
  */
-size_t custom_transport_read(uxrCustomTransport* transport, uint8_t* buffer, size_t length, int timeout,
+size_t custom_transport_read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
                              uint8_t* errorCode);
 
 #endif /* CUSTOM_ROS_TRANSPORT_H */
