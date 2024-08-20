@@ -58,11 +58,11 @@
  * Micro-ROS agent locator struct.
  * Constains the IP address and port of the agent.
  */
-struct micro_ros_agent_locator
+typedef struct _micro_ros_agent_locator
 {
     IPAddress address; /**< IP address of the agent */
     int       port;    /**< Port of the agent */
-};
+} micro_ros_agent_locator;
 
 /******************************************************************************
  * Functions
