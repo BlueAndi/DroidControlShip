@@ -62,6 +62,7 @@
 
 uint8_t WiFiUDP::begin(uint16_t port)
 {
+    UTIL_NOT_USED(port);
     return 0;
 }
 
@@ -69,13 +70,17 @@ void WiFiUDP::stop()
 {
 }
 
-int WiFiUDP::beginPacket(IPAddress ip, uint16_t port)
+int WiFiUDP::beginPacket(IPAddress ip, uint16_t port) // NOLINT(performance-unnecessary-value-param)
 {
+    UTIL_NOT_USED(ip);
+    UTIL_NOT_USED(port);
     return 0;
 }
 
 size_t WiFiUDP::write(const uint8_t* buffer, size_t length)
 {
+    UTIL_NOT_USED(buffer);
+    UTIL_NOT_USED(length);
     return 0U;
 }
 
@@ -202,6 +207,8 @@ void WiFiUDP::println(int32_t value)
 
 size_t WiFiUDP::readBytes(uint8_t* buffer, size_t length)
 {
+    UTIL_NOT_USED(buffer);
+    UTIL_NOT_USED(length);
     return 0;
 }
 
