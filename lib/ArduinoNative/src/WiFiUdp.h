@@ -51,8 +51,6 @@
  * Macros
  *****************************************************************************/
 
-#define MAXLINE 1024
-
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
@@ -157,12 +155,13 @@ public:
     int read(uint8_t* buffer, size_t size);
 
 private:
-    int                m_socket;             /**< Socket file descriptor. */
-    struct sockaddr_in m_servaddr;           /**< Server address. */
-    uint8_t            m_outBuffer[MAXLINE]; /**< Buffer for outgoing packets. */
-    size_t             m_outBufferLength;    /**< Length of the output buffer. */
-    uint8_t            m_inBuffer[MAXLINE];  /**< Buffer for incoming packets. */
-    size_t             m_inBufferLength;     /**< Length of the input buffer. */
+    static const uint32_t WIFIUDP_MAXLINE = 1024U;      /**< Internal buffer size */
+    int                   m_socket;                     /**< Socket file descriptor. */
+    struct sockaddr_in    m_servaddr;                   /**< Server address. */
+    uint8_t               m_outBuffer[WIFIUDP_MAXLINE]; /**< Buffer for outgoing packets. */
+    size_t                m_outBufferLength;            /**< Length of the output buffer. */
+    uint8_t               m_inBuffer[WIFIUDP_MAXLINE];  /**< Buffer for incoming packets. */
+    size_t                m_inBufferLength;             /**< Length of the input buffer. */
 
 private:
     /**
