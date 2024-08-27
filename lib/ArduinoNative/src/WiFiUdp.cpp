@@ -76,12 +76,12 @@ uint8_t WiFiUDP::begin(uint16_t port)
     m_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
     int flags = fcntl(m_socket, F_GETFL, 0);
-    if (fcntl(m_socket, F_SETFL, flags | O_NONBLOCK) == -1)
+    if (-1 == fcntl(m_socket, F_SETFL, flags | O_NONBLOCK))
     {
         LOG_ERROR("socket configuration failed %d", errno);
     }
 
-    if (m_socket == -1)
+    if (-1 == m_socket)
     {
         LOG_ERROR("socket creation failed %d", errno);
     }
@@ -96,42 +96,48 @@ uint8_t WiFiUDP::begin(uint16_t port)
 
 void WiFiUDP::stop()
 {
-    close(m_socket);
+    if (-1 != m_socket)
+    {
+        m_outBufferLength = 0;
+        m_inBufferLength  = 0;
+        close(m_socket);
+    }
 }
 
 int WiFiUDP::beginPacket(IPAddress ip, uint16_t port) // NOLINT(performance-unnecessary-value-param)
 {
-    LOG_DEBUG("%s %d", ip.toString().c_str(), port);
     m_servaddr.sin_port        = htons(port);
-    m_servaddr.sin_addr.s_addr = ip.raw();
+    m_servaddr.sin_addr.s_addr = ip;
     m_outBufferLength          = 0;
 
-    const char* hello = "Hello from client";
-
-    sendto(m_socket, (const char*)hello, strlen(hello), 0, (const struct sockaddr*)&m_servaddr, sizeof(m_servaddr));
     return 1;
 }
 
 size_t WiFiUDP::write(const uint8_t* buffer, size_t length)
 {
-    memcpy(m_outBuffer, buffer, length);
-    m_outBufferLength += length;
+    size_t bufferSize = sizeof(m_outBuffer);
+
+    /* calculate chunk of buffer that still fits in local buffer */
+    m_outBufferLength = std::min(length, bufferSize);
+
+    /* TODO determine if dropping bytes exceeding the buffer limit is okay. Cyclically calling endPacket not needed
+     * because this is checked by the caller currently */
+    memcpy(m_outBuffer, buffer, m_outBufferLength);
+
     return m_outBufferLength;
 }
 
 int WiFiUDP::endPacket()
 {
-
     int len = sendto(m_socket, reinterpret_cast<const char*>(m_outBuffer), m_outBufferLength, 0,
                      (const struct sockaddr*)&m_servaddr, sizeof(m_servaddr));
 
-    if (len == -1)
+    if (-1 == len)
     {
         LOG_ERROR("sendto failed %d", errno);
     }
     else
     {
-        LOG_INFO("message sent.");
         return 1;
     }
     return 0;
@@ -159,7 +165,7 @@ int WiFiUDP::parsePacket()
     /* determine whether the error was a timeout */
     if (-1 == packetSize)
     {
-        if (errno == EWOULDBLOCK)
+        if ((EAGAIN == errno) || (errno == EWOULDBLOCK))
         {
             return 0;
         }
@@ -282,26 +288,20 @@ void WiFiUDP::println(int32_t value)
 
 size_t WiFiUDP::readBytes(uint8_t* buffer, size_t length)
 {
-    if (m_inBufferLength == 0)
+    if ((0 == m_inBufferLength) || (0 == length))
     {
         return 0;
     }
 
     size_t bytesToRead = std::min(length, m_inBufferLength);
 
-    // Log the received bytes
-    std::string hexString;
-    char        hex[4];
-    for (size_t i = 0; i < bytesToRead; ++i)
+    if (WIFIUDP_MAXLINE > bytesToRead)
     {
-        sprintf(hex, " %02X", buffer[i]);
-        hexString += hex;
-    }
-    LOG_INFO("%s", hexString.c_str());
+        memcpy(buffer, m_inBuffer, bytesToRead);
 
-    memcpy(buffer, m_inBuffer, bytesToRead);
-    m_inBufferLength -= bytesToRead;
-    memmove(m_inBuffer, m_inBuffer + bytesToRead, m_inBufferLength);
+        m_inBufferLength -= bytesToRead;
+        memmove(m_inBuffer, m_inBuffer + bytesToRead, m_inBufferLength);
+    }
 
     return bytesToRead;
 }
