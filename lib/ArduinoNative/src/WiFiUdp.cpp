@@ -44,6 +44,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <errno.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -73,15 +75,15 @@ uint8_t WiFiUDP::begin(uint16_t port)
 {
     m_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
-    // setup udp sockt with 10 us timout, would block calling function indefinitely
-    struct timeval read_timeout;
-    read_timeout.tv_sec  = 0;
-    read_timeout.tv_usec = 10;
-    setsockopt(m_socket, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof(read_timeout));
+    int flags = fcntl(m_socket, F_GETFL, 0);
+    if (fcntl(m_socket, F_SETFL, flags | O_NONBLOCK) == -1)
+    {
+        LOG_ERROR("socket configuration failed %d", errno);
+    }
 
     if (m_socket == -1)
     {
-        LOG_ERROR("socket creation failed");
+        LOG_ERROR("socket creation failed %d", errno);
     }
     else
     {
@@ -125,7 +127,7 @@ int WiFiUDP::endPacket()
 
     if (len == -1)
     {
-        LOG_ERROR("sendto failed");
+        LOG_ERROR("sendto failed %d", errno);
     }
     else
     {
@@ -137,7 +139,7 @@ int WiFiUDP::endPacket()
 
 int WiFiUDP::getWriteError()
 {
-    return 0;
+    return (int)errno;
 }
 
 void WiFiUDP::flush()
@@ -150,18 +152,30 @@ int WiFiUDP::parsePacket()
     socklen_t          senderAddrSize = sizeof(senderAddr);
     ssize_t            packetSize     = 0;
 
-    packetSize = recvfrom(m_socket, m_inBuffer, sizeof(m_inBuffer), 0, (struct sockaddr*)&senderAddr, &senderAddrSize);
+    /* read socket non blocking */
+    packetSize = recvfrom(m_socket, m_inBuffer, sizeof(m_inBuffer), MSG_DONTWAIT, (struct sockaddr*)&senderAddr,
+                          &senderAddrSize);
 
-    if (packetSize >= 0)
+    /* determine whether the error was a timeout */
+    if (-1 == packetSize)
     {
-        m_inBufferLength = packetSize;
-        return packetSize;
-    }
-    else
-    {
-        LOG_ERROR("recvfrom failed / timeout");
+        if (errno == EWOULDBLOCK)
+        {
+            return 0;
+        }
+
+        LOG_ERROR("recvfrom failed %d", errno);
         return 0;
     }
+    else /* receiving successful */
+    {
+        if (0 < packetSize)
+        {
+            m_inBufferLength = packetSize;
+        }
+    }
+
+    return packetSize;
 }
 
 int WiFiUDP::available() const
