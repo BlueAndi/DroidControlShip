@@ -59,12 +59,6 @@
  * Types and Classes
  *****************************************************************************/
 
-struct micro_ros_agent_locator
-{
-    IPAddress address;
-    int       port;
-};
-
 /**
  * Micro-ROS Client.
  */
