@@ -202,9 +202,9 @@ bool MicroRosClient::configureClient()
     {
         LOG_ERROR("Node name is empty.");
     }
-    else if (RCL_RET_OK != rmw_uros_set_custom_transport(false, (void*)&m_agentConfiguration, platformio_transport_open,
-                                                         platformio_transport_close, platformio_transport_write,
-                                                         platformio_transport_read))
+    else if (RCL_RET_OK != rmw_uros_set_custom_transport(false, (void*)&m_agentConfiguration, custom_transport_open,
+                                                         custom_transport_close, custom_transport_write,
+                                                         custom_transport_read))
     {
         LOG_ERROR("Failed to set custom transport for Micro-ROS.");
     }
