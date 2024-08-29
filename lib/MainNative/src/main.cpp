@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 
+#include <unistd.h>
 #include <Arduino.h>
 #include <Terminal.h>
 #include <Board.h>
@@ -111,6 +112,7 @@ static const struct option LONG_OPTIONS[] = {{"help", no_argument, nullptr, 0},
                                              {"xPosition", required_argument, nullptr, 0},
                                              {"yPosition", required_argument, nullptr, 0},
                                              {"heading", required_argument, nullptr, 0},
+                                             {"cwd", required_argument, nullptr, 0},
                                              {nullptr, no_argument, nullptr, 0}}; /* Marks the end. */
 
 /** Program argument default value of the robot name. */
@@ -377,6 +379,10 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             {
                 prgArguments.heading = optarg;
             }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "cwd"))
+            {
+                chdir(optarg);
+            }
             else
             {
                 status = -1;
@@ -433,6 +439,7 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
         printf(" Default: %s\n", PRG_ARG_Y_POS);                             /* Initial Y position default value */
         printf("\t--heading <HEADING>\t\tSet initial heading in mrad.");     /* Initial heading in mrad */
         printf(" Default: %s\n", PRG_ARG_HEADING);                           /* Initial heading default value */
+        printf("\t--cwd <dir>\t\tSpecify working directory.");               /* Set process working directory */
     }
 
     return status;
