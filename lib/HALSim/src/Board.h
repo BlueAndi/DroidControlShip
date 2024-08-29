@@ -168,6 +168,15 @@ public:
     }
 
     /**
+     * Trigger simulation time step (wrapper for SimTime::step)
+     * @return True if step was successful, false otherwise.
+     */
+    bool stepTime()
+    {
+        return m_simTime.step();
+    }
+
+    /**
      * Get the file path of the configuration (settings).
      *
      * @return Configuration file path

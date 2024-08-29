@@ -38,6 +38,7 @@
 #include <WiFiUdp.h>
 #include <SimpleTimer.hpp>
 #include <Logging.h>
+#include <Board.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -189,6 +190,15 @@ size_t custom_transport_read(uxrCustomTransport* transport, uint8_t* buffer, siz
             {
                 break;
             }
+
+#if defined(TARGET_NATIVE)
+            /*
+             * SimpleTimer requires simulation time to progress
+             * otherwise this loop will block until a packet was received.
+             * TODO This is a workaround which needs to be discussed further.
+             */
+            Board::getInstance().stepTime();
+#endif
         }
 
         if (0 == udpClient.available())
