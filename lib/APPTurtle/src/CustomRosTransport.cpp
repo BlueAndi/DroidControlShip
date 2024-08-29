@@ -38,6 +38,7 @@
 #include <WiFiUdp.h>
 #include <SimpleTimer.hpp>
 #include <Logging.h>
+#include <Board.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -189,6 +190,11 @@ size_t custom_transport_read(uxrCustomTransport* transport, uint8_t* buffer, siz
             {
                 break;
             }
+
+/* ROS executor requires active time. Added manual simulation time step for now. */
+#if defined(TARGET_NATIVE)
+            Board::getInstance().stepTime();
+#endif
         }
 
         if (0 == udpClient.available())
