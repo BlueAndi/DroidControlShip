@@ -67,6 +67,7 @@ MicroRosClient::MicroRosClient() :
     m_agentConfiguration(),
     m_isConfigured(false),
     m_node(),
+    m_support(),
     m_executor(),
     m_allocator(),
     m_subscribers{nullptr},
@@ -194,7 +195,6 @@ bool MicroRosClient::registerSubscriber(BaseSubscriber* subscriber)
 bool MicroRosClient::configureClient()
 {
     bool               isSuccessful = false;
-    rclc_support_t     support;
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     m_allocator                     = rcl_get_default_allocator();
 
@@ -208,15 +208,15 @@ bool MicroRosClient::configureClient()
     {
         LOG_ERROR("Failed to set custom transport for Micro-ROS.");
     }
-    else if (RCL_RET_OK != rclc_support_init(&support, 0, NULL, &m_allocator))
+    else if (RCL_RET_OK != rclc_support_init(&m_support, 0, NULL, &m_allocator))
     {
         LOG_ERROR("Failed to initialize support structure.");
     }
-    else if (RCL_RET_OK != rclc_node_init_default(&m_node, m_nodeName.c_str(), m_nodeNamespace.c_str(), &support))
+    else if (RCL_RET_OK != rclc_node_init_default(&m_node, m_nodeName.c_str(), m_nodeNamespace.c_str(), &m_support))
     {
         LOG_ERROR("Failed to initialize node.");
     }
-    else if (RCL_RET_OK != rclc_executor_init(&m_executor, &support.context, m_numberOfHandles, &m_allocator))
+    else if (RCL_RET_OK != rclc_executor_init(&m_executor, &m_support.context, m_numberOfHandles, &m_allocator))
     {
         LOG_ERROR("Failed to initialize executor.");
     }
