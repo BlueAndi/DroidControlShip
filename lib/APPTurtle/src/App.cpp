@@ -109,7 +109,8 @@ void App::setup()
         /* If the robot name is empty, use the wifi MAC address as robot name. */
         if (true == settings.getRobotName().isEmpty())
         {
-            String robotName = WiFi.macAddress();
+            String robotName("MAC");
+            robotName += WiFi.macAddress();
 
             /* Remove MAC separators from robot name. */
             robotName.replace(":", "");
