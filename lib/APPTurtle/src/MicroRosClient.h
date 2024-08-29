@@ -132,6 +132,11 @@ private:
     rcl_node_t m_node;
 
     /**
+     * Micro-ROS support structure
+     */
+    rclc_support_t m_support;
+
+    /**
      * Micro-ROS executor
      */
     rclc_executor_t m_executor;
