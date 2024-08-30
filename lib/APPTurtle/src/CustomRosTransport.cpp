@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Custom Micro-ROS transport.
+ * @brief  Custom Micro-ROS transport over UDP.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
@@ -67,19 +67,7 @@ static WiFiUDP udpClient;
  * Public Methods
  *****************************************************************************/
 
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
-
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-bool custom_transport_open(uxrCustomTransport* transport)
+bool CustomRosTransport::open(uxrCustomTransport* transport)
 {
     bool isOpen = false;
 
@@ -105,7 +93,7 @@ bool custom_transport_open(uxrCustomTransport* transport)
     return isOpen;
 }
 
-bool custom_transport_close(uxrCustomTransport* transport)
+bool CustomRosTransport::close(uxrCustomTransport* transport)
 {
     UTIL_NOT_USED(transport);
 
@@ -113,7 +101,7 @@ bool custom_transport_close(uxrCustomTransport* transport)
     return true;
 }
 
-size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode)
+size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode)
 {
     size_t sent = 0;
 
@@ -123,7 +111,7 @@ size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buff
     }
     else
     {
-        const micro_ros_agent_locator* locator = reinterpret_cast<micro_ros_agent_locator*>(transport->args);
+        const micro_ros_agent_locator* locator = static_cast<micro_ros_agent_locator*>(transport->args);
         const int                      UDP_OK  = 1;
         int                            ret     = UDP_OK;
 
@@ -169,8 +157,8 @@ size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buff
     return sent;
 }
 
-size_t custom_transport_read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
-                             uint8_t* errorCode)
+size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
+                                uint8_t* errorCode)
 {
     UTIL_NOT_USED(transport);
     size_t readBytes = 0;
@@ -216,4 +204,16 @@ size_t custom_transport_read(uxrCustomTransport* transport, uint8_t* buffer, siz
 
 /******************************************************************************
  * Local Functions
+ *****************************************************************************/
+
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * External Functions
  *****************************************************************************/
