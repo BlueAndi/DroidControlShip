@@ -32,7 +32,6 @@ require updates to install for WSL. Then start an Ubuntu console from start menu
 ![Ubuntu Start Menu](./img/ubuntu_start_menu.png)
 
 ## Checking Installation
-
 Check that you have the right distribution installed (Ubuntu 24.04 LTS):
 
 ```bash
@@ -45,7 +44,6 @@ Check that you have the right distribution installed (Ubuntu 24.04 LTS):
 ```
 
 ## New Terminal Window
-
 Is is recommended to install the new Microsoft Terminal Window 
 if not done already. It is available from
 
@@ -54,3 +52,28 @@ if not done already. It is available from
 It offers tabs, history and embedds all kinds of shells (cmd, powershell, Ubuntu, git ...)
 
 ![New Shell](./img/new_shell.png)
+
+
+## Exposing WSL UDP Ports to the Network
+To make UDP ports listening in WSL accessible from your local network, follow these steps:
+Find your WSL IP address by running this command in WSL:
+```bash
+ip addr show eth0
+```
+> **_NOTE:_**
+UDP port forwarding to wsl is not supported without mirrored networking (WSL 2.0.0 on win11)
+
+Open a terminal in an administrator shell on Windows.
+Run the following command to forward the UDP port, replacing [PORT] with your desired port number and [WSL_IP] with the IP address:
+```bat
+netsh interface portproxy add v4tov4 listenport=[PORT] listenaddress=0.0.0.0 connectport=[PORT] connectaddress=[WSL_IP]
+```
+
+To view all forwarded ports:
+```bat
+netsh interface portproxy show all
+```
+To remove a port forward:
+```bat
+netsh interface portproxy delete v4tov4 listenport=[PORT] listenaddress=0.0.0.0
+```

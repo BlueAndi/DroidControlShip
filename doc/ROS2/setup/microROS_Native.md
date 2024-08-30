@@ -1,6 +1,7 @@
 # Static micro-ROS library
 
 ## Create a workspace for the library
+
 See https://micro.ros.org/docs/tutorials/core/first_application_linux/
 
 Create a workspace and get the micro-ROS tools:
@@ -30,7 +31,6 @@ source install/local_setup.bash
 
 ## Create static micro-ROS library
 
-
 See https://micro.ros.org/docs/tutorials/advanced/create_custom_static_library/
 
 Prepare the micro-ROS environment:
@@ -46,11 +46,16 @@ Now the library can be build by executing
 ros2 run micro_ros_setup build_firmware.sh $(pwd)/my_custom_toolchain.cmake $(pwd)/my_custom_colcon.meta
 ```
 
-
-
 ## Include static micro-ROS library
 
 Create a symbolic link to the library in the the lib folder of the workspace the library should be included
 ```
 ln -s ~/microros_ws/firmware/build libmicroros
+```
+
+## Verify binary type of static library
+To check the binary type of the static library use this command and see expected output:
+```bash
+ar p lib/libmicroros/libmicroros.a | file -
+/dev/stdin: ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), with debug_info, not stripped
 ```

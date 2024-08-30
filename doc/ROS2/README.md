@@ -64,3 +64,4 @@ The Webots integration is discussed on the [Webots subpage](./webots/webots.md).
 * [Webots](./setup/Webots.md)
 * [Target](./setup/Target.md)
 * [micro-ROS Native](./setup/microROS_Native.md)
+* [micro-ROS Agent](./setup/Agent.md)
