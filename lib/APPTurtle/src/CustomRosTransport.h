@@ -64,57 +64,65 @@ struct micro_ros_agent_locator
     int       port;    /**< Port of the agent */
 };
 
+/**
+ * Class like definition of ROS2 custom transport functions.
+ *
+ * Only static functions used as these are called from C-language
+ */
+class CustomRosTransport
+{
+public:
+    /**
+     * Open and initialize the custom transport.
+     * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
+     *
+     * @param[in] transport The arguments passed through uxr_init_custom_transport.
+     *
+     * @return A boolean indicating if the opening was successful.
+     */
+    static bool open(uxrCustomTransport* transport);
+
+    /**
+     * Close the custom transport.
+     * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
+     *
+     * @param[in] transport The arguments passed through uxr_init_custom_transport.
+     *
+     * @return A boolean indicating if the closing was successful.
+     */
+    static bool close(uxrCustomTransport* transport);
+
+    /**
+     * Write data to the custom transport.
+     * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
+     *
+     * @param[in]  transport The arguments passed through uxr_init_custom_transport.
+     * @param[in]  buffer The buffer to write.
+     * @param[in]  size The size of the buffer.
+     * @param[out] errorCode The error code.
+     *
+     * @return The number of bytes written.
+     */
+    static size_t write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode);
+
+    /**
+     * Read data from the custom transport.
+     * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
+     *
+     * @param[in]  transport The arguments passed through uxr_init_custom_transport.
+     * @param[out] buffer The buffer to read into.
+     * @param[in]  size The size of the buffer.
+     * @param[in]  timeout The timeout in milliseconds.
+     * @param[out] errorCode The error code.
+     *
+     * @return The number of bytes read.
+     */
+    static size_t read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode);
+};
+
 /******************************************************************************
  * Functions
  *****************************************************************************/
-
-/**
- * Open and initialize the custom transport.
- * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
- *
- * @param[in] transport The arguments passed through uxr_init_custom_transport.
- *
- * @return A boolean indicating if the opening was successful.
- */
-bool custom_transport_open(uxrCustomTransport* transport);
-
-/**
- * Close the custom transport.
- * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
- *
- * @param[in] transport The arguments passed through uxr_init_custom_transport.
- *
- * @return A boolean indicating if the closing was successful.
- */
-bool custom_transport_close(uxrCustomTransport* transport);
-
-/**
- * Write data to the custom transport.
- * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
- *
- * @param[in]  transport The arguments passed through uxr_init_custom_transport.
- * @param[in]  buffer The buffer to write.
- * @param[in]  size The size of the buffer.
- * @param[out] errorCode The error code.
- *
- * @return The number of bytes written.
- */
-size_t custom_transport_write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode);
-
-/**
- * Read data from the custom transport.
- * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
- *
- * @param[in]  transport The arguments passed through uxr_init_custom_transport.
- * @param[out] buffer The buffer to read into.
- * @param[in]  size The size of the buffer.
- * @param[in]  timeout The timeout in milliseconds.
- * @param[out] errorCode The error code.
- *
- * @return The number of bytes read.
- */
-size_t custom_transport_read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
-                             uint8_t* errorCode);
 
 #endif /* CUSTOM_ROS_TRANSPORT_H */
 /** @} */
