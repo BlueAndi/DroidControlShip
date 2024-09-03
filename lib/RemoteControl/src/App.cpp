@@ -160,7 +160,7 @@ void App::setup()
             /* Setup SerialMuxProt Channels */
             m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
             m_serialMuxProtChannelIdMotorSpeeds =
-                m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+                m_smpServer.createChannel(MOTOR_SPEED_SETPOINT_CHANNEL_NAME, MOTOR_SPEED_SETPOINT_CHANNEL_DLC);
             m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
             m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
             m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME, App_currentVehicleChannelCallback);
@@ -369,7 +369,7 @@ void App::motorSpeedsTopicCallback(const String& payload)
 
         if ((false == leftSpeed.isNull()) && (false == rightSpeed.isNull()))
         {
-            SpeedData motorSetpoints;
+            MotorSpeed motorSetpoints;
             motorSetpoints.left  = leftSpeed.as<int32_t>();
             motorSetpoints.right = rightSpeed.as<int32_t>();
 
