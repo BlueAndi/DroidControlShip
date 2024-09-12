@@ -106,6 +106,7 @@ In a similar way, not providing a WiFi configuration will force the target into 
 | RemoteControl | No | Yes | RemoteControl | Yes |
 | SensorFusion | No | Yes | SensorFusion | Yes |
 | Test | Yes | No | N/A | No |
+| Turtle | No | Yes | RemoteControl | Yes (ROS2 + Micro-ROS Agent) |
 
 # Documentation
 
