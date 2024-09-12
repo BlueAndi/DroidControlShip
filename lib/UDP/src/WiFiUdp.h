@@ -44,6 +44,7 @@
  *****************************************************************************/
 
 #include <Arduino.h>
+#include <Stream.h>
 #include "IPAddress.h"
 #include <netinet/in.h>
 
