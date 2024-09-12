@@ -280,10 +280,10 @@ void App::fatalErrorHandler()
 bool App::setupMqttClient()
 {
     /* Setup MQTT Server, Birth and Will messages. */
-    bool                                           isSuccessful = false;
-    SettingsHandler&                               settings     = SettingsHandler::getInstance();
-    StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
-    String                                         birthMessage;
+    bool             isSuccessful = false;
+    SettingsHandler& settings     = SettingsHandler::getInstance();
+    JsonDocument     birthDoc;
+    String           birthMessage;
 
     birthDoc["name"] = settings.getRobotName();
 
