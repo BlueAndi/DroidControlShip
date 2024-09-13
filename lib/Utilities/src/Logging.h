@@ -74,8 +74,10 @@
  * Includes
  *****************************************************************************/
 #include <Arduino.h>
+#include <WString.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdio.h>
 
 /******************************************************************************
  * Macros
