@@ -275,7 +275,8 @@ bool App::setupSerialMuxProtServer()
     bool isSuccessful = false;
 
     m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
-    m_serialMuxProtChannelIdTurtle = m_smpServer.createChannel(TURTLE_CHANNEL_NAME, TURTLE_CHANNEL_DLC);
+    m_serialMuxProtChannelIdTurtle =
+        m_smpServer.createChannel(ROBOT_SPEED_SETPOINT_CHANNEL_NAME, ROBOT_SPEED_SETPOINT_CHANNEL_DLC);
 
     if ((0U == m_serialMuxProtChannelIdStatus) || (0U == m_serialMuxProtChannelIdTurtle))
     {
@@ -295,7 +296,7 @@ void App::handleTurtle()
     /* Check for new data. */
     if (true == m_isNewTurtleSpeedSetpoint)
     {
-        TurtleSpeed   payload;
+        RobotSpeed    payload;
         const int32_t MILLI_CONVERSION_FACTOR = 1000;
         int32_t       linearSpeed = m_turtleSpeedSetpoint.linear.x * MILLI_CONVERSION_FACTOR; /* Linear speed in mm/s */
         int32_t angularSpeed = m_turtleSpeedSetpoint.angular.z * MILLI_CONVERSION_FACTOR; /* Angular speed in mrad/s */
@@ -318,7 +319,7 @@ void App::handleTurtle()
 
     if (true == m_turtleMovementTimer.isTimeout())
     {
-        TurtleSpeed payload;
+        RobotSpeed payload;
         payload.linearCenter = 0;
         payload.angular      = 0;
 
