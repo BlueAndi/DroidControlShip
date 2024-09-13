@@ -65,9 +65,9 @@ static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
 
 Waypoint* Waypoint::deserialize(const String& serializedWaypoint)
 {
-    Waypoint*                                 waypoint = nullptr;
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, serializedWaypoint.c_str());
+    Waypoint*            waypoint = nullptr;
+    JsonDocument         jsonPayload;
+    DeserializationError error = deserializeJson(jsonPayload, serializedWaypoint.c_str());
 
     if (DeserializationError::Ok != error)
     {
@@ -116,7 +116,7 @@ Waypoint* Waypoint::fromJsonObject(const JsonObject& jsonWaypoint)
 
 void Waypoint::serialize(String& serializedWaypoint) const
 {
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    JsonDocument jsonPayload;
 
     jsonPayload["X"]           = xPos;        /* X position [mm]. */
     jsonPayload["Y"]           = yPos;        /* Y position [mm]. */

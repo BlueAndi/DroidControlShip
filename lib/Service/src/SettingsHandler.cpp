@@ -64,10 +64,10 @@
 
 bool SettingsHandler::loadConfigurationFile(const String& filename)
 {
-    bool                              isSuccessful  = false;
-    const uint32_t                    maxBufferSize = 1024U;
-    StaticJsonDocument<maxBufferSize> doc;
-    char                              buffer[maxBufferSize];
+    bool           isSuccessful  = false;
+    const uint32_t maxBufferSize = 1024U;
+    JsonDocument   doc;
+    char           buffer[maxBufferSize];
 
     if (0U == m_fileHandler.readFile(filename, buffer, maxBufferSize))
     {
@@ -180,11 +180,10 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
 
 bool SettingsHandler::saveConfigurationFile(const String& filename)
 {
-    bool                           isSuccessful = false;
-    const size_t                   maxDocSize   = 1024U;
-    StaticJsonDocument<maxDocSize> doc;
-    size_t                         jsonBufferSize = 0U;
-    size_t                         bytesToWrite   = 0U;
+    bool         isSuccessful = false;
+    JsonDocument doc;
+    size_t       jsonBufferSize = 0U;
+    size_t       bytesToWrite   = 0U;
 
     doc[ConfigurationKeys::ROBOT_NAME]                                              = m_robotName;
     doc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID]                           = m_wifiSSID;

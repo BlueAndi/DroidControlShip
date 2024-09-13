@@ -302,8 +302,8 @@ bool V2VCommManager::sendIVS(const int32_t ivs) const
     V2VEventType type         = V2V_EVENT_IVS;
 
     /* Create JSON document. */
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    String                                    payload;
+    JsonDocument jsonPayload;
+    String       payload;
 
     jsonPayload["ivs"] = ivs;
 
@@ -375,8 +375,8 @@ int32_t V2VCommManager::getPlatoonLength() const
 void V2VCommManager::eventCallback(const String& payload)
 {
     /* Deserialize payload. */
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
+    JsonDocument         jsonPayload;
+    DeserializationError error = deserializeJson(jsonPayload, payload.c_str());
 
     if (DeserializationError::Ok != error)
     {
@@ -471,8 +471,8 @@ void V2VCommManager::eventCallback(const String& payload)
                     if (false == jsonEventDataTimestamp.isNull())
                     {
                         /* Timestamp is sent back to acknowledge synchronization. */
-                        uint32_t eventDataTimestamp = jsonEventDataTimestamp.as<uint32_t>();
-                        StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
+                        uint32_t     eventDataTimestamp = jsonEventDataTimestamp.as<uint32_t>();
+                        JsonDocument heartbeatDoc;
                         heartbeatDoc["timestamp"] = eventDataTimestamp;
                         heartbeatDoc["status"]    = m_vehicleStatus;
 
@@ -729,9 +729,9 @@ bool V2VCommManager::sendPlatoonHeartbeat()
     bool isSuccessful = false;
 
     /* Send platoon heartbeat. */
-    StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
-    String                                      heartbeatPayload;
-    uint32_t                                    timestamp = millis();
+    JsonDocument heartbeatDoc;
+    String       heartbeatPayload;
+    uint32_t     timestamp = millis();
 
     heartbeatDoc["timestamp"] = timestamp;
 
@@ -762,8 +762,8 @@ bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const 
     bool isSuccessful = false;
 
     /* Create JSON document. */
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    String                                    payload;
+    JsonDocument jsonPayload;
+    String       payload;
 
     jsonPayload["id"]        = m_vehicleId;
     jsonPayload["type"]      = type;
@@ -844,8 +844,8 @@ bool V2VCommManager::sendPlatoonLength(const int32_t length) const
     V2VEventType type         = V2V_EVENT_IVS;
 
     /* Create JSON document. */
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    String                                    payload;
+    JsonDocument jsonPayload;
+    String       payload;
 
     jsonPayload["length"] = length;
 

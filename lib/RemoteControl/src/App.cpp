@@ -149,9 +149,9 @@ void App::setup()
         else
         {
             /* Setup MQTT Server, Birth and Will messages. */
-            StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
-            char                                           birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
-            String                                         birthMessage;
+            JsonDocument birthDoc;
+            char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+            String       birthMessage;
 
             birthDoc["name"] = settings.getRobotName().c_str();
             (void)serializeJson(birthDoc, birthMsgArray);
@@ -278,8 +278,8 @@ void App::fatalErrorHandler()
 
 void App::cmdTopicCallback(const String& payload)
 {
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
+    JsonDocument         jsonPayload;
+    DeserializationError error = deserializeJson(jsonPayload, payload.c_str());
 
     if (error != DeserializationError::Ok)
     {
@@ -355,8 +355,8 @@ void App::cmdTopicCallback(const String& payload)
 
 void App::motorSpeedsTopicCallback(const String& payload)
 {
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
+    JsonDocument         jsonPayload;
+    DeserializationError error = deserializeJson(jsonPayload, payload.c_str());
 
     if (error != DeserializationError::Ok)
     {
