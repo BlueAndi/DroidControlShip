@@ -11,5 +11,5 @@
     "license": "MIT",
     "dependencies": [],
     "frameworks": "*",
-    "platforms": "*"
+    "platforms": "native"
 }
