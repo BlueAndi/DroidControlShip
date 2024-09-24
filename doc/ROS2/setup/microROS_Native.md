@@ -7,7 +7,7 @@ See https://micro.ros.org/docs/tutorials/core/first_application_linux/
 Create a workspace and get the micro-ROS tools:
 
 
-```
+```bash
 # Source the ROS 2 installation
 source /opt/ros/$ROS_DISTRO/setup.bash
 
@@ -34,7 +34,7 @@ source install/local_setup.bash
 See https://micro.ros.org/docs/tutorials/advanced/create_custom_static_library/
 
 Prepare the micro-ROS environment:
-```
+```bash
 ros2 run micro_ros_setup create_firmware_ws.sh generate_lib
 ```
 
@@ -42,14 +42,17 @@ Copy the files [my_custom_toolchain.cmake](./native_build/my_custom_toolchain.cm
 
 
 Now the library can be build by executing
-```
+```bash
 ros2 run micro_ros_setup build_firmware.sh $(pwd)/my_custom_toolchain.cmake $(pwd)/my_custom_colcon.meta
 ```
 
-## Include static micro-ROS library
+## Link the micro-ROS Library into DroidControlShip
 
-Create a symbolic link to the library in the the lib folder of the workspace the library should be included
-```
+Create a symbolic link from the micro-ROS library to the ```lib``` folder of your DroidControlShip workspace.
+
+Example:
+```bash
+cd DroidControlShip/lib
 ln -s ~/microros_ws/firmware/build libmicroros
 ```
 
