@@ -285,7 +285,7 @@ private:
     int32_t m_cumulativeQueueDistance;
 
     /** Average distance to the predecessor in mm. */
-    MovAvg<int32_t, IVS_MOVAVG_NUMBER_OF_MEASUREMENTS> m_avgIvs;
+    MovAvg<int32_t, int32_t, IVS_MOVAVG_NUMBER_OF_MEASUREMENTS> m_avgIvs;
 
     /**
      * Get latest waypoint from the queue, validate it and set it to as the current target.
