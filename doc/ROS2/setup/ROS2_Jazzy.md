@@ -5,11 +5,12 @@ Follow the official installation guide For Ubuntu (Debian packages) on the
 [ROS2 Jazzy Webpage](https://docs.ros.org/en/jazzy/Installation.html).
 
 It boils down to copy+paste the commands from
-[Ubuntu-Install-Debians](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debians.html)
+[Ubuntu-Install-Debs](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)
 into a ubuntu terminal window.
 
 > **_NOTE:_**
-Some of the steps result in larger package downloads. 
+Some of the steps result in larger package downloads.\
+Optional parts can be omitted.
 
 ## Setup ROS2 environment for every Shell
 
