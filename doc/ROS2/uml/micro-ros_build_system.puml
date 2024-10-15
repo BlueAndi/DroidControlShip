@@ -24,8 +24,10 @@ component "Development Environment" {
     component "Code Editor/IDE\n(e.g., VSCode)" as Editor
 }
 
-Editor --> INI : Edits
-Editor --> "Source Code" : Edits
+file "Source Code" as sourceCode
+
+Editor ..> INI : <<edit>>
+Editor ..> sourceCode : <<edit>>
 
 Platform --> ClientLib
 Board --> RTOS
@@ -34,6 +36,6 @@ Libraries --> ClientLib
 
 ClientLib --> PublisherNode
 RTOS --> PublisherNode
-PublisherNode --> AppLogic : Contains
+PublisherNode ..> AppLogic : <<contain>>
 
 @enduml
