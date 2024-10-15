@@ -7,6 +7,14 @@ Follow the official installation guide for Webots on Linux with APT on the
 > **_NOTE:_**
 Some of the steps result in larger package downloads.
 
+Set environment variables for Webots home directory, the Webots controller library directory and add the Webots controller library to linker search path.
+```bash
+    echo "export WEBOTS_HOME=/usr/local/webots" >> $HOME/.bashrc
+    echo "export WEBOTS_CONTROLLER_LIB_PATH=\$WEBOTS_HOME/lib" >> $HOME/.bashrc
+    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$WEBOTS_CONTROLLER_LIB_PATH/controller" >> $HOME/.bashrc
+    source $HOME/.bashrc
+```
+
 ## Launching Webots
 
 Try 
