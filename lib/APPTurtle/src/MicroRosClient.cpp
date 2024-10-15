@@ -227,7 +227,7 @@ bool MicroRosClient::configureClient()
     {
         isSuccessful = true;
 
-        LOG_INFO("Conneced with micro-ROS agent.");
+        LOG_INFO("Connected with micro-ROS agent.");
 
         for (size_t idx = 0; idx < RMW_UXRCE_MAX_SUBSCRIPTIONS; idx++)
         {
