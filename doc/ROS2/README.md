@@ -62,6 +62,7 @@ The Webots integration is discussed on the [Webots subpage](./webots/webots.md).
 * [WSL with Ubuntu](./setup/wsl.md)
 * [ROS2 Jazzy](./setup/ROS2_Jazzy.md)
 * [Webots](./setup/Webots.md)
-* [Target](./setup/Target.md)
+* Run DCS on [target](./setup/Target.md)
+* Run DCS on [simulation](./setup/Simulation.md)
 * [micro-ROS Native](./setup/microROS_Native.md)
 * [micro-ROS Agent](./setup/Agent.md)
