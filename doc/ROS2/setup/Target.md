@@ -1,5 +1,5 @@
 # Run micro-ROS on ESP32 Target
-How setup and use micro-ROS DCS target `TurtleTarget`.
+How setup and use micro-ROS DCS PIO target `TurtleTarget`.
 
 ## Build TurtleTarget
 Perform standard pio build of the TurtleTarget application. It will pull the [micro_ros_platformio](https://github.com/gabryelreyes/micro_ros_platformio) as library dependency and build scripts.

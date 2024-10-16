@@ -29,8 +29,9 @@ colcon build
 source install/local_setup.bash
 ```
 
-## Create static micro-ROS library
+## Create static micro-ROS library for DroidControlShip
 
+The static library is needed as DroidControlShip is build outside of the ROS2 environment with PlatformIO.\
 See https://micro.ros.org/docs/tutorials/advanced/create_custom_static_library/
 
 Prepare the micro-ROS environment:

@@ -1,7 +1,9 @@
 # ROS 2 and micro-ROS
+
 ROS 2 is a powerful framework for developing robot applications, while micro-ROS extends ROS 2 capabilities to microcontrollers, enabling robotics applications on a wider range of hardware.
 
 ## Table of Contents
+
 - [What is ROS 2?](#what-is-ros-2)
 - [What is micro-ROS?](#what-is-micro-ros)
 - [What has improved since ROS 1](#what-has-improved-since-ros-1)
@@ -11,6 +13,7 @@ ROS 2 is a powerful framework for developing robot applications, while micro-ROS
 - [Installation Steps](#installation-steps)
 
 ## What is ROS 2?
+
 ROS 2 is the second major version of the Robot Operating System (ROS), an open-source framework to build complex robot applications.
 
 Key features of ROS 2 include:
@@ -20,6 +23,7 @@ Key features of ROS 2 include:
 - Modularity: Encourages modularity and reusability of code.
 
 ## What has improved since ROS 1
+
 Major advancements from ROS (1) include improved real-time capability, more generic Data Distribution Service (DDS) than previously used TCPROS/UDPROS protocols.
 
 List of key differences and new features:
@@ -34,6 +38,7 @@ List of key differences and new features:
 - Development Tools: ROS 2 builds on the ROS 1 ecosystem with new tools.
 
 ## What is micro-ROS?
+
 micro-ROS brings ROS 2 to microcontrollers, allowing developers to run ROS 2 applications on resource-constrained devices. This extension enables the integration of microcontrollers into ROS 2 networks, making it possible to create more complex and distributed robotic systems.
 
 Key features of micro-ROS include:
@@ -43,26 +48,35 @@ Key features of micro-ROS include:
 - [Cross-Platform](https://micro.ros.org/docs/overview/hardware/): Supports a variety of microcontroller platforms and RTOS (Real-Time Operating Systems).
 
 ## External micro-ROS build system
+
 micro-ROS supports a variety of external build system beyond the micro_ros_setup tool such as PlatformIO [micro_ros_platformio](https://github.com/micro-ROS/micro_ros_platformio/). The following component diagram depi
 
 ![uros_ws](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/feature/ROS2/doc/ROS2/uml/micro-ros_build_system.puml)
 
 ## ROS 2 in DCS
+
 This section describes the integration of micro-ROS in the existing workspace, extending it by implementing a ROS 2 node and the micro-ROS stack. The goal is to connect the ZumoComSystem with the DDS network using DDS-XRCE, making the robot controllable via ROS messages to mimic turtle graphics drawing using the robot.
 
-### Component Deployment 
+### Component Deployment
+
 The following diagram illustrates the component deployment of micro-ROS in the DroidControlSystem.
 
 ![turtle_sim](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/feature/ROS2/doc/ROS2/uml/turtle_sim.plantuml)
 
-### Webots Integration
-The Webots integration is discussed on the [Webots subpage](./webots/webots.md).
-
 ## Installation Steps
-* [WSL with Ubuntu](./setup/wsl.md)
-* [ROS2 Jazzy](./setup/ROS2_Jazzy.md)
-* [Webots](./setup/Webots.md)
-* Run DCS on [target](./setup/Target.md)
-* Run DCS on [simulation](./setup/Simulation.md)
-* [micro-ROS Native](./setup/microROS_Native.md)
-* [micro-ROS Agent](./setup/Agent.md)
+
+1. [WSL with Ubuntu](./setup/wsl.md)
+2. [ROS2 Jazzy](./setup/ROS2_Jazzy.md)
+3. [Webots](./setup/Webots.md)
+4. [micro-ROS Native](./setup/microROS_Native.md)
+5. [micro-ROS Agent](./setup/Agent.md)
+
+## Execution Steps
+
+### Webots Simulation
+
+[Webots simulation](./webots/webots.md).
+
+### Target
+
+[Target](./setup/Target.md)
