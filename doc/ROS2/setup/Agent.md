@@ -35,9 +35,9 @@ Once the Agent and the Client are connected, the terminal should show something 
 [1723186868.574254] info     | ProxyClient.cpp       | create_datawriter        | datawriter created     | client_key: 0x64C59DFF, datawriter_id: 0x000(5), publisher_id: 0x000(3)
 ```
 
-## Using the agent with the wifi interface
+## Using the agent with the UDP interface
 
-Start the MicroXRCEAgent binary to listene to UDP connections
+Start the MicroXRCEAgent binary to listen to UDP connections
 ```bash
 ./MicroXRCEAgent udp4 -p 1883 -v 6
 [1724834512.980210] info     | UDPv4AgentLinux.cpp | init                     | running...             | port: 1883
