@@ -17,6 +17,7 @@ cd microros_ws
 git clone -b $ROS_DISTRO https://github.com/micro-ROS/micro_ros_setup.git src/micro_ros_setup
 
 # Update dependencies using rosdep
+sudo rosdep init
 sudo apt update && rosdep update
 rosdep install --from-paths src --ignore-src -y
 
@@ -28,9 +29,9 @@ colcon build
 source install/local_setup.bash
 ```
 
+## Create static micro-ROS library for DroidControlShip
 
-## Create static micro-ROS library
-
+The static library is needed as DroidControlShip is build outside of the ROS2 environment with PlatformIO.\
 See https://micro.ros.org/docs/tutorials/advanced/create_custom_static_library/
 
 Prepare the micro-ROS environment:
@@ -39,7 +40,9 @@ ros2 run micro_ros_setup create_firmware_ws.sh generate_lib
 ```
 
 Copy the files [my_custom_toolchain.cmake](./native_build/my_custom_toolchain.cmake) and [my_custom_colcon.meta](./native_build/my_custom_colcon.meta) in the microros_ws
-
+```bash
+cp ~/DroidControlShip/doc/ROS2/setup/native_build/my_custom_* ~/microros_ws
+```
 
 Now the library can be build by executing
 ```bash
@@ -52,13 +55,13 @@ Create a symbolic link from the micro-ROS library to the ```lib``` folder of you
 
 Example:
 ```bash
-cd DroidControlShip/lib
+cd ~/DroidControlShip/lib
 ln -s ~/microros_ws/firmware/build libmicroros
 ```
 
 ## Verify binary type of static library
 To check the binary type of the static library use this command and see expected output:
 ```bash
-ar p lib/libmicroros/libmicroros.a | file -
+ar p libmicroros/libmicroros.a | file -
 /dev/stdin: ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), with debug_info, not stripped
 ```

@@ -12,6 +12,7 @@ For details refer to the following
 But all you need is this from a windows power shell:
 
 ```bat
+    wsl --update
     wsl --install -d "Ubuntu-24.04"
 ```
 
@@ -30,6 +31,17 @@ If no window opens, or you get an error message, try rebooting. Windows may
 require updates to install for WSL. Then start an Ubuntu console from start menu:
 
 ![Ubuntu Start Menu](./img/ubuntu_start_menu.png)
+
+If a root shell is started and there was no user created, add a user manually in the linux shell:
+```bash
+    adduser <username>
+    usermod -aG sudo <username>
+```
+
+Configure Ubuntu to login by default with your user in the windows power shell:
+```bat
+    ubuntu2404 config --default-user <username>
+```
 
 ## Checking Installation
 Check that you have the right distribution installed (Ubuntu 24.04 LTS):
@@ -53,7 +65,6 @@ It offers tabs, history and embedds all kinds of shells (cmd, powershell, Ubuntu
 
 ![New Shell](./img/new_shell.png)
 
-
 ## Exposing WSL UDP Ports to the Network
 To make UDP ports listening in WSL accessible from your local network, follow these steps:
 Find your WSL IP address by running this command in WSL:
@@ -64,7 +75,7 @@ ip addr show eth0
 UDP port forwarding to wsl is not supported without mirrored networking (WSL 2.0.0 on win11)
 
 Open a terminal in an administrator shell on Windows.
-Run the following command to forward the UDP port, replacing [PORT] with your desired port number and [WSL_IP] with the IP address:
+Run the following command to forward the UDP port, replacing [PORT] with your desired port number (usually 1883) and [WSL_IP] with the IP address:
 ```bat
 netsh interface portproxy add v4tov4 listenport=[PORT] listenaddress=0.0.0.0 connectport=[PORT] connectaddress=[WSL_IP]
 ```

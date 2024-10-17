@@ -196,7 +196,11 @@ bool MicroRosClient::configureClient()
 {
     bool               isSuccessful = false;
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-    m_allocator                     = rcl_get_default_allocator();
+    String             agentIpAddr  = m_agentConfiguration.address.toString();
+
+    m_allocator = rcl_get_default_allocator();
+
+    LOG_INFO("Connecting to micro-ROS agent %s:%u ...", agentIpAddr.c_str(), m_agentConfiguration.port);
 
     if ((true == m_nodeName.isEmpty()))
     {
@@ -223,6 +227,8 @@ bool MicroRosClient::configureClient()
     else
     {
         isSuccessful = true;
+
+        LOG_INFO("Connected with micro-ROS agent.");
 
         for (size_t idx = 0; idx < RMW_UXRCE_MAX_SUBSCRIPTIONS; idx++)
         {
