@@ -211,8 +211,8 @@ bool SettingsHandler::saveConfigurationFile(const String& filename)
     doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_X_POSITION] = m_initialXPosition;
     doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_Y_POSITION] = m_initialYPosition;
     doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_HEADING]    = m_initialHeading;
-    doc[ConfigurationKeys::UROS_AGENT][ConfigurationKeys::HOST]                     = m_microROSAgentAddress;
-    doc[ConfigurationKeys::UROS_AGENT][ConfigurationKeys::PORT]                     = m_microROSAgentPort;
+    doc[ConfigurationKeys::MICROROS_AGENT][ConfigurationKeys::HOST]                 = m_microROSAgentAddress;
+    doc[ConfigurationKeys::MICROROS_AGENT][ConfigurationKeys::PORT]                 = m_microROSAgentPort;
 
     jsonBufferSize = measureJsonPretty(doc) + 1U;
     char jsonBuffer[jsonBufferSize];
