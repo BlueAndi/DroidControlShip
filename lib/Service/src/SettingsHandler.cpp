@@ -100,6 +100,8 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
                 doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_Y_POSITION];
             JsonVariantConst jsonInitialHeading =
                 doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_HEADING];
+            JsonVariantConst jsonURosAgentHost = doc[ConfigurationKeys::MICROROS_AGENT][ConfigurationKeys::HOST];
+            JsonVariantConst jsonURosAgentPort = doc[ConfigurationKeys::MICROROS_AGENT][ConfigurationKeys::PORT];
 
             if (false == jsonRobotName.isNull())
             {
@@ -171,6 +173,16 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
                 m_initialHeading = jsonInitialHeading.as<int32_t>();
             }
 
+            if (false == jsonURosAgentHost.isNull())
+            {
+                m_microROSAgentAddress = jsonURosAgentHost.as<const char*>();
+            }
+
+            if (false == jsonURosAgentPort.isNull())
+            {
+                m_microROSAgentPort = jsonURosAgentPort.as<uint16_t>();
+            }
+
             isSuccessful = true;
         }
     }
@@ -200,6 +212,8 @@ bool SettingsHandler::saveConfigurationFile(const String& filename)
     doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_X_POSITION] = m_initialXPosition;
     doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_Y_POSITION] = m_initialYPosition;
     doc[ConfigurationKeys::INITIAL_POSITION][ConfigurationKeys::INITIAL_HEADING]    = m_initialHeading;
+    doc[ConfigurationKeys::MICROROS_AGENT][ConfigurationKeys::HOST]                 = m_microROSAgentAddress;
+    doc[ConfigurationKeys::MICROROS_AGENT][ConfigurationKeys::PORT]                 = m_microROSAgentPort;
 
     jsonBufferSize = measureJsonPretty(doc) + 1U;
     char jsonBuffer[jsonBufferSize];
@@ -247,6 +261,8 @@ SettingsHandler::SettingsHandler() :
     m_initialXPosition(0),
     m_initialYPosition(0),
     m_initialHeading(0),
+    m_microROSAgentAddress(),
+    m_microROSAgentPort(0U),
     m_fileHandler()
 {
 }

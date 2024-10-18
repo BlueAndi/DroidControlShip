@@ -2,10 +2,12 @@
 
 Sources: [here](https://micro-xrce-dds.docs.eprosima.com/en/latest/index.html)
 
-- [Installation](#installation)
-- [Using the agent with the serial interface](#using-the-agent-with-the-serial-interface)
-- [Using the agent with the wifi interface](#using-the-agent-with-the-wifi-interface)
-- [Testing the node](#testing-the-node)
+* [Micro XRCE-DDS Agent](#micro-xrce-dds-agent)
+  * [Installation](#installation)
+  * [Using the agent with the serial interface](#using-the-agent-with-the-serial-interface)
+  * [Using the agent with the UDP interface](#using-the-agent-with-the-udp-interface)
+  * [Troubleshooting on WSL environment](#troubleshooting-on-wsl-environment)
+  * [Testing the node](#testing-the-node)
 
 ## Installation
 
@@ -39,8 +41,8 @@ Once the Agent and the Client are connected, the terminal should show something 
 
 Start the MicroXRCEAgent binary to listen to UDP connections
 ```bash
-./MicroXRCEAgent udp4 -p 1883 -v 6
-[1724834512.980210] info     | UDPv4AgentLinux.cpp | init                     | running...             | port: 1883
+./MicroXRCEAgent udp4 -p 8888 -v 6
+[1724834512.980210] info     | UDPv4AgentLinux.cpp | init                     | running...             | port: 8888
 [1724834512.981013] info     | Root.cpp           | set_verbose_level        | logger setup           | verbose_level: 6
 [1724834515.742593] debug    | UDPv4AgentLinux.cpp | recv_message             | [==>> UDP <<==]        | client_key: 0x00000000, len: 24, data:
 0000: 80 00 00 00 00 01 10 00 58 52 43 45 01 00 01 0F 61 53 75 C7 81 00 FC 01
