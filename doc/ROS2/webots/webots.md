@@ -17,7 +17,7 @@ pio run -e RemoteControlSim -t webots_launcher_zumo_com_system
 
 ### DroidControlShip
 
-1. Set micro-ROS agent ip address and port in ```data/config.json``` in MQTT section.
+1. Set micro-ROS agent ip address and port in ```data/config.json``` in microROSAgent section.
 2. Run the following command in the terminal:
 ```bash
 pio run -e TurtleSim -t webots_launcher
