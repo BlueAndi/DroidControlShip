@@ -125,7 +125,7 @@ void App::setup()
         {
             LOG_ERROR("Network configuration could not be set.");
         }
-        else if (false == m_ros.setConfiguration(settings.getRobotName(), "", settings.getMicroROSAgentAgentAddress(),
+        else if (false == m_ros.setConfiguration(settings.getRobotName(), "", settings.getMicroROSAgentAddress(),
                                                  settings.getMicroROSAgentPort()))
         {
             LOG_ERROR("Micro-ROS Agent could not be configured.");
