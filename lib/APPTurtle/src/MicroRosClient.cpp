@@ -89,10 +89,6 @@ bool MicroRosClient::setConfiguration(const String& nodeName, const String& node
     {
         LOG_ERROR("Node name cannot be empty!");
     }
-    else if (true == agentIpAddress.isEmpty())
-    {
-        LOG_ERROR("Agent IP cannot be empty!");
-    }
     else if (STATE_WAIT_FOR_AGENT != m_state)
     {
         LOG_ERROR("Set configuration in invalid state: %d", m_state);
@@ -197,7 +193,7 @@ bool MicroRosClient::createEntities()
     {
         m_allocator = rcl_get_default_allocator();
 
-        else if (RCL_RET_OK != rclc_support_init(&m_support, 0, NULL, &m_allocator))
+        if (RCL_RET_OK != rclc_support_init(&m_support, 0, NULL, &m_allocator))
         {
             LOG_ERROR("Failed to initialize support structure.");
         }
@@ -269,8 +265,7 @@ void MicroRosClient::waitingForAgentState()
     INetwork& network = Board::getInstance().getNetwork();
 
     /* Network is up and running, as well client is already configured? */
-    if ((true == network.isUp()) && (0U != network.getIp()) && (false == m_nodeName.isEmpty()) &&
-        (false == m_customRosTransport.getIPAddressAsStr().isEmpty()))
+    if ((true == network.isUp()) && (0U != network.getIp()) && (false == m_nodeName.isEmpty()))
     {
         /* First time entered or
          * ping agent again?
