@@ -71,8 +71,8 @@ bool CustomRosTransport::open(uxrCustomTransport* transport)
     }
     else
     {
-        const CustomRosTransport* tthis  = reinterpret_cast<CustomRosTransport*>(transport->args);
-        const int                 UDP_OK = 1;
+        CustomRosTransport* tthis  = reinterpret_cast<CustomRosTransport*>(transport->args);
+        const int           UDP_OK = 1;
 
         if (UDP_OK != tthis->m_udpClient.begin(tthis->m_port))
         {
@@ -97,7 +97,7 @@ bool CustomRosTransport::close(uxrCustomTransport* transport)
     }
     else
     {
-        const CustomRosTransport* tthis  = reinterpret_cast<CustomRosTransport*>(transport->args);
+        CustomRosTransport* tthis = reinterpret_cast<CustomRosTransport*>(transport->args);
 
         tthis->m_udpClient.stop();
 
@@ -117,9 +117,9 @@ size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* b
     }
     else
     {
-        const CustomRosTransport* tthis  = static_cast<CustomRosTransport*>(transport->args);
-        const int                 UDP_OK = 1;
-        int                       ret    = UDP_OK;
+        CustomRosTransport* tthis  = static_cast<CustomRosTransport*>(transport->args);
+        const int           UDP_OK = 1;
+        int                 ret    = UDP_OK;
 
         ret = tthis->m_udpClient.beginPacket(tthis->m_address, tthis->m_port);
 
@@ -174,7 +174,9 @@ size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, 
     }
     else
     {
-        SimpleTimer readTimer;
+        CustomRosTransport* tthis = static_cast<CustomRosTransport*>(transport->args);
+        SimpleTimer         readTimer;
+
         readTimer.start(timeout);
 
         while (false == readTimer.isTimeout())
