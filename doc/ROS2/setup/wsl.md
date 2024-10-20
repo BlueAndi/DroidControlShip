@@ -75,7 +75,7 @@ ip addr show eth0
 UDP port forwarding to wsl is not supported without mirrored networking (WSL 2.0.0 on win11)
 
 Open a terminal in an administrator shell on Windows.
-Run the following command to forward the UDP port, replacing [PORT] with your desired port number (usually 1883) and [WSL_IP] with the IP address:
+Run the following command to forward the UDP port, replacing [PORT] with your desired port number (usually 8888) and [WSL_IP] with the IP address:
 ```bat
 netsh interface portproxy add v4tov4 listenport=[PORT] listenaddress=0.0.0.0 connectport=[PORT] connectaddress=[WSL_IP]
 ```

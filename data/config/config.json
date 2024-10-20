@@ -24,5 +24,9 @@
     "x": "0",
     "y": "0",
     "heading": "0"
+  },
+  "microROSAgent": {
+    "host": "localhost",
+    "port": "8888"
   }
 }
