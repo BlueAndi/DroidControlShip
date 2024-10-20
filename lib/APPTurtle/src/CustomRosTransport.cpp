@@ -32,9 +32,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
 #include "CustomRosTransport.h"
-#include <Util.h>
 #include <SimpleTimer.hpp>
 #include <Logging.h>
 #include <Board.h>
@@ -76,7 +74,7 @@ bool CustomRosTransport::open(uxrCustomTransport* transport)
         const CustomRosTransport* tthis  = reinterpret_cast<CustomRosTransport*>(transport->args);
         const int                 UDP_OK = 1;
 
-        if (UDP_OK != udpClient.begin(tthis->m_port))
+        if (UDP_OK != tthis->m_udpClient.begin(tthis->m_port))
         {
             LOG_ERROR("UDP begin error");
         }
@@ -91,11 +89,22 @@ bool CustomRosTransport::open(uxrCustomTransport* transport)
 
 bool CustomRosTransport::close(uxrCustomTransport* transport)
 {
-    UTIL_NOT_USED(transport);
+    bool isSuccessful = false;
 
-    udpClient.stop();
+    if (nullptr == transport)
+    {
+        LOG_ERROR("Transport is nullptr.");
+    }
+    else
+    {
+        const CustomRosTransport* tthis  = reinterpret_cast<CustomRosTransport*>(transport->args);
 
-    return true;
+        tthis->m_udpClient.stop();
+
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
 }
 
 size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode)
@@ -112,7 +121,7 @@ size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* b
         const int                 UDP_OK = 1;
         int                       ret    = UDP_OK;
 
-        ret = udpClient.beginPacket(tthis->m_address, tthis->m_port);
+        ret = tthis->m_udpClient.beginPacket(tthis->m_address, tthis->m_port);
 
         if (UDP_OK != ret)
         {
@@ -120,7 +129,7 @@ size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* b
         }
         else
         {
-            size_t bytesToWrite = udpClient.write(buffer, size);
+            size_t bytesToWrite = tthis->m_udpClient.write(buffer, size);
 
             if (bytesToWrite != size)
             {
@@ -128,7 +137,7 @@ size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* b
             }
             else
             {
-                ret = udpClient.endPacket();
+                ret = tthis->m_udpClient.endPacket();
 
                 if (UDP_OK != ret)
                 {
@@ -143,12 +152,12 @@ size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* b
 
         if (UDP_OK != ret)
         {
-            int writeErrorCode = udpClient.getWriteError();
+            int writeErrorCode = tthis->m_udpClient.getWriteError();
             *errorCode         = writeErrorCode;
             LOG_ERROR("UDP error: %d", writeErrorCode);
         }
 
-        udpClient.flush();
+        tthis->m_udpClient.flush();
     }
 
     return sent;
@@ -170,7 +179,7 @@ size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, 
 
         while (false == readTimer.isTimeout())
         {
-            if (0 < udpClient.parsePacket())
+            if (0 < tthis->m_udpClient.parsePacket())
             {
                 break;
             }
@@ -185,13 +194,13 @@ size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, 
 #endif
         }
 
-        if (0 == udpClient.available())
+        if (0 == tthis->m_udpClient.available())
         {
             *errorCode = 1;
         }
         else
         {
-            readBytes = udpClient.read(buffer, size);
+            readBytes = tthis->m_udpClient.read(buffer, size);
         }
     }
 
