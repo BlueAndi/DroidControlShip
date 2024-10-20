@@ -35,7 +35,6 @@
 
 #include "CustomRosTransport.h"
 #include <Util.h>
-#include <WiFiUdp.h>
 #include <SimpleTimer.hpp>
 #include <Logging.h>
 #include <Board.h>
@@ -60,9 +59,6 @@
  * Local Variables
  *****************************************************************************/
 
-/** Instance of the UDP client */
-static WiFiUDP udpClient;
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -77,10 +73,10 @@ bool CustomRosTransport::open(uxrCustomTransport* transport)
     }
     else
     {
-        const micro_ros_agent_locator* locator = reinterpret_cast<micro_ros_agent_locator*>(transport->args);
-        const int                      UDP_OK  = 1;
+        const CustomRosTransport* tthis  = reinterpret_cast<CustomRosTransport*>(transport->args);
+        const int                 UDP_OK = 1;
 
-        if (UDP_OK != udpClient.begin(locator->port))
+        if (UDP_OK != udpClient.begin(tthis->m_port))
         {
             LOG_ERROR("UDP begin error");
         }
@@ -98,24 +94,25 @@ bool CustomRosTransport::close(uxrCustomTransport* transport)
     UTIL_NOT_USED(transport);
 
     udpClient.stop();
+
     return true;
 }
 
 size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode)
 {
-    size_t sent = 0;
+    size_t sent = 0U;
 
-    if ((nullptr == transport) || (nullptr == buffer) || (0 == size) || (nullptr == errorCode))
+    if ((nullptr == transport) || (nullptr == buffer) || (0U == size) || (nullptr == errorCode))
     {
         LOG_ERROR("One or more parameters are invalid.");
     }
     else
     {
-        const micro_ros_agent_locator* locator = static_cast<micro_ros_agent_locator*>(transport->args);
-        const int                      UDP_OK  = 1;
-        int                            ret     = UDP_OK;
+        const CustomRosTransport* tthis  = static_cast<CustomRosTransport*>(transport->args);
+        const int                 UDP_OK = 1;
+        int                       ret    = UDP_OK;
 
-        ret = udpClient.beginPacket(locator->address, locator->port);
+        ret = udpClient.beginPacket(tthis->m_address, tthis->m_port);
 
         if (UDP_OK != ret)
         {
@@ -160,10 +157,9 @@ size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* b
 size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
                                 uint8_t* errorCode)
 {
-    UTIL_NOT_USED(transport);
-    size_t readBytes = 0;
+    size_t readBytes = 0U;
 
-    if ((nullptr == buffer) || (0 == size) || (0 == timeout) || (nullptr == errorCode))
+    if ((nullptr == transport) || (nullptr == buffer) || (0U == size) || (nullptr == errorCode))
     {
         LOG_ERROR("One or more parameters are invalid.");
     }

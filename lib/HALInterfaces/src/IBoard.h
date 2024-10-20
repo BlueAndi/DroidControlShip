@@ -81,10 +81,8 @@ public:
 
     /**
      * Process board components.
-     *
-     * @returns If all components are processed correctly, returns true. Otherwise, false.
      */
-    virtual bool process() = 0;
+    virtual void process() = 0;
 
     /**
      * Get battery driver.

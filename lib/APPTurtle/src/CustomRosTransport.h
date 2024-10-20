@@ -42,9 +42,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
 #include <IPAddress.h>
 #include <rmw_microros/rmw_microros.h>
+#include <WiFiUdp.h>
 
 /******************************************************************************
  * Macros
@@ -55,23 +55,70 @@
  *****************************************************************************/
 
 /**
- * Micro-ROS agent locator struct.
- * Constains the IP address and port of the agent.
- */
-struct micro_ros_agent_locator
-{
-    IPAddress address; /**< IP address of the agent */
-    int       port;    /**< Port of the agent */
-};
-
-/**
- * Class like definition of ROS2 custom transport functions.
+ * Micro-ROS custom transport adaption.
  *
- * Only static functions used as these are called from C-language
+ * The static functions are used as these are called from C-language
  */
 class CustomRosTransport
 {
 public:
+    /**
+     * Constructs a custom Micro-ROS transport.
+     */
+    CustomRosTransport() : m_udpClient(), m_address(), m_port(DEFAULT_PORT)
+    {
+    }
+
+    /**
+     * Destroys custom Micro-ROS transport.
+     *
+     */
+    ~CustomRosTransport()
+    {
+    }
+
+    /**
+     * Initialize custom ROS transport with agent address and port.
+     *
+     * @param[in] addr  Micro-ROS agent IP-address
+     * @param[in] port  Micro-ROS agent port
+     */
+    void init(const IPAddress& addr, uint16_t port)
+    {
+        m_address = addr;
+        m_port    = port;
+    }
+
+    /**
+     * Get IP-address of Micro-ROS agent.
+     *
+     * @return IP-address
+     */
+    const IPAddress& getIPAddress() const
+    {
+        return m_address;
+    }
+
+    /**
+     * Get IP-address of Micro-ROS agent as string
+     *
+     * @return IP-address as string
+     */
+    const String getIPAddressAsStr() const
+    {
+        return m_address.toString();
+    }
+
+    /**
+     * Get port of Micro-ROS agent.
+     *
+     * @return Port
+     */
+    uint16_t getPort() const
+    {
+        return m_port;
+    }
+
     /**
      * Open and initialize the custom transport.
      * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
@@ -118,6 +165,16 @@ public:
      * @return The number of bytes read.
      */
     static size_t read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode);
+
+private:
+    /**
+     * Default Micro-ROS agent port.
+     */
+    static const int DEFAULT_PORT = 8888;
+
+    WiFiUDP   m_udpClient; /**< UDP client */
+    IPAddress m_address;   /**< IP address of the Micro-ROS agent */
+    uint16_t  m_port;      /**< Port of the Micro-ROS agent */
 };
 
 /******************************************************************************

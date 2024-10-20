@@ -84,10 +84,8 @@ public:
 
     /**
      * Process communication with the robot.
-     *
-     * @return If communication is successful, returns true. Otherwise, false.
      */
-    bool process() final;
+    void process() final;
 
     /**
      * Get comunication stream.
