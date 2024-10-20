@@ -202,8 +202,10 @@ private:
      *
      * @param[in] ipAddress The Micro-ROS agent IP-address.
      * @param[in] port      The Micro-ROS agent port.
+     * 
+     * @return If successful it will return true otherwise false.
      */
-    void setupCustomTransport(const IPAddress& ipAddress, uint16_t port);
+    bool setupCustomTransport(const IPAddress& ipAddress, uint16_t port);
 
     /**
      * Create all Micro-ROS required entities.
