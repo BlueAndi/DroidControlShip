@@ -42,7 +42,6 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
 #include "Subscriber.h"
 #include "CustomRosTransport.h"
 
@@ -50,6 +49,7 @@
 #include <rcl/rcl.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
@@ -60,7 +60,7 @@
  *****************************************************************************/
 
 /**
- * Micro-ROS Client.
+ * The Micro-ROS client handles the communication with the Micro-ROS agent.
  */
 class MicroRosClient
 {
@@ -85,27 +85,68 @@ public:
      *
      * @returns If the parameters are valid, returns true. Otherwise, false.
      */
-    bool setConfiguration(const String& nodeName, const String& nodeNamespace, const String& agentIpAddress,
+    bool setConfiguration(const String& nodeName, const String& nodeNamespace, const IPAddress& agentIpAddress,
                           uint16_t agentPort);
-
-    /**
-     * Process the Micro-Ros node and its executors.
-     *
-     * @returns If connection to the agent cannot be established, returns false. Otherwise, true.
-     */
-    bool process();
 
     /**
      * Register a subscriber to a ROS Topic.
      *
      * @param[in] subscriber Pointer to a new subscriber. It shall be instanced using new. The MicroRosClient will
-     * delete the pointer once it is no longer used. Checks if the instance is nullptr.
+     *                       delete the pointer once it is no longer used. Checks if the instance is nullptr.
      *
      * @returns If succesfully created, returns true. Otherwise, false.
      */
     bool registerSubscriber(BaseSubscriber* subscriber);
 
+    /**
+     * Process the Micro-ROS node and its executors.
+     */
+    void process();
+
 private:
+    /**
+     * The Micro-ROS agent will be periodically pinged in waiting state.
+     * This is the period time in ms.
+     */
+    static const uint32_t MICRO_ROS_AGENT_PING_PERIOD_LONG = 500U;
+    /**
+     * The Micro-ROS agent will be periodically pinged to detect connection loss.
+     * This is the period time in ms.
+     */
+    static const uint32_t MICRO_ROS_AGENT_PING_PERIOD_SHORT = 200U;
+
+    /**
+     * The Micro-ROS agent ping operation timeout is ms.
+     */
+    static const int32_t MICRO_ROS_AGENT_PING_TIMEOUT = 100;
+
+    /**
+     * The Micro-ROS agent ping operation attempts. Keep 1, because the
+     * retry mechanism is handled by our client.
+     */
+    static const uint8_t MICRO_ROS_AGENT_PING_ATTEMPTS = 1U;
+
+    /**
+     * DDS queue check timeout in ms.
+     */
+    static const uint64_t DDS_QUEUE_CHECK_TIMEOUT = 8U;
+
+    /**
+     * The connection states with the Micro-ROS agent.
+     */
+    enum State
+    {
+        STATE_WAIT_FOR_AGENT = 0, /**< Waiting for Micro-ROS agent. */
+        STATE_CONNECTING,         /**< Connecting to Micro-ROS agent. */
+        STATE_CONNECTED,          /**< Connection with Micro-ROS agent established. */
+        STATE_DISCONNECTED        /**< Disconnected or connection lost. */
+    };
+
+    /**
+     * Connection state with Micro-ROS agent.
+     */
+    State m_state;
+
     /**
      * Name of the ROS2 Node.
      */
@@ -117,14 +158,9 @@ private:
     String m_nodeNamespace;
 
     /**
-     * Server configuration. Contains IP address and port of the Agent.
+     * Custom Micro-ROS transport.
      */
-    micro_ros_agent_locator m_agentConfiguration;
-
-    /**
-     * Flag: is the client configured?
-     */
-    bool m_isConfigured;
+    CustomRosTransport m_customRosTransport;
 
     /**
      * Micro-ROS node handle
@@ -157,11 +193,62 @@ private:
     size_t m_numberOfHandles;
 
     /**
-     * Configure the client.
-     *
-     * @returns If succesfully configured, returns true. Otherwise, false.
+     * Timer used for periodically operations.
      */
-    bool configureClient();
+    SimpleTimer m_timer;
+
+    /**
+     * Setup the custom transport protocol.
+     *
+     * @param[in] ipAddress The Micro-ROS agent IP-address.
+     * @param[in] port      The Micro-ROS agent port.
+     */
+    void setupCustomTransport(const IPAddress& ipAddress, uint16_t port);
+
+    /**
+     * Create all Micro-ROS required entities.
+     * Note, it will allocate memory for the entities. If it fails, it will
+     * automatically clean-up.
+     *
+     * @return If successful created, it will return true otherwise false.
+     */
+    bool createEntities();
+
+    /**
+     * Destroy all Micro-ROS entities.
+     * Note, it will release the memory for the entities.
+     */
+    void destroyEntities();
+
+    /**
+     * Subscribe all topics.
+     */
+    void subscribe();
+
+    /**
+     * Unsubscribe all topis.
+     */
+    void unsubscribe();
+
+    /**
+     * Process waiting state.
+     */
+    void waitingForAgentState();
+
+    /**
+     * Process connecting state.
+     */
+    void connectingState();
+
+    /**
+     * Process connected state.
+     */
+    void connectedState();
+
+    /**
+     * Process disconnected state.
+     */
+    void disconnectedState();
 };
 
 /******************************************************************************

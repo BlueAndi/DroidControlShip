@@ -74,10 +74,8 @@ public:
 
     /**
      * Process communication with the robot.
-     *
-     * @return If communication is successful, returns true. Otherwise, false.
      */
-    virtual bool process() = 0;
+    virtual void process() = 0;
 
     /**
      * Get comunication stream.

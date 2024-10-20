@@ -73,7 +73,8 @@ public:
         m_serialMuxProtChannelIdStatus(0U),
         m_mqttClient(),
         m_initialDataSent(false),
-        m_statusTimer()
+        m_statusTimer(),
+        m_isFatalError(false)
     {
     }
 
@@ -138,6 +139,11 @@ private:
      * Timer for sending system status to RU.
      */
     SimpleTimer m_statusTimer;
+
+    /**
+     * Is fatal error happened?
+     */
+    bool m_isFatalError;
 
 private:
     /**

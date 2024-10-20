@@ -39,6 +39,7 @@
 #include <SettingsHandler.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
+
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -92,8 +93,9 @@ static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
 void App::setup()
 {
-    SettingsHandler& settings = SettingsHandler::getInstance();
-    Board&           board    = Board::getInstance();
+    bool             isSuccessful = false;
+    SettingsHandler& settings     = SettingsHandler::getInstance();
+    Board&           board        = Board::getInstance();
 
     Serial.begin(SERIAL_BAUDRATE);
 
@@ -104,8 +106,6 @@ void App::setup()
 
         /* Set severity of logging system. */
         Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
     }
 
     /* Initialize HAL. */
@@ -181,26 +181,34 @@ void App::setup()
                 {
                     LOG_FATAL("MQTT configuration could not be set.");
                 }
+                else
+                {
+                    isSuccessful = true;
+                }
             }
         }
+    }
+
+    if (false == isSuccessful)
+    {
+        LOG_FATAL("Initialization failed.");
+        fatalErrorHandler();
     }
 }
 
 void App::loop()
 {
-    /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
+    if (false == m_isFatalError)
     {
-        /* Log and Handle Board processing error */
-        LOG_FATAL("HAL process failed.");
-        fatalErrorHandler();
+        /* Process Battery, Device and Network. */
+        Board::getInstance().process();
+
+        /* Process MQTT Communication */
+        m_mqttClient.process();
+
+        /* Process SerialMuxProt. */
+        m_smpServer.process(millis());
     }
-
-    /* Process MQTT Communication */
-    m_mqttClient.process();
-
-    /* Process SerialMuxProt. */
-    m_smpServer.process(millis());
 }
 
 /******************************************************************************
@@ -213,13 +221,13 @@ void App::loop()
 
 void App::fatalErrorHandler()
 {
-    /* Turn on Red LED to signal fatal error. */
-    Board::getInstance().getRedLed().enable(true);
-
-    while (true)
+    if (false == m_isFatalError)
     {
-        ;
+        /* Turn on Red LED to signal fatal error. */
+        Board::getInstance().getRedLed().enable(true);
     }
+
+    m_isFatalError = true;
 }
 
 void App::publishSensorFusionPosition()

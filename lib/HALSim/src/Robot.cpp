@@ -65,11 +65,9 @@ bool Robot::init()
     return isSuccess;
 }
 
-bool Robot::process()
+void Robot::process()
 {
-    bool isSuccess = true;
-
-    return isSuccess;
+    /* Nothing to do. */
 }
 
 Stream& Robot::getStream()

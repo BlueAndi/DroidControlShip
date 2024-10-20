@@ -73,7 +73,8 @@ public:
         m_statusTimer(),
         m_turtleMovementTimer(),
         m_turtleSpeedSetpoint(),
-        m_isNewTurtleSpeedSetpoint(true)
+        m_isNewTurtleSpeedSetpoint(true),
+        m_isFatalError(false)
     {
     }
 
@@ -149,6 +150,11 @@ private:
      * Flag: New turtle speed setpoint available.
      */
     bool m_isNewTurtleSpeedSetpoint;
+
+    /**
+     * Is fatal error happened?
+     */
+    bool m_isFatalError;
 
     /**
      * Handler of fatal errors in the Application.

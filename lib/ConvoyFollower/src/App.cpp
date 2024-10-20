@@ -107,8 +107,6 @@ void App::setup()
 
         /* Set severity of logging system. */
         Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
     }
 
     /* Initialize HAL. */
@@ -185,6 +183,7 @@ void App::setup()
 
     if (false == isSuccessful)
     {
+        LOG_FATAL("Initialization failed.");
         fatalErrorHandler();
     }
     else
@@ -198,28 +197,26 @@ void App::setup()
 
 void App::loop()
 {
-    /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
+    if (false == m_isFatalError)
     {
-        /* Log and Handle Board processing error */
-        LOG_FATAL("HAL process failed.");
-        setErrorState();
+        /* Process Battery, Device and Network. */
+        Board::getInstance().process();
+
+        /* Process SerialMuxProt. */
+        m_smpServer.process(millis());
+
+        /* Process MQTT Communication */
+        m_mqttClient.process();
+
+        /* Process V2V Communication */
+        processV2VCommunication();
+
+        /* Process System State Machine */
+        m_systemStateMachine.process();
+
+        /* Process periodic tasks. */
+        processPeriodicTasks();
     }
-
-    /* Process SerialMuxProt. */
-    m_smpServer.process(millis());
-
-    /* Process MQTT Communication */
-    m_mqttClient.process();
-
-    /* Process V2V Communication */
-    processV2VCommunication();
-
-    /* Process System State Machine */
-    m_systemStateMachine.process();
-
-    /* Process periodic tasks. */
-    processPeriodicTasks();
 }
 
 void App::setLatestVehicleData(const Waypoint& waypoint)
@@ -264,13 +261,13 @@ void App::systemStatusCallback(SMPChannelPayload::Status status)
 
 void App::fatalErrorHandler()
 {
-    /* Turn on Red LED to signal fatal error. */
-    Board::getInstance().getRedLed().enable(true);
-
-    while (true)
+    if (false == m_isFatalError)
     {
-        ;
+        /* Turn on Red LED to signal fatal error. */
+        Board::getInstance().getRedLed().enable(true);
     }
+
+    m_isFatalError = true;
 }
 
 bool App::setupMqttClient()
