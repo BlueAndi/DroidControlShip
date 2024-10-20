@@ -78,8 +78,6 @@ public:
 
     /**
      * Process network tasks according to current state.
-     *
-     * @returns True if tasks successful, otherwise false.
      */
     void process() final;
 
