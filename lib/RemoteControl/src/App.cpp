@@ -112,8 +112,6 @@ void App::setup()
 
         /* Set severity of logging system. */
         Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
     }
 
     /* Initialize HAL. */
@@ -208,52 +206,51 @@ void App::setup()
 
     if (false == isSuccessful)
     {
+        LOG_FATAL("Initialization failed.");
         fatalErrorHandler();
     }
 }
 
 void App::loop()
 {
-    /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
+    if (false == m_isFatalError)
     {
-        /* Log and Handle Board processing error */
-        LOG_FATAL("HAL process failed.");
-        fatalErrorHandler();
-    }
+        /* Process Battery, Device and Network. */
+        Board::getInstance().process();
 
-    /* Process MQTT Communication */
-    m_mqttClient.process();
+        /* Process MQTT Communication */
+        m_mqttClient.process();
 
-    /* Process SerialMuxProt. */
-    m_smpServer.process(millis());
+        /* Process SerialMuxProt. */
+        m_smpServer.process(millis());
 
-    if (false == m_initialDataSent)
-    {
-        SettingsHandler& settings = SettingsHandler::getInstance();
-        VehicleData      initialVehicleData;
-        initialVehicleData.xPos        = settings.getInitialXPosition();
-        initialVehicleData.yPos        = settings.getInitialYPosition();
-        initialVehicleData.orientation = settings.getInitialHeading();
-
-        if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
-                                         sizeof(initialVehicleData)))
+        if (false == m_initialDataSent)
         {
-            LOG_DEBUG("Initial vehicle data sent.");
-            m_initialDataSent = true;
-        }
-    }
+            SettingsHandler& settings = SettingsHandler::getInstance();
+            VehicleData      initialVehicleData;
+            initialVehicleData.xPos        = settings.getInitialXPosition();
+            initialVehicleData.yPos        = settings.getInitialYPosition();
+            initialVehicleData.orientation = settings.getInitialHeading();
 
-    if ((true == m_statusTimer.isTimeout()) && (true == m_smpServer.isSynced()))
-    {
-        Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
-
-        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
-        {
-            LOG_WARNING("Failed to send current status to RU.");
+            if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
+                                            sizeof(initialVehicleData)))
+            {
+                LOG_DEBUG("Initial vehicle data sent.");
+                m_initialDataSent = true;
+            }
         }
 
-        m_statusTimer.restart();
+        if ((true == m_statusTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+        {
+            Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
+
+            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
+            {
+                LOG_WARNING("Failed to send current status to RU.");
+            }
+
+            m_statusTimer.restart();
+        }
     }
 }
 
@@ -267,13 +264,13 @@ void App::loop()
 
 void App::fatalErrorHandler()
 {
-    /* Turn on Red LED to signal fatal error. */
-    Board::getInstance().getRedLed().enable(true);
-
-    while (true)
+    if (false == m_isFatalError)
     {
-        ;
+        /* Turn on Red LED to signal fatal error. */
+        Board::getInstance().getRedLed().enable(true);
     }
+
+    m_isFatalError = true;
 }
 
 void App::cmdTopicCallback(const String& payload)

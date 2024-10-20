@@ -81,7 +81,7 @@ public:
      *
      * @returns True if tasks successful, otherwise false.
      */
-    bool process() final;
+    void process() final;
 
     /**
      * Set client configuration.
@@ -145,45 +145,33 @@ private:
 private:
     /**
      * Setup network connection
-     *
-     * @return True if connection setup successful, otherwise false.
      */
-    bool handleStationSetup();
+    void handleStationSetup();
 
     /**
      * Check if the connection was established and change state if so.
-     *
-     * @return True.
      */
-    bool handleConnectingState();
+    void handleConnectingState();
 
     /**
      * Handle connection specific tasks.
-     *
-     * @return If connection management successful, returns true. Otherwise, false.
      */
-    bool manageConnection();
+    void manageConnection();
 
     /**
      * Switch WiFi to Access Point Mode.
-     *
-     * @return True.
      */
-    bool switchToAPMode();
+    void switchToAPMode();
 
     /**
      * Setup WiFi Access Point.
-     *
-     * @return If AP setup successful, returns true. Otherwise, false.
      */
-    bool handleAPSetup();
+    void handleAPSetup();
 
     /**
      * Handle Access Point Management.
-     *
-     * @returns True.
      */
-    bool handleAPState();
+    void handleAPState();
 };
 
 /******************************************************************************

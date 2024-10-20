@@ -143,14 +143,12 @@ bool USBHost::init()
     return isSuccess;
 }
 
-bool USBHost::process()
+void USBHost::process()
 {
-    bool isSuccess = true;
-
     /* Process USB task. */
     m_usb.Task();
 
-    /* USB Device is connected and ready. */
+    /* USB device is connected and ready. */
     if (true == m_acm.isReady())
     {
         uint16_t receivedBytes = UINT8_MAX; /* Doubles as number of bytes to be read, after RcvData(). */
@@ -170,8 +168,7 @@ bool USBHost::process()
             }
             else
             {
-                LOG_ERROR("Failed to receive from USB Device with error code: %d", ret);
-                isSuccess = false;
+                LOG_ERROR("Failed to receive from USB device with error code: %d", ret);
             }
         }
         else if ((0U < receivedBytes) && (nullptr != m_rxQueue))
@@ -186,9 +183,11 @@ bool USBHost::process()
                 }
             }
         }
+        else
+        {
+            ;
+        }
     }
-
-    return isSuccess;
 }
 
 size_t USBHost::write(uint8_t value)
@@ -207,7 +206,7 @@ size_t USBHost::write(const uint8_t* buffer, size_t length)
         ret = m_acm.SndData(length, const_cast<uint8_t*>(buffer));
         if (hrSUCCESS != ret)
         {
-            LOG_ERROR("Failed to send data to USB Device with error code: %d", ret);
+            LOG_ERROR("Failed to send data to USB device with error code: %d", ret);
         }
         else
         {

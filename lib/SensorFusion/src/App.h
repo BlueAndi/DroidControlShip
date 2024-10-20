@@ -65,7 +65,11 @@ public:
     /**
      * Construct the Sensor Fusion application.
      */
-    App() : m_sensorFusion(), m_smpServer(Board::getInstance().getRobot().getStream(), this), m_mqttClient()
+    App() :
+        m_sensorFusion(),
+        m_smpServer(Board::getInstance().getRobot().getStream(), this),
+        m_mqttClient(),
+        m_isFatalError(false)
     {
     }
 
@@ -124,6 +128,11 @@ private:
      * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
     SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
+
+    /**
+     * Is fatal error happened?
+     */
+    bool m_isFatalError;
 
     /**
      * Handler of fatal errors in the Application.

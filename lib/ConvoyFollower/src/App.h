@@ -82,7 +82,8 @@ public:
         m_lastV2VStatus(V2VCommManager::V2VStatus::V2V_STATUS_NOT_INIT),
         m_lastRUStatus(SMPChannelPayload::Status::STATUS_FLAG_OK),
         m_latestVehicleData(),
-        m_lastWaypointSent()
+        m_lastWaypointSent(),
+        m_isFatalError(false)
     {
     }
 
@@ -215,6 +216,11 @@ private:
 
     /** Last Waypoint sent. */
     Waypoint m_lastWaypointSent;
+
+    /**
+     * Is fatal error happened?
+     */
+    bool m_isFatalError;
 
 private:
     /**

@@ -65,7 +65,7 @@ bool Robot::init()
     return m_usbHost.init();
 }
 
-bool Robot::process()
+void Robot::process()
 {
     if (true == m_resetTimer.isTimeout())
     {
@@ -85,7 +85,7 @@ bool Robot::process()
         m_waitTimer.stop();
     }
 
-    return m_usbHost.process();
+    (void)m_usbHost.process();
 }
 
 Stream& Robot::getStream()

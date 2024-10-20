@@ -90,8 +90,6 @@ void App::setup()
 
         /* Set severity of logging system. */
         Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
     }
 
     /* Initialize HAL. */
@@ -120,23 +118,28 @@ void App::setup()
 
         NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
                                            ""};
+        IPAddress       microROSAgentIPAdress;
 
-        if (false == board.getNetwork().setConfig(networkSettings))
+        if (false == microROSAgentIPAdress.fromString(settings.getMicroROSAgentAddress()))
         {
-            LOG_ERROR("Network configuration could not be set.");
+            LOG_FATAL("Invalid Micro-ROS agent IP-address.");
         }
-        else if (false == m_ros.setConfiguration(settings.getRobotName(), "", settings.getMicroROSAgentAddress(),
+        else if (false == board.getNetwork().setConfig(networkSettings))
+        {
+            LOG_FATAL("Network configuration could not be set.");
+        }
+        else if (false == m_ros.setConfiguration(settings.getRobotName(), "", microROSAgentIPAdress,
                                                  settings.getMicroROSAgentPort()))
         {
-            LOG_ERROR("Micro-ROS Agent could not be configured.");
+            LOG_FATAL("Micro-ROS agent could not be configured.");
         }
         else if (false == setupMicroRosClient())
         {
-            LOG_ERROR("Micro-ROS Client could not be setup.");
+            LOG_FATAL("Micro-ROS client could not be setup.");
         }
         else if (false == setupSerialMuxProtServer())
         {
-            LOG_ERROR("SerialMuxProt Server could not be setup.");
+            LOG_FATAL("SerialMuxProt server could not be setup.");
         }
         else
         {
@@ -164,41 +167,33 @@ void App::setup()
 
 void App::loop()
 {
-    Board& board = Board::getInstance();
-
-    /* Process Battery, Device and Network. */
-    if (false == board.process())
+    if (false == m_isFatalError)
     {
-        /* Log and Handle Board processing error */
-        LOG_FATAL("HAL process failed.");
-        fatalErrorHandler();
-    }
+        /* Process Battery, Device and Network. */
+        Board::getInstance().process();
 
-    /* Process Micro ROS client. */
-    if (false == m_ros.process())
-    {
-        LOG_FATAL("ROS process failed.");
-        fatalErrorHandler();
-    }
+        /* Process Micro-ROS client. */
+        m_ros.process();
 
-    /* Process SerialMuxProt. */
-    m_smpServer.process(millis());
+        /* Process SerialMuxProt. */
+        m_smpServer.process(millis());
 
-    if ((true == m_statusTimer.isTimeout()) && (true == m_smpServer.isSynced()))
-    {
-        Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
-
-        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
+        if (true == m_smpServer.isSynced())
         {
-            LOG_WARNING("Failed to send current status to RU.");
+            if (true == m_statusTimer.isTimeout())
+            {
+                Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
+
+                if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
+                {
+                    LOG_WARNING("Failed to send current status to RU.");
+                }
+
+                m_statusTimer.restart();
+            }
+
+            handleTurtle();
         }
-
-        m_statusTimer.restart();
-    }
-
-    if (true == m_smpServer.isSynced())
-    {
-        handleTurtle();
     }
 }
 
@@ -212,13 +207,13 @@ void App::loop()
 
 void App::fatalErrorHandler()
 {
-    /* Turn on Red LED to signal fatal error. */
-    Board::getInstance().getRedLed().enable(true);
-
-    while (true)
+    if (false == m_isFatalError)
     {
-        ;
+        /* Turn on Red LED to signal fatal error. */
+        Board::getInstance().getRedLed().enable(true);
     }
+
+    m_isFatalError = true;
 }
 
 bool App::setupMicroRosClient()

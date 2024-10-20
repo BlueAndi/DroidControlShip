@@ -92,10 +92,8 @@ public:
 
     /**
      * Process network tasks according to current state.
-     *
-     * @returns True if tasks successful, otherwise false.
      */
-    virtual bool process() = 0;
+    virtual void process() = 0;
 
     /**
      * Is the network interface initialized?
