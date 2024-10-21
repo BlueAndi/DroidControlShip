@@ -152,7 +152,7 @@ void MicroRosClient::process()
         break;
 
     default:
-        /* Should never happend. */
+        /* Should never happen. */
         break;
     }
 }
