@@ -222,9 +222,15 @@ bool MicroRosClient::createEntities()
 
 void MicroRosClient::destroyEntities()
 {
-    (void)rclc_executor_fini(&m_executor);
-    (void)rcl_node_fini(&m_node);
-    (void)rclc_support_fini(&m_support);
+    rcl_ret_t ret = rclc_executor_fini(&m_executor);
+
+    ret += rcl_node_fini(&m_node);
+    ret += rclc_support_fini(&m_support);
+
+    if (RCL_RET_OK != ret)
+    {
+        LOG_WARNING("Error while destroying entities.");
+    }
 }
 
 void MicroRosClient::subscribe()
@@ -252,7 +258,12 @@ void MicroRosClient::unsubscribe()
 
         if (nullptr != currentSubscriber)
         {
-            (void)rcl_subscription_fini(&currentSubscriber->m_subscriber, &m_node);
+            rcl_ret_t ret = rcl_subscription_fini(&currentSubscriber->m_subscriber, &m_node);
+
+            if (RCL_RET_OK != ret)
+            {
+                LOG_WARNING("Error while unsubscribing.");
+            }
 
             delete currentSubscriber;
             m_subscribers[idx] = nullptr;
