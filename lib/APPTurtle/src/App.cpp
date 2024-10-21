@@ -122,7 +122,7 @@ void App::setup()
 
         if (false == microROSAgentIPAdress.fromString(settings.getMicroROSAgentAddress()))
         {
-            LOG_FATAL("Invalid Micro-ROS agent IP-address.");
+            LOG_FATAL("Invalid Micro-ROS agent IP-address: %s", settings.getMicroROSAgentAddress().c_str());
         }
         else if (false == board.getNetwork().setConfig(networkSettings))
         {
