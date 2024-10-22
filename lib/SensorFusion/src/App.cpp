@@ -151,12 +151,12 @@ void App::setup()
         else
         {
             /* Setup MQTT Server, Birth and Will messages. */
-            StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
-            char                                           birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
-            String                                         birthMessage;
+            JsonDocument jsonBirthDoc;
+            char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+            String       birthMessage;
 
-            birthDoc["name"] = settings.getRobotName().c_str();
-            (void)serializeJson(birthDoc, birthMsgArray);
+            jsonBirthDoc["name"] = settings.getRobotName().c_str();
+            (void)serializeJson(jsonBirthDoc, birthMsgArray);
             birthMessage = birthMsgArray;
 
             /* Setup SerialMuxProt Channels */
@@ -232,8 +232,8 @@ void App::fatalErrorHandler()
 
 void App::publishSensorFusionPosition()
 {
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> payloadJson;
-    char                                      payloadArray[JSON_DOC_DEFAULT_SIZE];
+    JsonDocument payloadJson;
+    char         payloadArray[JSON_DOC_DEFAULT_SIZE];
 
     /* Write newest Sensor Fusion Data in JSON String */
     IKalmanFilter::PositionData currentPosition = m_sensorFusion.getLatestPosition();

@@ -56,18 +56,15 @@
  * Local Variables
  *****************************************************************************/
 
-/** Default size of the JSON Document for parsing. */
-static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
 Waypoint* Waypoint::deserialize(const String& serializedWaypoint)
 {
-    Waypoint*                                 waypoint = nullptr;
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, serializedWaypoint.c_str());
+    Waypoint*            waypoint = nullptr;
+    JsonDocument         jsonPayload;
+    DeserializationError error = deserializeJson(jsonPayload, serializedWaypoint.c_str());
 
     if (DeserializationError::Ok != error)
     {
@@ -84,31 +81,26 @@ Waypoint* Waypoint::deserialize(const String& serializedWaypoint)
 
 Waypoint* Waypoint::fromJsonObject(const JsonObject& jsonWaypoint)
 {
-    Waypoint* waypoint = nullptr;
+    Waypoint*        waypoint        = nullptr;
+    JsonVariantConst jsonXPos        = jsonWaypoint["X"];           /* X position [mm]. */
+    JsonVariantConst jsonYPos        = jsonWaypoint["Y"];           /* Y position [mm]. */
+    JsonVariantConst jsonOrientation = jsonWaypoint["Orientation"]; /* Orientation [mrad]. */
+    JsonVariantConst jsonLeft        = jsonWaypoint["Left"];        /* Left motor speed [mm/s]. */
+    JsonVariantConst jsonRight       = jsonWaypoint["Right"];       /* Right motor speed [mm/s]. */
+    JsonVariantConst jsonCenter      = jsonWaypoint["Center"];      /* Center speed [mm/s]. */
 
-    if (jsonWaypoint.containsKey("X") && jsonWaypoint.containsKey("Y") && jsonWaypoint.containsKey("Orientation") &&
-        jsonWaypoint.containsKey("Left") && jsonWaypoint.containsKey("Right") && jsonWaypoint.containsKey("Center"))
+    if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()) && (false == jsonOrientation.isNull()) &&
+        (false == jsonLeft.isNull()) && (false == jsonRight.isNull()) && (false == jsonCenter.isNull()))
     {
-        JsonVariant jsonXPos        = jsonWaypoint["X"];           /* X position [mm]. */
-        JsonVariant jsonYPos        = jsonWaypoint["Y"];           /* Y position [mm]. */
-        JsonVariant jsonOrientation = jsonWaypoint["Orientation"]; /* Orientation [mrad]. */
-        JsonVariant jsonLeft        = jsonWaypoint["Left"];        /* Left motor speed [mm/s]. */
-        JsonVariant jsonRight       = jsonWaypoint["Right"];       /* Right motor speed [mm/s]. */
-        JsonVariant jsonCenter      = jsonWaypoint["Center"];      /* Center speed [mm/s]. */
 
-        if ((false == jsonXPos.isNull()) && (false == jsonYPos.isNull()) && (false == jsonOrientation.isNull()) &&
-            (false == jsonLeft.isNull()) && (false == jsonRight.isNull()) && (false == jsonCenter.isNull()))
-        {
+        int32_t xPos        = jsonXPos.as<int32_t>();
+        int32_t yPos        = jsonYPos.as<int32_t>();
+        int32_t orientation = jsonOrientation.as<int32_t>();
+        int32_t left        = jsonLeft.as<int32_t>();
+        int32_t right       = jsonRight.as<int32_t>();
+        int32_t center      = jsonCenter.as<int32_t>();
 
-            int32_t xPos        = jsonXPos.as<int32_t>();
-            int32_t yPos        = jsonYPos.as<int32_t>();
-            int32_t orientation = jsonOrientation.as<int32_t>();
-            int32_t left        = jsonLeft.as<int32_t>();
-            int32_t right       = jsonRight.as<int32_t>();
-            int32_t center      = jsonCenter.as<int32_t>();
-
-            waypoint = new (std::nothrow) Waypoint(xPos, yPos, orientation, left, right, center);
-        }
+        waypoint = new (std::nothrow) Waypoint(xPos, yPos, orientation, left, right, center);
     }
 
     return waypoint;
@@ -116,7 +108,7 @@ Waypoint* Waypoint::fromJsonObject(const JsonObject& jsonWaypoint)
 
 void Waypoint::serialize(String& serializedWaypoint) const
 {
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
+    JsonDocument jsonPayload;
 
     jsonPayload["X"]           = xPos;        /* X position [mm]. */
     jsonPayload["Y"]           = yPos;        /* Y position [mm]. */

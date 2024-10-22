@@ -85,9 +85,6 @@ const char* App::TOPIC_NAME_BIRTH = "dcs/birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "dcs/will";
 
-/** Buffer size for JSON serialization of birth / will message */
-static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -273,14 +270,14 @@ void App::fatalErrorHandler()
 bool App::setupMqttClient()
 {
     /* Setup MQTT Server, Birth and Will messages. */
-    bool                                           isSuccessful = false;
-    SettingsHandler&                               settings     = SettingsHandler::getInstance();
-    StaticJsonDocument<JSON_BIRTHMESSAGE_MAX_SIZE> birthDoc;
-    String                                         birthMessage;
+    bool             isSuccessful = false;
+    SettingsHandler& settings     = SettingsHandler::getInstance();
+    JsonDocument     jsonBirthDoc;
+    String           birthMessage;
 
-    birthDoc["name"] = settings.getRobotName();
+    jsonBirthDoc["name"] = settings.getRobotName();
 
-    if (0U == serializeJson(birthDoc, birthMessage))
+    if (0U == serializeJson(jsonBirthDoc, birthMessage))
     {
         /* Non-fatal error. Birth message will be empty. */
         LOG_ERROR("Failed to serialize birth message.");

@@ -527,8 +527,7 @@ static int createConfigFile(const PrgArguments& prgArgs)
             }
             else
             {
-                const size_t        JSON_DOC_SIZE = 2048U;
-                DynamicJsonDocument jsonDoc(JSON_DOC_SIZE);
+                JsonDocument jsonDoc;
 
                 jsonDoc[ConfigurationKeys::ROBOT_NAME]                             = prgArgs.robotName;
                 jsonDoc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID]          = WIFI_SSID_DEFAULT;
