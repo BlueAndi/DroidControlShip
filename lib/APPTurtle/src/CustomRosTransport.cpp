@@ -63,7 +63,7 @@
  *
  * @return The this pointer to transport owning CustomRosTransport class.
  */
-static CustomRosTransport* toThis(const uxrCustomTransport* transport);
+static inline CustomRosTransport* toThis(const uxrCustomTransport* transport);
 
 /******************************************************************************
  * Local Variables
@@ -96,26 +96,6 @@ size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, 
 {
     CustomRosTransport * tp = toThis(transport);
     return (nullptr != tp) ? tp->read(buffer, size, timeout, errorCode) : 0U;
-}
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
-
-static CustomRosTransport* toThis(const uxrCustomTransport* transport)
-{
-    CustomRosTransport* transportClass = nullptr;
-    
-    if (nullptr == transport)
-    {
-        LOG_FATAL("Invalid uxrCustomTransport pointer.");
-    }
-    else
-    {
-        transportClass = reinterpret_cast<CustomRosTransport*>(transport->args);
-    }
-
-    return transportClass;
 }
 
 /******************************************************************************
@@ -252,3 +232,23 @@ size_t CustomRosTransport::read(uint8_t* buffer, size_t size, int timeout, uint8
 /******************************************************************************
  * External Functions
  *****************************************************************************/
+
+/******************************************************************************
+ * Local Functions
+ *****************************************************************************/
+
+static inline CustomRosTransport* toThis(const uxrCustomTransport* transport)
+{
+    CustomRosTransport* transportClass = nullptr;
+    
+    if (nullptr == transport)
+    {
+        LOG_FATAL("Invalid uxrCustomTransport pointer.");
+    }
+    else
+    {
+        transportClass = reinterpret_cast<CustomRosTransport*>(transport->args);
+    }
+
+    return transportClass;
+}
