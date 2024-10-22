@@ -87,9 +87,6 @@ const char* App::TOPIC_NAME_CMD = "cmd";
 /* MQTT topic name for receiving motor speeds. */
 const char* App::TOPIC_NAME_MOTOR_SPEEDS = "motorSpeeds";
 
-/** Default size of the JSON Document for parsing. */
-static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
-
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
@@ -147,12 +144,12 @@ void App::setup()
         else
         {
             /* Setup MQTT Server, Birth and Will messages. */
-            JsonDocument birthDoc;
+            JsonDocument jsonBirthDoc;
             char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
             String       birthMessage;
 
-            birthDoc["name"] = settings.getRobotName().c_str();
-            (void)serializeJson(birthDoc, birthMsgArray);
+            jsonBirthDoc["name"] = settings.getRobotName().c_str();
+            (void)serializeJson(jsonBirthDoc, birthMsgArray);
             birthMessage = birthMsgArray;
 
             /* Setup SerialMuxProt Channels */
@@ -233,7 +230,7 @@ void App::loop()
             initialVehicleData.orientation = settings.getInitialHeading();
 
             if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
-                                            sizeof(initialVehicleData)))
+                                             sizeof(initialVehicleData)))
             {
                 LOG_DEBUG("Initial vehicle data sent.");
                 m_initialDataSent = true;
@@ -284,7 +281,7 @@ void App::cmdTopicCallback(const String& payload)
     }
     else
     {
-        JsonVariant command = jsonPayload["CMD_ID"];
+        JsonVariantConst command = jsonPayload["CMD_ID"];
 
         if (false == command.isNull())
         {
@@ -361,8 +358,8 @@ void App::motorSpeedsTopicCallback(const String& payload)
     }
     else
     {
-        JsonVariant leftSpeed  = jsonPayload["LEFT"];
-        JsonVariant rightSpeed = jsonPayload["RIGHT"];
+        JsonVariantConst leftSpeed  = jsonPayload["LEFT"];
+        JsonVariantConst rightSpeed = jsonPayload["RIGHT"];
 
         if ((false == leftSpeed.isNull()) && (false == rightSpeed.isNull()))
         {

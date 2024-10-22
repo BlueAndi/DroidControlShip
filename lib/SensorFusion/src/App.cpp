@@ -151,12 +151,12 @@ void App::setup()
         else
         {
             /* Setup MQTT Server, Birth and Will messages. */
-            JsonDocument birthDoc;
+            JsonDocument jsonBirthDoc;
             char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
             String       birthMessage;
 
-            birthDoc["name"] = settings.getRobotName().c_str();
-            (void)serializeJson(birthDoc, birthMsgArray);
+            jsonBirthDoc["name"] = settings.getRobotName().c_str();
+            (void)serializeJson(jsonBirthDoc, birthMsgArray);
             birthMessage = birthMsgArray;
 
             /* Setup SerialMuxProt Channels */

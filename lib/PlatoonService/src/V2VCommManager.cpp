@@ -77,12 +77,6 @@ const char* V2VCommManager::TOPIC_NAME_IVS = "ivs";
 /* MQTT subtopic name for Platoon Length. */
 const char* V2VCommManager::TOPIC_NAME_PLATOON_LENGTH = "length";
 
-/** Buffer size for JSON serialization of heartbeat messages. */
-static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 128U;
-
-/** Default size of the JSON Document for parsing. */
-static const uint32_t JSON_DOC_DEFAULT_SIZE = 512U;
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -384,10 +378,10 @@ void V2VCommManager::eventCallback(const String& payload)
     }
     else
     {
-        JsonVariant jsonEventVehicleId = jsonPayload["id"];        /* Vehicle ID. */
-        JsonVariant jsonEventType      = jsonPayload["type"];      /* Event type. */
-        JsonVariant jsonEventTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
-        JsonVariant jsonEventData      = jsonPayload["data"];      /* Event data. */
+        JsonVariantConst jsonEventVehicleId = jsonPayload["id"];        /* Vehicle ID. */
+        JsonVariantConst jsonEventType      = jsonPayload["type"];      /* Event type. */
+        JsonVariantConst jsonEventTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
+        JsonVariantConst jsonEventData      = jsonPayload["data"];      /* Event data. */
 
         if ((false == jsonEventVehicleId.isNull()) && (false == jsonEventType.isNull()) &&
             (false == jsonEventTimestamp.isNull()) && (false == jsonEventData.isNull()))
@@ -446,8 +440,8 @@ void V2VCommManager::eventCallback(const String& payload)
                 }
                 else
                 {
-                    JsonVariant jsonEventDataStatus    = eventDataAsJson["status"];    /* Vehicle status. */
-                    JsonVariant jsonEventDataTimestamp = eventDataAsJson["timestamp"]; /* Timestamp [ms]. */
+                    JsonVariantConst jsonEventDataStatus    = eventDataAsJson["status"];    /* Vehicle status. */
+                    JsonVariantConst jsonEventDataTimestamp = eventDataAsJson["timestamp"]; /* Timestamp [ms]. */
 
                     if ((false == jsonEventDataStatus.isNull()) && (false == jsonEventDataTimestamp.isNull()))
                     {
@@ -466,18 +460,19 @@ void V2VCommManager::eventCallback(const String& payload)
             case V2V_EVENT_PLATOON_HEARTBEAT:
                 if (PLATOON_LEADER_ID != m_vehicleId)
                 {
-                    JsonVariant jsonEventDataTimestamp = eventDataAsJson["timestamp"]; /* Timestamp [ms]. */
+                    JsonVariantConst jsonEventDataTimestamp = eventDataAsJson["timestamp"]; /* Timestamp [ms]. */
 
                     if (false == jsonEventDataTimestamp.isNull())
                     {
                         /* Timestamp is sent back to acknowledge synchronization. */
                         uint32_t     eventDataTimestamp = jsonEventDataTimestamp.as<uint32_t>();
-                        JsonDocument heartbeatDoc;
-                        heartbeatDoc["timestamp"] = eventDataTimestamp;
-                        heartbeatDoc["status"]    = m_vehicleStatus;
+                        JsonDocument jsonHeartbeatDoc;
+
+                        jsonHeartbeatDoc["timestamp"] = eventDataTimestamp;
+                        jsonHeartbeatDoc["status"]    = m_vehicleStatus;
 
                         if (false == publishEvent(m_heartbeatResponseTopic, V2V_EVENT_VEHICLE_HEARTBEAT,
-                                                  heartbeatDoc.as<JsonObject>()))
+                                                  jsonHeartbeatDoc.as<JsonObject>()))
                         {
                             LOG_ERROR("Failed to publish MQTT message to %s.", m_heartbeatResponseTopic.c_str());
                         }
@@ -500,7 +495,7 @@ void V2VCommManager::eventCallback(const String& payload)
                 }
                 else
                 {
-                    JsonVariant jsonEventDataIVS = eventDataAsJson["ivs"]; /* Inter Vehicle Space. */
+                    JsonVariantConst jsonEventDataIVS = eventDataAsJson["ivs"]; /* Inter Vehicle Space. */
 
                     if (false == jsonEventDataIVS.isNull())
                     {
@@ -729,13 +724,13 @@ bool V2VCommManager::sendPlatoonHeartbeat()
     bool isSuccessful = false;
 
     /* Send platoon heartbeat. */
-    JsonDocument heartbeatDoc;
+    JsonDocument jsonHeartbeatDoc;
     String       heartbeatPayload;
     uint32_t     timestamp = millis();
 
-    heartbeatDoc["timestamp"] = timestamp;
+    jsonHeartbeatDoc["timestamp"] = timestamp;
 
-    if (0U == serializeJson(heartbeatDoc, heartbeatPayload))
+    if (0U == serializeJson(jsonHeartbeatDoc, heartbeatPayload))
     {
         LOG_ERROR("Failed to serialize heartbeat.");
     }
