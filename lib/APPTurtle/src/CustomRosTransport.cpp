@@ -53,6 +53,18 @@
  * Prototypes
  *****************************************************************************/
 
+/**
+ * Unwrap pointer to CustomRosTransport from uxrCustomTransport structure.
+ * 
+ * This is used by the static C-Languge entry points to forward the request
+ * to the matching C++ member function.
+ *
+ * @param[in] transport The custom transport data structure pointer.
+ *
+ * @return The this pointer to transport owning CustomRosTransport class.
+ */
+static CustomRosTransport* toThis(const uxrCustomTransport* transport);
+
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -63,65 +75,95 @@
 
 bool CustomRosTransport::open(uxrCustomTransport* transport)
 {
-    bool isOpen = false;
+    CustomRosTransport * tp = toThis(transport);
+    return (nullptr != tp) ? tp->open() : false;
+}
 
+bool CustomRosTransport::close(uxrCustomTransport* transport)
+{
+    CustomRosTransport * tp = toThis(transport);
+    return (nullptr != tp) ? tp->close() : false;
+}
+
+size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode)
+{
+    CustomRosTransport * tp = toThis(transport);
+    return (nullptr != tp) ? tp->write(buffer, size, errorCode) : 0U;
+}
+
+size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
+                                uint8_t* errorCode)
+{
+    CustomRosTransport * tp = toThis(transport);
+    return (nullptr != tp) ? tp->read(buffer, size, timeout, errorCode) : 0U;
+}
+
+/******************************************************************************
+ * Local Functions
+ *****************************************************************************/
+
+static CustomRosTransport* toThis(const uxrCustomTransport* transport)
+{
+    CustomRosTransport* transportClass = nullptr;
+    
     if (nullptr == transport)
     {
-        LOG_ERROR("Transport is nullptr.");
+        LOG_FATAL("Invalid uxrCustomTransport pointer.");
     }
     else
     {
-        CustomRosTransport* tthis  = reinterpret_cast<CustomRosTransport*>(transport->args);
-        const int           UDP_OK = 1;
+        transportClass = reinterpret_cast<CustomRosTransport*>(transport->args);
+    }
 
-        if (UDP_OK != tthis->m_udpClient.begin(tthis->m_port))
-        {
-            LOG_ERROR("UDP begin error");
-        }
-        else
-        {
-            isOpen = true;
-        }
+    return transportClass;
+}
+
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
+
+bool CustomRosTransport::open(void)
+{
+    bool      isOpen = false;
+    const int UDP_OK = 1;
+
+    if (UDP_OK != m_udpClient.begin(m_port))
+    {
+        LOG_ERROR("UDP begin error");
+    }
+    else
+    {
+        isOpen = true;
     }
 
     return isOpen;
 }
 
-bool CustomRosTransport::close(uxrCustomTransport* transport)
+bool CustomRosTransport::close()
 {
-    bool isSuccessful = false;
+    m_udpClient.stop();
 
-    if (nullptr == transport)
-    {
-        LOG_ERROR("Transport is nullptr.");
-    }
-    else
-    {
-        CustomRosTransport* tthis = reinterpret_cast<CustomRosTransport*>(transport->args);
-
-        tthis->m_udpClient.stop();
-
-        isSuccessful = true;
-    }
-
-    return isSuccessful;
+    return true;
 }
 
-size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode)
+size_t CustomRosTransport::write(const uint8_t* buffer, size_t size, uint8_t* errorCode)
 {
     size_t sent = 0U;
 
-    if ((nullptr == transport) || (nullptr == buffer) || (0U == size) || (nullptr == errorCode))
+    if ((nullptr == buffer) || (0U == size) || (nullptr == errorCode))
     {
         LOG_ERROR("One or more parameters are invalid.");
     }
     else
     {
-        CustomRosTransport* tthis  = static_cast<CustomRosTransport*>(transport->args);
-        const int           UDP_OK = 1;
-        int                 ret    = UDP_OK;
+        const int UDP_OK = 1;
+        int       ret    = UDP_OK;
 
-        ret = tthis->m_udpClient.beginPacket(tthis->m_address, tthis->m_port);
+        ret = m_udpClient.beginPacket(m_address, m_port);
 
         if (UDP_OK != ret)
         {
@@ -129,7 +171,7 @@ size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* b
         }
         else
         {
-            size_t bytesToWrite = tthis->m_udpClient.write(buffer, size);
+            size_t bytesToWrite = m_udpClient.write(buffer, size);
 
             if (bytesToWrite != size)
             {
@@ -137,7 +179,7 @@ size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* b
             }
             else
             {
-                ret = tthis->m_udpClient.endPacket();
+                ret = m_udpClient.endPacket();
 
                 if (UDP_OK != ret)
                 {
@@ -152,36 +194,34 @@ size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* b
 
         if (UDP_OK != ret)
         {
-            int writeErrorCode = tthis->m_udpClient.getWriteError();
+            int writeErrorCode = m_udpClient.getWriteError();
             *errorCode         = writeErrorCode;
             LOG_ERROR("UDP error: %d", writeErrorCode);
         }
 
-        tthis->m_udpClient.flush();
+        m_udpClient.flush();
     }
 
     return sent;
 }
 
-size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
-                                uint8_t* errorCode)
+size_t CustomRosTransport::read(uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode)
 {
     size_t readBytes = 0U;
 
-    if ((nullptr == transport) || (nullptr == buffer) || (0U == size) || (nullptr == errorCode))
+    if ((nullptr == buffer) || (0U == size) || (nullptr == errorCode))
     {
         LOG_ERROR("One or more parameters are invalid.");
     }
     else
     {
-        CustomRosTransport* tthis = static_cast<CustomRosTransport*>(transport->args);
-        SimpleTimer         readTimer;
+        SimpleTimer readTimer;
 
         readTimer.start(timeout);
 
         while (false == readTimer.isTimeout())
         {
-            if (0 < tthis->m_udpClient.parsePacket())
+            if (0 < m_udpClient.parsePacket())
             {
                 break;
             }
@@ -196,30 +236,18 @@ size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, 
 #endif
         }
 
-        if (0 == tthis->m_udpClient.available())
+        if (0 == m_udpClient.available())
         {
             *errorCode = 1;
         }
         else
         {
-            readBytes = tthis->m_udpClient.read(buffer, size);
+            readBytes = m_udpClient.read(buffer, size);
         }
     }
 
     return readBytes;
 }
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
-
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
-
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
 
 /******************************************************************************
  * External Functions

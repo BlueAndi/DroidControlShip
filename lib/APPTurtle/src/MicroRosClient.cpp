@@ -283,8 +283,8 @@ void MicroRosClient::waitingForAgentState()
          */
         if ((false == m_timer.isTimerRunning()) || (true == m_timer.isTimeout()))
         {
-            LOG_INFO("Ping Micro-ROS agent %s:%u ...", m_customRosTransport.getIPAddressAsStr().c_str(),
-                     m_customRosTransport.getPort());
+            String ipAddStr = m_customRosTransport.getIPAddressAsStr();
+            LOG_INFO("Ping Micro-ROS agent %s:%u ...", ipAddStr.c_str(), m_customRosTransport.getPort());
 
             if (RMW_RET_OK == rmw_uros_ping_agent(MICRO_ROS_AGENT_PING_TIMEOUT, MICRO_ROS_AGENT_PING_ATTEMPTS))
             {
@@ -305,8 +305,9 @@ void MicroRosClient::waitingForAgentState()
 
 void MicroRosClient::connectingState()
 {
-    LOG_INFO("Connecting to Micro-ROS agent %s:%u ...", m_customRosTransport.getIPAddressAsStr().c_str(),
-             m_customRosTransport.getPort());
+    String ipAddStr = m_customRosTransport.getIPAddressAsStr();
+
+    LOG_INFO("Connecting to Micro-ROS agent %s:%u ...", ipAddStr.c_str(), m_customRosTransport.getPort());
 
     if (false == createEntities())
     {
@@ -314,8 +315,7 @@ void MicroRosClient::connectingState()
     }
     else
     {
-        LOG_INFO("Connected with Micro-ROS agent %s:%u.", m_customRosTransport.getIPAddressAsStr().c_str(),
-                 m_customRosTransport.getPort());
+        LOG_INFO("Connected with Micro-ROS agent %s:%u.", ipAddStr.c_str(), m_customRosTransport.getPort());
 
         subscribe();
 
