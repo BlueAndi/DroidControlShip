@@ -79,7 +79,7 @@ Waypoint* Waypoint::deserialize(const String& serializedWaypoint)
     return waypoint;
 }
 
-Waypoint* Waypoint::fromJsonObject(const JsonObject& jsonWaypoint)
+Waypoint* Waypoint::fromJsonObject(const JsonObjectConst& jsonWaypoint)
 {
     Waypoint*        waypoint        = nullptr;
     JsonVariantConst jsonXPos        = jsonWaypoint["X"];           /* X position [mm]. */
