@@ -120,7 +120,7 @@ public:
     }
 
     /**
-     * Open and initialize the custom transport.
+     * Open and initialize the custom transport (C-Entry Point).
      * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
      *
      * @param[in] transport The arguments passed through uxr_init_custom_transport.
@@ -130,7 +130,7 @@ public:
     static bool open(uxrCustomTransport* transport);
 
     /**
-     * Close the custom transport.
+     * Close the custom transport (C-Entry Point).
      * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
      *
      * @param[in] transport The arguments passed through uxr_init_custom_transport.
@@ -140,7 +140,7 @@ public:
     static bool close(uxrCustomTransport* transport);
 
     /**
-     * Write data to the custom transport.
+     * Write data to the custom transport (C-Entry Point).
      * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
      *
      * @param[in]  transport The arguments passed through uxr_init_custom_transport.
@@ -153,7 +153,7 @@ public:
     static size_t write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode);
 
     /**
-     * Read data from the custom transport.
+     * Read data from the custom transport (C-Entry Point).
      * https://micro.ros.org/docs/tutorials/advanced/create_custom_transports/
      *
      * @param[in]  transport The arguments passed through uxr_init_custom_transport.
@@ -167,6 +167,43 @@ public:
     static size_t read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode);
 
 private:
+    /**
+     * Open and initialize the custom transport.
+     *
+     * @return A boolean indicating if the opening was successful.
+     */
+    bool open(void);
+
+    /**
+     * Close the custom transport.
+     *
+     * @return A boolean indicating if the closing was successful.
+     */
+    bool close(void);
+
+    /**
+     * Write data to the custom transport.
+     *
+     * @param[in]  buffer The buffer to write.
+     * @param[in]  size The size of the buffer.
+     * @param[out] errorCode The error code.
+     *
+     * @return The number of bytes written.
+     */
+    size_t write(const uint8_t* buffer, size_t size, uint8_t* errorCode);
+
+    /**
+     * Read data from the custom transport.
+     *
+     * @param[out] buffer The buffer to read into.
+     * @param[in]  size The size of the buffer.
+     * @param[in]  timeout The timeout in milliseconds.
+     * @param[out] errorCode The error code.
+     *
+     * @return The number of bytes read.
+     */
+    size_t read(uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode);
+
     /**
      * Default Micro-ROS agent port.
      */
