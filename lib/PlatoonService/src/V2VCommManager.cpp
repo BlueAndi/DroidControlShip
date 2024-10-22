@@ -386,12 +386,12 @@ void V2VCommManager::eventCallback(const String& payload)
         if ((false == jsonEventVehicleId.isNull()) && (false == jsonEventType.isNull()) &&
             (false == jsonEventTimestamp.isNull()) && (false == jsonEventData.isNull()))
         {
-            bool         pushEventToQueue = false;
-            uint8_t      eventVehicleId   = jsonEventVehicleId.as<uint8_t>();
-            V2VEventType eventType        = jsonEventType.as<V2VEventType>();
-            uint32_t     eventTimestamp   = jsonEventTimestamp.as<uint32_t>();
-            JsonObject   eventDataAsJson  = jsonEventData.as<JsonObject>();
-            void*        eventData        = nullptr;
+            bool            pushEventToQueue = false;
+            uint8_t         eventVehicleId   = jsonEventVehicleId.as<uint8_t>();
+            V2VEventType    eventType        = jsonEventType.as<V2VEventType>();
+            uint32_t        eventTimestamp   = jsonEventTimestamp.as<uint32_t>();
+            JsonObjectConst eventDataAsJson  = jsonEventData.as<JsonObjectConst>();
+            void*           eventData        = nullptr;
 
             switch (eventType)
             {

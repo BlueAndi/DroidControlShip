@@ -114,7 +114,7 @@ public:
      *
      * @return Pointer to a waypoint object. In case of an error, it returns nullptr.
      */
-    static Waypoint* fromJsonObject(const JsonObject& jsonWaypoint);
+    static Waypoint* fromJsonObject(const JsonObjectConst& jsonWaypoint);
 
     /**
      * Serialize the waypoint.
