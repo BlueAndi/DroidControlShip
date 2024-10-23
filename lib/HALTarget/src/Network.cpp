@@ -61,7 +61,12 @@
  * Public Methods
  *****************************************************************************/
 
-Network::Network() : INetwork(), m_state(STATE_UNINITIALIZED), m_configSet(false), m_wiFiSSID(""), m_wiFiPassword("")
+Network::Network() :
+    INetwork(),
+    m_state(STATE_UNINITIALIZED),
+    m_configSet(false),
+    m_wiFiSSID("ZumoAP"),
+    m_wiFiPassword("zumopass")
 {
 }
 
@@ -85,47 +90,42 @@ bool Network::init()
     return isSuccess;
 }
 
-bool Network::process()
+void Network::process()
 {
-    bool isSuccess = false;
-
     switch (m_state)
     {
     case STATE_UNINITIALIZED:
         /* Nothing to do. */
-        isSuccess = true;
         break;
 
     case STATE_SETUP:
-        isSuccess = handleStationSetup();
+        handleStationSetup();
         break;
 
     case STATE_CONNECTING:
-        isSuccess = handleConnectingState();
+        handleConnectingState();
         break;
 
     case STATE_CONNECTED:
-        isSuccess = manageConnection();
+        manageConnection();
         break;
 
     case STATE_DISCONNECTED:
-        isSuccess = switchToAPMode();
+        switchToAPMode();
         break;
 
     case STATE_AP_SETUP:
-        isSuccess = handleAPSetup();
+        handleAPSetup();
         break;
 
     case STATE_AP_UP:
-        isSuccess = handleAPState();
+        handleAPState();
         break;
 
     default:
         /* Should never be called - defensive code. */
         break;
     }
-
-    return isSuccess;
 }
 
 bool Network::setConfig(const NetworkSettings& settings)
@@ -153,24 +153,24 @@ bool Network::isUp() const
     return ((STATE_UNINITIALIZED != m_state) && (STATE_SETUP != m_state) && (STATE_AP_SETUP != m_state));
 }
 
-String Network::getIp() const
+IPAddress Network::getIp() const
 {
-    String ipAddress;
+    IPAddress ipAddr;
 
     if (STATE_CONNECTED == m_state)
     {
-        ipAddress = WiFi.localIP().toString();
+        ipAddr = WiFi.localIP();
     }
     else if (STATE_AP_UP == m_state)
     {
-        ipAddress = WiFi.softAPIP().toString();
+        ipAddr = WiFi.softAPIP();
     }
     else
     {
-        /* Do nothing. */
+        ipAddr = IPAddress();
     }
 
-    return ipAddress;
+    return ipAddr;
 }
 
 /******************************************************************************
@@ -181,28 +181,23 @@ String Network::getIp() const
  * Private Methods
  *****************************************************************************/
 
-bool Network::handleStationSetup()
+void Network::handleStationSetup()
 {
-    bool isSuccess = false;
-
     if (true == m_configSet)
     {
         if (WL_CONNECT_FAILED == WiFi.begin(m_wiFiSSID.c_str(), m_wiFiPassword.c_str()))
         {
             LOG_ERROR("Failed to connect to WiFi.");
-            m_state   = STATE_DISCONNECTED;
-            isSuccess = true;
+            m_state = STATE_DISCONNECTED;
         }
         else
         {
-            m_state   = STATE_CONNECTING;
-            isSuccess = true;
+            m_state = STATE_CONNECTING;
         }
     }
-    return isSuccess;
 }
 
-bool Network::handleConnectingState()
+void Network::handleConnectingState()
 {
     wl_status_t currentStatus = WiFi.status();
 
@@ -245,82 +240,48 @@ bool Network::handleConnectingState()
             /* WiFi is connecting. Do nothing. */
         }
     }
-
-    return true;
 }
 
-bool Network::manageConnection()
+void Network::manageConnection()
 {
     if (m_state != STATE_CONNECTED)
     {
         LOG_DEBUG("Connection to WiFi lost. Reconnecting...");
         m_state = STATE_CONNECTING;
     }
-
-    return true;
 }
 
-bool Network::switchToAPMode()
+void Network::switchToAPMode()
 {
     if (WiFi.disconnect() && WiFi.mode(WIFI_AP) && WIFI_MODE_AP == WiFi.getMode())
     {
         m_state = STATE_AP_SETUP;
     }
-
-    return true;
 }
 
-bool Network::handleAPSetup()
+void Network::handleAPSetup()
 {
-    bool setupSuccess = false;
-
     if (WIFI_AP != WiFi.getMode())
     {
         WiFi.mode(WIFI_AP);
     }
     else
     {
-        /* get AP ssid and pw */
-        String ssid;
-        String password;
-        if (false == m_apSSID.isEmpty())
-        {
-            ssid = m_apSSID;
-        }
-        else
-        {
-            /* Use default AP name, if none is provided. */
-            ssid = String("Zumo_AP");
-        }
-        if (false == m_apPassword.isEmpty())
-        {
-            password = m_apPassword;
-        }
-        else
-        {
-            /* Use default AP password, if none is provided. */
-            password = String("zumopass");
-        }
+        bool isSuccessful = WiFi.softAP(m_apSSID.c_str(), m_apPassword.c_str());
 
-        LOG_DEBUG("Setting up Access Point (%s, %s).", ssid, password);
+        LOG_DEBUG("Setting up Access Point (%s, %s).", m_apSSID.c_str(), m_apPassword.c_str());
 
-        /* setup AP and return success */
-        setupSuccess = WiFi.softAP(ssid.c_str(), password.c_str());
-
-        if (setupSuccess)
+        if (true == isSuccessful)
         {
             m_state = STATE_AP_UP;
             LOG_DEBUG("Access Point up.");
         }
     }
-
-    return setupSuccess;
 }
 
-bool Network::handleAPState()
+void Network::handleAPState()
 {
     /* Don't need to do anything for now. */
-    return true;
 }
 
 /******************************************************************************

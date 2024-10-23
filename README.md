@@ -12,6 +12,7 @@ It provides different kind of exclusive applications, used for educational purpo
 * Convoy Leader Robot - Based on odometry information, it leads the followers to follow like a lemming trail.
 * Convoy Follower Robot - It follows the leader by mainly reacting on the received information.
 * Remote Control - Receives commands and motor speeds from an external source through MQTT.
+* APPTurtle - A [ROS2](https://docs.ros.org/en/jazzy/index.html) Robot controller that uses Twist messages like the ROS2 TurtleSim demo.
 
 ## Table of content
 
@@ -51,6 +52,7 @@ The simulation is based on the open source robot simulator *Webots*. The applica
 1. Install the native compiler toolchain:
     * Linux
         * Install the gcc toolchain, depended on your distribution.
+        * Install libmosquitto-dev, depended on your distribution.
     * Windows
         * Install the [MSYS2](https://www.msys2.org) toolchain.
         * Open MSYS2 shell.
@@ -105,6 +107,7 @@ In a similar way, not providing a WiFi configuration will force the target into 
 | RemoteControl | No | Yes | RemoteControl | Yes |
 | SensorFusion | No | Yes | SensorFusion | Yes |
 | Test | Yes | No | N/A | No |
+| Turtle | No | Yes | RemoteControl | Yes (ROS2 + Micro-ROS Agent) |
 
 # Documentation
 

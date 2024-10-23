@@ -87,9 +87,6 @@ const char* App::TOPIC_NAME_CMD = "cmd";
 /* MQTT topic name for receiving motor speeds. */
 const char* App::TOPIC_NAME_MOTOR_SPEEDS = "motorSpeeds";
 
-/** Default size of the JSON Document for parsing. */
-static const uint32_t JSON_DOC_DEFAULT_SIZE = 1024U;
-
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
@@ -112,8 +109,6 @@ void App::setup()
 
         /* Set severity of logging system. */
         Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
     }
 
     /* Initialize HAL. */
@@ -149,18 +144,18 @@ void App::setup()
         else
         {
             /* Setup MQTT Server, Birth and Will messages. */
-            JsonDocument birthDoc;
+            JsonDocument jsonBirthDoc;
             char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
             String       birthMessage;
 
-            birthDoc["name"] = settings.getRobotName().c_str();
-            (void)serializeJson(birthDoc, birthMsgArray);
+            jsonBirthDoc["name"] = settings.getRobotName().c_str();
+            (void)serializeJson(jsonBirthDoc, birthMsgArray);
             birthMessage = birthMsgArray;
 
             /* Setup SerialMuxProt Channels */
             m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
             m_serialMuxProtChannelIdMotorSpeeds =
-                m_smpServer.createChannel(SPEED_SETPOINT_CHANNEL_NAME, SPEED_SETPOINT_CHANNEL_DLC);
+                m_smpServer.createChannel(MOTOR_SPEED_SETPOINT_CHANNEL_NAME, MOTOR_SPEED_SETPOINT_CHANNEL_DLC);
             m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
             m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
             m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME, App_currentVehicleChannelCallback);
@@ -208,52 +203,51 @@ void App::setup()
 
     if (false == isSuccessful)
     {
+        LOG_FATAL("Initialization failed.");
         fatalErrorHandler();
     }
 }
 
 void App::loop()
 {
-    /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
+    if (false == m_isFatalError)
     {
-        /* Log and Handle Board processing error */
-        LOG_FATAL("HAL process failed.");
-        fatalErrorHandler();
-    }
+        /* Process Battery, Device and Network. */
+        Board::getInstance().process();
 
-    /* Process MQTT Communication */
-    m_mqttClient.process();
+        /* Process MQTT Communication */
+        m_mqttClient.process();
 
-    /* Process SerialMuxProt. */
-    m_smpServer.process(millis());
+        /* Process SerialMuxProt. */
+        m_smpServer.process(millis());
 
-    if (false == m_initialDataSent)
-    {
-        SettingsHandler& settings = SettingsHandler::getInstance();
-        VehicleData      initialVehicleData;
-        initialVehicleData.xPos        = settings.getInitialXPosition();
-        initialVehicleData.yPos        = settings.getInitialYPosition();
-        initialVehicleData.orientation = settings.getInitialHeading();
-
-        if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
-                                         sizeof(initialVehicleData)))
+        if (false == m_initialDataSent)
         {
-            LOG_DEBUG("Initial vehicle data sent.");
-            m_initialDataSent = true;
-        }
-    }
+            SettingsHandler& settings = SettingsHandler::getInstance();
+            VehicleData      initialVehicleData;
+            initialVehicleData.xPos        = settings.getInitialXPosition();
+            initialVehicleData.yPos        = settings.getInitialYPosition();
+            initialVehicleData.orientation = settings.getInitialHeading();
 
-    if ((true == m_statusTimer.isTimeout()) && (true == m_smpServer.isSynced()))
-    {
-        Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
-
-        if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
-        {
-            LOG_WARNING("Failed to send current status to RU.");
+            if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
+                                             sizeof(initialVehicleData)))
+            {
+                LOG_DEBUG("Initial vehicle data sent.");
+                m_initialDataSent = true;
+            }
         }
 
-        m_statusTimer.restart();
+        if ((true == m_statusTimer.isTimeout()) && (true == m_smpServer.isSynced()))
+        {
+            Status payload = {SMPChannelPayload::Status::STATUS_FLAG_OK};
+
+            if (false == m_smpServer.sendData(m_serialMuxProtChannelIdStatus, &payload, sizeof(payload)))
+            {
+                LOG_WARNING("Failed to send current status to RU.");
+            }
+
+            m_statusTimer.restart();
+        }
     }
 }
 
@@ -267,13 +261,13 @@ void App::loop()
 
 void App::fatalErrorHandler()
 {
-    /* Turn on Red LED to signal fatal error. */
-    Board::getInstance().getRedLed().enable(true);
-
-    while (true)
+    if (false == m_isFatalError)
     {
-        ;
+        /* Turn on Red LED to signal fatal error. */
+        Board::getInstance().getRedLed().enable(true);
     }
+
+    m_isFatalError = true;
 }
 
 void App::cmdTopicCallback(const String& payload)
@@ -287,7 +281,7 @@ void App::cmdTopicCallback(const String& payload)
     }
     else
     {
-        JsonVariant command = jsonPayload["CMD_ID"];
+        JsonVariantConst command = jsonPayload["CMD_ID"];
 
         if (false == command.isNull())
         {
@@ -364,12 +358,12 @@ void App::motorSpeedsTopicCallback(const String& payload)
     }
     else
     {
-        JsonVariant leftSpeed  = jsonPayload["LEFT"];
-        JsonVariant rightSpeed = jsonPayload["RIGHT"];
+        JsonVariantConst leftSpeed  = jsonPayload["LEFT"];
+        JsonVariantConst rightSpeed = jsonPayload["RIGHT"];
 
         if ((false == leftSpeed.isNull()) && (false == rightSpeed.isNull()))
         {
-            SpeedData motorSetpoints;
+            MotorSpeed motorSetpoints;
             motorSetpoints.left  = leftSpeed.as<int32_t>();
             motorSetpoints.right = rightSpeed.as<int32_t>();
 

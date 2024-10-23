@@ -25,15 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Arduino native
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Test (some) IPAddress functions.
+ * @author Norbert Schulz <schulz.norbert@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include "Terminal.h"
+#include <unity.h>
+#include <IPAddress.cpp>
 
 /******************************************************************************
  * Compiler Switches
@@ -51,24 +51,13 @@
  * Prototypes
  *****************************************************************************/
 
-extern void setup();
-extern void loop();
+static void testIPAddrConstruction(void);
+static void testIPAddrString(void);
+static void testIPAddrOperator(void);
 
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
-/** Terminal/Console stream. */
-static Terminal gTerminalStream;
-
-/** Serial driver, used by Arduino applications. */
-Serial_ Serial(gTerminalStream);
-
-/** Function pointer to get the system tick in ms. */
-static GetSystemTick gGetSystemTickFunc = nullptr;
-
-/** Function pointer to delay for some time in ms. */
-static SystemDelay gSystemDelayFunc = nullptr;
 
 /******************************************************************************
  * Public Methods
@@ -86,39 +75,98 @@ static SystemDelay gSystemDelayFunc = nullptr;
  * External Functions
  *****************************************************************************/
 
-void Arduino::setup(GetSystemTick getSystemTickFunc, SystemDelay systemDelayFunc)
+/**
+ * Main entry point
+ *
+ * @param[in] argc  Number of command line arguments
+ * @param[in] argv  Command line arguments
+ *
+ * @returns Test failure count
+ */
+extern int main(int argc, char** argv)
 {
-    gGetSystemTickFunc = getSystemTickFunc;
-    gSystemDelayFunc   = systemDelayFunc;
+    UNITY_BEGIN();
 
-    ::setup();
+    RUN_TEST(testIPAddrConstruction);
+    RUN_TEST(testIPAddrString);
+    RUN_TEST(testIPAddrOperator);
+
+    return UNITY_END();
 }
 
-void Arduino::loop()
+/**
+ * Setup a test. This function will be called before every test by unity.
+ */
+extern void setUp(void)
 {
-    ::loop();
+    /* Not used. */
 }
 
-extern unsigned long millis()
+/**
+ * Clean up test. This function will be called after every test by unity.
+ */
+extern void tearDown(void)
 {
-    unsigned long timestamp = 0U;
-
-    if (nullptr != gGetSystemTickFunc)
-    {
-        timestamp = gGetSystemTickFunc();
-    }
-
-    return timestamp;
-}
-
-extern void delay(unsigned long ms)
-{
-    if (nullptr != gSystemDelayFunc)
-    {
-        gSystemDelayFunc(ms);
-    }
+    /* Not used. */
 }
 
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
+
+/**
+ * Test IPAddr construction.
+ */
+static void testIPAddrConstruction(void)
+{
+    IPAddress ipDefault;
+    TEST_ASSERT_EQUAL_UINT32(0x00000000, static_cast<uint32_t>(ipDefault));
+
+    IPAddress ipInt32(0xBADCAFFE);
+    TEST_ASSERT_EQUAL_UINT32(0xBADCAFFE, static_cast<uint32_t>(ipInt32));
+
+    IPAddress ip;
+    ip.fromString(String("192.168.1.42"));
+    TEST_ASSERT_EQUAL_UINT32(0xC0A8012A, static_cast<uint32_t>(ip));
+
+    IPAddress other(ip);
+    TEST_ASSERT_EQUAL_UINT32(0xC0A8012A, static_cast<uint32_t>(other));
+
+    other = ipInt32;
+    TEST_ASSERT_EQUAL_UINT32(0xBADCAFFE, static_cast<uint32_t>(other));
+}
+
+static void testIPAddrString(void)
+{
+    IPAddress ip;
+
+    String str("192.168.1.42");
+    TEST_ASSERT_TRUE(ip.fromString(str));
+    TEST_ASSERT_EQUAL_UINT32(0xC0A8012A, static_cast<uint32_t>(ip));
+
+    String prn(ip.toString());
+    TEST_ASSERT_EQUAL_STRING(str.c_str(), prn.c_str());
+
+    String crab("The quick brown fox jumps over the lazy dog");
+    TEST_ASSERT_FALSE(ip.fromString(crab));
+}
+
+static void testIPAddrOperator(void)
+{
+    IPAddress ip0;
+    
+    TEST_ASSERT_TRUE(ip0 == IPAddress());
+
+    IPAddress ip1(11,12,19,94);
+    IPAddress ip2(25,04,19,68);
+    
+    TEST_ASSERT_TRUE(ip1 != ip2);
+    TEST_ASSERT_FALSE(ip1 == ip2);
+
+    ip1 = ip2;
+    TEST_ASSERT_FALSE(ip1 != ip2);
+    TEST_ASSERT_TRUE(ip1 == ip2);
+
+    ip1 = ip1; /* self assignmet check */
+    TEST_ASSERT_TRUE(ip1 == ip2);
+}

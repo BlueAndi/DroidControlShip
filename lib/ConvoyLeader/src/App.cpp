@@ -85,9 +85,6 @@ const char* App::TOPIC_NAME_BIRTH = "dcs/birth";
 /* MQTT topic name for will messages. */
 const char* App::TOPIC_NAME_WILL = "dcs/will";
 
-/** Buffer size for JSON serialization of birth / will message */
-static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -107,8 +104,6 @@ void App::setup()
 
         /* Set severity of logging system. */
         Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
-
-        LOG_DEBUG("LOGGER READY");
     }
 
     /* Initialize HAL. */
@@ -189,6 +184,7 @@ void App::setup()
 
     if (false == isSuccessful)
     {
+        LOG_FATAL("Initialization failed.");
         fatalErrorHandler();
     }
     else
@@ -203,12 +199,7 @@ void App::setup()
 void App::loop()
 {
     /* Process Battery, Device and Network. */
-    if (false == Board::getInstance().process())
-    {
-        /* Log and Handle Board processing error */
-        LOG_FATAL("HAL process failed.");
-        setErrorState();
-    }
+    Board::getInstance().process();
 
     /* Process SerialMuxProt. */
     m_smpServer.process(millis());
@@ -268,13 +259,13 @@ void App::systemStatusCallback(SMPChannelPayload::Status status)
 
 void App::fatalErrorHandler()
 {
-    /* Turn on Red LED to signal fatal error. */
-    Board::getInstance().getRedLed().enable(true);
-
-    while (true)
+    if (false == m_isFatalError)
     {
-        ;
+        /* Turn on Red LED to signal fatal error. */
+        Board::getInstance().getRedLed().enable(true);
     }
+
+    m_isFatalError = true;
 }
 
 bool App::setupMqttClient()
@@ -282,12 +273,12 @@ bool App::setupMqttClient()
     /* Setup MQTT Server, Birth and Will messages. */
     bool             isSuccessful = false;
     SettingsHandler& settings     = SettingsHandler::getInstance();
-    JsonDocument     birthDoc;
+    JsonDocument     jsonBirthDoc;
     String           birthMessage;
 
-    birthDoc["name"] = settings.getRobotName();
+    jsonBirthDoc["name"] = settings.getRobotName();
 
-    if (0U == serializeJson(birthDoc, birthMessage))
+    if (0U == serializeJson(jsonBirthDoc, birthMessage))
     {
         /* Non-fatal error. Birth message will be empty. */
         LOG_ERROR("Failed to serialize birth message.");

@@ -131,10 +131,8 @@ public:
 
     /**
      * Process the device connection.
-     *
-     * @returns true if processing is successful. Otherwise, false.
      */
-    bool process();
+    void process();
 
     /**
      * Print single byte.

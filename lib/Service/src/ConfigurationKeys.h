@@ -106,7 +106,11 @@ namespace ConfigurationKeys
 
     /** Initial Heading */
     static const char INITIAL_HEADING[] = "heading";
-} // namespace ConfigurationKeys
+
+    /** Micro-ROS agent */
+    static const char MICROROS_AGENT[] = "microROSAgent";
+
+} /* namespace ConfigurationKeys */
 
 /******************************************************************************
  * Functions

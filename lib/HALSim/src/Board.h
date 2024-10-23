@@ -92,10 +92,8 @@ public:
 
     /**
      * Process board components.
-     *
-     * @returns If all components are processed correctly, returns true. Otherwise, false
      */
-    bool process() final;
+    void process() final;
 
     /**
      * Get battery driver.
@@ -165,6 +163,15 @@ public:
     IRobot& getRobot() final
     {
         return m_hostRobot;
+    }
+
+    /**
+     * Trigger simulation time step (wrapper for SimTime::step)
+     * @return True if step was successful, false otherwise.
+     */
+    bool stepTime()
+    {
+        return m_simTime.step();
     }
 
     /**

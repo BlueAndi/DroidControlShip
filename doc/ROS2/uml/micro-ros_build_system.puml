@@ -1,0 +1,41 @@
+@startuml micro-ros_build_system
+title micro-ROS Publisher Application Component Diagram
+
+component "PlatformIO Build System" {
+    component "platformio.ini" as INI {
+        component "Microcontroller Platform\n(e.g., ESP32)" as Platform
+        component "Board Configuration\n(e.g., ESP32 Dev Board)" as Board
+        component "Framework\n(e.g., Arduino)" as Framework
+        component "Library Dependencies\n(micro_ros_platformio)" as Libraries
+    }
+}
+
+component "micro-ROS Layer" {
+    component "micro-ROS Client Library" as ClientLib
+    component "Real-Time Operating System\n(e.g., FreeRTOS)" as RTOS
+}
+
+component "Application Layer" {
+    component "Publisher Node" as PublisherNode
+    component "Application Logic" as AppLogic
+}
+
+component "Development Environment" {
+    component "Code Editor/IDE\n(e.g., VSCode)" as Editor
+}
+
+file "Source Code" as sourceCode
+
+Editor ..> INI : <<edit>>
+Editor ..> sourceCode : <<edit>>
+
+Platform --> ClientLib
+Board --> RTOS
+Framework --> RTOS
+Libraries --> ClientLib
+
+ClientLib --> PublisherNode
+RTOS --> PublisherNode
+PublisherNode ..> AppLogic : <<contain>>
+
+@enduml
