@@ -25,18 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Custom Micro-ROS transport over UDP.
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
- */
+ * @brief  Custom Transport class with C-language interface for microros.
+ * @author Norbert Schulz <github@schulznorbert.de>
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "CustomRosTransport.h"
-#include <SimpleTimer.hpp>
-#include <Logging.h>
-#include <Board.h>
+#include "CustomRosTransportBase.h"
 
+#include <Logging.h>
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -54,16 +51,16 @@
  *****************************************************************************/
 
 /**
- * Unwrap pointer to CustomRosTransport from uxrCustomTransport structure.
+ * Unwrap pointer to CustomRosTransportBase from uxrCustomTransport structure.
  * 
  * This is used by the static C-Languge entry points to forward the request
  * to the matching C++ member function.
  *
  * @param[in] transport The custom transport data structure pointer.
  *
- * @return The this pointer to transport owning CustomRosTransport class.
+ * @return The this pointer to transport owning CustomRosTransportBase class.
  */
-static inline CustomRosTransport* toThis(const uxrCustomTransport* transport);
+static inline CustomRosTransportBase* toThis(const uxrCustomTransport* transport);
 
 /******************************************************************************
  * Local Variables
@@ -73,28 +70,28 @@ static inline CustomRosTransport* toThis(const uxrCustomTransport* transport);
  * Public Methods
  *****************************************************************************/
 
-bool CustomRosTransport::open(uxrCustomTransport* transport)
+bool CustomRosTransportBase::open(uxrCustomTransport* transport)
 {
-    CustomRosTransport * tp = toThis(transport);
+    CustomRosTransportBase * tp = toThis(transport);
     return (nullptr != tp) ? tp->open() : false;
 }
 
-bool CustomRosTransport::close(uxrCustomTransport* transport)
+bool CustomRosTransportBase::close(uxrCustomTransport* transport)
 {
-    CustomRosTransport * tp = toThis(transport);
+    CustomRosTransportBase * tp = toThis(transport);
     return (nullptr != tp) ? tp->close() : false;
 }
 
-size_t CustomRosTransport::write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode)
+size_t CustomRosTransportBase::write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode)
 {
-    CustomRosTransport * tp = toThis(transport);
+    CustomRosTransportBase * tp = toThis(transport);
     return (nullptr != tp) ? tp->write(buffer, size, errorCode) : 0U;
 }
 
-size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
+size_t CustomRosTransportBase::read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
                                 uint8_t* errorCode)
 {
-    CustomRosTransport * tp = toThis(transport);
+    CustomRosTransportBase * tp = toThis(transport);
     return (nullptr != tp) ? tp->read(buffer, size, timeout, errorCode) : 0U;
 }
 
@@ -106,129 +103,6 @@ size_t CustomRosTransport::read(uxrCustomTransport* transport, uint8_t* buffer, 
  * Private Methods
  *****************************************************************************/
 
-bool CustomRosTransport::open(void)
-{
-    bool      isOpen = false;
-    const int UDP_OK = 1;
-
-    if (UDP_OK != m_udpClient.begin(m_port))
-    {
-        LOG_ERROR("UDP begin error");
-    }
-    else
-    {
-        isOpen = true;
-    }
-
-    return isOpen;
-}
-
-bool CustomRosTransport::close()
-{
-    m_udpClient.stop();
-
-    return true;
-}
-
-size_t CustomRosTransport::write(const uint8_t* buffer, size_t size, uint8_t* errorCode)
-{
-    size_t sent = 0U;
-
-    if ((nullptr == buffer) || (0U == size) || (nullptr == errorCode))
-    {
-        LOG_ERROR("One or more parameters are invalid.");
-    }
-    else
-    {
-        const int UDP_OK = 1;
-        int       ret    = UDP_OK;
-
-        ret = m_udpClient.beginPacket(m_address, m_port);
-
-        if (UDP_OK != ret)
-        {
-            LOG_ERROR("UDP beginPacket error");
-        }
-        else
-        {
-            size_t bytesToWrite = m_udpClient.write(buffer, size);
-
-            if (bytesToWrite != size)
-            {
-                LOG_ERROR("UDP write error");
-            }
-            else
-            {
-                ret = m_udpClient.endPacket();
-
-                if (UDP_OK != ret)
-                {
-                    LOG_ERROR("UDP endPacket error");
-                }
-                else
-                {
-                    sent = bytesToWrite;
-                }
-            }
-        }
-
-        if (UDP_OK != ret)
-        {
-            int writeErrorCode = m_udpClient.getWriteError();
-            *errorCode         = writeErrorCode;
-            LOG_ERROR("UDP error: %d", writeErrorCode);
-        }
-
-        m_udpClient.flush();
-    }
-
-    return sent;
-}
-
-size_t CustomRosTransport::read(uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode)
-{
-    size_t readBytes = 0U;
-
-    if ((nullptr == buffer) || (0U == size) || (nullptr == errorCode))
-    {
-        LOG_ERROR("One or more parameters are invalid.");
-    }
-    else
-    {
-        SimpleTimer readTimer;
-
-        readTimer.start(timeout);
-
-        while (false == readTimer.isTimeout())
-        {
-            if (0 < m_udpClient.parsePacket())
-            {
-                break;
-            }
-
-#if defined(TARGET_NATIVE)
-            /*
-             * SimpleTimer requires simulation time to progress
-             * otherwise this loop will block until a packet was received.
-             * TODO This is a workaround which needs to be discussed further.
-             */
-            Board::getInstance().stepTime();
-#endif
-        }
-
-        if (0 == m_udpClient.available())
-        {
-            *errorCode = 1;
-        }
-        else
-        {
-            readBytes = m_udpClient.read(buffer, size);
-        }
-    }
-
-    return readBytes;
-}
-
 /******************************************************************************
  * External Functions
  *****************************************************************************/
@@ -237,9 +111,9 @@ size_t CustomRosTransport::read(uint8_t* buffer, size_t size, int timeout, uint8
  * Local Functions
  *****************************************************************************/
 
-static inline CustomRosTransport* toThis(const uxrCustomTransport* transport)
+static inline CustomRosTransportBase* toThis(const uxrCustomTransport* transport)
 {
-    CustomRosTransport* transportClass = nullptr;
+    CustomRosTransportBase* transportClass = nullptr;
     
     if (nullptr == transport)
     {
@@ -247,7 +121,7 @@ static inline CustomRosTransport* toThis(const uxrCustomTransport* transport)
     }
     else
     {
-        transportClass = reinterpret_cast<CustomRosTransport*>(transport->args);
+        transportClass = reinterpret_cast<CustomRosTransportBase*>(transport->args);
     }
 
     return transportClass;

@@ -171,9 +171,13 @@ bool MicroRosClient::setupCustomTransport(const IPAddress& ipAddress, uint16_t p
 
     m_customRosTransport.init(ipAddress, port);
 
-    if (RCL_RET_OK != rmw_uros_set_custom_transport(false, (void*)&m_customRosTransport, CustomRosTransport::open,
-                                                    CustomRosTransport::close, CustomRosTransport::write,
-                                                    CustomRosTransport::read))
+    if (RCL_RET_OK != rmw_uros_set_custom_transport(
+            false, 
+            &m_customRosTransport,
+            CustomRosTransportBase::open,
+            CustomRosTransportBase::close, 
+            CustomRosTransportBase::write,
+            CustomRosTransportBase::read))
     {
         LOG_ERROR("Failed to set custom transport for Micro-ROS.");
     }
