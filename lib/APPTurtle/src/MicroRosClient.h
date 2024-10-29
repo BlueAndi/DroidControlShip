@@ -118,7 +118,7 @@ private:
     /**
      * The Micro-ROS agent ping operation timeout is ms.
      */
-    static const int32_t MICRO_ROS_AGENT_PING_TIMEOUT = 100;
+    static const int32_t MICRO_ROS_AGENT_PING_TIMEOUT = 200;
 
     /**
      * The Micro-ROS agent ping operation attempts. Keep 1, because the

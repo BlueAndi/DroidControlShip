@@ -93,6 +93,7 @@ bool CustomRosTransportTcp::open(void)
 bool CustomRosTransportTcp::close()
 {
     m_tcpClient.stop();
+    LOG_DEBUG("tcp stream closed.\n");
     return true;
 }
 
@@ -121,18 +122,6 @@ size_t CustomRosTransportTcp::write(const uint8_t* buffer, size_t size, uint8_t*
             * errorCode = 0;
         }
     }
-
-    LOG_INFO("Write %zu bytes", size);
-{
-    String x;
-    for (int i=0; i < size; ++i)
-    {
-        char buf[20];
-        sprintf(buf, "%02x ", buffer[i]);
-        x += buf;
-    }
-    LOG_INFO("%s", x.c_str());
-}
 
     return sent;
 }
@@ -168,18 +157,8 @@ size_t CustomRosTransportTcp::read(uint8_t* buffer, size_t size, int timeout, ui
                 }
             }
         }
-    }   
-LOG_INFO("Received %zu bytes", readBytes);
-{
-    String x;
-    for (int i=0; i < readBytes; ++i)
-    {
-        char buf[20];
-        sprintf(buf, "%02x ", buffer[i]);
-        x += buf;
     }
-    LOG_INFO("%s", x.c_str());
-}
+
     return readBytes;
 }
 
@@ -188,9 +167,11 @@ bool CustomRosTransportTcp::readFixedLength(uint8_t* buffer, size_t length, size
     size_t remaining = length;
 
     SimpleTimer readTimer;
+    bool timeOver = false;
+
     readTimer.start(timeout);
 
-    while ((0 < remaining) && (false == readTimer.isTimeout()))
+    while ((0 < remaining) && (false == timeOver))
     {
         int count = m_tcpClient.read(buffer, remaining);
         if (-1 == count)
@@ -209,7 +190,12 @@ bool CustomRosTransportTcp::readFixedLength(uint8_t* buffer, size_t length, size
          */
         Board::getInstance().stepTime();
 #endif
+        if (readTimer.isTimeout())
+        {
+            timeOver = true;
+        }
     }
+
 
     if (nullptr != readCount)
     {

@@ -38,8 +38,8 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/fcntl.h>
-#include <sys/select.h>
 #include <netinet/tcp.h>
+#include <netinet/in.h>
 
 /******************************************************************************
  * Macros
@@ -62,26 +62,29 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 {
     uint8_t retval = 0;
 
-    if (SOCK_INVAL != m_socket)
+    if (connected())
     {
         stop();
     }
 
-    if (SOCK_INVAL != (m_socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)))
+    if (SOCK_INVAL != (m_poll.fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)))
     {
-        m_servaddr.sin_family = AF_INET;
-        m_servaddr.sin_addr.s_addr = htonl(addr);
-        m_servaddr.sin_port = htons(port);
+        struct sockaddr_in serverAddr;
+
+        memset(&serverAddr, 0, sizeof(serverAddr));
+        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_addr.s_addr = htonl(addr);
+        serverAddr.sin_port = htons(port);
 
         if (0 == ::connect(
-                        m_socket, 
-                        reinterpret_cast<struct sockaddr *>(&m_servaddr),
-                        sizeof(m_servaddr) ))
+                        m_poll.fd, 
+                        reinterpret_cast<struct sockaddr *>(&serverAddr),
+                        sizeof(serverAddr) ))
         {
             const int one = 1;
             
-            ::setsockopt(m_socket, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
-            ::fcntl(m_socket, F_SETFL, O_NONBLOCK);
+            ::setsockopt(m_poll.fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one));
+            //::fcntl(m_socket, F_SETFL, O_NONBLOCK);
             retval = 1; /* success*/
         }
         else
@@ -95,11 +98,10 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 
 void WiFiClient::stop()
 {
-    if (SOCK_INVAL != m_socket)
+    if (connected())
     {
-        ::shutdown(m_socket, SHUT_RDWR);
-        ::close(m_socket);
-        m_socket = SOCK_INVAL;
+        ::close(m_poll.fd);
+        m_poll.fd = SOCK_INVAL;
     }
 }
 
@@ -108,10 +110,10 @@ size_t WiFiClient::write(const uint8_t* buffer, size_t size)
 {
     size_t remaining = size;
  
-    if ((0 < size) && (SOCK_INVAL != m_socket))
+    if ((0 < size) && connected())
     {
         while (0 < remaining) {
-            ssize_t written = ::send(m_socket, buffer, remaining, 0);
+            ssize_t written = ::send(m_poll.fd, buffer, remaining, 0);
     
             if (0 > written)   /* error */
             {
@@ -127,46 +129,35 @@ size_t WiFiClient::write(const uint8_t* buffer, size_t size)
     return size - remaining;
 }
 
-int WiFiClient::available() const
-{
-    int count = 0;
-
-    if (SOCK_INVAL != m_socket)
-    {   
-        ioctl(m_socket, FIONREAD, &count);
-    }
-
-    return count;
-}
-
 int WiFiClient::read(uint8_t* buffer, size_t size)
 {
     int retval = -1;
 
 
-    if (SOCK_INVAL != m_socket)
+    if (connected())
     {
-        fd_set readFdSet;
-        FD_ZERO(&readFdSet);
-        FD_SET(m_socket, &readFdSet);
-
-        struct timeval tv;
-        tv.tv_sec = 100 / 1000;
-        tv.tv_usec = (100 % 1000) * 1000;
-
-        int selectRet = select(1, &readFdSet, NULL, NULL, &tv);
-
-        ssize_t  result = ::recv(m_socket, buffer, size, 0);
-        if (-1 == result)
+        if (-1 != ::poll(&m_poll, 1, 10))
         {
-            if ((EAGAIN == errno) || (EWOULDBLOCK == errno))
+            if (0 != (POLLIN & m_poll.revents))
             {
-                retval = 0; /* No error, just no data received yet. */
+                ssize_t  result = ::recv(m_poll.fd, buffer, size, 0);
+                if (-1 != result)
+                {
+                    retval = result;  /* Success! */
+                }
+                else
+                {
+                    perror("recv");
+                }
             }
-        } 
+            else
+            {
+                retval = 0;
+            }
+        }
         else
         {
-            retval = result;  /* Success! */
+            perror("poll");
         }
     }
 

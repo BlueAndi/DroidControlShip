@@ -46,7 +46,7 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 
-#include <netinet/in.h>
+#include <poll.h>
 
 /******************************************************************************
  * Macros
@@ -59,7 +59,7 @@
 /**
  * WiFiClient client class compatible with Arduino. 
  * 
- * Only a subset of API functions is supported, based on actual demand.
+ * Only a subset of API functions is supported, based on the actual demand.
  */
 class WiFiClient
 {
@@ -69,8 +69,7 @@ class WiFiClient
      * Default constructor.
      */
     WiFiClient() :
-        m_socket(SOCK_INVAL),
-        m_servaddr()
+        m_poll {SOCK_INVAL, POLLIN, 0}
     {
     }
 
@@ -97,7 +96,7 @@ class WiFiClient
      */
     uint8_t connected()
     {
-        return (SOCK_INVAL != m_socket) ? 1U : 0U;
+        return (SOCK_INVAL != m_poll.fd) ? 1U : 0U;
     }
 
     /**
@@ -133,11 +132,9 @@ class WiFiClient
     int read(uint8_t* buffer, size_t size);
 
 private:
-    int                   m_socket;                     /**< Socket file descriptor. */
-    struct sockaddr_in    m_servaddr;                   /**< Server address. */ 
+    struct pollfd         m_poll;                       /**< The poll/socket structure. */
 
-
-    static const  int SOCK_INVAL = -1;                  /**< invalid socket value */
+    static const  int SOCK_INVAL = -1;                  /**< The invalid socket value   */
 };
 
 /******************************************************************************
