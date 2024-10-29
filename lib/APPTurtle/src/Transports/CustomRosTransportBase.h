@@ -165,6 +165,12 @@ public:
      */
     static size_t read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode);
 
+    /** 
+     * Get protocol name used by this trandport.
+     * @return protocol name
+     */
+    virtual const String& getProtocolName() const = 0;
+
 protected:
     /**
      * Open and initialize the custom transport.

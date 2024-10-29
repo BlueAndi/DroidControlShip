@@ -59,6 +59,11 @@
  * Local Variables
  *****************************************************************************/
 
+/**
+ * Name of implemented protocol.
+ */
+static const String gProtocolName("UDP");
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -192,6 +197,11 @@ size_t CustomRosTransportUdp::read(uint8_t* buffer, size_t size, int timeout, ui
     }
 
     return readBytes;
+}
+
+const String& CustomRosTransportUdp::getProtocolName() const
+{
+    return gProtocolName;
 }
 
 /******************************************************************************

@@ -57,6 +57,10 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+/**
+ * Name of implemented protocol.
+ */
+static const String gProtocolName("TCP");
 
 /******************************************************************************
  * Public Methods
@@ -215,6 +219,10 @@ bool CustomRosTransportTcp::readFixedLength(uint8_t* buffer, size_t length, size
     return remaining ? false : true;
 }
 
+const String& CustomRosTransportTcp::getProtocolName() const
+{
+    return gProtocolName;
+}
 
 /******************************************************************************
  * External Functions

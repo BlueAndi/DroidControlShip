@@ -78,6 +78,12 @@ public:
     {
     }
 
+    /** 
+     * Get protocol name used by this trandport.
+     * @return protocol name
+     */
+    virtual const String& getProtocolName() const final;
+
 private:
     /**
      * Open and initialize the custom transport.
