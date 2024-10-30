@@ -57,7 +57,7 @@
 /** 
  * Map this transport to the class name used in MicroRosClient.
  * The used transport is a compile time decision and this typedef
- * avoids the use of #ifdef's.
+ * avoids the use of ifdef's.
  */
 typedef class CustomRosTransportTcp CustomRosTransport;
 
@@ -164,6 +164,8 @@ private:
      * 
      * @param[in]  timeout The timeout in milliseconds.
      * @param[out] errorCode Set the error code to != 0 on error.
+     *
+     *  @return true if statemachine shall reloop.
      */
     bool readSizePrefix(int timeout, uint8_t* errorCode);
 
@@ -197,7 +199,6 @@ private:
      * Used in the rare event that low level read only provided one byte.
      * 
      * @param[in]  timeout The timeout in milliseconds.
-     * @param[out] loop Indicate if state machine shall reloop.
      * @param[out] errorCode Set the error code to != 0 on error.
      * 
      * @return true if statemachine shall reloop.
@@ -208,7 +209,8 @@ private:
     WiFiClient            m_tcpClient;     /**< The TCP client.     */
     static const String   m_protocolName;  /**< This protocol name. */
     
-    /* Read buffer handling from streaming sockets to implement framing.
+    /**
+     *  Read buffer handling from streaming sockets to implement framing.
      *
      * Custom transports with framing support need a customized agent.
      * That is why the framing is implemented here to work with the

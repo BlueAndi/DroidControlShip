@@ -152,29 +152,6 @@ size_t CustomRosTransportTcp::read(uint8_t* buffer, size_t size, int timeout, ui
          * The read function relationships are:
          * 
          * read() -> [state]->read() -> readInternal() -> WifiClient
-         * 
-         * @startuml "TCP Reader Relationships"
-         * Actor MicroRos order 10
-         * participant CustomRosTransportTcp order 20
-         * participant WifiClient order 20
-         * 
-         * MicroRos-> CustomRosTransportTcp : read()
-         * activate CustomRosTransportTcp
-         * group loop StateMachine [while loop]
-         *     group alt state 
-         *         CustomRosTransportTcp -> CustomRosTransportTcp : read<State>(&loop)
-         *         activate CustomRosTransportTcp
-         *             CustomRosTransportTcp -> CustomRosTransportTcp : readInternal()
-         *             activate CustomRosTransportTcp
-         *                 CustomRosTransportTcp -> WifiClient : read
-         *                 activate WifiClient
-         *                 return
-         *             return
-         *         return
-         *     end
-         * end
-         * return
-         * @enduml
          */
         while (loop)
         {

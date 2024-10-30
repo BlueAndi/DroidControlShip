@@ -57,7 +57,7 @@
 /** 
  * Map this transport to the class name used in MicroRosClient.
  * The used transport is a compile time decision and this typedef
- * avoids the use of #ifdef's.
+ * avoids the use of ifdef's.
  */
 typedef class CustomRosTransportUdp CustomRosTransport;
 
