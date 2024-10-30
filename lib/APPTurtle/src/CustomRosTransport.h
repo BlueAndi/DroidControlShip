@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Custom Micro-ROS transport class selector
+ * @brief  Custom Micro-ROS transport class selector.
  * @author Norbert Schulz <github@schulznorbert.de>
  *
  * @addtogroup Application

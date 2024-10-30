@@ -6,6 +6,7 @@ Sources: [here](https://micro-xrce-dds.docs.eprosima.com/en/latest/index.html)
   * [Installation](#installation)
   * [Using the agent with the serial interface](#using-the-agent-with-the-serial-interface)
   * [Using the agent with the UDP interface](#using-the-agent-with-the-udp-interface)
+  * [Using the agent with the TCP interface](#using-the-agent-with-the-tcp-interface)
   * [Troubleshooting on WSL environment](#troubleshooting-on-wsl-environment)
   * [Testing the node](#testing-the-node)
 
@@ -37,9 +38,30 @@ Once the Agent and the Client are connected, the terminal should show something 
 [1723186868.574254] info     | ProxyClient.cpp       | create_datawriter        | datawriter created     | client_key: 0x64C59DFF, datawriter_id: 0x000(5), publisher_id: 0x000(3)
 ```
 
+## Using the agent with the TCP interface
+
+Start the MicroXRCEAgent binary to listen to **TCP** connections:
+
+```bash
+./MicroXRCEAgent tcp4 -p 8888 -v 6
+[1730295182.773705] info     | TCPv4AgentLinux.cpp | init                     | running...             | port: 8888
+[1730295182.774347] info     | Root.cpp           | set_verbose_level        | logger setup           | verbose_level: 6
+[1730295187.775068] debug    | TCPv4AgentLinux.cpp | recv_message             | [==>> TCP <<==]        | client_key: 0x00000000, len: 16, data:
+0000: 80 00 00 00 02 01 08 00 00 0A FF FD 02 00 00 00
+[1730295187.775861] debug    | TCPv4AgentLinux.cpp | send_message             | [** <<TCP>> **]        | client_key: 0x00000000, len: 36, data:
+0000: 80 00 00 00 06 01 1C 00 00 0A FF FD 00 00 01 0D 58 52 43 45 01 00 01 0F 00 01 0D 00 01 00 00 00
+0020: 00 00 00 00
+[1730295188.777062] debug    | TCPv4AgentLinux.cpp | recv_message             | [==>> TCP <<==]        | client_key: 0x00000000, len: 24, data:
+...
+```
+
 ## Using the agent with the UDP interface
 
-Start the MicroXRCEAgent binary to listen to UDP connections
+> [!WARNING]  
+> Note: UDP ports on WSL are not working properly if you need to access them outside of the WSL VM. Use TCP with WSL instead.
+
+Start the MicroXRCEAgent binary to listen to UDP connections:
+
 ```bash
 ./MicroXRCEAgent udp4 -p 8888 -v 6
 [1724834512.980210] info     | UDPv4AgentLinux.cpp | init                     | running...             | port: 8888
@@ -55,6 +77,8 @@ Start the MicroXRCEAgent binary to listen to UDP connections
 ## Troubleshooting on WSL environment
 
 UDP connections [setup wsl](./wsl.md#exposing-wsl-udp-ports-to-the-network) (Requires Win 11).
+
+Update: 2024-10-30: TCP transport is available in DroidControlShip, making UDP usage optional. Use TCP on WSL to avoid the trouble.
 
 ## Testing the node
 

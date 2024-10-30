@@ -105,7 +105,6 @@ void WiFiClient::stop()
     }
 }
 
-
 size_t WiFiClient::write(const uint8_t* buffer, size_t size)
 {
     size_t remaining = size;
@@ -131,7 +130,6 @@ size_t WiFiClient::write(const uint8_t* buffer, size_t size)
 int WiFiClient::read(uint8_t* buffer, size_t size)
 {
     int retval = -1;
-
 
     if (connected())
     {
