@@ -87,7 +87,8 @@ public:
         m_tcpClient(),
         m_inputState(InputState::INIT),
         m_payloadLen(0U),
-        m_received(0U)
+        m_received(0U),
+        m_inputBuf()
     {
     }
 
