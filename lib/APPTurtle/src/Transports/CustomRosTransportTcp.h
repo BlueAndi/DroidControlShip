@@ -53,6 +53,12 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
+
+/** 
+ * Map this transport to the class name used in MicroRosClient.
+ * The used transport is a compile time decision and this typedef
+ * avoids the use of #ifdef's.
+ */
 typedef class CustomRosTransportTcp CustomRosTransport;
 
 /**
@@ -61,11 +67,14 @@ typedef class CustomRosTransportTcp CustomRosTransport;
  * TCP protocol uses a record format with a 16 bit length field before the
  * payload.
  * 
- *  +----------------+----------------+-----..........------+
+ *  +----------------+----------------+---------------------+
  *  |    1 Byte      |    1 Bytes     |    "Lenght" Bytes   |
- *  +----------------+----------------+-----..........------+
+ *  +----------------+----------------+---------------------+
  *  | Length [0..7]  | Length [8..15] |      < payload >    |
- *  +----------------+----------------+-----..........------+
+ *  +----------------+----------------+---------------------+
+ * 
+ * A state machine is used for reading the record format. 
+ * 
  */
 class CustomRosTransportTcp : public CustomRosTransportBase
 {
@@ -73,7 +82,12 @@ public:
     /**
      * Constructs a custom Micro-ROS transport.
      */
-    CustomRosTransportTcp() : CustomRosTransportBase(), m_tcpClient()
+    CustomRosTransportTcp() : 
+        CustomRosTransportBase(), 
+        m_tcpClient(),
+        m_inputState(InputState::INIT),
+        m_payloadLen(0U),
+        m_received(0U)
     {
     }
 
@@ -89,25 +103,28 @@ public:
      * Get protocol name used by this trandport.
      * @return protocol name
      */
-    virtual const String& getProtocolName() const final;
+    virtual const String& getProtocolName() const final
+    {
+        return m_protocolName;
+    }
 
 private:
     /**
-     * Open and initialize the custom transport.
+     * Open and initialize API for the custom transport.
      *
      * @return A boolean indicating if the opening was successful.
      */
     bool open(void) final;
 
     /**
-     * Close the custom transport.
+     * Close API for the custom transport.
      *
      * @return A boolean indicating if the closing was successful.
      */
     bool close(void) final;
 
     /**
-     * Write data to the custom transport.
+     * Write data API for the custom transport.
      *
      * @param[in]  buffer The buffer to write.
      * @param[in]  size The size of the buffer.
@@ -118,7 +135,7 @@ private:
     size_t write(const uint8_t* buffer, size_t size, uint8_t* errorCode) final;
 
     /**
-     * Read data from the custom transport.
+     * Read data API of the custom transport.
      *
      * @param[out] buffer The buffer to read into.
      * @param[in]  size The size of the buffer.
@@ -130,19 +147,100 @@ private:
     size_t read(uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode) final;
 
     /**
-     * Try to read a fixed number of bytes.
-     * 
+     * Internal read wrapper with timeout handling loop.
+     * This function is used by the input state dependend read handlers.
+     *
      * @param[out] buffer The buffer to read into.
      * @param[in]  size The size of the buffer.
-     * @param[in]  readCount return bytes read if not a nullptr.
      * @param[in]  timeout The timeout in milliseconds.
-     * 
-     * @return true of all requested bytes received.
+     * @param[out] errorCode Set the error code to != 0 on error.
+     *
+     * @return The number of bytes read.
      */
-    bool readFixedLength(uint8_t* buffer, size_t length, size_t * readCount, int timeout);
+    size_t readInternal(uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode);
+
+    /**
+     * Try to read 2 byte size prefix (low, high) in InputState::INIT
+     * 
+     * @param[in]  timeout The timeout in milliseconds.
+     * @param[out] errorCode Set the error code to != 0 on error.
+     */
+    bool readSizePrefix(int timeout, uint8_t* errorCode);
+
+    /**
+     * Try to read 2nd byte of size prefix (low, high) in InputState::PREFIX_1
+     * 
+     * Used in the rare event that low level read only provided one byte.
+     * 
+     * @param[in]  timeout The timeout in milliseconds.
+     * @param[out] errorCode Set the error code to != 0 on error.
+     *
+     * @return true if statemachine shall reloop.
+     */
+    bool readPendingSizePrefix(int timeout, uint8_t* errorCode);
+
+    /**
+     * Try payload bytes in InputState::PLAY_LOAD
+     * 
+     * Used in the rare event that low level read only provided one byte.
+     * 
+     * @param[in]  timeout The timeout in milliseconds.
+     * @param[out] errorCode Set the error code to != 0 on error.
+     * 
+     * @return true if statemachine shall reloop.
+     */
+    bool readPayload(int timeout, uint8_t* errorCode);
+
+    /**
+     * Handle message complete in InputState::FINISH
+     * 
+     * Used in the rare event that low level read only provided one byte.
+     * 
+     * @param[in]  timeout The timeout in milliseconds.
+     * @param[out] loop Indicate if state machine shall reloop.
+     * @param[out] errorCode Set the error code to != 0 on error.
+     * 
+     * @return true if statemachine shall reloop.
+     */
+    bool readFinish(int timeout, uint8_t* errorCode);
 
 private:
-    WiFiClient   m_tcpClient; /**< TCP client */
+    WiFiClient            m_tcpClient;     /**< The TCP client.     */
+    static const String   m_protocolName;  /**< This protocol name. */
+    
+    /* Read buffer handling from streaming sockets to implement framing.
+     *
+     * Custom transports with framing support need a customized agent.
+     * That is why the framing is implemented here to work with the
+     * "standard" tcpv4 agent protocol.   
+     */
+    enum InputState {
+        INIT,             /**< Input buffer ready for new record.          */
+        PREFIX_1,         /**< First byte of 2 -Byte size prefix received. */
+        PLAY_LOAD,        /**< Collecting payload bytes.                   */
+        FINISH,           /**< Payload record is complete.                 */
+        MAX               /**< Enum Range value, not a true state.         */
+    };
+
+    /** State dependent read function pointers 
+     *
+     * @param[in] timeout    Read timout in milliseconds.
+     * @param[out] errorCode Read error code if != 0
+     * 
+     * return true if state machine shall reloop. 
+    */
+    typedef bool (CustomRosTransportTcp::*ReadFunc)(int timeout, uint8_t* errorCode);
+
+    /** Read functions ponter array indexed by InputState. */
+    static const ReadFunc m_readFunction[MAX];
+
+    InputState   m_inputState;       /**< Actual input buffer status         */
+
+    size_t       m_payloadLen;       /**< Number of bytes to read as payload. */
+    size_t       m_received;         /**< Number of bytes received already    */
+
+    static const size_t MTU = 1024U; /**< Maximum supported transmission size.*/
+    uint8_t      m_inputBuf[MTU];    /**< Buffer for input record reading.    */
 };
 
 /******************************************************************************

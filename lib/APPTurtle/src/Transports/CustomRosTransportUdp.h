@@ -53,6 +53,12 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
+
+/** 
+ * Map this transport to the class name used in MicroRosClient.
+ * The used transport is a compile time decision and this typedef
+ * avoids the use of #ifdef's.
+ */
 typedef class CustomRosTransportUdp CustomRosTransport;
 
 /**
@@ -82,7 +88,10 @@ public:
      * Get protocol name used by this trandport.
      * @return protocol name
      */
-    virtual const String& getProtocolName() const final;
+    virtual const String& getProtocolName() const final
+    {
+        return m_protocolName;
+    }
 
 private:
     /**
@@ -122,7 +131,9 @@ private:
      */
     size_t read(uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode) final;
 
-    WiFiUDP   m_udpClient; /**< UDP client */
+    WiFiUDP               m_udpClient; /**< UDP client */
+    static const String   m_protocolName;  /**< This protocol name. */
+
 };
 
 /******************************************************************************

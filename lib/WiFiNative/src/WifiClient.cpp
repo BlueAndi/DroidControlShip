@@ -36,7 +36,6 @@
 
 #include <unistd.h>
 #include <sys/socket.h>
-#include <sys/ioctl.h>
 #include <sys/fcntl.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
@@ -84,7 +83,8 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
             const int one = 1;
             
             ::setsockopt(m_poll.fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one));
-            //::fcntl(m_socket, F_SETFL, O_NONBLOCK);
+            ::fcntl(m_poll.fd, F_SETFL, O_NONBLOCK);
+
             retval = 1; /* success*/
         }
         else
@@ -118,7 +118,6 @@ size_t WiFiClient::write(const uint8_t* buffer, size_t size)
             if (0 > written)   /* error */
             {
                 break;
-                /* TODO: Signal error upwards - how ?*/
             }
 
             remaining -= written;
