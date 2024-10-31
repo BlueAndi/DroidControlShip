@@ -72,7 +72,7 @@ public:
      * Destroys custom Micro-ROS transport.
      *
      */
-    ~CustomRosTransportBase()
+    virtual ~CustomRosTransportBase()
     {
     }
 
@@ -166,8 +166,8 @@ public:
     static size_t read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode);
 
     /** 
-     * Get protocol name used by this trandport.
-     * @return protocol name
+     * Get protocol name used by this transport.
+     * @return Protocol name
      */
     virtual const String& getProtocolName() const = 0;
 

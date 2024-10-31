@@ -60,9 +60,10 @@
 
 const String CustomRosTransportTcp::m_protocolName("TCP");
 
-const CustomRosTransportTcp::ReadFunc CustomRosTransportTcp::m_readFunction[MAX] = 
+const CustomRosTransportTcp::ReadFunc
+CustomRosTransportTcp::m_readFunction[InputState::INPUT_STATE_MAX] = 
 {
-    &CustomRosTransportTcp::readSizePrefix,
+    &CustomRosTransportTcp::readSizePrefix, 
     &CustomRosTransportTcp::readPendingSizePrefix,
     &CustomRosTransportTcp::readPayload, 
     &CustomRosTransportTcp::readFinish
@@ -84,7 +85,7 @@ bool CustomRosTransportTcp::open(void)
 {
     bool isOpen = false;
 
-    if (!m_tcpClient.connect(m_address, m_port))
+    if (0U == m_tcpClient.connect(m_address, m_port))
     {
         LOG_ERROR("TCP connect error");
     }
@@ -113,22 +114,22 @@ size_t CustomRosTransportTcp::write(const uint8_t* buffer, size_t size, uint8_t*
     else
     {
         uint8_t lengthPrefix[2];
-        lengthPrefix[0] = static_cast<uint8_t>(size & 0xFF);
-        lengthPrefix[1] = static_cast<uint8_t>((size >> 8) & 0xFF);
+        lengthPrefix[0] = static_cast<uint8_t>(size & 0xFFU);
+        lengthPrefix[1] = static_cast<uint8_t>((size >> 8U) & 0xFFU);
 
         if (sizeof(lengthPrefix) != m_tcpClient.write(lengthPrefix, sizeof(lengthPrefix)))
         {
             LOG_ERROR("Write prefix error (size=%zu, sent=%zu)", size, sent);
-            *errorCode = 1;
+            *errorCode = 1U;
         }
         else if ((sent = m_tcpClient.write(buffer, size)) != size)
         {
             LOG_ERROR("Write data error (size=%zu, sent=%zu)", size, sent);
-            *errorCode = 1;
+            *errorCode = 1U;
         }
         else
         {
-            *errorCode = 0;
+            *errorCode = 0U;
         }
     }
 
@@ -148,30 +149,45 @@ size_t CustomRosTransportTcp::read(uint8_t* buffer, size_t size, int timeout, ui
         bool loop = true;
 
         /**
-         * Run receive state machine. 
+         * Run receive state machine.
          * The read function relationships are:
-         * 
+         *
          * read() -> [state]->read() -> readInternal() -> WifiClient
          */
-        while (loop)
+        while (true == loop)
         {
-            loop = (this->*m_readFunction[m_inputState])(timeout, errorCode);
+
+            if (InputState::INPUT_STATE_MAX > m_inputState)
+            {
+                ReadFunc stateReadFunc = m_readFunction[m_inputState]; /**< Get state dependend input reader. */
+
+                /* Read state dependend message portion. */
+                loop = (this->*stateReadFunc)(timeout, errorCode);  
+            }
+            else
+            {
+                LOG_FATAL("Invalid state %d", static_cast<int>(m_inputState));
+                *errorCode = 4U;
+                loop       = false;
+            }
         }
 
-        if (InputState::FINISH == m_inputState)
+        if (InputState::INPUT_STATE_FINISH == m_inputState)
         {
             if (readBytes > size)
             {
-                /* internal error, request buffer would be overrun */
+                /* Internal error, request buffer would be overrun. */
                 close();
-                * errorCode = 3U;
+                *errorCode = 5U;
             }
-            else 
+            else
             {
+                /* Provide payload to destination buffer. */
                 readBytes = m_payloadLen;
                 memcpy(buffer, m_inputBuf, readBytes);
 
-                m_inputState = InputState::INIT;
+                /* Reset state machine*/
+                m_inputState = InputState::INPUT_STATE_INIT;
                 m_received   = 0U;
                 m_payloadLen = 0U;
             }
@@ -192,7 +208,7 @@ size_t CustomRosTransportTcp::readInternal(uint8_t* buffer, size_t size, int tim
 
     readTimer.start(timeout);
 
-    while ((0 < remaining) && (false == timeOver))
+    while ((0U < remaining) && (false == timeOver))
     {
         int count = m_tcpClient.read(buffer, remaining);
         if (-1 == count)
@@ -232,29 +248,29 @@ bool CustomRosTransportTcp::readSizePrefix(int timeout, uint8_t* errorCode)
 
     switch (readInternal(prefix, sizeof(prefix), timeout, errorCode))
     {
-    case 0: /* nothing received */
-        if (0 != *errorCode)
+    case 0U: /* nothing received */
+        if (0U != *errorCode)
         {
             close();
         }
         loop = false;
         break;
 
-    case 1: /* only low byte out of the 2 length prefix bytes received. */
+    case 1U: /* only low byte out of the 2 length prefix bytes received. */
         m_payloadLen = static_cast<size_t>(prefix[0]);
-        m_inputState = InputState::PREFIX_1;
+        m_inputState = InputState::INPUT_STATE_PREFIX_1;
         loop         = true;
         break;
 
-    case 2: /* 2 byte prefix received */
+    case 2U: /* 2 byte prefix received */
         m_payloadLen = static_cast<size_t>(prefix[0]) + (static_cast<size_t>(prefix[1]) << 8);
         m_received   = 0U;
-        m_inputState = InputState::PLAY_LOAD;
+        m_inputState = InputState::INPUT_STATE_PLAYLOAD;
         loop         = true;
         break;
 
     default: /* should never be possible but ...*/
-        *errorCode = 2;
+        *errorCode = 2U;
         loop       = false;
         break;
     }
@@ -264,12 +280,12 @@ bool CustomRosTransportTcp::readSizePrefix(int timeout, uint8_t* errorCode)
 
 bool CustomRosTransportTcp::readPendingSizePrefix(int timeout, uint8_t* errorCode)
 {
-    bool loop = true;
+    bool    loop = true;
     uint8_t prefix[1];
 
     switch (readInternal(prefix, sizeof(prefix), timeout, errorCode))
     {
-    case 0: /* nothing received */
+    case 0U: /* nothing received */
         if (0U != *errorCode)
         {
             close();
@@ -277,15 +293,15 @@ bool CustomRosTransportTcp::readPendingSizePrefix(int timeout, uint8_t* errorCod
         loop = false;
         break;
 
-    case 1: /* High byte received. */
+    case 1U: /* High byte received. */
         m_payloadLen |= (static_cast<size_t>(prefix[0]) << 8);
         m_received   = 0U;
-        m_inputState = InputState::PLAY_LOAD;
+        m_inputState = InputState::INPUT_STATE_PLAYLOAD;
         loop         = true;
         break;
 
     default: /* should never be possible but ...*/
-        *errorCode = 2;
+        *errorCode = 2U;
         loop       = false;
         break;
     }
@@ -295,7 +311,7 @@ bool CustomRosTransportTcp::readPendingSizePrefix(int timeout, uint8_t* errorCod
 
 bool CustomRosTransportTcp::readPayload(int timeout, uint8_t* errorCode)
 {
-    bool loop = true;
+    bool   loop        = true;
     size_t readByteCnt = readInternal(m_inputBuf + m_received, m_payloadLen - m_received, timeout, errorCode);
 
     if (0U < readByteCnt)
@@ -304,7 +320,7 @@ bool CustomRosTransportTcp::readPayload(int timeout, uint8_t* errorCode)
         if (m_received == m_payloadLen)
         {
             /* record completed */
-            m_inputState = InputState::FINISH;
+            m_inputState = InputState::INPUT_STATE_FINISH;
         }
     }
     else

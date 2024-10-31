@@ -33,6 +33,7 @@
  * Includes
  *****************************************************************************/
 #include "WiFiClient.h"
+#include <Logging.h>
 
 #include <unistd.h>
 #include <sys/socket.h>
@@ -52,16 +53,15 @@
  * Local Variables
  *****************************************************************************/
 
-
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
 
 uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 {
-    uint8_t retval = 0;
+    uint8_t retval = 0U;
 
-    if (connected())
+    if (0U != connected())
     {
         stop();
     }
@@ -71,26 +71,40 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
         struct sockaddr_in serverAddr;
 
         memset(&serverAddr, 0, sizeof(serverAddr));
-        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_family      = AF_INET;
         serverAddr.sin_addr.s_addr = htonl(addr);
-        serverAddr.sin_port = htons(port);
+        serverAddr.sin_port        = htons(port);
 
-        if (0 == ::connect(
-                        m_poll.fd, 
-                        reinterpret_cast<struct sockaddr *>(&serverAddr),
-                        sizeof(serverAddr) ))
+        if (0 == ::connect(m_poll.fd, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)))
         {
             const int one = 1;
-            
-            ::setsockopt(m_poll.fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one));
-            ::fcntl(m_poll.fd, F_SETFL, O_NONBLOCK);
 
-            retval = 1; /* success*/
+            if (-1 == ::setsockopt(m_poll.fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+            {
+                LOG_ERROR("%s:%s", "setsockopt", strerror(errno));
+            }
+            else if (-1 == ::fcntl(m_poll.fd, F_SETFL, ::fcntl(m_poll.fd, F_GETFL) | O_NONBLOCK))
+            {
+                LOG_ERROR("%s:%s", "fcntl", strerror(errno));
+            }
+            else 
+            {
+                retval = 1U; /* success*/
+            }
         }
         else
         {
-            stop();
+            LOG_ERROR("%s:%s", "connect", strerror(errno));
         }
+
+        if (0U == retval)
+        {
+            stop();  /* One of the system calls above failed. */
+        }
+    }
+    else
+    {
+        LOG_ERROR("%s:%s", "socket", strerror(errno));
     }
 
     return retval;
@@ -98,9 +112,13 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 
 void WiFiClient::stop()
 {
-    if (connected())
+    if (0U != connected())
     {
-        ::close(m_poll.fd);
+        if (0 != ::close(m_poll.fd))
+        {
+            LOG_ERROR("%s:%s", "close", strerror(errno));
+        }
+
         m_poll.fd = SOCK_INVAL;
     }
 }
@@ -108,19 +126,31 @@ void WiFiClient::stop()
 size_t WiFiClient::write(const uint8_t* buffer, size_t size)
 {
     size_t remaining = size;
- 
-    if ((0 < size) && connected())
+    uint32_t retries = 0;
+
+    if ((0U < size) && (0U != connected()))
     {
-        while (0 < remaining) {
-            ssize_t written = ::send(m_poll.fd, buffer, remaining, 0);
-    
-            if (0 > written)   /* error */
+        while ((0U < remaining) && (retries < SOCK_WRITE_RETRY))
+        {
+            ssize_t written = ::send(m_poll.fd, buffer, remaining, MSG_DONTWAIT);
+            if (0 > written)
             {
-                break;
+                if ((EAGAIN == errno) || (EWOULDBLOCK == errno))
+                {
+                    written = 0; /* Not an error, just retry indication. */
+                    usleep(SOCK_WRITE_TMO_US);
+                }
+                else
+                {
+                    LOG_ERROR("%s:%s", "send", strerror(errno));
+                    break;
+                }
             }
 
             remaining -= written;
             buffer += written;
+            
+            ++retries;
         }
     }
 
@@ -131,20 +161,20 @@ int WiFiClient::read(uint8_t* buffer, size_t size)
 {
     int retval = -1;
 
-    if (connected())
+    if (0U != connected())
     {
         if (-1 != ::poll(&m_poll, 1, 10))
         {
             if (0 != (POLLIN & m_poll.revents))
             {
-                ssize_t  result = ::recv(m_poll.fd, buffer, size, 0);
+                ssize_t result = ::recv(m_poll.fd, buffer, size, 0);
                 if (-1 != result)
                 {
-                    retval = result;  /* Success! */
+                    retval = result; /* Success! */
                 }
                 else
                 {
-                    perror("recv");
+                    LOG_ERROR("%s:%s", "recv", strerror(errno));
                 }
             }
             else
@@ -154,7 +184,7 @@ int WiFiClient::read(uint8_t* buffer, size_t size)
         }
         else
         {
-            perror("poll");
+            LOG_ERROR("%s:%s", "poll", strerror(errno));
         }
     }
 

@@ -58,7 +58,9 @@ Start the MicroXRCEAgent binary to listen to **TCP** connections:
 ## Using the agent with the UDP interface
 
 > [!WARNING]  
-> Note: UDP ports on WSL are not working properly if you need to access them outside of the WSL VM. Use TCP with WSL instead.
+> Note: UDP ports on WSL are not working properly if you need to access them outside of the WSL VM (Status 2024-10-31). Use TCP with WSL instead.
+> See [https://github.com/micro-ROS/micro-ROS-Agent/issues/194](https://github.com/micro-ROS/micro-ROS-Agent/issues/194) for further details.
+> The mentioned ```netsh`` tool for port proxy forwarding only supports TCP.
 
 Start the MicroXRCEAgent binary to listen to UDP connections:
 

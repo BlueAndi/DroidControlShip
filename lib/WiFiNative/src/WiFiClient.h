@@ -106,10 +106,16 @@ class WiFiClient
 
     /**
      * Write bytes to stream.
+     *
+     * The write uses non blocking socket mode, but retries on a
+     * EWOULDBLOCK result. The constants SOCK_WRITE_RETRY and
+     * SOCK_WRITE_TMO_US define how often to retry and the 
+     * time delay in between.
      * 
      * @param[in] buffer Byte Array to send.
      * @param[in] size Length of Buffer.
-     * @returns Number of bytes written
+     * 
+     * @returns Number of bytes written or 0 on error.
      */
     size_t write(const uint8_t* buffer, size_t size);
 
@@ -132,9 +138,11 @@ class WiFiClient
     int read(uint8_t* buffer, size_t size);
 
 private:
-    struct pollfd         m_poll;                       /**< The poll/socket structure. */
+    struct pollfd    m_poll;                        /**< The poll/socket structure.   */
 
-    static const  int SOCK_INVAL = -1;                  /**< The invalid socket value   */
+    static const int SOCK_INVAL = -1;               /**< The invalid socket value.    */
+    static const uint32_t SOCK_WRITE_RETRY = 4U;    /**< How often to retry sending.  */
+    static const uint32_t SOCK_WRITE_TMO_US = 250U; /**< Delay between write attemps. */
 };
 
 /******************************************************************************
