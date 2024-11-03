@@ -231,7 +231,7 @@ private:
      * @param[in] timeout    Read timout in milliseconds.
      * @param[out] errorCode Read error code if != 0
      *
-     * return true if state machine shall reloop.
+     * @return true if state machine shall reloop.
      */
     typedef bool (CustomRosTransportTcp::*ReadFunc)(int timeout, uint8_t* errorCode);
 

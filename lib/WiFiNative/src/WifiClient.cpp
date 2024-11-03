@@ -63,6 +63,9 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 
     if (0U != connected())
     {
+        /* Connect is called on an already connected client.
+         * Handle it as re-connect by closing the former socket connection.
+         */
         stop();
     }
 

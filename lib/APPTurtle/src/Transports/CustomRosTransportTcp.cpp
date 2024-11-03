@@ -148,7 +148,7 @@ size_t CustomRosTransportTcp::read(uint8_t* buffer, size_t size, int timeout, ui
     {
         bool loop = true;
 
-        /**
+        /*
          * Run receive state machine.
          * The read function relationships are:
          *
@@ -159,9 +159,10 @@ size_t CustomRosTransportTcp::read(uint8_t* buffer, size_t size, int timeout, ui
 
             if (InputState::INPUT_STATE_MAX > m_inputState)
             {
-                ReadFunc stateReadFunc = m_readFunction[m_inputState]; /**< Get state dependend input reader. */
+                /* Get state dependend input reader function. */
+                ReadFunc stateReadFunc = m_readFunction[m_inputState];
 
-                /* Read state dependend message portion. */
+                /* Read message portion based on reveiver state. */
                 loop = (this->*stateReadFunc)(timeout, errorCode);  
             }
             else
