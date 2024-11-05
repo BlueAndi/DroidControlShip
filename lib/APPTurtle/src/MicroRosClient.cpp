@@ -171,9 +171,13 @@ bool MicroRosClient::setupCustomTransport(const IPAddress& ipAddress, uint16_t p
 
     m_customRosTransport.init(ipAddress, port);
 
-    if (RCL_RET_OK != rmw_uros_set_custom_transport(false, (void*)&m_customRosTransport, CustomRosTransport::open,
-                                                    CustomRosTransport::close, CustomRosTransport::write,
-                                                    CustomRosTransport::read))
+    if (RCL_RET_OK != rmw_uros_set_custom_transport(
+            false, 
+            &m_customRosTransport,
+            CustomRosTransportBase::open,
+            CustomRosTransportBase::close, 
+            CustomRosTransportBase::write,
+            CustomRosTransportBase::read))
     {
         LOG_ERROR("Failed to set custom transport for Micro-ROS.");
     }
@@ -284,7 +288,10 @@ void MicroRosClient::waitingForAgentState()
         if ((false == m_timer.isTimerRunning()) || (true == m_timer.isTimeout()))
         {
             String ipAddStr = m_customRosTransport.getIPAddressAsStr();
-            LOG_INFO("Ping Micro-ROS agent %s:%u ...", ipAddStr.c_str(), m_customRosTransport.getPort());
+            LOG_INFO("Ping Micro-ROS agent %s:%s:%u ...",
+                m_customRosTransport.getProtocolName().c_str(),
+                ipAddStr.c_str(), 
+                m_customRosTransport.getPort());
 
             if (RMW_RET_OK == rmw_uros_ping_agent(MICRO_ROS_AGENT_PING_TIMEOUT, MICRO_ROS_AGENT_PING_ATTEMPTS))
             {
@@ -307,7 +314,10 @@ void MicroRosClient::connectingState()
 {
     String ipAddStr = m_customRosTransport.getIPAddressAsStr();
 
-    LOG_INFO("Connecting to Micro-ROS agent %s:%u ...", ipAddStr.c_str(), m_customRosTransport.getPort());
+    LOG_INFO("Connecting to Micro-ROS agent %s:%s:%u ...",
+                m_customRosTransport.getProtocolName().c_str(),
+                ipAddStr.c_str(), 
+                m_customRosTransport.getPort());
 
     if (false == createEntities())
     {
@@ -315,8 +325,11 @@ void MicroRosClient::connectingState()
     }
     else
     {
-        LOG_INFO("Connected with Micro-ROS agent %s:%u.", ipAddStr.c_str(), m_customRosTransport.getPort());
-
+        LOG_INFO("Connected with Micro-ROS agent %s:%s:%u ...",
+                m_customRosTransport.getProtocolName().c_str(),
+                ipAddStr.c_str(), 
+                m_customRosTransport.getPort());
+                
         subscribe();
 
         /* Periodically verify that the connection is still established. */
