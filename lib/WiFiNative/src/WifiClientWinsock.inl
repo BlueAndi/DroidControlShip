@@ -176,9 +176,11 @@ size_t WiFiClient::write(const uint8_t* buffer, size_t size)
 
     if ((0U < size) && (0U != connected()))
     {
+        SOCKET socket = gSockets[this];
+
         while ((0U < remaining) && (retries < SOCK_WRITE_RETRY))
         {
-            int written = ::send(gSockets[this], reinterpret_cast<const char*>(buffer), remaining, 0);
+            int written = ::send(socket, reinterpret_cast<const char*>(buffer), remaining, 0);
             if (SOCKET_ERROR == written)
             {
                 int lastError = WSAGetLastError();
@@ -225,7 +227,7 @@ int WiFiClient::read(uint8_t* buffer, size_t size)
         }
         else if (1 == selectRet) /* read signaled */
         {
-            ssize_t result = ::recv(gSockets[this], reinterpret_cast<char*>(buffer), size, 0);
+            ssize_t result = ::recv(socket, reinterpret_cast<char*>(buffer), size, 0);
             if (-1 != result)
             {
                 retval = result; /* Success! */
