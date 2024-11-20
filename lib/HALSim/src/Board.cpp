@@ -32,9 +32,15 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
+#if _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#endif
+
 #include "Board.h"
 #include <Logging.h>
 #include "RobotDeviceNames.h"
+
 
 /******************************************************************************
  * Compiler Switches
@@ -67,6 +73,17 @@
 bool Board::init()
 {
     bool isReady = true;
+
+#if _WIN32
+    WORD wVersionRequested = MAKEWORD(2,2);
+    WSADATA wsaData;
+    int result = WSAStartup(wVersionRequested, &wsaData);
+
+    if (0 != result)
+    {
+        LOG_ERROR("WSAStartup error %d", result);
+    }
+#endif
 
     /* Nothing to do. */
 
@@ -102,6 +119,13 @@ Board::Board() :
     m_configFilePath(),
     m_gps(m_robot.getGPS(RobotDeviceNames::GPS_NAME), m_robot.getCompass(RobotDeviceNames::COMPASS_NAME))
 {
+}
+
+Board::~Board()
+{
+#if _WIN32
+    WSACleanup();
+#endif
 }
 
 void Board::enableSimulationDevices()

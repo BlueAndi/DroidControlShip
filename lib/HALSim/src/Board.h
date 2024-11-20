@@ -239,9 +239,7 @@ private:
     /**
      * Destroys the concrete board.
      */
-    virtual ~Board()
-    {
-    }
+    virtual ~Board();
 
     /**
      * Set the file path of the configuration (settings).
