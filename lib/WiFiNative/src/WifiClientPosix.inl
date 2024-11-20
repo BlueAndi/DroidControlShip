@@ -32,15 +32,17 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "WiFiClient.h"
-#include <Logging.h>
-
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/fcntl.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
+#include <poll.h>
 
+#include <map>
+
+#include "WiFiClient.h"
+#include <Logging.h>
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -59,6 +61,11 @@
  */
 static std::map<const WiFiClient*, struct pollfd> gSockets;
 
+/**
+ * The invalid socket value.
+ */
+static const int SOCK_INVAL = -1;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -75,7 +82,7 @@ uint8_t WiFiClient::connected() const
 
     if (gSockets.end() != iterSock)
     {
-        isConnected = (iterSock->second.fd != INVALID_SOCKET);
+        isConnected = (iterSock->second.fd != SOCK_INVAL);
     }
 
     return isConnected;
@@ -84,7 +91,7 @@ uint8_t WiFiClient::connected() const
 uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 {
     uint8_t retval = 0U;
-    int     socket = INVALID_SOCKET;
+    int     socket = SOCK_INVAL;
 
     if (0U != connected())
     {
@@ -112,7 +119,7 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
             {
                 LOG_ERROR("%s:%s", "setsockopt", strerror(errno));
             }
-            else if (-1 == ::fcntl(socket, F_SETFL, ::fcntl(m_poll.fd, F_GETFL) | O_NONBLOCK))
+            else if (-1 == ::fcntl(socket, F_SETFL, ::fcntl(socket, F_GETFL) | O_NONBLOCK))
             {
                 LOG_ERROR("%s:%s", "fcntl", strerror(errno));
             }
@@ -132,7 +139,8 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
         }
         else
         {
-            gSockets[this] = {.fd = socket, .events = 0, .revents = 0};
+            /* Store poll data and listen to input data event. */
+            gSockets[this] = {.fd = socket, .events = POLLIN, .revents = 0};
         }
     }
     else
@@ -168,9 +176,11 @@ size_t WiFiClient::write(const uint8_t* buffer, size_t size)
 
     if ((0U < size) && (0U != connected()))
     {
+        auto pollFd = gSockets[this];
+
         while ((0U < remaining) && (retries < SOCK_WRITE_RETRY))
         {
-            ssize_t written = ::send(gSockets[this].fd, buffer, remaining, MSG_DONTWAIT);
+            ssize_t written = ::send(pollFd.fd, buffer, remaining, MSG_DONTWAIT);
             if (0 > written)
             {
                 if ((EAGAIN == errno) || (EWOULDBLOCK == errno))
@@ -197,7 +207,7 @@ size_t WiFiClient::write(const uint8_t* buffer, size_t size)
 
 int WiFiClient::read(uint8_t* buffer, size_t size)
 {
-    int retval = -1;
+    int retval = -2;
 
     if (0U != connected())
     {
@@ -205,9 +215,9 @@ int WiFiClient::read(uint8_t* buffer, size_t size)
 
         if (-1 != ::poll(&pollFd, 1, 10))
         {
-            if (0 != (POLLIN & pollfd.revents))
+            if (0 != (POLLIN & pollFd.revents))
             {
-                ssize_t result = ::recv(pollFd, buffer, size, 0);
+                ssize_t result = ::recv(pollFd.fd, buffer, size, 0);
                 if (-1 != result)
                 {
                     retval = result; /* Success! */

@@ -130,7 +130,6 @@ class WiFiClient
     int read(uint8_t* buffer, size_t size);
 
 private:
-    static const int SOCK_INVAL = -1;               /**< The invalid socket value.    */
     static const uint32_t SOCK_WRITE_RETRY = 4U;    /**< How often to retry sending.  */
     static const uint32_t SOCK_WRITE_TMO_US = 250U; /**< Delay between write attemps. */
 };
