@@ -84,7 +84,7 @@ uint8_t WiFiClient::connected() const
 
 uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 {
-    uint8_t retval = 0U;
+    uint8_t retval       = 0U;
     SOCKET  socketHandle = INVALID_SOCKET;
 
     if (0U != connected())
@@ -107,11 +107,10 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 
         if (0 == ::connect(socketHandle, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)))
         {
-            const int one     = 1;
-            DWORD     nodelay = TRUE;
+            DWORD nodelay = TRUE;
 
-            if (SOCKET_ERROR ==
-                setsockopt(socketHandle, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&nodelay), sizeof(nodelay)))
+            if (SOCKET_ERROR == setsockopt(socketHandle, IPPROTO_TCP, TCP_NODELAY,
+                                           reinterpret_cast<const char*>(&nodelay), sizeof(nodelay)))
             {
                 LOG_ERROR("setsockopt error %ld\n", WSAGetLastError());
             }
@@ -157,14 +156,14 @@ void WiFiClient::stop()
     if (0U != connected())
     {
         auto iterSock = gSockets.find(this);
-        
+
         if (gSockets.end() != iterSock)
         {
             if (SOCKET_ERROR == closesocket(iterSock->second))
             {
                 LOG_ERROR("closesocket error %d", WSAGetLastError());
             }
-            gSockets.erase(iterSock);
+            (void)gSockets.erase(iterSock);
         }
     }
 }

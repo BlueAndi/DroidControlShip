@@ -81,7 +81,8 @@ bool Board::init()
 
     if (0 != result)
     {
-        LOG_ERROR("WSAStartup error %d", result);
+        LOG_FATAL("WSAStartup error %d", result);
+        isReady = false;
     }
 #endif
 

@@ -113,9 +113,9 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 
         if (0 == ::connect(socketFd, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)))
         {
-            const int one = 1;
+            const int enableOptVal = 1;
 
-            if (-1 == ::setsockopt(socketFd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+            if (-1 == ::setsockopt(socketFd, IPPROTO_TCP, TCP_NODELAY, &enableOptVal, sizeof(enableOptVal)))
             {
                 LOG_ERROR("%s:%s", "setsockopt", strerror(errno));
             }
@@ -163,7 +163,7 @@ void WiFiClient::stop()
             {
                 LOG_ERROR("%s:%s", "close", strerror(errno));
             }
-            gConnections.erase(iterSock);
+            (void)Connections.erase(iterSock);
         }
     }
 }
