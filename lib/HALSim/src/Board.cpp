@@ -32,7 +32,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#if _WIN32
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
 #endif
@@ -74,7 +74,7 @@ bool Board::init()
 {
     bool isReady = true;
 
-#if _WIN32
+#ifdef _WIN32
     WORD wVersionRequested = MAKEWORD(2,2);
     WSADATA wsaData;
     int result = WSAStartup(wVersionRequested, &wsaData);
@@ -124,7 +124,7 @@ Board::Board() :
 
 Board::~Board()
 {
-#if _WIN32
+#ifdef _WIN32
     WSACleanup();
 #endif
 }
