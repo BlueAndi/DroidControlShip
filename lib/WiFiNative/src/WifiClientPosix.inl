@@ -56,10 +56,10 @@
  *****************************************************************************/
 
 /**
- * WifiClient instance to socket mapping.
+ * WifiClient instance to pollfd (socket data) mapping.
  * Local definition as stored type is OS dependend, and WifiClient is generic.
  */
-static std::map<const WiFiClient*, struct pollfd> gSockets;
+static std::map<const WiFiClient*, struct pollfd> gConnections;
 
 /**
  * The invalid socket value.
@@ -78,9 +78,9 @@ WiFiClient::~WiFiClient()
 uint8_t WiFiClient::connected() const
 {
     bool isConnected = false;
-    auto iterSock    = gSockets.find(this);
+    auto iterSock    = gConnections.find(this);
 
-    if (gSockets.end() != iterSock)
+    if (gConnections.end() != iterSock)
     {
         isConnected = (iterSock->second.fd != SOCK_INVAL);
     }
@@ -91,7 +91,7 @@ uint8_t WiFiClient::connected() const
 uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 {
     uint8_t retval = 0U;
-    int     socket = SOCK_INVAL;
+    int     socketFd = SOCK_INVAL;
 
     if (0U != connected())
     {
@@ -101,8 +101,8 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
         stop();
     }
 
-    socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (SOCK_INVAL != socket)
+    socketFd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (SOCK_INVAL != socketFd)
     {
         struct sockaddr_in serverAddr;
 
@@ -111,15 +111,15 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
         serverAddr.sin_addr.s_addr = htonl(addr);
         serverAddr.sin_port        = htons(port);
 
-        if (0 == ::connect(socket, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)))
+        if (0 == ::connect(socketFd, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)))
         {
             const int one = 1;
 
-            if (-1 == ::setsockopt(socket, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
+            if (-1 == ::setsockopt(socketFd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)))
             {
                 LOG_ERROR("%s:%s", "setsockopt", strerror(errno));
             }
-            else if (-1 == ::fcntl(socket, F_SETFL, ::fcntl(socket, F_GETFL) | O_NONBLOCK))
+            else if (-1 == ::fcntl(socketFd, F_SETFL, ::fcntl(socketFd, F_GETFL) | O_NONBLOCK))
             {
                 LOG_ERROR("%s:%s", "fcntl", strerror(errno));
             }
@@ -140,7 +140,7 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
         else
         {
             /* Store poll data and listen to input data event. */
-            gSockets[this] = {.fd = socket, .events = POLLIN, .revents = 0};
+            gConnections[this] = {.fd = socketFd, .events = POLLIN, .revents = 0};
         }
     }
     else
@@ -155,17 +155,16 @@ void WiFiClient::stop()
 {
     if (0U != connected())
     {
-        auto iterSock = gSockets.find(this);
+        auto iterSock = gConnections.find(this);
 
-        if (gSockets.end() != iterSock)
+        if (gConnections.end() != iterSock)
         {
             if (0 != ::close(iterSock->second.fd))
             {
                 LOG_ERROR("%s:%s", "close", strerror(errno));
             }
+            gConnections.erase(iterSock);
         }
-
-        gSockets.erase(iterSock);
     }
 }
 
@@ -176,7 +175,7 @@ size_t WiFiClient::write(const uint8_t* buffer, size_t size)
 
     if ((0U < size) && (0U != connected()))
     {
-        auto pollFd = gSockets[this];
+        auto pollFd = gConnections[this];
 
         while ((0U < remaining) && (retries < SOCK_WRITE_RETRY))
         {
@@ -211,7 +210,7 @@ int WiFiClient::read(uint8_t* buffer, size_t size)
 
     if (0U != connected())
     {
-        auto pollFd = gSockets[this];
+        auto pollFd = gConnections[this];
 
         if (-1 != ::poll(&pollFd, 1, 10))
         {

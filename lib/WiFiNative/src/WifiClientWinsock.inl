@@ -85,7 +85,7 @@ uint8_t WiFiClient::connected() const
 uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
 {
     uint8_t retval = 0U;
-    SOCKET  socket = INVALID_SOCKET;
+    SOCKET  socketHandle = INVALID_SOCKET;
 
     if (0U != connected())
     {
@@ -95,8 +95,8 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
         stop();
     }
 
-    socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (INVALID_SOCKET != socket)
+    socketHandle = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (INVALID_SOCKET != socketHandle)
     {
         struct sockaddr_in serverAddr;
 
@@ -105,20 +105,20 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
         serverAddr.sin_addr.s_addr = htonl(addr);
         serverAddr.sin_port        = htons(port);
 
-        if (0 == ::connect(socket, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)))
+        if (0 == ::connect(socketHandle, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)))
         {
             const int one     = 1;
             DWORD     nodelay = TRUE;
 
             if (SOCKET_ERROR ==
-                setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&nodelay), sizeof(nodelay)))
+                setsockopt(socketHandle, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&nodelay), sizeof(nodelay)))
             {
                 LOG_ERROR("setsockopt error %ld\n", WSAGetLastError());
             }
             else
             {
                 u_long mode = 0U;
-                int    rt   = ioctlsocket(socket, FIONBIO, &mode);
+                int    rt   = ioctlsocket(socketHandle, FIONBIO, &mode); /* Enable non-blocking IO. */
 
                 if (rt != NO_ERROR)
                 {
@@ -141,7 +141,7 @@ uint8_t WiFiClient::connect(const IPAddress& addr, uint16_t port)
         }
         else
         {
-            gSockets[this] = socket; /* Store open socket for this class. */
+            gSockets[this] = socketHandle; /* Store open socket for this class. */
         }
     }
     else
@@ -157,7 +157,7 @@ void WiFiClient::stop()
     if (0U != connected())
     {
         auto iterSock = gSockets.find(this);
-
+        
         if (gSockets.end() != iterSock)
         {
             if (SOCKET_ERROR == closesocket(iterSock->second))
