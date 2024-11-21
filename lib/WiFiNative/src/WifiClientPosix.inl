@@ -163,7 +163,7 @@ void WiFiClient::stop()
             {
                 LOG_ERROR("%s:%s", "close", strerror(errno));
             }
-            (void)Connections.erase(iterSock);
+            (void)gConnections.erase(iterSock);
         }
     }
 }
