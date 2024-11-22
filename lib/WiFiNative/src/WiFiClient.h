@@ -46,8 +46,6 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 
-#include <poll.h>
-
 /******************************************************************************
  * Macros
  *****************************************************************************/
@@ -68,17 +66,14 @@ class WiFiClient
     /**
      * Default constructor.
      */
-    WiFiClient() :
-        m_poll {SOCK_INVAL, POLLIN, 0}
+    WiFiClient()
     {
     }
 
     /**
-     * Default Destructor.
+     * Destructor.
      */
-    virtual ~WiFiClient()
-    {
-    }
+    virtual ~WiFiClient();
 
     /**
      * Establish a connection.
@@ -94,10 +89,7 @@ class WiFiClient
      * 
      * @return If successful returns 1, otherwise 0.
      */
-    uint8_t connected()
-    {
-        return (SOCK_INVAL != m_poll.fd) ? 1U : 0U;
-    }
+    uint8_t connected() const;
 
     /**
      * Stop the WiF Client.
@@ -138,9 +130,6 @@ class WiFiClient
     int read(uint8_t* buffer, size_t size);
 
 private:
-    struct pollfd    m_poll;                        /**< The poll/socket structure.   */
-
-    static const int SOCK_INVAL = -1;               /**< The invalid socket value.    */
     static const uint32_t SOCK_WRITE_RETRY = 4U;    /**< How often to retry sending.  */
     static const uint32_t SOCK_WRITE_TMO_US = 250U; /**< Delay between write attemps. */
 };
