@@ -245,8 +245,22 @@ private:
         /* Never called. */
     }
 
-    /* Singleton */
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] drv source instance
+     */
     ButtonDrv(const ButtonDrv& drv);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] drv source instance
+     *
+     * @return Button driver instance.
+     */
     ButtonDrv& operator=(const ButtonDrv& drv);
 
     /**
