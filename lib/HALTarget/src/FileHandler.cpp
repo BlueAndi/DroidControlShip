@@ -106,7 +106,10 @@ size_t FileHandler::writeFile(const String& fileName, const char* buffer, const 
     }
     else
     {
-        bytesWritten = file.write((const uint8_t*)buffer, bufferSize);
+        const void*    vBuffer = buffer;
+        const uint8_t* uBuffer = static_cast<const uint8_t*>(vBuffer);
+
+        bytesWritten = file.write(uBuffer, bufferSize);
 
         if (bytesWritten != bufferSize)
         {

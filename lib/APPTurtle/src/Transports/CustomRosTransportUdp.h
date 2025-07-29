@@ -80,7 +80,7 @@ public:
      * Destroys custom Micro-ROS transport.
      *
      */
-    ~CustomRosTransportUdp()
+    ~CustomRosTransportUdp() final
     {
     }
 

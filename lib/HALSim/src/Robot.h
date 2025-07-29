@@ -71,7 +71,7 @@ public:
     /**
      * Destroys the robot adapter.
      */
-    virtual ~Robot()
+    ~Robot() final
     {
     }
 
