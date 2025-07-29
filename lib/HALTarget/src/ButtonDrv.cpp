@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2019 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,7 +81,7 @@ static const uint32_t QUEUE_SIZE = 10U;
  * Every time the task detects a pin level change, it will notify the task
  * about it by sending the corresponding button id via queue.
  */
-static QueueHandle_t gxQueue = nullptr;
+static QueueHandle_t gxQueue     = nullptr;
 
 /******************************************************************************
  * Public Methods
@@ -89,13 +89,12 @@ static QueueHandle_t gxQueue = nullptr;
 
 bool ButtonDrv::init()
 {
-    bool       isSuccessful = true;
-    BaseType_t osRet        = pdFAIL;
+    bool isSuccessful = true;
 
     /* Create semaphore to protect the button trigger array, which is accessed
      * by the task and the ISR.
      */
-    gxQueue = xQueueCreate(QUEUE_SIZE, sizeof(ButtonId));
+    gxQueue           = xQueueCreate(QUEUE_SIZE, sizeof(ButtonId));
 
     if (nullptr == gxQueue)
     {
@@ -124,19 +123,18 @@ bool ButtonDrv::init()
 
     if (true == isSuccessful)
     {
-        /* Create button task for debouncing */
-        osRet = xTaskCreateUniversal(buttonTask, "buttonTask", BUTTON_TASK_STACKE_SIZE, this, 1, &m_buttonTaskHandle,
-                                     BUTTON_TASK_RUN_CORE);
+        isSuccessful = m_buttonTask.start(this);
 
-        /* Failed to create task? */
-        if (pdPASS != osRet)
+        if (true == isSuccessful)
         {
-            isSuccessful = false;
+            attachButtonsToInterrupt();
         }
     }
 
     if (false == isSuccessful)
     {
+        (void)m_buttonTask.stop();
+
         if (nullptr != gxQueue)
         {
             vQueueDelete(gxQueue);
@@ -176,7 +174,7 @@ void ButtonDrv::registerObserver(IButtonObserver& observer)
     {
         uint8_t buttonIndex = 0U;
 
-        m_observer = &observer;
+        m_observer          = &observer;
 
         while (BUTTON_ID_CNT > buttonIndex)
         {
@@ -199,11 +197,12 @@ void ButtonDrv::unregisterObserver()
     }
 }
 
-void ButtonDrv::enableWakeUpSources()
+bool ButtonDrv::enableWakeUpSources()
 {
-    uint8_t buttonIdx = 0U;
+    uint8_t buttonIdx          = 0U;
+    bool    allButtonsReleased = true;
 
-    /* Use all available buttons as wakeup sources. */
+    /* Ensure that no button is pressed anymore. */
     while (BUTTON_ID_CNT > buttonIdx)
     {
         uint8_t pinNo = BUTTON_PIN[buttonIdx]->getPinNo();
@@ -212,13 +211,42 @@ void ButtonDrv::enableWakeUpSources()
         {
             gpio_num_t gpioPinNum = static_cast<gpio_num_t>(pinNo);
 
-            gpio_wakeup_enable(gpioPinNum, GPIO_INTR_LOW_LEVEL);
+            if (0 == gpio_get_level(gpioPinNum))
+            {
+                allButtonsReleased = false;
+            }
         }
 
         ++buttonIdx;
     }
 
-    (void)esp_sleep_enable_gpio_wakeup();
+    /* If no button is pressed anymore, enable them as wakeup source. */
+    if (true == allButtonsReleased)
+    {
+        /* Use all available buttons as wakeup sources. */
+        while (BUTTON_ID_CNT > buttonIdx)
+        {
+            uint8_t pinNo = BUTTON_PIN[buttonIdx]->getPinNo();
+
+            if (IoPin::NC != pinNo)
+            {
+                gpio_num_t gpioPinNum = static_cast<gpio_num_t>(pinNo);
+
+                /* Important: Buttons must be low active! */
+
+                if (ESP_OK != gpio_wakeup_enable(gpioPinNum, GPIO_INTR_LOW_LEVEL))
+                {
+                    LOG_ERROR("Button %u can not be used as wakeup source.", buttonIdx);
+                }
+            }
+
+            ++buttonIdx;
+        }
+
+        (void)esp_sleep_enable_gpio_wakeup();
+    }
+
+    return allButtonsReleased;
 }
 
 /******************************************************************************
@@ -228,6 +256,30 @@ void ButtonDrv::enableWakeUpSources()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+void ButtonDrv::attachButtonsToInterrupt()
+{
+    uint8_t buttonIdx = 0U;
+
+    /* The ISR shall notify about on change to determine whether the
+     * pin state is stable or not.
+     */
+    while (BUTTON_ID_CNT > buttonIdx)
+    {
+        if (IoPin::NC != BUTTON_PIN[buttonIdx]->getPinNo())
+        {
+            attachInterruptArg(BUTTON_PIN[buttonIdx]->getPinNo(),
+                isrButton,
+                &gButtonId[buttonIdx],
+                CHANGE);
+
+            /* Start the debouncing to get a stable initial button state. */
+            m_timer[buttonIdx].start(DEBOUNCING_TIME);
+        }
+
+        ++buttonIdx;
+    }
+}
 
 void ButtonDrv::setState(ButtonId buttonId, ButtonState state)
 {
@@ -242,99 +294,78 @@ void ButtonDrv::setState(ButtonId buttonId, ButtonState state)
     }
 }
 
-void ButtonDrv::buttonTask(void* parameters)
+void ButtonDrv::buttonTask(ButtonDrv* self)
 {
-    ButtonDrv* buttonDrv = reinterpret_cast<ButtonDrv*>(parameters);
-    uint8_t    buttonIdx = 0U;
-
-    /* The ISR shall notify about on change to determine whether the
-     * pin state is stable or not.
-     */
-    while (BUTTON_ID_CNT > buttonIdx)
-    {
-        if (IoPin::NC != BUTTON_PIN[buttonIdx]->getPinNo())
-        {
-            attachInterruptArg(BUTTON_PIN[buttonIdx]->getPinNo(), isrButton, &gButtonId[buttonIdx], CHANGE);
-        }
-
-        ++buttonIdx;
-    }
-
-    LOG_DEBUG("ButtonDrv task is ready.");
-
-    buttonDrv->buttonTaskMainLoop();
-
-    vTaskDelete(nullptr);
+    self->buttonTaskMainLoop();
 }
 
 void ButtonDrv::buttonTaskMainLoop()
 {
+    ButtonId buttonId  = BUTTON_ID_CNT;
+    uint8_t  buttonIdx = 0U;
+
     /* The main loop scans several times during one debounce period
      * for any pin change. If there is no change, the state is
      * considered as stable.
      */
-    for (;;)
+
+    /* Wait 25% of debouncing time whether any button level changed. */
+    if (pdTRUE == xQueueReceive(gxQueue, &buttonId, (DEBOUNCING_TIME / 4U) * portTICK_PERIOD_MS))
     {
-        ButtonId buttonId  = BUTTON_ID_CNT;
-        uint8_t  buttonIdx = 0U;
-
-        /* Wait 25% of debouncing time whether any button level changed. */
-        if (pdTRUE == xQueueReceive(gxQueue, &buttonId, (DEBOUNCING_TIME / 4U) * portTICK_PERIOD_MS))
+        if (BUTTON_ID_CNT > buttonId)
         {
-            if (BUTTON_ID_CNT > buttonId)
-            {
-                m_timer[buttonId].start(DEBOUNCING_TIME);
-            }
+            m_timer[buttonId].start(DEBOUNCING_TIME);
         }
+    }
 
-        /* Debounce buttons */
-        while (BUTTON_ID_CNT > buttonIdx)
+    /* Debounce buttons */
+    while (BUTTON_ID_CNT > buttonIdx)
+    {
+        if ((true == m_timer[buttonIdx].isTimerRunning()) &&
+            (true == m_timer[buttonIdx].isTimeout()))
         {
-            if ((true == m_timer[buttonIdx].isTimerRunning()) && (true == m_timer[buttonIdx].isTimeout()))
+            ButtonState buttonState = BUTTON_STATE_UNKNOWN;
+            uint8_t     buttonValue = HIGH;
+
+            switch (buttonIdx)
             {
-                ButtonState buttonState = BUTTON_STATE_UNKNOWN;
-                uint8_t     buttonValue = HIGH;
+            case BUTTON_ID_OK:
+                buttonValue = GpioPins::resetButtonPin.read();
+                break;
 
-                switch (buttonIdx)
-                {
-                case BUTTON_ID_OK:
-                    buttonValue = GpioPins::resetButtonPin.read();
-                    break;
+            default:
+                break;
+            }
 
-                default:
-                    break;
-                }
+            if (LOW == buttonValue)
+            {
+                buttonState = BUTTON_STATE_PRESSED;
+            }
+            else
+            {
+                buttonState = BUTTON_STATE_RELEASED;
+            }
 
-                if (LOW == buttonValue)
+            if (BUTTON_STATE_NC != m_state[buttonIdx])
+            {
+                if (m_state[buttonIdx] != buttonState)
                 {
-                    buttonState = BUTTON_STATE_PRESSED;
-                }
-                else
-                {
-                    buttonState = BUTTON_STATE_RELEASED;
-                }
+                    buttonId = static_cast<ButtonId>(buttonIdx);
 
-                if (BUTTON_STATE_NC != m_state[buttonIdx])
-                {
-                    if (m_state[buttonIdx] != buttonState)
+                    setState(buttonId, buttonState);
+
+                    /* Notify observer */
+                    if (nullptr != m_observer)
                     {
-                        buttonId = static_cast<ButtonId>(buttonIdx);
-
-                        setState(buttonId, buttonState);
-
-                        /* Notify observer */
-                        if (nullptr != m_observer)
-                        {
-                            m_observer->notify(buttonId, m_state[buttonIdx]);
-                        }
+                        m_observer->notify(buttonId, m_state[buttonIdx]);
                     }
                 }
-
-                m_timer[buttonIdx].stop();
             }
 
-            ++buttonIdx;
+            m_timer[buttonIdx].stop();
         }
+
+        ++buttonIdx;
     }
 }
 
@@ -353,7 +384,7 @@ void ButtonDrv::buttonTaskMainLoop()
  */
 static void IRAM_ATTR isrButton(void* arg)
 {
-    ButtonId   buttonId                 = *reinterpret_cast<ButtonId*>(arg);
+    ButtonId   buttonId                 = *static_cast<ButtonId*>(arg);
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     (void)xQueueSendFromISR(gxQueue, &buttonId, &xHigherPriorityTaskWoken);
