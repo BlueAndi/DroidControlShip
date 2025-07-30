@@ -1,6 +1,7 @@
 # Installation of ROS2 Jazzy
 
 ## Official Jazzy Setup Procedure
+
 Follow the official installation guide For Ubuntu (Debian packages) on the 
 [ROS2 Jazzy Webpage](https://docs.ros.org/en/jazzy/Installation.html).
 
@@ -16,7 +17,11 @@ Optional parts can be omitted.
 
 Add the following line to the end of your ~/.bashrc:
 
-        source /opt/ros/jazzy/setup.bash
+```text
+source /opt/ros/jazzy/setup.bash
+```
+
+by
 
 ```bash
     echo "source /opt/ros/jazzy/setup.bash" >> $HOME/.bashrc

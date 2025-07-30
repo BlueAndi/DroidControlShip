@@ -11,6 +11,7 @@ The page discussed how to integrate DCS with Webots and ROS2.
 ### RadonUlzer
 
 1. Run the following command in the terminal:
+
 ```bash
 pio run -e RemoteControlSim -t webots_launcher_zumo_com_system
 ```
@@ -19,6 +20,7 @@ pio run -e RemoteControlSim -t webots_launcher_zumo_com_system
 
 1. Set micro-ROS agent ip address and port in ```data/config.json``` in microROSAgent section.
 2. Run the following command in the terminal:
+
 ```bash
 pio run -e TurtleSim -t webots_launcher
 ```
@@ -33,7 +35,6 @@ The `ros2_dcs_turtlesim` package is availabe from it's own GIT repository at
 Create a Webots ros2 workspace as described in [setup/Webots.md](../setup/Webots.md),
 then follow the instructions in `ros2_dcs_turtlesim` readme.md for building and launching.
 
-
 ## Notes
 
 If the robot display shows an MCAL error, the calibration for the RadonUlzer is missing. Perform it first or manipulate the settings:
@@ -41,4 +42,5 @@ If the robot display shows an MCAL error, the calibration for the RadonUlzer is 
 ```bash
 nano .pio/build/RemoteControlSim/settings.json
 ```
+
 Set the maxSpeed value to 4200.
