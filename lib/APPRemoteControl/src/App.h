@@ -76,6 +76,7 @@ public:
         m_statusTimer(),
         m_isFatalError(false)
     {
+        m_smpServer.setUserData(this);
     }
 
     /**
