@@ -69,7 +69,6 @@ public:
         m_smpServer(Board::getInstance().getRobot().getStream()),
         m_serialMuxProtChannelIdRemoteCtrl(0U),
         m_serialMuxProtChannelIdMotorSpeeds(0U),
-        m_serialMuxProtChannelInitialVehicleData(0U),
         m_serialMuxProtChannelIdStatus(0U),
         m_mqttClient(),
         m_initialDataSent(false),
@@ -114,9 +113,6 @@ private:
 
     /** SerialMuxProt Channel id for sending motor speeds. */
     uint8_t m_serialMuxProtChannelIdMotorSpeeds;
-
-    /** SerialMuxProt Channel id for sending initial position data. */
-    uint8_t m_serialMuxProtChannelInitialVehicleData;
 
     /** SerialMuxProt Channel id for sending system status. */
     uint8_t m_serialMuxProtChannelIdStatus;

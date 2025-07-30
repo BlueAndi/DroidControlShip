@@ -179,13 +179,10 @@ void App::loop()
         if (false == m_initialDataSent)
         {
             SettingsHandler& settings = SettingsHandler::getInstance();
-            VehicleData      initialVehicleData;
-            initialVehicleData.xPos        = settings.getInitialXPosition();
-            initialVehicleData.yPos        = settings.getInitialYPosition();
-            initialVehicleData.orientation = settings.getInitialHeading();
+            Command          cmd      = {SMPChannelPayload::CMD_ID_SET_INIT_POS, settings.getInitialXPosition(),
+                                         settings.getInitialYPosition(), settings.getInitialHeading()};
 
-            if (true == m_smpServer.sendData(m_serialMuxProtChannelInitialVehicleData, &initialVehicleData,
-                                             sizeof(initialVehicleData)))
+            if (true == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, &cmd, sizeof(cmd)))
             {
                 LOG_DEBUG("Initial vehicle data sent.");
                 m_initialDataSent = true;
