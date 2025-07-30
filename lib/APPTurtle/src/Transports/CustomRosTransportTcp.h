@@ -96,7 +96,7 @@ public:
      * Destroys custom Micro-ROS transport.
      *
      */
-    ~CustomRosTransportTcp()
+    ~CustomRosTransportTcp() final
     {
     }
 

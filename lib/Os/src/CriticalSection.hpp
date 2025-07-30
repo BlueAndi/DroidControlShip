@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2019 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Custom Micro-ROS transport using UDP over Arduino WiFiUdp.
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
- *
- * @addtogroup Application
+ * @brief  freeRTOS critical section wrapper
+ * @author Andreas Merkle <web@blue-andi.de>
+ * 
+ * @addtogroup OPERATING_SYSTEM
  *
  * @{
  */
-#ifndef CUSTOM_ROS_TRANSPORT_UDP_H
-#define CUSTOM_ROS_TRANSPORT_UDP_H
+
+#ifndef CRITICAL_SECTION_HPP
+#define CRITICAL_SECTION_HPP
 
 /******************************************************************************
  * Compile Switches
@@ -42,9 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "CustomRosTransportBase.h"
-
-#include <WiFiUdp.h>
+#include <stdint.h>
+#include <freertos/FreeRTOS.h>
 
 /******************************************************************************
  * Macros
@@ -54,85 +54,88 @@
  * Types and Classes
  *****************************************************************************/
 
-/** 
- * Map this transport to the class name used in MicroRosClient.
- * The used transport is a compile time decision and this typedef
- * avoids the use of ifdef's.
- */
-typedef class CustomRosTransportUdp CustomRosTransport;
-
 /**
- * Micro-ROS custom transport adaption.
- *
- * The static functions are used as these are called from C-language
+ * Wrapper for the freeRTOS critical section with spinlock to protect
+ * concurrent access by cores.
  */
-class CustomRosTransportUdp : public CustomRosTransportBase
+class CriticalSection
 {
 public:
+
     /**
-     * Constructs a custom Micro-ROS transport.
+     * Create critical section wrapper.
      */
-    CustomRosTransportUdp() : CustomRosTransportBase(), m_udpClient()
+    CriticalSection() :
+        m_spinlock(portMUX_INITIALIZER_UNLOCKED)
     {
     }
 
     /**
-     * Destroys custom Micro-ROS transport.
-     *
+     * Destroys critical section wrapper.
      */
-    ~CustomRosTransportUdp() final
+    ~CriticalSection()
     {
     }
 
-    /** 
-     * Get protocol name used by this transport.
-     * @return Protocol name
+    /**
+     * Enter the critical section.
      */
-    const String& getProtocolName() const final
+    void enter()
     {
-        return m_protocolName;
+        portENTER_CRITICAL(&m_spinlock);
+    }
+
+    /**
+     * Exit critical section.
+     */
+    void exit()
+    {
+        portEXIT_CRITICAL(&m_spinlock);
     }
 
 private:
-    /**
-     * Open and initialize the custom transport.
-     *
-     * @return A boolean indicating if the opening was successful.
-     */
-    bool open(void) final;
+
+    portMUX_TYPE    m_spinlock; /**< Spinlock */
+
+    CriticalSection(const CriticalSection& CriticalSection);
+    CriticalSection& operator=(const CriticalSection& CriticalSection);
+
+};
+
+/**
+ * The critical section guard enters the critical section at creation and exits during
+ * destruction.
+ */
+class CriticalSectionGuard
+{
+public:
 
     /**
-     * Close the custom transport.
-     *
-     * @return A boolean indicating if the closing was successful.
+     * Creates the critical section guard and enters it.
+     * 
+     * @param[in] critSec The guard uses this critical section for protection.
      */
-    bool close(void) final;
+    CriticalSectionGuard(CriticalSection& critSec) :
+        m_criticalSection(critSec)
+    {
+        m_criticalSection.enter();
+    }
 
     /**
-     * Write data to the custom transport.
-     *
-     * @param[in]  buffer The buffer to write.
-     * @param[in]  size The size of the buffer.
-     * @param[out] errorCode The error code.
-     *
-     * @return The number of bytes written.
+     * Destroys the critical section guard and exits the critical section.
      */
-    size_t write(const uint8_t* buffer, size_t size, uint8_t* errorCode) final;
+    ~CriticalSectionGuard()
+    {
+        m_criticalSection.exit();
+    }
 
-    /**
-     * Read data from the custom transport.
-     *
-     * @param[out] buffer The buffer to read into.
-     * @param[in]  size The size of the buffer.
-     * @param[in]  timeout The timeout in milliseconds.
-     * @param[out] errorCode The error code.
-     *
-     * @return The number of bytes read.
-     */
-    size_t read(uint8_t* buffer, size_t size, int timeout, uint8_t* errorCode) final;
+private:
 
-    WiFiUDP               m_udpClient; /**< UDP client */
-    static const String   m_protocolName;  /**< This protocol name. */
+    CriticalSection&    m_criticalSection;  /**< Critical section used for the guard. */
+
+    CriticalSectionGuard();
+    CriticalSectionGuard(const CriticalSectionGuard& guard);
+    CriticalSectionGuard&  operator=(const CriticalSectionGuard& guard);
 
 };
 
@@ -140,5 +143,6 @@ private:
  * Functions
  *****************************************************************************/
 
-#endif /* CUSTOM_ROS_TRANSPORT_UDP_H */
+#endif  /* CRITICAL_SECTION_HPP */
+
 /** @} */

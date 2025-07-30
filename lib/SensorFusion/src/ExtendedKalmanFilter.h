@@ -170,7 +170,7 @@ private:
      *
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
      */
-    void updateMeasurementVector(KalmanParameter& kalmanParameter);
+    void updateMeasurementVector(KalmanParameter& kalmanParameter) final;
 
     /**
      * Writes data from a KalmanParameter Struct into the Control Input Vector as a member variable m_controlInputVector
@@ -178,7 +178,7 @@ private:
      *
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter as a KalmanParameter struct.
      */
-    void updateControlInputVector(KalmanParameter& kalmanParameter);
+    void updateControlInputVector(KalmanParameter& kalmanParameter) final;
 
     /**
      * Wraps an angle Difference from [0, 2 pi) to [-pi, pi).

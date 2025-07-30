@@ -79,7 +79,7 @@ public:
     /**
      * Destroys the printer log sink.
      */
-    virtual ~LogSinkPrinter()
+    ~LogSinkPrinter() final
     {
     }
 
