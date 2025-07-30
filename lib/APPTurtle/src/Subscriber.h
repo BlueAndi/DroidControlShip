@@ -164,7 +164,7 @@ public:
     /**
      * Default destructor.
      */
-    virtual ~Subscriber() final
+    ~Subscriber() final
     {
     }
 
