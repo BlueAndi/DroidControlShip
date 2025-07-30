@@ -1,7 +1,7 @@
 {
-    "name": "RemoteControl",
+    "name": "APPRemoteControl",
     "version": "0.1.0",
-    "description": "RemoteControl application",
+    "description": "Remote control application",
     "authors": [{
         "name": "Gabryel Reyes",
         "email": "gabryelrdiaz@gmail.com",

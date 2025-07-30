@@ -1,7 +1,7 @@
 {
-    "name": "ConvoyFollower",
+    "name": "APPConvoyFollower",
     "version": "0.1.0",
-    "description": "ConvoyFollower application",
+    "description": "Convoy follower application",
     "authors": [{
         "name": "Andreas Merkle",
         "email": "web@blue-andi.de",

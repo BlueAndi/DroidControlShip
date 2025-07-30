@@ -1,7 +1,7 @@
 {
-    "name": "ConvoyLeader",
+    "name": "APPConvoyLeader",
     "version": "0.1.0",
-    "description": "ConvoyLeader application",
+    "description": "Convoy leader application",
     "authors": [{
         "name": "Gabryel Reyes",
         "email": "gabryelrdiaz@gmail.com",
