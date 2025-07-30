@@ -44,6 +44,7 @@
  * Includes
  *****************************************************************************/
 #include "IButton.h"
+#include "Keyboard.h"
 
 /******************************************************************************
  * Macros
@@ -60,7 +61,7 @@ public:
     /**
      * Constructs the button adapter.
      */
-    Button() : IButton()
+    Button(Keyboard& keyboard) : IButton(), m_keyboard(keyboard)
     {
     }
 
@@ -91,6 +92,7 @@ public:
     void waitForRelease() final;
 
 private:
+    Keyboard& m_keyboard; /**< Robot keyboard */
 };
 
 /******************************************************************************

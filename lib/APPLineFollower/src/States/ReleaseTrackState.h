@@ -25,67 +25,119 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Release track state
+ * @author Andreas Merkle <web@blue-andi.de>
+ *
+ * @addtogroup Application
+ *
+ * @{
  */
+
+#ifndef RELEASE_TRACK_STATE_H
+#define RELEASE_TRACK_STATE_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
-
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <stdint.h>
+#include <IState.h>
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and classes
+ * Types and Classes
  *****************************************************************************/
 
-/******************************************************************************
- * Prototypes
- *****************************************************************************/
-
-/******************************************************************************
- * Local Variables
- *****************************************************************************/
-
-/******************************************************************************
- * Public Methods
- *****************************************************************************/
-
-bool Button::isShortPressed()
+/** The system release track state. */
+class ReleaseTrackState : public IState
 {
-    return m_keyboard.buttonSPressed();
-}
+public:
+    /**
+     * Get state instance.
+     *
+     * @return State instance.
+     */
+    static ReleaseTrackState& getInstance()
+    {
+        static ReleaseTrackState instance;
 
-bool Button::isLongPressed()
-{
-    /* Not implemented. */
-    return false;
-}
+        /* Singleton idiom to force initialization during first usage. */
 
-void Button::waitForRelease()
-{
-    /* Nothing to do. */
-}
+        return instance;
+    }
+
+    /**
+     * If the state is entered, this method will called once.
+     */
+    void entry() final;
+
+    /**
+     * Processing the state.
+     *
+     * @param[in] sm State machine, which is calling this state.
+     */
+    void process(StateMachine& sm) final;
+
+    /**
+     * If the state is left, this method will be called once.
+     */
+    void exit() final;
+
+private:
+    /** Track release timer duration in ms. */
+    static const uint32_t TRACK_RELEASE_DURATION = 5000;
+
+    SimpleTimer m_releaseTimer;    /**< Track release timer */
+    bool        m_isButtonPressed; /**< Is the button pressed (last time)? */
+
+    /**
+     * Default constructor.
+     */
+    ReleaseTrackState() : m_releaseTimer(), m_isButtonPressed(false)
+    {
+    }
+
+    /**
+     * Default destructor.
+     */
+    ~ReleaseTrackState()
+    {
+    }
+
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] state Source instance.
+     */
+    ReleaseTrackState(const ReleaseTrackState& state);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] state Source instance.
+     *
+     * @returns Reference to ReleaseTrackState.
+     */
+    ReleaseTrackState& operator=(const ReleaseTrackState& state);
+
+    /**
+     * Show choosen parameter set on LCD.
+     */
+    void showParSet() const;
+};
 
 /******************************************************************************
- * Protected Methods
+ * Functions
  *****************************************************************************/
 
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
+#endif /* RELEASE_TRACK_STATE_H */
+/** @} */

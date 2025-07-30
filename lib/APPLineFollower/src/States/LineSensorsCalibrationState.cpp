@@ -25,14 +25,19 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Line sensors calibration state
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
+#include "LineSensorsCalibrationState.h"
+#include <Board.h>
+#include <StateMachine.h>
+#include <Util.h>
+#include "ReadyState.h"
+#include "ErrorState.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -58,20 +63,19 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
+void LineSensorsCalibrationState::entry()
 {
-    return m_keyboard.buttonSPressed();
+    m_timer.start(WAIT_TIME);
 }
 
-bool Button::isLongPressed()
+void LineSensorsCalibrationState::process(StateMachine& sm)
 {
-    /* Not implemented. */
-    return false;
+
 }
 
-void Button::waitForRelease()
+void LineSensorsCalibrationState::exit()
 {
-    /* Nothing to do. */
+    m_timer.stop();
 }
 
 /******************************************************************************

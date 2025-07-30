@@ -74,7 +74,7 @@
 /** DLC of Robot Speed Setpoint Channel */
 #define ROBOT_SPEED_SETPOINT_CHANNEL_DLC (sizeof(RobotSpeed))
 
-/** Name of Channel to send Current Vehicle Data to. */
+/** Name of Channel to receive Current Vehicle Data from. */
 #define CURRENT_VEHICLE_DATA_CHANNEL_NAME "CURR_DATA"
 
 /** DLC of Current Vehicle Data Channel */

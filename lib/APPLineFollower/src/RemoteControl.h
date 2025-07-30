@@ -25,67 +25,61 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
+ * @brief  RemoteControl common constants.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup App
+ *
+ * @{
  */
+#ifndef REMOTE_CONTROL_H
+#define REMOTE_CONTROL_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
 
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and classes
+ * Types and Classes
  *****************************************************************************/
 
-/******************************************************************************
- * Prototypes
- *****************************************************************************/
-
-/******************************************************************************
- * Local Variables
- *****************************************************************************/
-
-/******************************************************************************
- * Public Methods
- *****************************************************************************/
-
-bool Button::isShortPressed()
+/** RemoteControl application constants */
+namespace RemoteControl
 {
-    return m_keyboard.buttonSPressed();
-}
+    /** Remote control commands. */
+    typedef enum : uint8_t
+    {
+        CMD_ID_IDLE = 0,                /**< Nothing to do. */
+        CMD_ID_START_LINE_SENSOR_CALIB, /**< Start line sensor calibration. */
+        CMD_ID_START_MOTOR_SPEED_CALIB, /**< Start motor speed calibration. */
+        CMD_ID_REINIT_BOARD,            /**< Re-initialize the board. Required for webots simulation. */
+        CMD_ID_GET_MAX_SPEED,           /**< Get maximum speed. */
 
-bool Button::isLongPressed()
-{
-    /* Not implemented. */
-    return false;
-}
+    } CmdId;
 
-void Button::waitForRelease()
-{
-    /* Nothing to do. */
-}
+    /** Remote control command responses. */
+    typedef enum : uint8_t
+    {
+        RSP_ID_OK = 0,  /**< Command successful executed. */
+        RSP_ID_PENDING, /**< Command is pending. */
+        RSP_ID_ERROR    /**< Command failed. */
 
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
-
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
+    } RspId;
+} /* namespace RemoteControl */
 
 /******************************************************************************
- * Local Functions
+ * Functions
  *****************************************************************************/
+
+#endif /* REMOTE_CONTROL_H */
+/** @} */

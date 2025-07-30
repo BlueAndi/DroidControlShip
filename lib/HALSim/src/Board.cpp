@@ -94,6 +94,7 @@ bool Board::init()
 void Board::process()
 {
     m_network.process();
+    m_keyboard.getPressedButtons();
 }
 
 /******************************************************************************
@@ -110,8 +111,9 @@ Board::Board() :
     m_simTime(m_robot),
     m_serialDrv(m_robot.getEmitter(RobotDeviceNames::EMITTER_NAME_SERIAL),
                 m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)),
+    m_keyboard(m_simTime, m_robot.getKeyboard()),
     m_battery(),
-    m_button(),
+    m_button(m_keyboard),
     m_ledBlue(),
     m_ledGreen(),
     m_ledRed(),
@@ -136,6 +138,7 @@ void Board::enableSimulationDevices()
     m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)->enable(timeStep);
     m_robot.getGPS(RobotDeviceNames::GPS_NAME)->enable(timeStep);
     m_robot.getCompass(RobotDeviceNames::COMPASS_NAME)->enable(timeStep);
+    m_robot.getKeyboard()->enable(timeStep);
 }
 
 /******************************************************************************

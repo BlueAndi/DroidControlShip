@@ -25,14 +25,14 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Calibration state
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
+#include "ParameterSets.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -58,20 +58,28 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
+void ParameterSets::choose(uint8_t setId)
 {
-    return m_keyboard.buttonSPressed();
+    if (MAX_SETS > setId)
+    {
+        m_currentSetId = setId;
+    }
 }
 
-bool Button::isLongPressed()
+void ParameterSets::next()
 {
-    /* Not implemented. */
-    return false;
+    ++m_currentSetId;
+    m_currentSetId %= MAX_SETS;
 }
 
-void Button::waitForRelease()
+uint8_t ParameterSets::getCurrentSetId() const
 {
-    /* Nothing to do. */
+    return m_currentSetId;
+}
+
+const ParameterSets::ParameterSet& ParameterSets::getParameterSet() const
+{
+    return m_parSets[m_currentSetId];
 }
 
 /******************************************************************************
@@ -81,6 +89,57 @@ void Button::waitForRelease()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+ParameterSets::ParameterSets() : m_currentSetId(0), m_parSets()
+{
+    m_parSets[0] = {
+        "PD VF", /* Name - VF: very fast */
+        400,     /* Top speed in digits */
+        1,       /* Kp Numerator */
+        3,       /* Kp Denominator */
+        0,       /* Ki Numerator */
+        1,       /* Ki Denominator */
+        10,      /* Kd Numerator */
+        1        /* Kd Denominator */
+    };
+
+    m_parSets[1] = {
+        "PD F", /* Name - F: fast */
+        300,    /* Top speed in digits */
+        1,      /* Kp Numerator */
+        3,      /* Kp Denominator */
+        0,      /* Ki Numerator */
+        1,      /* Ki Denominator */
+        10,     /* Kd Numerator */
+        1       /* Kd Denominator */
+    };
+
+    m_parSets[2] = {
+        "PD S", /* Name - S: slow */
+        200,    /* Top speed in digits */
+        1,      /* Kp Numerator */
+        3,      /* Kp Denominator */
+        0,      /* Ki Numerator */
+        1,      /* Ki Denominator */
+        1,      /* Kd Numerator */
+        10      /* Kd Denominator */
+    };
+
+    m_parSets[3] = {
+        "PD VS", /* Name - VS: very slow */
+        100,     /* Top speed in digits */
+        1,       /* Kp Numerator */
+        4,       /* Kp Denominator */
+        0,       /* Ki Numerator */
+        1,       /* Ki Denominator */
+        0,       /* Kd Numerator */
+        1        /* Kd Denominator */
+    };
+}
+
+ParameterSets::~ParameterSets()
+{
+}
 
 /******************************************************************************
  * External Functions

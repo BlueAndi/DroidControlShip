@@ -25,67 +25,108 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Error state
+ * @author Andreas Merkle <web@blue-andi.de>
+ *
+ * @addtogroup Application
+ *
+ * @{
  */
+
+#ifndef ERROR_STATE_H
+#define ERROR_STATE_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
-
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <stddef.h>
+#include <IState.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and classes
+ * Types and Classes
  *****************************************************************************/
 
-/******************************************************************************
- * Prototypes
- *****************************************************************************/
-
-/******************************************************************************
- * Local Variables
- *****************************************************************************/
-
-/******************************************************************************
- * Public Methods
- *****************************************************************************/
-
-bool Button::isShortPressed()
+/** The system error state. */
+class ErrorState : public IState
 {
-    return m_keyboard.buttonSPressed();
-}
+public:
+    /**
+     * Get state instance.
+     *
+     * @return State instance.
+     */
+    static ErrorState& getInstance()
+    {
+        static ErrorState instance;
 
-bool Button::isLongPressed()
-{
-    /* Not implemented. */
-    return false;
-}
+        /* Singleton idiom to force initialization during first usage. */
 
-void Button::waitForRelease()
-{
-    /* Nothing to do. */
-}
+        return instance;
+    }
+
+    /**
+     * If the state is entered, this method will called once.
+     */
+    void entry() final;
+
+    /**
+     * Processing the state.
+     *
+     * @param[in] sm State machine, which is calling this state.
+     */
+    void process(StateMachine& sm) final;
+
+    /**
+     * If the state is left, this method will be called once.
+     */
+    void exit() final;
+
+private:
+
+    /**
+     * Default constructor.
+     */
+    ErrorState()
+    {
+    }
+
+    /**
+     * Default destructor.
+     */
+    ~ErrorState()
+    {
+    }
+
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] state Source instance.
+     */
+    ErrorState(const ErrorState& state);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] state Source instance.
+     *
+     * @returns Reference to ErrorState instance.
+     */
+    ErrorState& operator=(const ErrorState& state);
+};
 
 /******************************************************************************
- * Protected Methods
+ * Functions
  *****************************************************************************/
 
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
+#endif /* ERROR_STATE_H */
+/** @} */

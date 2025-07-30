@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
- * @author Juliane Kerpe <juliane.kerpe@web.de>
+ * @brief  Motors
+ * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup Application
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef MOTORS_H
+#define MOTORS_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
-#include "SerialMuxChannels.h"
-#include <MqttClient.h>
+#include <stdint.h>
+#include "SerMuxChannelProvider.h"
 
 /******************************************************************************
  * Macros
@@ -58,111 +54,96 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/**
+ * The motors class provides the interface to the motors.
+ * It is used to set the speed of the motors.
+ */
+class Motors
 {
 public:
     /**
-     * Construct the Sensor Fusion application.
+     * Construct motors.
+     *
+     * @param[in] serMuxChannelProvider Serial multiplexer channel provider.
      */
-    App() :
-        m_sensorFusion(),
-        m_smpServer(Board::getInstance().getRobot().getStream()),
-        m_mqttClient(),
-        m_isFatalError(false)
-    {
-        m_smpServer.setUserData(this);
-    }
+    Motors(SerMuxChannelProvider& serMuxChannelProvider);
 
     /**
-     * Destroy the Sensor Fusion application.
+     * Destroy motors.
      */
-    ~App()
+    ~Motors()
     {
     }
 
     /**
-     * Setup the application.
-     */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-    /**
-     * Publish Position calculated by Sensor Fusion via MQTT.
-     */
-    void publishSensorFusionPosition();
-
-    /**
-     * Process the Receiving of New Sensor Data via SerialMuxProt
+     * Sets the speeds for both motors.
      *
-     * @param[in] newData New Sensor Data.
+     * @param[in] leftSpeed A number from -400 to 400 representing the speed and
+     * direction of the right motor. Values of -400 or less result in full speed
+     * reverse, and values of 400 or more result in full speed forward.
+     * @param[in] rightSpeed A number from -400 to 400 representing the speed and
+     * direction of the right motor. Values of -400 or less result in full speed
+     * reverse, and values of 400 or more result in full speed forward.
      */
-    void processNewSensorData(const SensorData& newData);
+    void setSpeeds(int16_t leftSpeed, int16_t rightSpeed);
+
+    /**
+     * Get maximum speed of the motors in digits.
+     *
+     * @return Max. speed in digits
+     */
+    int16_t getMaxSpeed() const
+    {
+        return m_maxMotorSpeed;
+    }
+
+    /**
+     * Set maximum speed of the motors in digits.
+     *
+     * @param[in] maxSpeed Max. speed in digits
+     */
+    void setMaxSpeed(int16_t maxSpeed)
+    {
+        m_maxMotorSpeed = maxSpeed;
+    }
 
 private:
-    /** Minimum battery level in percent. */
-    static const uint8_t MIN_BATTERY_LEVEL = 10U;
-
-    SensorFusion m_sensorFusion; /**< Instance of the SensorFusion algorithm. */
-
-    /** MQTT topic name for birth messages. */
-    static const char* TOPIC_NAME_BIRTH;
-
-    /** MQTT topic name for will messages. */
-    static const char* TOPIC_NAME_WILL;
-
-    /** MQTT topic name for sending Position Data. */
-    static const char* TOPIC_NAME_POSITION;
 
     /**
-     * MQTTClient Instance
+     * Serial multiplexer protocol channel provider.
      */
-    MqttClient m_mqttClient;
+    SerMuxChannelProvider& m_serMuxChannelProvider;
 
     /**
-     * SerialMuxProt Server Instance
+     * Max. motor speed in digits.
+     */
+    int16_t m_maxMotorSpeed;
+
+    /**
+     * No default constructor.
+     */
+    Motors() = delete;
+
+    /**
+     * No copy constructor.
      *
-     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
+     * @param[in] other Instance to copy from.
      */
-    SMPServer m_smpServer;
+    Motors(const Motors&) = delete;
 
     /**
-     * Is fatal error happened?
-     */
-    bool m_isFatalError;
-
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
-    /**
-     * Copy construction of an instance.
-     * Not allowed.
+     * No assignment operator.
      *
-     * @param[in] app Source instance.
-     */
-    App(const App& app);
-
-    /**
-     * Assignment of an instance.
-     * Not allowed.
+     * @param[in] other Instance to copy from.
      *
-     * @param[in] app Source instance.
-     *
-     * @returns Reference to App instance.
+     * @return Reference to this instance.
      */
-    App& operator=(const App& app);
+    Motors& operator=(const Motors&) = delete;
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* MOTORS_H */
 /** @} */

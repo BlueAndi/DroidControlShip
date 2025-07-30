@@ -25,14 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Line sensors
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
+#include "LineSensors.h"
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -58,20 +59,68 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
+LineSensors::LineSensors(SerMuxChannelProvider& serMuxChannelProvider) :
+    m_serMuxChannelProvider(serMuxChannelProvider),
+    m_lineSensorData{0, 0, 0, 0, 0},
+    m_lastPosValue(0)
 {
-    return m_keyboard.buttonSPressed();
+    /* Register the line sensor channel callback. */
+    m_serMuxChannelProvider.registerLineSensorCallback([this](const LineSensorData& data) -> void
+                                                       { this->serMuxLineSensorChannelCallback(data); });
 }
 
-bool Button::isLongPressed()
+int16_t LineSensors::readLine()
 {
-    /* Not implemented. */
-    return false;
+    uint32_t       estimatedPos = 0U;
+    uint32_t       numerator    = 0U;
+    uint32_t       denominator  = 0U;
+    const uint32_t WEIGHT       = 1000U;
+    bool           isOnLine     = false;
+
+    for (uint32_t idx = 0U; idx < MAX_SENSORS; ++idx)
+    {
+        uint32_t sensorValue = m_lineSensorData[idx];
+
+        numerator += idx * WEIGHT * sensorValue;
+        denominator += sensorValue;
+
+        /* Keep track of whether we see the line at all. */
+        if (SENSOR_OFF_LINE_THRESHOLD < sensorValue)
+        {
+            isOnLine = true;
+        }
+    }
+
+    if (false == isOnLine)
+    {
+        /* If it last read to the left of center, return 0. */
+        if (m_lastPosValue < (((MAX_SENSORS - 1U) * SENSOR_MAX_VALUE) / 2U))
+        {
+            estimatedPos = 0U;
+        }
+        /* If it last read to the right of center, return the max. value. */
+        else
+        {
+            estimatedPos = (MAX_SENSORS - 1U) * SENSOR_MAX_VALUE;
+        }
+    }
+    else
+    {
+        /* Check to avoid division by zero. */
+        if (0 != denominator)
+        {
+            estimatedPos = numerator / denominator;
+        }
+
+        m_lastPosValue = estimatedPos;
+    }
+
+    return static_cast<int16_t>(estimatedPos);
 }
 
-void Button::waitForRelease()
+const uint16_t* LineSensors::getSensorValues() const
 {
-    /* Nothing to do. */
+    return m_lineSensorData;
 }
 
 /******************************************************************************
@@ -81,6 +130,17 @@ void Button::waitForRelease()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+void LineSensors::serMuxLineSensorChannelCallback(const LineSensorData& data)
+{
+    size_t idx;
+
+    /* Copy the line sensor data. */
+    for (idx = 0U; idx < MAX_SENSORS; ++idx)
+    {
+        m_lineSensorData[idx] = data.lineSensorData[idx];
+    }
+}
 
 /******************************************************************************
  * External Functions

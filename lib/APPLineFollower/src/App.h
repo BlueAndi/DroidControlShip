@@ -25,67 +25,121 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
+ * @brief  RemoteControl application
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup Application
+ *
+ * @{
  */
+
+#ifndef APP_H
+#define APP_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
-
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <Arduino.h>
+#include <Board.h>
+#include <SerialMuxProtServer.hpp>
+#include <SimpleTimer.hpp>
+#include <StateMachine.h>
+#include "SerMuxChannelProvider.h"
+#include "LineSensors.h"
+#include "Motors.h"
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and classes
+ * Types and Classes
  *****************************************************************************/
 
-/******************************************************************************
- * Prototypes
- *****************************************************************************/
-
-/******************************************************************************
- * Local Variables
- *****************************************************************************/
-
-/******************************************************************************
- * Public Methods
- *****************************************************************************/
-
-bool Button::isShortPressed()
+/** The Remote Control application. */
+class App
 {
-    return m_keyboard.buttonSPressed();
-}
+public:
+    /**
+     * Construct the Remote Control application.
+     */
+    App();
 
-bool Button::isLongPressed()
-{
-    /* Not implemented. */
-    return false;
-}
+    /**
+     * Destroy the Remote Control application.
+     */
+    ~App()
+    {
+    }
 
-void Button::waitForRelease()
-{
-    /* Nothing to do. */
-}
+    /**
+     * Setup the application.
+     */
+    void setup();
+
+    /**
+     * Process the application periodically.
+     */
+    void loop();
+
+private:
+
+    /**
+     * Flag for setting initial data through SMP.
+     */
+    bool m_initialDataSent;
+
+    /**
+     * Timer for sending system status to RU.
+     */
+    SimpleTimer m_statusTimer;
+
+    /**
+     * SerialMux Channel Provider handler.
+     */
+    SerMuxChannelProvider m_serMuxChannelProvider;
+
+    /**
+     * Line sensors handler.
+     */
+    LineSensors m_lineSensors;
+
+    /**
+     * Motors handler.
+     */
+    Motors m_motors;
+
+    /**
+     * State machine for the application.
+     */
+    StateMachine m_stateMachine;
+
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] app Source instance.
+     */
+    App(const App& app);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] app Source instance.
+     *
+     * @returns Reference to App instance.
+     */
+    App& operator=(const App& app);
+};
 
 /******************************************************************************
- * Protected Methods
+ * Functions
  *****************************************************************************/
 
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
+#endif /* APP_H */
+/** @} */

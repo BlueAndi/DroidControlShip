@@ -25,14 +25,19 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Error state
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
+#include "ErrorState.h"
+#include <Board.h>
+#include <StateMachine.h>
+#include "StartupState.h"
+#include <Logging.h>
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -58,18 +63,21 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
+void ErrorState::entry()
 {
-    return m_keyboard.buttonSPressed();
+    LOG_INFO("Error state entered.");
+    
+    /* Turn on Red LED to signal fatal error. */
+    Board::getInstance().getRedLed().enable(true);
 }
 
-bool Button::isLongPressed()
+void ErrorState::process(StateMachine& sm)
 {
-    /* Not implemented. */
-    return false;
+    /* Nothing to do.*/
+    UTIL_NOT_USED(sm);
 }
 
-void Button::waitForRelease()
+void ErrorState::exit()
 {
     /* Nothing to do. */
 }

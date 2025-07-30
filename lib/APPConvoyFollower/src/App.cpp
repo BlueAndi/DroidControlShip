@@ -172,7 +172,7 @@ void App::setup()
             m_statusTimer.start(SEND_STATUS_TIMER_INTERVAL);
 
             /* Start with startup state. */
-            m_systemStateMachine.setState(&StartupState::getInstance());
+            m_systemStateMachine.setState(StartupState::getInstance());
 
             isSuccessful = true;
         }
@@ -225,7 +225,7 @@ void App::setErrorState()
 {
     if (&ErrorState::getInstance() != m_systemStateMachine.getState())
     {
-        m_systemStateMachine.setState(&ErrorState::getInstance());
+        m_systemStateMachine.setState(ErrorState::getInstance());
         m_v2vCommManager.triggerEmergencyStop();
     }
 }

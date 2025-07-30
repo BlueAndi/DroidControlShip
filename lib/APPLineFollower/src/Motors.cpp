@@ -25,14 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Motors
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
+#include "Motors.h"
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -58,20 +59,20 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
+Motors::Motors(SerMuxChannelProvider& serMuxChannelProvider) :
+    m_serMuxChannelProvider(serMuxChannelProvider),
+    m_maxMotorSpeed(0)
 {
-    return m_keyboard.buttonSPressed();
 }
 
-bool Button::isLongPressed()
+void Motors::setSpeeds(int16_t leftSpeed, int16_t rightSpeed)
 {
-    /* Not implemented. */
-    return false;
-}
+    MotorSpeed motorSpeed;
 
-void Button::waitForRelease()
-{
-    /* Nothing to do. */
+    motorSpeed.left  = leftSpeed;
+    motorSpeed.right = rightSpeed;
+
+    (void)m_serMuxChannelProvider.sendMotorSpeed(motorSpeed);
 }
 
 /******************************************************************************

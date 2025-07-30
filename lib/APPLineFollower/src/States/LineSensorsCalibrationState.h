@@ -25,67 +25,116 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Line sensors calibration state
+ * @author Andreas Merkle <web@blue-andi.de>
+ *
+ * @addtogroup Application
+ *
+ * @{
  */
+
+#ifndef LINE_SENSORS_CALIBRATION_STATE_H
+#define LINE_SENSORS_CALIBRATION_STATE_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
-
-/******************************************************************************
- * Compiler Switches
- *****************************************************************************/
+#include <IState.h>
+#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
 /******************************************************************************
- * Types and classes
+ * Types and Classes
  *****************************************************************************/
 
-/******************************************************************************
- * Prototypes
- *****************************************************************************/
-
-/******************************************************************************
- * Local Variables
- *****************************************************************************/
-
-/******************************************************************************
- * Public Methods
- *****************************************************************************/
-
-bool Button::isShortPressed()
+/** The line sensors calibration state. */
+class LineSensorsCalibrationState : public IState
 {
-    return m_keyboard.buttonSPressed();
-}
+public:
+    /**
+     * Get state instance.
+     *
+     * @return State instance.
+     */
+    static LineSensorsCalibrationState& getInstance()
+    {
+        static LineSensorsCalibrationState instance;
 
-bool Button::isLongPressed()
-{
-    /* Not implemented. */
-    return false;
-}
+        /* Singleton idiom to force initialization during first usage. */
 
-void Button::waitForRelease()
-{
-    /* Nothing to do. */
-}
+        return instance;
+    }
+
+    /**
+     * If the state is entered, this method will called once.
+     */
+    void entry() final;
+
+    /**
+     * Processing the state.
+     *
+     * @param[in] sm State machine, which is calling this state.
+     */
+    void process(StateMachine& sm) final;
+
+    /**
+     * If the state is left, this method will be called once.
+     */
+    void exit() final;
+
+private:
+    /**
+     * Duration in ms about to wait, until the calibration drive starts.
+     */
+    static const uint32_t WAIT_TIME = 1000;
+
+    SimpleTimer m_timer; /**< Timer used to wait, until the calibration drive starts. */
+
+    /**
+     * Default constructor.
+     */
+    LineSensorsCalibrationState() : m_timer()
+    {
+        /* Nothing to do. */
+    }
+
+    /**
+     * Default destructor.
+     */
+    ~LineSensorsCalibrationState()
+    {
+    }
+
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] state Source instance.
+     */
+    LineSensorsCalibrationState(const LineSensorsCalibrationState& state);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] state Source instance.
+     *
+     * @returns Reference to LineSensorsCalibrationState.
+     */
+    LineSensorsCalibrationState& operator=(const LineSensorsCalibrationState& state);
+
+};
 
 /******************************************************************************
- * Protected Methods
+ * Functions
  *****************************************************************************/
 
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
+#endif /* LINE_SENSORS_CALIBRATION_STATE_H */
+/** @} */

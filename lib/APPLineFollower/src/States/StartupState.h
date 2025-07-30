@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
- * @author Juliane Kerpe <juliane.kerpe@web.de>
+ * @brief  Startup state
+ * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup Application
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef STARTUP_STATE_H
+#define STARTUP_STATE_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +43,12 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
-#include "SerialMuxChannels.h"
-#include <MqttClient.h>
+#include <stdint.h>
+#include <StateMachine.h>
+#include <IState.h>
+#include <SimpleTimer.hpp>
+#include "SerMuxChannelProvider.h"
+#include "Motors.h"
 
 /******************************************************************************
  * Macros
@@ -58,111 +58,118 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/** The system startup state. */
+class StartupState : public IState
 {
 public:
     /**
-     * Construct the Sensor Fusion application.
+     * Get state instance.
+     *
+     * @return State instance.
      */
-    App() :
-        m_sensorFusion(),
-        m_smpServer(Board::getInstance().getRobot().getStream()),
-        m_mqttClient(),
-        m_isFatalError(false)
+    static StartupState& getInstance()
     {
-        m_smpServer.setUserData(this);
+        static StartupState instance;
+
+        /* Singleton idiom to force initialization during first usage. */
+
+        return instance;
     }
 
     /**
-     * Destroy the Sensor Fusion application.
+     * If the state is entered, this method will called once.
      */
-    ~App()
+    void entry() final;
+
+    /**
+     * Processing the state.
+     *
+     * @param[in] sm State machine, which is calling this state.
+     */
+    void process(StateMachine& sm) final;
+
+    /**
+     * If the state is left, this method will be called once.
+     */
+    void exit() final;
+
+    /**
+     * Inject dependencies.
+     *
+     * @param[in] serMuxChannelProvider Serial multiplexer channel provider.
+     * @param[in] motors                Motors instance.
+     */
+    void injectDependencies(SerMuxChannelProvider& serMuxChannelProvider, Motors& motors)
     {
+        m_serMuxChannelProvider = &serMuxChannelProvider;
+        m_motors                = &motors;
+    }
+
+private:
+    /**
+     * Sub state machine for the startup state.
+     */
+    typedef enum
+    {
+        SUB_STATE_WAIT_FOR_SYNC,            /**< Wait for synchronization with RU. */
+        SUB_STATE_WAIT_FOR_MAX_MOTOR_SPEED, /**< Wait for max. motor speed request response */
+        SUB_STATE_FINISHED,                 /**< Startup finished */
+        SUB_STATE_ERROR                     /**< Error occurred */
+
+    } SubState;
+
+    /**
+     * Serial multiplexer channel provider.
+     */
+    SerMuxChannelProvider* m_serMuxChannelProvider;
+
+    /**
+     * Motors.
+     */
+    Motors* m_motors;
+
+    /**
+     * Sub state of the startup state.
+     */
+    SubState m_subState;
+
+    /**
+     * Default constructor.
+     */
+    StartupState() : m_serMuxChannelProvider(nullptr), m_motors(nullptr), m_subState(SUB_STATE_WAIT_FOR_SYNC)
+    {
+        /* Nothing to do. */
     }
 
     /**
-     * Setup the application.
+     * Default destructor.
      */
-    void setup();
+    ~StartupState()
+    {
+    }
 
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-    /**
-     * Publish Position calculated by Sensor Fusion via MQTT.
-     */
-    void publishSensorFusionPosition();
-
-    /**
-     * Process the Receiving of New Sensor Data via SerialMuxProt
-     *
-     * @param[in] newData New Sensor Data.
-     */
-    void processNewSensorData(const SensorData& newData);
-
-private:
-    /** Minimum battery level in percent. */
-    static const uint8_t MIN_BATTERY_LEVEL = 10U;
-
-    SensorFusion m_sensorFusion; /**< Instance of the SensorFusion algorithm. */
-
-    /** MQTT topic name for birth messages. */
-    static const char* TOPIC_NAME_BIRTH;
-
-    /** MQTT topic name for will messages. */
-    static const char* TOPIC_NAME_WILL;
-
-    /** MQTT topic name for sending Position Data. */
-    static const char* TOPIC_NAME_POSITION;
-
-    /**
-     * MQTTClient Instance
-     */
-    MqttClient m_mqttClient;
-
-    /**
-     * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
-     */
-    SMPServer m_smpServer;
-
-    /**
-     * Is fatal error happened?
-     */
-    bool m_isFatalError;
-
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
     /**
      * Copy construction of an instance.
      * Not allowed.
      *
-     * @param[in] app Source instance.
+     * @param[in] state Source instance.
      */
-    App(const App& app);
+    StartupState(const StartupState& state);
 
     /**
      * Assignment of an instance.
      * Not allowed.
      *
-     * @param[in] app Source instance.
+     * @param[in] state Source instance.
      *
-     * @returns Reference to App instance.
+     * @returns Reference to StartupState instance.
      */
-    App& operator=(const App& app);
+    StartupState& operator=(const StartupState& state);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* STARTUP_STATE_H */
 /** @} */

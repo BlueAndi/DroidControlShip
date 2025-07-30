@@ -25,14 +25,21 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Release track state
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
+#include "ReleaseTrackState.h"
+#include <Board.h>
+#include <StateMachine.h>
+#include <Util.h>
+#include <Logging.h>
+
+#include "DrivingState.h"
+#include "ParameterSets.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -58,20 +65,43 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
+void ReleaseTrackState::entry()
 {
-    return m_keyboard.buttonSPressed();
+    LOG_INFO("Release track state entered.");
+
+    /* Start challenge after specific time. */
+    m_releaseTimer.start(TRACK_RELEASE_DURATION);
+
+    /* Choose parameter set 0 by default. */
+    ParameterSets::getInstance().choose(0);
+    showParSet();
 }
 
-bool Button::isLongPressed()
+void ReleaseTrackState::process(StateMachine& sm)
 {
-    /* Not implemented. */
-    return false;
+    IButton& button = Board::getInstance().getButton();
+
+
+    /* Change parameter set? */
+    if (true == Util::isButtonTriggered(button, m_isButtonPressed))
+    {
+        /* Choose next parameter set (round-robin). */
+        ParameterSets::getInstance().next();
+        showParSet();
+
+        m_releaseTimer.restart();
+    }
+
+    /* Release track after specific time. */
+    if (true == m_releaseTimer.isTimeout())
+    {
+        sm.setState(DrivingState::getInstance());
+    }
 }
 
-void Button::waitForRelease()
+void ReleaseTrackState::exit()
 {
-    /* Nothing to do. */
+    m_releaseTimer.stop();
 }
 
 /******************************************************************************
@@ -81,6 +111,14 @@ void Button::waitForRelease()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+void ReleaseTrackState::showParSet() const
+{
+    uint8_t     parSetId   = ParameterSets::getInstance().getCurrentSetId();
+    const char* parSetName = ParameterSets::getInstance().getParameterSet().name;
+
+    LOG_INFO("Parameter set %d: %s", parSetId, parSetName);
+}
 
 /******************************************************************************
  * External Functions

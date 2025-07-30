@@ -25,14 +25,20 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Ready state
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
+#include "ReadyState.h"
+#include <Board.h>
+#include <StateMachine.h>
+#include "ReleaseTrackState.h"
+#include "ErrorState.h"
+#include <Logging.h>
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -58,20 +64,65 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
+void ReadyState::entry()
 {
-    return m_keyboard.buttonSPressed();
+    const int32_t SENSOR_VALUE_OUT_PERIOD = 1000; /* ms */
+
+    LOG_INFO("Ready state entered.");
+
+    /* The line sensor value shall be output on console cyclic. */
+    m_timer.start(SENSOR_VALUE_OUT_PERIOD);
 }
 
-bool Button::isLongPressed()
+void ReadyState::process(StateMachine& sm)
 {
-    /* Not implemented. */
-    return false;
+    IButton& button = Board::getInstance().getButton();
+
+    if (nullptr == m_lineSensors)
+    {
+        sm.setState(ErrorState::getInstance());
+    }
+    /* Shall track be released? */
+    else if (true == Util::isButtonTriggered(button, m_isButtonPressed))
+    {
+        sm.setState(ReleaseTrackState::getInstance());
+    }
+    /* Shall the line sensor values be printed out on console? */
+    else if (true == m_timer.isTimeout())
+    {
+        uint8_t         index        = 0;
+        int16_t         position     = m_lineSensors->readLine();
+        const uint16_t* sensorValues = m_lineSensors->getSensorValues();
+        char            valueStr[10];
+
+        /* Print line sensor value on console for debug purposes. */
+        LOG_DEBUG("%u, %u, %u, %u, %u, pos=%d",
+                  sensorValues[0],
+                  sensorValues[1],
+                  sensorValues[2],
+                  sensorValues[3],
+                  sensorValues[4],
+                  position);
+
+        m_timer.restart();
+    }
+    else
+    {
+        /* Nothing to do. */
+        ;
+    }
 }
 
-void Button::waitForRelease()
+void ReadyState::exit()
 {
-    /* Nothing to do. */
+    m_timer.stop();
+    m_isLapTimeAvailable = false;
+}
+
+void ReadyState::setLapTime(uint32_t lapTime)
+{
+    m_isLapTimeAvailable = true;
+    m_lapTime            = lapTime;
 }
 
 /******************************************************************************

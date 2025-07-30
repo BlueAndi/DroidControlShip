@@ -122,7 +122,7 @@ private:
      *
      * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
-    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
+    SMPServer m_smpServer;
 
     /**
      * MQTTClient Instance

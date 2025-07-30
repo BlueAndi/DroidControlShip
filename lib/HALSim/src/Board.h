@@ -204,6 +204,9 @@ private:
     /** Serial driver to communicate with the host robot, DCS is connected to. */
     WebotsSerialDrv m_serialDrv;
 
+    /** Own keyboard that wraps the webots keyboard. */
+    Keyboard m_keyboard;
+
     /** Battery driver */
     Battery m_battery;
 

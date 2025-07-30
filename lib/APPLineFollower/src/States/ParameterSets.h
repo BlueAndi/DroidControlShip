@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
- * @author Juliane Kerpe <juliane.kerpe@web.de>
+ * @brief  Parameter state
+ * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup Application
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef PARAMETER_SETS_H
+#define PARAMETER_SETS_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +43,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
-#include "SerialMuxChannels.h"
-#include <MqttClient.h>
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -58,111 +53,107 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/** Parameter set with different driving configurations. */
+class ParameterSets
 {
 public:
     /**
-     * Construct the Sensor Fusion application.
+     * A single parameter set.
      */
-    App() :
-        m_sensorFusion(),
-        m_smpServer(Board::getInstance().getRobot().getStream()),
-        m_mqttClient(),
-        m_isFatalError(false)
+    struct ParameterSet
     {
-        m_smpServer.setUserData(this);
+        const char* name;          /**< Name of the parameter set */
+        int16_t     topSpeed;      /**< Top speed in steps/s */
+        int16_t     kPNumerator;   /**< Kp numerator value */
+        int16_t     kPDenominator; /**< Kp denominator value */
+        int16_t     kINumerator;   /**< Ki numerator value */
+        int16_t     kIDenominator; /**< Ki denominator value */
+        int16_t     kDNumerator;   /**< Kd numerator value */
+        int16_t     kDDenominator; /**< Kd denominator value */
+    };
+
+    /**
+     * Get parameter set instance.
+     *
+     * @return Parameter set instance.
+     */
+    static ParameterSets& getInstance()
+    {
+        static ParameterSets instance;
+
+        /* Singleton idiom to force initialization during first usage. */
+
+        return instance;
     }
 
     /**
-     * Destroy the Sensor Fusion application.
-     */
-    ~App()
-    {
-    }
-
-    /**
-     * Setup the application.
-     */
-    void setup();
-
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-    /**
-     * Publish Position calculated by Sensor Fusion via MQTT.
-     */
-    void publishSensorFusionPosition();
-
-    /**
-     * Process the Receiving of New Sensor Data via SerialMuxProt
+     * Choose a specific parameter set.
+     * If a invalid set id is given, nothing changes.
      *
-     * @param[in] newData New Sensor Data.
+     * @param[in] setId Parameter set id
      */
-    void processNewSensorData(const SensorData& newData);
-
-private:
-    /** Minimum battery level in percent. */
-    static const uint8_t MIN_BATTERY_LEVEL = 10U;
-
-    SensorFusion m_sensorFusion; /**< Instance of the SensorFusion algorithm. */
-
-    /** MQTT topic name for birth messages. */
-    static const char* TOPIC_NAME_BIRTH;
-
-    /** MQTT topic name for will messages. */
-    static const char* TOPIC_NAME_WILL;
-
-    /** MQTT topic name for sending Position Data. */
-    static const char* TOPIC_NAME_POSITION;
+    void choose(uint8_t setId);
 
     /**
-     * MQTTClient Instance
+     * Change to next parameter set.
+     * After the last set, the first will be choosen.
      */
-    MqttClient m_mqttClient;
+    void next();
 
     /**
-     * SerialMuxProt Server Instance
+     * Get current set id.
      *
-     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
+     * @return Parameter set id.
      */
-    SMPServer m_smpServer;
+    uint8_t getCurrentSetId() const;
 
     /**
-     * Is fatal error happened?
+     * Get selected parameter set.
+     *
+     * @return Parameter set
      */
-    bool m_isFatalError;
+    const ParameterSet& getParameterSet() const;
 
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
+    /** Max. number of parameter sets. */
+    static const uint8_t MAX_SETS = 4U;
 
+protected:
 private:
+    uint8_t      m_currentSetId;      /**< Set id of current selected set. */
+    ParameterSet m_parSets[MAX_SETS]; /**< All parameter sets */
+
+    /**
+     * Default constructor.
+     */
+    ParameterSets();
+
+    /**
+     * Default destructor.
+     */
+    ~ParameterSets();
+
     /**
      * Copy construction of an instance.
      * Not allowed.
      *
-     * @param[in] app Source instance.
+     * @param[in] set Source instance.
      */
-    App(const App& app);
+    ParameterSets(const ParameterSets& set);
 
     /**
      * Assignment of an instance.
      * Not allowed.
      *
-     * @param[in] app Source instance.
+     * @param[in] set Source instance.
      *
-     * @returns Reference to App instance.
+     * @returns Reference to ParameterSets.
      */
-    App& operator=(const App& app);
+    ParameterSets& operator=(const ParameterSets& set);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* PARAMETER_SET_H */
 /** @} */
