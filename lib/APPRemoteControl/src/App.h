@@ -152,6 +152,24 @@ private:
     void fatalErrorHandler();
 
     /**
+     * Setup the SerialMuxProt Server.
+     *
+     * @returns true if successful, otherwise false.
+     */
+    bool setupSerialMuxProtServer();
+
+    /**
+     * Setup the MQTT connection.
+     * 
+     * @param[in] clientId      The MQTT client id.
+     * @param[in] brokderAddr   The address of the MQTT broker.
+     * @param[in] brokderPort   The port of the MQTT broker.
+     * 
+     * @return true if successful, otherwise false.
+     */
+    bool setupMqtt(const String& clientId, const String& brokerAddr, uint16_t brokerPort);
+
+    /**
      * Callback for Command MQTT Topic.
      * @param[in] payload   Payload of the MQTT message.
      */
@@ -163,7 +181,6 @@ private:
      */
     void motorSpeedsTopicCallback(const String& payload);
 
-private:
     /**
      * Copy construction of an instance.
      * Not allowed.
