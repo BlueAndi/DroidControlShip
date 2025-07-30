@@ -1,22 +1,26 @@
-# ROS 2 and micro-ROS
+# ROS 2 and micro-ROS <!-- omit in toc -->
 
 ROS 2 is a powerful framework for developing robot applications, while micro-ROS extends ROS 2 capabilities to microcontrollers, enabling robotics applications on a wider range of hardware.
 
-## Table of Contents
+## Table of Contents <!-- omit in toc -->
 
 - [What is ROS 2?](#what-is-ros-2)
-- [What is micro-ROS?](#what-is-micro-ros)
 - [What has improved since ROS 1](#what-has-improved-since-ros-1)
 - [What is micro-ROS?](#what-is-micro-ros)
-- [micro-ROS Project Components](#what-is-micro-ros)
-- [Webots Integration](#webots-integration)
+- [External micro-ROS build system](#external-micro-ros-build-system)
+- [ROS 2 in DCS](#ros-2-in-dcs)
+  - [Component Deployment](#component-deployment)
 - [Installation Steps](#installation-steps)
+- [Execution Steps](#execution-steps)
+  - [Webots Simulation](#webots-simulation)
+  - [Target](#target)
 
 ## What is ROS 2?
 
 ROS 2 is the second major version of the Robot Operating System (ROS), an open-source framework to build complex robot applications.
 
 Key features of ROS 2 include:
+
 - Distributed Computing: Nodes can be distributed across multiple machines.
 - Real-Time Capabilities: Improved support for real-time systems.
 - Cross-Platform: Runs on various operating systems, including Linux, Windows, and macOS.
@@ -27,6 +31,7 @@ Key features of ROS 2 include:
 Major advancements from ROS (1) include improved real-time capability, more generic Data Distribution Service (DDS) than previously used TCPROS/UDPROS protocols.
 
 List of key differences and new features:
+
 - Middleware: ROS 2 uses DDS for better performance and QoS.
 - Real-Time Support: ROS 2 offers enhanced real-time capabilities.
 - Cross-Platform: ROS 2 supports multiple operating systems and RTOS.
@@ -42,6 +47,7 @@ List of key differences and new features:
 micro-ROS brings ROS 2 to microcontrollers, allowing developers to run ROS 2 applications on resource-constrained devices. This extension enables the integration of microcontrollers into ROS 2 networks, making it possible to create more complex and distributed robotic systems.
 
 Key features of micro-ROS include:
+
 - [Small Footprint](https://micro.ros.org/docs/concepts/benchmarking/memo_prof/): Optimized for microcontrollers with limited resources.
 - [Real-Time Capabilities](https://micro.ros.org/docs/concepts/rtos/): Supports real-time operation on microcontrollers.
 - [ROS 2 Compatibility](https://micro.ros.org/docs/overview/ROS_2_feature_comparison/): Fully compatible with ROS 2, allowing seamless integration with larger ROS 2 systems. See 

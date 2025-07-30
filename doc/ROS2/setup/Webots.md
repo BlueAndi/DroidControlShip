@@ -1,6 +1,7 @@
 # Installation of Webots
 
 ## Webots Setup Procedure
+
 Follow the official installation guide for Webots on Linux with APT on the 
 [Webots installation Page](https://cyberbotics.com/doc/guide/installation-procedure#installing-the-debian-package-with-the-advanced-packaging-tool-apt).
 
@@ -8,6 +9,7 @@ Follow the official installation guide for Webots on Linux with APT on the
 Some of the steps result in larger package downloads.
 
 Set environment variables for Webots home directory, the Webots controller library directory and add the Webots controller library to linker search path.
+
 ```bash
     echo "export WEBOTS_HOME=/usr/local/webots" >> $HOME/.bashrc
     echo "export WEBOTS_CONTROLLER_LIB_PATH=\$WEBOTS_HOME/lib" >> $HOME/.bashrc
@@ -17,19 +19,22 @@ Set environment variables for Webots home directory, the Webots controller libra
 
 ## Launching Webots
 
-Try 
+Try
+
 ```bash
     webots
 ```
 
 If you get an error like "cannot open Display", try the following:
-* close Ubuntu console
-* In a Command window run
+
+- close Ubuntu console
+- In a Command window run
 
 ```bat
     wsl --update
 ```
-* try running Webots again
+
+- try running Webots again
 
 ## Webots ROS2 Package
 
@@ -81,8 +86,7 @@ to learn how to create a ROS2 controller package for the Webots simulation.
 
 ## Webots Supervisor
 
-Right now it is not clear if we need the ROS2 supervisor in Webots. 
-A good explanation about the purpose of the supervisor is 
-[here](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Simulation-Supervisor.html#the-ros2supervisor).
+Right now it is not clear if we need the ROS2 supervisor in Webots.
+A good explanation about the purpose of the supervisor is in the [supervisor manual of Webots](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Simulation-Supervisor.html#the-ros2supervisor).
 
 The clock topic might be important.
