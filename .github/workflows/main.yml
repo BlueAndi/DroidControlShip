@@ -44,6 +44,7 @@ jobs:
       matrix:
         environment: ["ConvoyLeaderTarget",
                       "ConvoyFollowerTarget",
+                      "LineFollowerTarget",
                       "RemoteControlTarget",
                       "SensorFusionTarget",
                       "TurtleTarget"]
@@ -132,6 +133,8 @@ jobs:
                       "ConvoyFollowerTarget",
                       "ConvoyLeaderSim",
                       "ConvoyFollowerSim",
+                      "LineFollowerTarget",
+                      "LineFollowerSim",
                       "RemoteControlTarget",
                       "RemoteControlSim",
                       "SensorFusionTarget",
