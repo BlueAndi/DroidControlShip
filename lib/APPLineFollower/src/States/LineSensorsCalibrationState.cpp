@@ -33,9 +33,8 @@
  * Includes
  *****************************************************************************/
 #include "LineSensorsCalibrationState.h"
-#include <Board.h>
 #include <StateMachine.h>
-#include <Util.h>
+#include <Logging.h>
 #include "ReadyState.h"
 #include "ErrorState.h"
 
@@ -65,12 +64,46 @@
 
 void LineSensorsCalibrationState::entry()
 {
-    m_timer.start(WAIT_TIME);
+    LOG_INFO("Line sensors calibration state entered.");
+
+    if (nullptr == m_serMuxChannelProvider)
+    {
+        m_isError = true;
+    }
+    else
+    {
+        SerMuxChannelProvider::LineSensorCalibFunc lineSensorCalibFunc = [this]() -> void
+        {
+            LOG_INFO("Line sensor calibration started.");
+            this->m_timer.start(TIMEOUT_MS);
+        };
+
+        if (false == m_serMuxChannelProvider->requestLineSensorCalibration(lineSensorCalibFunc))
+        {
+            LOG_ERROR("Failed to request line sensor calibration.");
+            m_isError = true;
+        }
+        else
+        {
+            m_isError = false;
+        }
+    }
 }
 
 void LineSensorsCalibrationState::process(StateMachine& sm)
 {
-
+    if (true == m_isError)
+    {
+        sm.setState(ErrorState::getInstance());
+    }
+    else if (true == m_timer.isTimeout())
+    {
+        sm.setState(ReadyState::getInstance());
+    }
+    else
+    {
+        /* Nothing to do, wait for line sensor calibration to complete. */
+    }
 }
 
 void LineSensorsCalibrationState::exit()

@@ -119,6 +119,11 @@ private:
     } SubState;
 
     /**
+     * Timeout in ms to wait for getting the max. motor speed.
+     */
+    static const uint32_t TIMEOUT_MS = 2000U;
+
+    /**
      * Serial multiplexer channel provider.
      */
     SerMuxChannelProvider* m_serMuxChannelProvider;
@@ -134,9 +139,24 @@ private:
     SubState m_subState;
 
     /**
+     * Timer to handle timeouts.
+     */
+    SimpleTimer m_timer;
+
+    /**
+     * Is the button pressed (last time)?
+     */
+    bool m_isButtonPressed;
+
+    /**
      * Default constructor.
      */
-    StartupState() : m_serMuxChannelProvider(nullptr), m_motors(nullptr), m_subState(SUB_STATE_WAIT_FOR_SYNC)
+    StartupState() :
+        m_serMuxChannelProvider(nullptr),
+        m_motors(nullptr),
+        m_subState(SUB_STATE_WAIT_FOR_SYNC),
+        m_timer(),
+        m_isButtonPressed(false)
     {
         /* Nothing to do. */
     }

@@ -44,6 +44,7 @@
  * Includes
  *****************************************************************************/
 #include <IState.h>
+#include <SerMuxChannelProvider.h>
 #include <SimpleTimer.hpp>
 
 /******************************************************************************
@@ -89,18 +90,41 @@ public:
      */
     void exit() final;
 
+    /**
+     * Inject dependencies.
+     *
+     * @param[in] serMuxChannelProvider Serial multiplexer channel provider.
+     */
+    void injectDependencies(SerMuxChannelProvider& serMuxChannelProvider)
+    {
+        m_serMuxChannelProvider = &serMuxChannelProvider;
+    }
+
 private:
     /**
-     * Duration in ms about to wait, until the calibration drive starts.
+     * Timeout in ms to wait for line sensor calibration to complete.
      */
-    static const uint32_t WAIT_TIME = 1000;
+    static const uint32_t TIMEOUT_MS = 5000U;
 
-    SimpleTimer m_timer; /**< Timer used to wait, until the calibration drive starts. */
+    /**
+     * Serial multiplexer channel provider.
+     */
+    SerMuxChannelProvider* m_serMuxChannelProvider;
+
+    /**
+     * Indicates that an error occurred.
+     */
+    bool m_isError;
+
+    /**
+     * Timer used to wait for line sensor calibration to complete.
+     */
+    SimpleTimer m_timer;
 
     /**
      * Default constructor.
      */
-    LineSensorsCalibrationState() : m_timer()
+    LineSensorsCalibrationState() : m_serMuxChannelProvider(nullptr), m_isError(false), m_timer()
     {
         /* Nothing to do. */
     }
@@ -129,7 +153,6 @@ private:
      * @returns Reference to LineSensorsCalibrationState.
      */
     LineSensorsCalibrationState& operator=(const LineSensorsCalibrationState& state);
-
 };
 
 /******************************************************************************

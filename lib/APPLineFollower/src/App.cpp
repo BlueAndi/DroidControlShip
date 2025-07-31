@@ -41,6 +41,7 @@
 #include <WiFi.h>
 #include "RemoteControl.h"
 #include "States/StartupState.h"
+#include "States/LineSensorsCalibrationState.h"
 #include "States/ErrorState.h"
 #include "States/ReadyState.h"
 #include "States/DrivingState.h"
@@ -89,6 +90,7 @@ App::App() :
 {
     /* Inject dependencies into states. */
     StartupState::getInstance().injectDependencies(m_serMuxChannelProvider, m_motors);
+    LineSensorsCalibrationState::getInstance().injectDependencies(m_serMuxChannelProvider);
     ReadyState::getInstance().injectDependencies(m_lineSensors);
     DrivingState::getInstance().injectDependencies(m_lineSensors, m_motors);
 }

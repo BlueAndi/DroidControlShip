@@ -33,9 +33,11 @@
  * Includes
  *****************************************************************************/
 #include "StartupState.h"
-#include "States/ReadyState.h"
+#include "States/LineSensorsCalibrationState.h"
 #include "States/ErrorState.h"
 #include <Logging.h>
+#include <Board.h>
+#include <Util.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -64,10 +66,14 @@
 void StartupState::entry()
 {
     LOG_INFO("Startup state entered.");
+
+    m_isButtonPressed = false;
 }
 
 void StartupState::process(StateMachine& sm)
 {
+    IButton& button = Board::getInstance().getButton();
+
     switch (m_subState)
     {
     case SUB_STATE_WAIT_FOR_SYNC:
@@ -84,6 +90,8 @@ void StartupState::process(StateMachine& sm)
                 else
                 {
                     m_motors->setMaxSpeed(maxMotorSpeed);
+                    
+                    LOG_INFO("Press button to start line sensors calibration.");
                     m_subState = SUB_STATE_FINISHED;
                 }
             };
@@ -93,8 +101,11 @@ void StartupState::process(StateMachine& sm)
                 LOG_ERROR("Failed to request max. motor speed from RU.");
                 m_subState = SUB_STATE_ERROR;
             }
-
-            m_subState = SUB_STATE_WAIT_FOR_MAX_MOTOR_SPEED;
+            else
+            {
+                m_timer.start(TIMEOUT_MS);
+                m_subState = SUB_STATE_WAIT_FOR_MAX_MOTOR_SPEED;
+            }
         }
         break;
 
@@ -102,10 +113,18 @@ void StartupState::process(StateMachine& sm)
         /* Wait for max. motor speed request response.
          * Do nothing, the callback will change the sub state.
          */
+        if (true == m_timer.isTimeout())
+        {
+            LOG_WARNING("Timeout while waiting for max. motor speed request response.");
+            m_subState = SUB_STATE_WAIT_FOR_SYNC;
+        }
         break;
 
     case SUB_STATE_FINISHED:
-        sm.setState(ReadyState::getInstance());
+        if (true == Util::isButtonTriggered(button, m_isButtonPressed))
+        {
+            sm.setState(LineSensorsCalibrationState::getInstance());
+        }
         break;
 
     case SUB_STATE_ERROR:
@@ -120,7 +139,7 @@ void StartupState::process(StateMachine& sm)
 
 void StartupState::exit()
 {
-    /* Nothing to do. */
+    m_timer.stop();
 }
 
 /******************************************************************************

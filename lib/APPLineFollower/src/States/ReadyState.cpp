@@ -69,6 +69,8 @@ void ReadyState::entry()
     const int32_t SENSOR_VALUE_OUT_PERIOD = 1000; /* ms */
 
     LOG_INFO("Ready state entered.");
+    LOG_INFO("Press button to release track.");
+    LOG_INFO("Press several times to configure parameter set.");
 
     /* The line sensor value shall be output on console cyclic. */
     m_timer.start(SENSOR_VALUE_OUT_PERIOD);
