@@ -60,6 +60,8 @@ class Button : public IButton
 public:
     /**
      * Constructs the button adapter.
+     *
+     * @param[in] keyboard The keyboard to use for button simulation.
      */
     Button(Keyboard& keyboard) : IButton(), m_keyboard(keyboard)
     {

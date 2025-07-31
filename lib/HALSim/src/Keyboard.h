@@ -63,11 +63,11 @@ class Keyboard
 public:
     /**
      * Constructs the encoders adapter and initialize it.
+     *
+     * @param[in] simTime The simulation time to use for the keyboard.
+     * @param[in] keyboard The webots keyboard to use for button simulation.
      */
-    Keyboard(SimTime& simTime, webots::Keyboard* keyboard) :
-        m_keys(),
-        m_simTime(simTime),
-        m_keyboard(keyboard)
+    Keyboard(SimTime& simTime, webots::Keyboard* keyboard) : m_keys(), m_simTime(simTime), m_keyboard(keyboard)
     {
     }
 
@@ -144,9 +144,9 @@ private:
     /** The keys pressed during this update. */
     uint16_t m_keys[MAX_KEY_NUMBER];
 
-    SimTime &m_simTime; /**< Simulation time */
+    SimTime& m_simTime; /**< Simulation time */
 
-    webots::Keyboard *m_keyboard; /**< Robot keyboard */
+    webots::Keyboard* m_keyboard; /**< Robot keyboard */
 
     /**
      * Is the button pressed?
