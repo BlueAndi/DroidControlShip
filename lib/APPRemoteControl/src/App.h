@@ -159,8 +159,8 @@ private:
      * Setup the MQTT connection.
      * 
      * @param[in] clientId      The MQTT client id.
-     * @param[in] brokderAddr   The address of the MQTT broker.
-     * @param[in] brokderPort   The port of the MQTT broker.
+     * @param[in] brokerAddr    The address of the MQTT broker.
+     * @param[in] brokerPort    The port of the MQTT broker.
      * 
      * @return true if successful, otherwise false.
      */
