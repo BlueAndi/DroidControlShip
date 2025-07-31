@@ -181,6 +181,11 @@ void App::loop()
     {
         Status dcsStatus = {SMPChannelPayload::Status::STATUS_FLAG_OK};
 
+        if (&ErrorState::getInstance() == m_stateMachine.getState())
+        {
+            dcsStatus.status = SMPChannelPayload::Status::STATUS_FLAG_ERROR;
+        }
+
         if (false == m_serMuxChannelProvider.sendStatus(dcsStatus))
         {
             LOG_WARNING("Failed to send status to RU.");
