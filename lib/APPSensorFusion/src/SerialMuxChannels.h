@@ -42,6 +42,7 @@
  *****************************************************************************/
 
 #include <stdint.h>
+#include <SerialMuxProtServer.hpp>
 
 /******************************************************************************
  * Macros
@@ -59,6 +60,9 @@
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
+
+/** SerialMuxProt Server with fixed template argument. */
+typedef SerialMuxProtServer<MAX_CHANNELS> SMPServer;
 
 /** Struct of the Sensor Data channel payload. */
 typedef struct _SensorData
