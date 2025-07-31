@@ -69,13 +69,14 @@ public:
         m_ros(),
         m_serialMuxProtChannelIdStatus(0U),
         m_serialMuxProtChannelIdTurtle(0U),
-        m_smpServer(Board::getInstance().getRobot().getStream(), this),
+        m_smpServer(Board::getInstance().getRobot().getStream()),
         m_statusTimer(),
         m_turtleMovementTimer(),
         m_turtleSpeedSetpoint(),
         m_isNewTurtleSpeedSetpoint(true),
         m_isFatalError(false)
     {
+        m_smpServer.setUserData(this);
     }
 
     /**

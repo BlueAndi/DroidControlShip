@@ -123,6 +123,9 @@ void App::setup()
     }
     else
     {
+        NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
+                                           ""};
+
         /* If the robot name is empty, use the wifi MAC address as robot name. */
         if (true == settings.getRobotName().isEmpty())
         {
@@ -134,70 +137,22 @@ void App::setup()
             settings.setRobotName(robotName);
         }
 
-        NetworkSettings networkSettings = {settings.getWiFiSSID(), settings.getWiFiPassword(), settings.getRobotName(),
-                                           ""};
-
         if (false == board.getNetwork().setConfig(networkSettings))
         {
             LOG_FATAL("Network configuration could not be set.");
         }
+        else if (false == setupSerialMuxProtServer())
+        {
+            LOG_FATAL("SerialMuxProt server could not be setup.");
+        }
+        else if (false == setupMqtt(settings.getRobotName(), settings.getMqttBrokerAddress(), settings.getMqttPort()))
+        {
+            LOG_FATAL("MQTT connection could not be setup.");
+        }
         else
         {
-            /* Setup MQTT Server, Birth and Will messages. */
-            JsonDocument jsonBirthDoc;
-            char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
-            String       birthMessage;
-
-            jsonBirthDoc["name"] = settings.getRobotName().c_str();
-            (void)serializeJson(jsonBirthDoc, birthMsgArray);
-            birthMessage = birthMsgArray;
-
-            /* Setup SerialMuxProt Channels */
-            m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
-            m_serialMuxProtChannelIdMotorSpeeds =
-                m_smpServer.createChannel(MOTOR_SPEED_SETPOINT_CHANNEL_NAME, MOTOR_SPEED_SETPOINT_CHANNEL_DLC);
-            m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
-            m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
-            m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME, App_currentVehicleChannelCallback);
-            m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
-
-            if (false == m_mqttClient.init())
-            {
-                LOG_FATAL("Failed to initialize MQTT client.");
-            }
-            else
-            {
-                MqttSettings mqttSettings = {settings.getRobotName(),
-                                             settings.getMqttBrokerAddress(),
-                                             settings.getMqttPort(),
-                                             TOPIC_NAME_BIRTH,
-                                             birthMessage,
-                                             TOPIC_NAME_WILL,
-                                             birthMessage,
-                                             true};
-
-                if (false == m_mqttClient.setConfig(mqttSettings))
-                {
-                    LOG_FATAL("MQTT configuration could not be set.");
-                }
-                /* Subscribe to Command Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_CMD, true,
-                                                         [this](const String& payload) { cmdTopicCallback(payload); }))
-                {
-                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_CMD);
-                }
-                /* Subscribe to Motor Speeds Topic. */
-                else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, true, [this](const String& payload)
-                                                         { motorSpeedsTopicCallback(payload); }))
-                {
-                    LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
-                }
-                else
-                {
-                    isSuccessful = true;
-                    m_statusTimer.start(1000U);
-                }
-            }
+            m_statusTimer.start(1000U);
+            isSuccessful = true;
         }
     }
 
@@ -268,6 +223,77 @@ void App::fatalErrorHandler()
     }
 
     m_isFatalError = true;
+}
+
+bool App::setupSerialMuxProtServer()
+{
+    bool isSuccessful = false;
+
+    m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
+    m_serialMuxProtChannelIdMotorSpeeds =
+        m_smpServer.createChannel(MOTOR_SPEED_SETPOINT_CHANNEL_NAME, MOTOR_SPEED_SETPOINT_CHANNEL_DLC);
+    m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
+
+    m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
+    m_smpServer.subscribeToChannel(LINE_SENSOR_CHANNEL_NAME, App_lineSensorChannelCallback);
+    m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME, App_currentVehicleChannelCallback);
+
+    if ((0U == m_serialMuxProtChannelIdRemoteCtrl) || (0U == m_serialMuxProtChannelIdMotorSpeeds) ||
+        (0U == m_serialMuxProtChannelIdStatus))
+    {
+        LOG_ERROR("Failed to create SerialMuxProt channels.");
+    }
+    else
+    {
+        isSuccessful = true;
+    }
+
+    return isSuccessful;
+}
+
+bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t brokerPort)
+{
+    bool         isSuccessful = false;
+    JsonDocument jsonBirthDoc;
+    char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+    String       birthMessage;
+
+    jsonBirthDoc["name"] = clientId.c_str();
+    (void)serializeJson(jsonBirthDoc, birthMsgArray);
+    birthMessage = birthMsgArray;
+
+    if (false == m_mqttClient.init())
+    {
+        LOG_FATAL("Failed to initialize MQTT client.");
+    }
+    else
+    {
+        MqttSettings mqttSettings = {clientId,     brokerAddr,      brokerPort,   TOPIC_NAME_BIRTH,
+                                     birthMessage, TOPIC_NAME_WILL, birthMessage, true};
+
+        if (false == m_mqttClient.setConfig(mqttSettings))
+        {
+            LOG_FATAL("MQTT configuration could not be set.");
+        }
+        /* Subscribe to Command Topic. */
+        else if (false == m_mqttClient.subscribe(TOPIC_NAME_CMD, true,
+                                                 [this](const String& payload) { cmdTopicCallback(payload); }))
+        {
+            LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_CMD);
+        }
+        /* Subscribe to Motor Speeds Topic. */
+        else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, true,
+                                                 [this](const String& payload) { motorSpeedsTopicCallback(payload); }))
+        {
+            LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
+        }
+        else
+        {
+            isSuccessful = true;
+        }
+    }
+
+    return isSuccessful;
 }
 
 void App::cmdTopicCallback(const String& payload)

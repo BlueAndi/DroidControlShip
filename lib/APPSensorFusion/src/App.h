@@ -67,10 +67,11 @@ public:
      */
     App() :
         m_sensorFusion(),
-        m_smpServer(Board::getInstance().getRobot().getStream(), this),
+        m_smpServer(Board::getInstance().getRobot().getStream()),
         m_mqttClient(),
         m_isFatalError(false)
     {
+        m_smpServer.setUserData(this);
     }
 
     /**
