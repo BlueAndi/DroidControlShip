@@ -96,8 +96,8 @@ public:
     /**
      * Inject dependencies.
      *
-     * @param[in] lineSensorData    Line sensor data
-     * @param[in] motors            Motors to control the robot.
+     * @param[in] lineSensors   Line sensor data
+     * @param[in] motors        Motors to control the robot.
      */
     void injectDependencies(LineSensors& lineSensors, Motors& motors)
     {

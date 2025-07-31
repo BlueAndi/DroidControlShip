@@ -122,14 +122,14 @@ private:
     /**
      * No default constructor.
      */
-    Motors() = delete;
+    Motors();
 
     /**
      * No copy constructor.
      *
      * @param[in] other Instance to copy from.
      */
-    Motors(const Motors&) = delete;
+    Motors(const Motors& other);
 
     /**
      * No assignment operator.
@@ -138,7 +138,7 @@ private:
      *
      * @return Reference to this instance.
      */
-    Motors& operator=(const Motors&) = delete;
+    Motors& operator=(const Motors& other);
 };
 
 /******************************************************************************

@@ -100,7 +100,7 @@ public:
     /**
      * Inject dependencies.
      *
-     * @param[in] lineSensorData Line sensor data
+     * @param[in] lineSensors Line sensor data
      */
     void injectDependencies(LineSensors& lineSensors)
     {

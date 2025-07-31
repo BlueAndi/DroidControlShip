@@ -160,14 +160,14 @@ private:
     /**
      * No default constructor.
      */
-    LineSensors() = delete;
+    LineSensors();
 
     /**
      * No copy constructor.
      *
      * @param[in] other Instance to copy from.
      */
-    LineSensors(const LineSensors&) = delete;
+    LineSensors(const LineSensors& other);
 
     /**
      * No assignment operator.
@@ -176,7 +176,7 @@ private:
      *
      * @return Reference to this instance.
      */
-    LineSensors& operator=(const LineSensors&) = delete;
+    LineSensors& operator=(const LineSensors& other);
 
     /**
      * Callback for line sensor channel.
