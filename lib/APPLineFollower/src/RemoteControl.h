@@ -19,83 +19,67 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
 /*******************************************************************************
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Channel structure definition for the SerialMuxProt.
- *  @author Juliane Kerpe <juliane.kerpe@web.de>
+ * @brief  RemoteControl common constants.
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- *  @addtogroup Application
+ * @addtogroup App
  *
  * @{
  */
+#ifndef REMOTE_CONTROL_H
+#define REMOTE_CONTROL_H
 
-#ifndef SERIAL_MUX_CHANNELS_H_
-#define SERIAL_MUX_CHANNELS_H_
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
 
 #include <stdint.h>
-#include <SerialMuxProtServer.hpp>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
-/** Maximum number of SerialMuxProt Channels. */
-#define MAX_CHANNELS (10U)
-
-/** Name of Channel to send Sensor Data to. */
-#define SENSORDATA_CHANNEL_NAME "SENSOR_DATA"
-
-/** DLC of Sensordata Channel */
-#define SENSORDATA_CHANNEL_DLC (sizeof(SensorData))
-
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-/** SerialMuxProt Server with fixed template argument. */
-typedef SerialMuxProtServer<MAX_CHANNELS> SMPServer;
-
-/** Struct of the Sensor Data channel payload. */
-typedef struct _SensorData
+/** RemoteControl application constants */
+namespace RemoteControl
 {
-    /** Position in x direction in mm calculated by odometry. */
-    int32_t positionOdometryX;
+    /** Remote control commands. */
+    typedef enum : uint8_t
+    {
+        CMD_ID_IDLE = 0,                /**< Nothing to do. */
+        CMD_ID_START_LINE_SENSOR_CALIB, /**< Start line sensor calibration. */
+        CMD_ID_START_MOTOR_SPEED_CALIB, /**< Start motor speed calibration. */
+        CMD_ID_REINIT_BOARD,            /**< Re-initialize the board. Required for webots simulation. */
+        CMD_ID_GET_MAX_SPEED,           /**< Get maximum speed. */
 
-    /** Position in y direction in mm calculated by odometry. */
-    int32_t positionOdometryY;
+    } CmdId;
 
-    /** Orientation in mrad calculated by odometry. */
-    int32_t orientationOdometry;
+    /** Remote control command responses. */
+    typedef enum : uint8_t
+    {
+        RSP_ID_OK = 0,  /**< Command successful executed. */
+        RSP_ID_PENDING, /**< Command is pending. */
+        RSP_ID_ERROR    /**< Command failed. */
 
-    /** Acceleration in x direction as a raw sensor value in digits.
-     * It can be converted into a physical acceleration value in mm/s^2 via the
-     * multiplication with a sensitivity factor in mm/s^2/digit.
-     */
-    int16_t accelerationX;
-
-    /** Gyro value around z axis as a raw sensor value in digits.
-     * It can be converted into a physical turn rate in mrad/s via the multiplication
-     * with a sensitivity factor in mrad/s/digit.
-     */
-    int16_t turnRate;
-
-    /** Time passed since the last sensor value in milliseconds. */
-    uint16_t timePeriod;
-
-} __attribute__((packed)) SensorData;
+    } RspId;
+} /* namespace RemoteControl */
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* SERIAL_MUX_CHANNELS_H_ */
+#endif /* REMOTE_CONTROL_H */
 /** @} */

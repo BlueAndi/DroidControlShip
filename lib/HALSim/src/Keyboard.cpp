@@ -25,14 +25,14 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Keyboard realization
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
+#include "Keyboard.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -58,22 +58,6 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
-{
-    return m_keyboard.buttonSPressed();
-}
-
-bool Button::isLongPressed()
-{
-    /* Not implemented. */
-    return false;
-}
-
-void Button::waitForRelease()
-{
-    /* Nothing to do. */
-}
-
 /******************************************************************************
  * Protected Methods
  *****************************************************************************/
@@ -81,6 +65,49 @@ void Button::waitForRelease()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+
+bool Keyboard::isButtonPressed(char lowerCaseChar, char upperCaseChar) const
+{
+    bool buttonPressed = false;
+
+    /* Checks if button is existing in the recorded key values. */
+    if (true == arrayContains(m_keys, sizeof(m_keys), upperCaseChar, lowerCaseChar))
+    {
+        buttonPressed = true;
+    }
+
+    return buttonPressed;
+}
+
+bool Keyboard::isButtonReleased(char lowerCaseChar, char upperCaseChar) const
+{
+    bool buttonReleased = false;
+
+    /* Checks if button is not existing in the recorded key values. */
+    if (false == arrayContains(m_keys, sizeof(m_keys), upperCaseChar, lowerCaseChar))
+    {
+        buttonReleased = true;
+    }
+
+    return buttonReleased;
+}
+
+bool Keyboard::arrayContains(const uint16_t array[], uint16_t arraySize, char elemLowerCase, char elemUppercase) const
+{
+    bool elementFound = false;
+
+    for (uint8_t arrayIndex = 0; arrayIndex < (arraySize / sizeof(*array)); ++arrayIndex)
+    {
+        if ((array[arrayIndex] == static_cast<uint8_t>(elemLowerCase)) ||
+            (array[arrayIndex] == static_cast<uint8_t>(elemUppercase)))
+        {
+            elementFound = true;
+            break;
+        }
+    }
+
+    return elementFound;
+}
 
 /******************************************************************************
  * External Functions

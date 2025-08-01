@@ -19,83 +19,114 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
 /*******************************************************************************
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Channel structure definition for the SerialMuxProt.
- *  @author Juliane Kerpe <juliane.kerpe@web.de>
+ * @brief  Error state
+ * @author Andreas Merkle <web@blue-andi.de>
  *
- *  @addtogroup Application
+ * @addtogroup Application
  *
  * @{
  */
 
-#ifndef SERIAL_MUX_CHANNELS_H_
-#define SERIAL_MUX_CHANNELS_H_
+#ifndef ERROR_STATE_H
+#define ERROR_STATE_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include <stdint.h>
-#include <SerialMuxProtServer.hpp>
+#include <stddef.h>
+#include <IState.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
-/** Maximum number of SerialMuxProt Channels. */
-#define MAX_CHANNELS (10U)
-
-/** Name of Channel to send Sensor Data to. */
-#define SENSORDATA_CHANNEL_NAME "SENSOR_DATA"
-
-/** DLC of Sensordata Channel */
-#define SENSORDATA_CHANNEL_DLC (sizeof(SensorData))
-
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-/** SerialMuxProt Server with fixed template argument. */
-typedef SerialMuxProtServer<MAX_CHANNELS> SMPServer;
-
-/** Struct of the Sensor Data channel payload. */
-typedef struct _SensorData
+/** The system error state. */
+class ErrorState : public IState
 {
-    /** Position in x direction in mm calculated by odometry. */
-    int32_t positionOdometryX;
-
-    /** Position in y direction in mm calculated by odometry. */
-    int32_t positionOdometryY;
-
-    /** Orientation in mrad calculated by odometry. */
-    int32_t orientationOdometry;
-
-    /** Acceleration in x direction as a raw sensor value in digits.
-     * It can be converted into a physical acceleration value in mm/s^2 via the
-     * multiplication with a sensitivity factor in mm/s^2/digit.
+public:
+    /**
+     * Get state instance.
+     *
+     * @return State instance.
      */
-    int16_t accelerationX;
+    static ErrorState& getInstance()
+    {
+        static ErrorState instance;
 
-    /** Gyro value around z axis as a raw sensor value in digits.
-     * It can be converted into a physical turn rate in mrad/s via the multiplication
-     * with a sensitivity factor in mrad/s/digit.
+        /* Singleton idiom to force initialization during first usage. */
+
+        return instance;
+    }
+
+    /**
+     * If the state is entered, this method will called once.
      */
-    int16_t turnRate;
+    void entry() final;
 
-    /** Time passed since the last sensor value in milliseconds. */
-    uint16_t timePeriod;
+    /**
+     * Processing the state.
+     *
+     * @param[in] sm State machine, which is calling this state.
+     */
+    void process(StateMachine& sm) final;
 
-} __attribute__((packed)) SensorData;
+    /**
+     * If the state is left, this method will be called once.
+     */
+    void exit() final;
+
+private:
+
+    /**
+     * Default constructor.
+     */
+    ErrorState()
+    {
+    }
+
+    /**
+     * Default destructor.
+     */
+    ~ErrorState()
+    {
+    }
+
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] state Source instance.
+     */
+    ErrorState(const ErrorState& state);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] state Source instance.
+     *
+     * @returns Reference to ErrorState instance.
+     */
+    ErrorState& operator=(const ErrorState& state);
+};
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* SERIAL_MUX_CHANNELS_H_ */
+#endif /* ERROR_STATE_H */
 /** @} */

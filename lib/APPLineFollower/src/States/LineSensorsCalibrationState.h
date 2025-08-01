@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
- * @author Juliane Kerpe <juliane.kerpe@web.de>
+ * @brief  Line sensors calibration state
+ * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup Application
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef LINE_SENSORS_CALIBRATION_STATE_H
+#define LINE_SENSORS_CALIBRATION_STATE_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
-#include "SerialMuxChannels.h"
-#include <MqttClient.h>
+#include <IState.h>
+#include <SerMuxChannelProvider.h>
 
 /******************************************************************************
  * Macros
@@ -58,111 +54,109 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/** The line sensors calibration state. */
+class LineSensorsCalibrationState : public IState
 {
 public:
     /**
-     * Construct the Sensor Fusion application.
+     * Get state instance.
+     *
+     * @return State instance.
      */
-    App() :
-        m_sensorFusion(),
-        m_smpServer(Board::getInstance().getRobot().getStream()),
-        m_mqttClient(),
-        m_isFatalError(false)
+    static LineSensorsCalibrationState& getInstance()
     {
-        m_smpServer.setUserData(this);
+        static LineSensorsCalibrationState instance;
+
+        /* Singleton idiom to force initialization during first usage. */
+
+        return instance;
     }
 
     /**
-     * Destroy the Sensor Fusion application.
+     * If the state is entered, this method will called once.
      */
-    ~App()
+    void entry() final;
+
+    /**
+     * Processing the state.
+     *
+     * @param[in] sm State machine, which is calling this state.
+     */
+    void process(StateMachine& sm) final;
+
+    /**
+     * If the state is left, this method will be called once.
+     */
+    void exit() final;
+
+    /**
+     * Inject dependencies.
+     *
+     * @param[in] serMuxChannelProvider Serial multiplexer channel provider.
+     */
+    void injectDependencies(SerMuxChannelProvider& serMuxChannelProvider)
     {
+        m_serMuxChannelProvider = &serMuxChannelProvider;
+    }
+
+private:
+    /**
+     * Timeout in ms to wait for line sensor calibration to complete.
+     */
+    static const uint32_t TIMEOUT_MS = 5000U;
+
+    /**
+     * Serial multiplexer channel provider.
+     */
+    SerMuxChannelProvider* m_serMuxChannelProvider;
+
+    /**
+     * Indicates that an error occurred.
+     */
+    bool m_isError;
+
+    /**
+     * Indicates whether the line sensor calibration is finished.
+     */
+    bool m_isFinished;
+
+    /**
+     * Default constructor.
+     */
+    LineSensorsCalibrationState() : m_serMuxChannelProvider(nullptr), m_isError(false), m_isFinished(false)
+    {
+        /* Nothing to do. */
     }
 
     /**
-     * Setup the application.
+     * Default destructor.
      */
-    void setup();
+    ~LineSensorsCalibrationState()
+    {
+    }
 
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-    /**
-     * Publish Position calculated by Sensor Fusion via MQTT.
-     */
-    void publishSensorFusionPosition();
-
-    /**
-     * Process the Receiving of New Sensor Data via SerialMuxProt
-     *
-     * @param[in] newData New Sensor Data.
-     */
-    void processNewSensorData(const SensorData& newData);
-
-private:
-    /** Minimum battery level in percent. */
-    static const uint8_t MIN_BATTERY_LEVEL = 10U;
-
-    SensorFusion m_sensorFusion; /**< Instance of the SensorFusion algorithm. */
-
-    /** MQTT topic name for birth messages. */
-    static const char* TOPIC_NAME_BIRTH;
-
-    /** MQTT topic name for will messages. */
-    static const char* TOPIC_NAME_WILL;
-
-    /** MQTT topic name for sending Position Data. */
-    static const char* TOPIC_NAME_POSITION;
-
-    /**
-     * MQTTClient Instance
-     */
-    MqttClient m_mqttClient;
-
-    /**
-     * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
-     */
-    SMPServer m_smpServer;
-
-    /**
-     * Is fatal error happened?
-     */
-    bool m_isFatalError;
-
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
     /**
      * Copy construction of an instance.
      * Not allowed.
      *
-     * @param[in] app Source instance.
+     * @param[in] state Source instance.
      */
-    App(const App& app);
+    LineSensorsCalibrationState(const LineSensorsCalibrationState& state);
 
     /**
      * Assignment of an instance.
      * Not allowed.
      *
-     * @param[in] app Source instance.
+     * @param[in] state Source instance.
      *
-     * @returns Reference to App instance.
+     * @returns Reference to LineSensorsCalibrationState.
      */
-    App& operator=(const App& app);
+    LineSensorsCalibrationState& operator=(const LineSensorsCalibrationState& state);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* LINE_SENSORS_CALIBRATION_STATE_H */
 /** @} */

@@ -19,83 +19,81 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
 /*******************************************************************************
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Channel structure definition for the SerialMuxProt.
- *  @author Juliane Kerpe <juliane.kerpe@web.de>
- *
- *  @addtogroup Application
- *
- * @{
+ * @brief  Error state
+ * @author Andreas Merkle <web@blue-andi.de>
  */
-
-#ifndef SERIAL_MUX_CHANNELS_H_
-#define SERIAL_MUX_CHANNELS_H_
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
+#include "ErrorState.h"
+#include <Board.h>
+#include <StateMachine.h>
+#include "StartupState.h"
+#include <Logging.h>
+#include <Util.h>
 
-#include <stdint.h>
-#include <SerialMuxProtServer.hpp>
+/******************************************************************************
+ * Compiler Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
-/** Maximum number of SerialMuxProt Channels. */
-#define MAX_CHANNELS (10U)
-
-/** Name of Channel to send Sensor Data to. */
-#define SENSORDATA_CHANNEL_NAME "SENSOR_DATA"
-
-/** DLC of Sensordata Channel */
-#define SENSORDATA_CHANNEL_DLC (sizeof(SensorData))
-
 /******************************************************************************
- * Types and Classes
+ * Types and classes
  *****************************************************************************/
 
-/** SerialMuxProt Server with fixed template argument. */
-typedef SerialMuxProtServer<MAX_CHANNELS> SMPServer;
+/******************************************************************************
+ * Prototypes
+ *****************************************************************************/
 
-/** Struct of the Sensor Data channel payload. */
-typedef struct _SensorData
+/******************************************************************************
+ * Local Variables
+ *****************************************************************************/
+
+/******************************************************************************
+ * Public Methods
+ *****************************************************************************/
+
+void ErrorState::entry()
 {
-    /** Position in x direction in mm calculated by odometry. */
-    int32_t positionOdometryX;
+    LOG_INFO("Error state entered.");
+    
+    /* Turn on Red LED to signal fatal error. */
+    Board::getInstance().getRedLed().enable(true);
+}
 
-    /** Position in y direction in mm calculated by odometry. */
-    int32_t positionOdometryY;
+void ErrorState::process(StateMachine& sm)
+{
+    /* Nothing to do.*/
+    UTIL_NOT_USED(sm);
+}
 
-    /** Orientation in mrad calculated by odometry. */
-    int32_t orientationOdometry;
-
-    /** Acceleration in x direction as a raw sensor value in digits.
-     * It can be converted into a physical acceleration value in mm/s^2 via the
-     * multiplication with a sensitivity factor in mm/s^2/digit.
-     */
-    int16_t accelerationX;
-
-    /** Gyro value around z axis as a raw sensor value in digits.
-     * It can be converted into a physical turn rate in mrad/s via the multiplication
-     * with a sensitivity factor in mrad/s/digit.
-     */
-    int16_t turnRate;
-
-    /** Time passed since the last sensor value in milliseconds. */
-    uint16_t timePeriod;
-
-} __attribute__((packed)) SensorData;
+void ErrorState::exit()
+{
+    /* Nothing to do. */
+}
 
 /******************************************************************************
- * Functions
+ * Protected Methods
  *****************************************************************************/
 
-#endif /* SERIAL_MUX_CHANNELS_H_ */
-/** @} */
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * External Functions
+ *****************************************************************************/
+
+/******************************************************************************
+ * Local Functions
+ *****************************************************************************/

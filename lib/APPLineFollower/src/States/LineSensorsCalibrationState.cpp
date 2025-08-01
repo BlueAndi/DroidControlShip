@@ -25,14 +25,18 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Line sensors calibration state
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
+#include "LineSensorsCalibrationState.h"
+#include <StateMachine.h>
+#include <Logging.h>
+#include "ReadyState.h"
+#include "ErrorState.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -58,18 +62,64 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
+void LineSensorsCalibrationState::entry()
 {
-    return m_keyboard.buttonSPressed();
+    LOG_INFO("Line sensors calibration state entered.");
+
+    m_isFinished = false;
+
+    if (nullptr == m_serMuxChannelProvider)
+    {
+        m_isError = true;
+    }
+    else
+    {
+        SerMuxChannelProvider::LineSensorCalibFunc lineSensorCalibFunc = [this](SMPChannelPayload::RspId status) -> void
+        {
+            if (SMPChannelPayload::RSP_ID_PENDING == status)
+            {
+                LOG_INFO("Line sensor calibration started.");
+            }
+            else if (SMPChannelPayload::RSP_ID_OK == status)
+            {
+                LOG_INFO("Line sensor calibration completed.");
+                m_isFinished = true;
+            }
+            else
+            {
+                m_isError = true;
+            }
+        };
+
+        if (false == m_serMuxChannelProvider->requestLineSensorCalibration(lineSensorCalibFunc))
+        {
+            LOG_ERROR("Failed to request line sensor calibration.");
+            m_isError = true;
+        }
+        else
+        {
+            m_isError = false;
+        }
+    }
 }
 
-bool Button::isLongPressed()
+void LineSensorsCalibrationState::process(StateMachine& sm)
 {
-    /* Not implemented. */
-    return false;
+    if (true == m_isError)
+    {
+        sm.setState(ErrorState::getInstance());
+    }
+    else if (true == m_isFinished)
+    {
+        sm.setState(ReadyState::getInstance());
+    }
+    else
+    {
+        /* Nothing to do, wait for line sensor calibration to complete. */
+    }
 }
 
-void Button::waitForRelease()
+void LineSensorsCalibrationState::exit()
 {
     /* Nothing to do. */
 }

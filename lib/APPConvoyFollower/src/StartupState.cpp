@@ -72,7 +72,7 @@ void StartupState::process(StateMachine& sm)
     if (CMD_NONE == m_pendingCommandCounter)
     {
         /* All commands processed. Switch to idle state. */
-        sm.setState(&DrivingState::getInstance());
+        sm.setState(DrivingState::getInstance());
     }
 }
 

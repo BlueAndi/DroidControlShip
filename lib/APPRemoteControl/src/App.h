@@ -122,7 +122,7 @@ private:
      *
      * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
      */
-    SerialMuxProtServer<MAX_CHANNELS> m_smpServer;
+    SMPServer m_smpServer;
 
     /**
      * MQTTClient Instance
@@ -161,7 +161,7 @@ private:
      * @param[in] clientId      The MQTT client id.
      * @param[in] brokerAddr    The address of the MQTT broker.
      * @param[in] brokerPort    The port of the MQTT broker.
-     *
+     * 
      * @return true if successful, otherwise false.
      */
     bool setupMqtt(const String& clientId, const String& brokerAddr, uint16_t brokerPort);

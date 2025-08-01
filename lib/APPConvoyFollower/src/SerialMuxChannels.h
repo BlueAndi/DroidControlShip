@@ -68,7 +68,7 @@
 /** DLC of Speedometer Channel */
 #define SPEED_SETPOINT_CHANNEL_DLC (sizeof(SpeedData))
 
-/** Name of Channel to send Current Vehicle Data to. */
+/** Name of Channel to receive Current Vehicle Data from. */
 #define CURRENT_VEHICLE_DATA_CHANNEL_NAME "CURR_DATA"
 
 /** DLC of Current Vehicle Data Channel */

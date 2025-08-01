@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  SensorFusion application
- * @author Juliane Kerpe <juliane.kerpe@web.de>
+ * @brief  Ready state
+ * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup Application
  *
  * @{
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef READY_STATE_H
+#define READY_STATE_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,12 +43,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <Arduino.h>
-#include <Board.h>
-#include <SerialMuxProtServer.hpp>
-#include "SensorFusion.h"
-#include "SerialMuxChannels.h"
-#include <MqttClient.h>
+#include <IState.h>
+#include <SimpleTimer.hpp>
+#include "LineSensors.h"
 
 /******************************************************************************
  * Macros
@@ -58,111 +55,106 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Sensor Fusion application. */
-class App
+/** The system ready state. */
+class ReadyState : public IState
 {
 public:
     /**
-     * Construct the Sensor Fusion application.
+     * Get state instance.
+     *
+     * @return State instance.
      */
-    App() :
-        m_sensorFusion(),
-        m_smpServer(Board::getInstance().getRobot().getStream()),
-        m_mqttClient(),
-        m_isFatalError(false)
+    static ReadyState& getInstance()
     {
-        m_smpServer.setUserData(this);
+        static ReadyState instance;
+
+        /* Singleton idiom to force initialization during first usage. */
+
+        return instance;
     }
 
     /**
-     * Destroy the Sensor Fusion application.
+     * If the state is entered, this method will called once.
      */
-    ~App()
+    void entry() final;
+
+    /**
+     * Processing the state.
+     *
+     * @param[in] sm State machine, which is calling this state.
+     */
+    void process(StateMachine& sm) final;
+
+    /**
+     * If the state is left, this method will be called once.
+     */
+    void exit() final;
+
+    /**
+     * Set lap time, which to show on the display.
+     *
+     * @param[in] lapTime   Lap time in ms
+     */
+    void setLapTime(uint32_t lapTime);
+
+    /**
+     * Inject dependencies.
+     *
+     * @param[in] lineSensors Line sensor data
+     */
+    void injectDependencies(LineSensors& lineSensors)
+    {
+        m_lineSensors = &lineSensors;
+    }
+
+private:
+    SimpleTimer  m_timer;              /**< Timer used for cyclic debug output. */
+    bool         m_isLapTimeAvailable; /**< Is set (true), if a lap time is available. */
+    uint32_t     m_lapTime;            /**< Lap time in ms of the last successful driven round. */
+    bool         m_isButtonPressed;    /**< Is the button pressed (last time)? */
+    LineSensors* m_lineSensors;        /**< The line sensors. */
+
+    /**
+     * Default constructor.
+     */
+    ReadyState() :
+        m_timer(),
+        m_isLapTimeAvailable(false),
+        m_lapTime(0),
+        m_isButtonPressed(false),
+        m_lineSensors(nullptr)
     {
     }
 
     /**
-     * Setup the application.
+     * Default destructor.
      */
-    void setup();
+    ~ReadyState()
+    {
+    }
 
-    /**
-     * Process the application periodically.
-     */
-    void loop();
-
-    /**
-     * Publish Position calculated by Sensor Fusion via MQTT.
-     */
-    void publishSensorFusionPosition();
-
-    /**
-     * Process the Receiving of New Sensor Data via SerialMuxProt
-     *
-     * @param[in] newData New Sensor Data.
-     */
-    void processNewSensorData(const SensorData& newData);
-
-private:
-    /** Minimum battery level in percent. */
-    static const uint8_t MIN_BATTERY_LEVEL = 10U;
-
-    SensorFusion m_sensorFusion; /**< Instance of the SensorFusion algorithm. */
-
-    /** MQTT topic name for birth messages. */
-    static const char* TOPIC_NAME_BIRTH;
-
-    /** MQTT topic name for will messages. */
-    static const char* TOPIC_NAME_WILL;
-
-    /** MQTT topic name for sending Position Data. */
-    static const char* TOPIC_NAME_POSITION;
-
-    /**
-     * MQTTClient Instance
-     */
-    MqttClient m_mqttClient;
-
-    /**
-     * SerialMuxProt Server Instance
-     *
-     * @tparam tMaxChannels set to MAX_CHANNELS, defined in SerialMuxChannels.h.
-     */
-    SMPServer m_smpServer;
-
-    /**
-     * Is fatal error happened?
-     */
-    bool m_isFatalError;
-
-    /**
-     * Handler of fatal errors in the Application.
-     */
-    void fatalErrorHandler();
-
-private:
     /**
      * Copy construction of an instance.
      * Not allowed.
      *
-     * @param[in] app Source instance.
+     * @param[in] state Source instance.
      */
-    App(const App& app);
+    ReadyState(const ReadyState& state);
 
     /**
      * Assignment of an instance.
      * Not allowed.
      *
-     * @param[in] app Source instance.
+     * @param[in] state Source instance.
      *
-     * @returns Reference to App instance.
+     * @returns Reference to ErrorState instance.
      */
-    App& operator=(const App& app);
+    ReadyState& operator=(const ReadyState& state);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* APP_H */
+#endif /* READY_STATE_H */
 /** @} */

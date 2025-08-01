@@ -19,83 +19,127 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
 /*******************************************************************************
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Channel structure definition for the SerialMuxProt.
- *  @author Juliane Kerpe <juliane.kerpe@web.de>
+ * @brief  Line follower application
+ * @author Andreas Merkle <web@blue-andi.de>
  *
- *  @addtogroup Application
+ * @addtogroup Application
  *
  * @{
  */
 
-#ifndef SERIAL_MUX_CHANNELS_H_
-#define SERIAL_MUX_CHANNELS_H_
+#ifndef APP_H
+#define APP_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include <stdint.h>
+#include <Arduino.h>
+#include <Board.h>
 #include <SerialMuxProtServer.hpp>
+#include <SimpleTimer.hpp>
+#include <StateMachine.h>
+#include "SerMuxChannelProvider.h"
+#include "LineSensors.h"
+#include "Motors.h"
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
-/** Maximum number of SerialMuxProt Channels. */
-#define MAX_CHANNELS (10U)
-
-/** Name of Channel to send Sensor Data to. */
-#define SENSORDATA_CHANNEL_NAME "SENSOR_DATA"
-
-/** DLC of Sensordata Channel */
-#define SENSORDATA_CHANNEL_DLC (sizeof(SensorData))
-
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
-/** SerialMuxProt Server with fixed template argument. */
-typedef SerialMuxProtServer<MAX_CHANNELS> SMPServer;
-
-/** Struct of the Sensor Data channel payload. */
-typedef struct _SensorData
+/** The Remote Control application. */
+class App
 {
-    /** Position in x direction in mm calculated by odometry. */
-    int32_t positionOdometryX;
-
-    /** Position in y direction in mm calculated by odometry. */
-    int32_t positionOdometryY;
-
-    /** Orientation in mrad calculated by odometry. */
-    int32_t orientationOdometry;
-
-    /** Acceleration in x direction as a raw sensor value in digits.
-     * It can be converted into a physical acceleration value in mm/s^2 via the
-     * multiplication with a sensitivity factor in mm/s^2/digit.
+public:
+    /**
+     * Construct the Remote Control application.
      */
-    int16_t accelerationX;
+    App();
 
-    /** Gyro value around z axis as a raw sensor value in digits.
-     * It can be converted into a physical turn rate in mrad/s via the multiplication
-     * with a sensitivity factor in mrad/s/digit.
+    /**
+     * Destroy the Remote Control application.
      */
-    int16_t turnRate;
+    ~App()
+    {
+    }
 
-    /** Time passed since the last sensor value in milliseconds. */
-    uint16_t timePeriod;
+    /**
+     * Setup the application.
+     */
+    void setup();
 
-} __attribute__((packed)) SensorData;
+    /**
+     * Process the application periodically.
+     */
+    void loop();
+
+private:
+
+    /**
+     * Flag for setting initial data through SMP.
+     */
+    bool m_initialDataSent;
+
+    /**
+     * Timer for sending system status to RU.
+     */
+    SimpleTimer m_statusTimer;
+
+    /**
+     * SerialMux Channel Provider handler.
+     */
+    SerMuxChannelProvider m_serMuxChannelProvider;
+
+    /**
+     * Line sensors handler.
+     */
+    LineSensors m_lineSensors;
+
+    /**
+     * Motors handler.
+     */
+    Motors m_motors;
+
+    /**
+     * State machine for the application.
+     */
+    StateMachine m_stateMachine;
+
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] app Source instance.
+     */
+    App(const App& app);
+
+    /**
+     * Assignment of an instance.
+     * Not allowed.
+     *
+     * @param[in] app Source instance.
+     *
+     * @returns Reference to App instance.
+     */
+    App& operator=(const App& app);
+};
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* SERIAL_MUX_CHANNELS_H_ */
+#endif /* APP_H */
 /** @} */

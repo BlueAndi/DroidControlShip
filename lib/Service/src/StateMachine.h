@@ -76,9 +76,9 @@ public:
      *
      * @param[in] state Next state.
      */
-    void setState(IState* state)
+    void setState(IState& state)
     {
-        m_nextState = state;
+        m_nextState = &state;
     }
 
     /**

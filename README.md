@@ -13,6 +13,7 @@ It provides different kind of exclusive applications, used for educational purpo
 - Convoy Follower Robot - It follows the leader by mainly reacting on the received information.
 - Remote Control - Receives commands and motor speeds from an external source through MQTT.
 - APPTurtle - A [ROS2](https://docs.ros.org/en/jazzy/index.html) Robot controller that uses Twist messages like the ROS2 TurtleSim demo.
+- Line follower - Follows a track by a black line until the start/end line is passed twice.
 
 ## Table of content <!-- omit in toc -->
 
@@ -107,6 +108,7 @@ In a similar way, not providing a WiFi configuration will force the target into 
 | - | - | - | - | - |
 | ConvoyLeader | No | Yes | ConvoyLeader | Yes |
 | ConvoyFollower | No | Yes | RemoteControl | Yes |
+| LineFollower | No | Yes | RemoteControl | No |
 | RemoteControl | No | Yes | RemoteControl | Yes |
 | SensorFusion | No | Yes | SensorFusion | Yes |
 | Test | Yes | No | N/A | No |
