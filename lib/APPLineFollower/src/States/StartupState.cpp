@@ -81,18 +81,27 @@ void StartupState::process(StateMachine& sm)
         {
             LOG_INFO("Synchronization with RU established.");
 
-            SerMuxChannelProvider::MaxMotorSpeedFunc maxMotorSpeedFunc = [this](int16_t maxMotorSpeed) -> void
+            SerMuxChannelProvider::MaxMotorSpeedFunc maxMotorSpeedFunc = [this](SMPChannelPayload::RspId status, int16_t maxMotorSpeed) -> void
             {
                 if (nullptr == m_motors)
                 {
                     m_subState = SUB_STATE_ERROR;
                 }
-                else
+                else if (SMPChannelPayload::RSP_ID_PENDING == status)
+                {
+                    /* Keep on waiting. */
+                    ;
+                }
+                else if (SMPChannelPayload::RSP_ID_OK == status)
                 {
                     m_motors->setMaxSpeed(maxMotorSpeed);
                     
                     LOG_INFO("Press button to start line sensors calibration.");
                     m_subState = SUB_STATE_FINISHED;
+                }
+                else
+                {
+                    m_subState = SUB_STATE_ERROR;
                 }
             };
 

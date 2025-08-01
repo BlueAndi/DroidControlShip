@@ -66,16 +66,29 @@ void LineSensorsCalibrationState::entry()
 {
     LOG_INFO("Line sensors calibration state entered.");
 
+    m_isFinished = false;
+
     if (nullptr == m_serMuxChannelProvider)
     {
         m_isError = true;
     }
     else
     {
-        SerMuxChannelProvider::LineSensorCalibFunc lineSensorCalibFunc = [this]() -> void
+        SerMuxChannelProvider::LineSensorCalibFunc lineSensorCalibFunc = [this](SMPChannelPayload::RspId status) -> void
         {
-            LOG_INFO("Line sensor calibration started.");
-            this->m_timer.start(TIMEOUT_MS);
+            if (SMPChannelPayload::RSP_ID_PENDING == status)
+            {
+                LOG_INFO("Line sensor calibration started.");
+            }
+            else if (SMPChannelPayload::RSP_ID_OK == status)
+            {
+                LOG_INFO("Line sensor calibration completed.");
+                m_isFinished = true;
+            }
+            else
+            {
+                m_isError = true;
+            }
         };
 
         if (false == m_serMuxChannelProvider->requestLineSensorCalibration(lineSensorCalibFunc))
@@ -96,7 +109,7 @@ void LineSensorsCalibrationState::process(StateMachine& sm)
     {
         sm.setState(ErrorState::getInstance());
     }
-    else if (true == m_timer.isTimeout())
+    else if (true == m_isFinished)
     {
         sm.setState(ReadyState::getInstance());
     }
@@ -108,7 +121,7 @@ void LineSensorsCalibrationState::process(StateMachine& sm)
 
 void LineSensorsCalibrationState::exit()
 {
-    m_timer.stop();
+    /* Nothing to do. */
 }
 
 /******************************************************************************

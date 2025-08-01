@@ -77,22 +77,22 @@ public:
     /**
      * This type defines the callback function for handling maximum motor speed requests.
      */
-    typedef std::function<void(int16_t maxMotorSpeed)> MaxMotorSpeedFunc;
+    typedef std::function<void(SMPChannelPayload::RspId status, int16_t maxMotorSpeed)> MaxMotorSpeedFunc;
 
     /**
      * This type defines the callback function for handling line sensor calibration requests.
      */
-    typedef std::function<void(void)> LineSensorCalibFunc;
+    typedef std::function<void(SMPChannelPayload::RspId status)> LineSensorCalibFunc;
 
     /**
      * This type defines the callback function for handling motor speed calibration requests.
      */
-    typedef std::function<void(void)> MotorSpeedCalibFunc;
+    typedef std::function<void(SMPChannelPayload::RspId status)> MotorSpeedCalibFunc;
 
     /**
      * This type defines the callback function for handling board reinitialization requests.
      */
-    typedef std::function<void(void)> ReinitBoardFunc;
+    typedef std::function<void(SMPChannelPayload::RspId status)> ReinitBoardFunc;
 
     /**
      * Construct the serial multiplexer protocol channel provider.

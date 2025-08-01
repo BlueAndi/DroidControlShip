@@ -212,7 +212,7 @@ void SerMuxChannelProvider::serMuxCdRspChannelCallback(const CommandResponse* cm
 
             if (nullptr != m_maxMotorSpeedCallback)
             {
-                m_maxMotorSpeedCallback(cmdRsp->maxMotorSpeed);
+                m_maxMotorSpeedCallback(cmdRsp->responseId, cmdRsp->maxMotorSpeed);
             }
             break;
 
@@ -221,7 +221,7 @@ void SerMuxChannelProvider::serMuxCdRspChannelCallback(const CommandResponse* cm
 
             if (nullptr != m_lineSensorCalibCallback)
             {
-                m_lineSensorCalibCallback();
+                m_lineSensorCalibCallback(cmdRsp->responseId);
             }
             break;
 
@@ -230,7 +230,7 @@ void SerMuxChannelProvider::serMuxCdRspChannelCallback(const CommandResponse* cm
 
             if (nullptr != m_motorSpeedCalibCallback)
             {
-                m_motorSpeedCalibCallback();
+                m_motorSpeedCalibCallback(cmdRsp->responseId);
             }
             break;
 
@@ -239,7 +239,7 @@ void SerMuxChannelProvider::serMuxCdRspChannelCallback(const CommandResponse* cm
 
             if (nullptr != m_reinitBoardCallback)
             {
-                m_reinitBoardCallback();
+                m_reinitBoardCallback(cmdRsp->responseId);
             }
             break;
 

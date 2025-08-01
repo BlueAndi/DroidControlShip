@@ -45,7 +45,6 @@
  *****************************************************************************/
 #include <IState.h>
 #include <SerMuxChannelProvider.h>
-#include <SimpleTimer.hpp>
 
 /******************************************************************************
  * Macros
@@ -117,14 +116,14 @@ private:
     bool m_isError;
 
     /**
-     * Timer used to wait for line sensor calibration to complete.
+     * Indicates whether the line sensor calibration is finished.
      */
-    SimpleTimer m_timer;
+    bool m_isFinished;
 
     /**
      * Default constructor.
      */
-    LineSensorsCalibrationState() : m_serMuxChannelProvider(nullptr), m_isError(false), m_timer()
+    LineSensorsCalibrationState() : m_serMuxChannelProvider(nullptr), m_isError(false), m_isFinished(false)
     {
         /* Nothing to do. */
     }
