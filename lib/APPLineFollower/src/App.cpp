@@ -25,8 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  RemoteControl application
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Line follower application
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
