@@ -41,7 +41,6 @@
 #include <Logging.h>
 #include "RobotDeviceNames.h"
 
-
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -75,9 +74,9 @@ bool Board::init()
     bool isReady = true;
 
 #ifdef _WIN32
-    WORD wVersionRequested = MAKEWORD(2,2);
+    WORD    wVersionRequested = MAKEWORD(2, 2);
     WSADATA wsaData;
-    int result = WSAStartup(wVersionRequested, &wsaData);
+    int     result = WSAStartup(wVersionRequested, &wsaData);
 
     if (0 != result)
     {
@@ -133,12 +132,47 @@ Board::~Board()
 
 void Board::enableSimulationDevices()
 {
-    const int timeStep = m_simTime.getTimeStep();
+    const int         timeStep = m_simTime.getTimeStep();
+    webots::Receiver* receiver = m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL);
+    webots::GPS*      gps      = m_robot.getGPS(RobotDeviceNames::GPS_NAME);
+    webots::Compass*  compass  = m_robot.getCompass(RobotDeviceNames::COMPASS_NAME);
+    webots::Keyboard* keyboard = m_robot.getKeyboard();
 
-    m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)->enable(timeStep);
-    m_robot.getGPS(RobotDeviceNames::GPS_NAME)->enable(timeStep);
-    m_robot.getCompass(RobotDeviceNames::COMPASS_NAME)->enable(timeStep);
-    m_robot.getKeyboard()->enable(timeStep);
+    if (nullptr != receiver)
+    {
+        receiver->enable(timeStep);
+    }
+    else
+    {
+        LOG_ERROR("Receiver %s not found.", RobotDeviceNames::RECEIVER_NAME_SERIAL);
+    }
+
+    if (nullptr != gps)
+    {
+        gps->enable(timeStep);
+    }
+    else
+    {
+        LOG_ERROR("GPS %s not found.", RobotDeviceNames::GPS_NAME);
+    }
+
+    if (nullptr != compass)
+    {
+        compass->enable(timeStep);
+    }
+    else
+    {
+        LOG_ERROR("Compass %s not found.", RobotDeviceNames::COMPASS_NAME);
+    }
+
+    if (nullptr != keyboard)
+    {
+        keyboard->enable(timeStep);
+    }
+    else
+    {
+        LOG_ERROR("Keyboard not found.");
+    }
 }
 
 /******************************************************************************
