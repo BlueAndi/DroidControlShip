@@ -223,10 +223,29 @@ private:
     Sender   m_sender;   /**< The sender to send data over simulated serial. */
     Receiver m_receiver; /**< The receiver to receive data over simulated serial. */
 
-    /* Not allowed. */
+    /**
+     * Default constructor.
+     * Not allowed.
+     */
     WebotsSerialDrv();
-    WebotsSerialDrv(const WebotsSerialDrv& srv);            /**< Copy construction of an instance. */
-    WebotsSerialDrv& operator=(const WebotsSerialDrv& srv); /**< Assignment of an instance. */
+
+    /**
+     * Copy construction of an instance.
+     * Not allowed.
+     *
+     * @param[in] srv Source instance.
+     */
+    WebotsSerialDrv(const WebotsSerialDrv& srv);
+
+    /**
+     * Assignment operation.
+     * Not allowed.
+     *
+     * @param[in] srv Right hand side instance.
+     *
+     * @returns Reference to WebotsSerialDrv instance.
+     */
+    WebotsSerialDrv& operator=(const WebotsSerialDrv& srv);
 };
 
 #endif /* WEBOTS_SERIAL_DRV_H */
