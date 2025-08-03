@@ -40,6 +40,9 @@
  * Includes
  *****************************************************************************/
 #include "Stream.h"
+#include "Sender.h"
+#include "Receiver.h"
+
 #include <webots/Emitter.hpp>
 #include <webots/Receiver.hpp>
 
@@ -217,9 +220,8 @@ public:
     size_t readBytes(uint8_t* buffer, size_t length) final;
 
 private:
-    webots::Emitter*  m_emitter;     /**< The emitter used to send data. */
-    webots::Receiver* m_receiver;    /**< The receiver used to receive data. */
-    size_t            m_dataRemains; /**< Number of bytes which are remaining in head packet. */
+    Sender   m_sender;   /**< The sender to send data over simulated serial. */
+    Receiver m_receiver; /**< The receiver to receive data over simulated serial. */
 
     /**
      * Default constructor.

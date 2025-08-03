@@ -129,10 +129,10 @@ private:
     };
 
     /** Observation duration in ms. This is the max. time within the robot must be finished its drive. */
-    static const uint32_t OBSERVATION_DURATION = 3000000;
+    static const uint32_t OBSERVATION_DURATION = 3000000U;
 
     /** Period in ms for PID processing. */
-    static const uint32_t PID_PROCESS_PERIOD = 10;
+    static const uint32_t PID_PROCESS_PERIOD = 10U;
 
     /**
      * The line sensor threshold (normalized) used to detect the track.
