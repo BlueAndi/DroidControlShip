@@ -73,23 +73,11 @@ public:
     }
 
     /**
-     * Is button short pressed or not
+     * Is button pressed or released?
      *
-     * @return If button is short pressed, returns true otherwise false.
+     * @return If button is pressed, returns true otherwise false.
      */
-    bool isShortPressed() final;
-
-    /**
-     * Is button long pressed or not
-     *
-     * @return If button is long pressed, returns true otherwise false.
-     */
-    bool isLongPressed() final;
-
-    /**
-     * Wait until button is released.
-     */
-    void waitForRelease() final;
+    bool isPressed() final;
 
 private:
 };

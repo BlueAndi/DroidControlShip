@@ -58,20 +58,9 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
+bool Button::isPressed()
 {
     return m_keyboard.buttonSPressed();
-}
-
-bool Button::isLongPressed()
-{
-    /* Not implemented. */
-    return false;
-}
-
-void Button::waitForRelease()
-{
-    /* Nothing to do. */
 }
 
 /******************************************************************************

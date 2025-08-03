@@ -194,7 +194,7 @@ extern uint32_t Util::hexToUInt32(const String& str)
 bool Util::isButtonTriggered(IButton& button, bool& lastState)
 {
     bool isTriggered = false;
-    bool isPressed   = button.isShortPressed();
+    bool isPressed   = button.isPressed();
 
     if ((false == isPressed) && (true == lastState))
     {

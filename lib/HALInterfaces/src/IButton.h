@@ -65,23 +65,11 @@ public:
     }
 
     /**
-     * Is button short pressed or not
+     * Is button pressed or released?
      *
-     * @return If button is short pressed, returns true otherwise false.
+     * @return If button is pressed, returns true otherwise false.
      */
-    virtual bool isShortPressed() = 0;
-
-    /**
-     * Is button long pressed or not
-     *
-     * @return If button is long pressed, returns true otherwise false.
-     */
-    virtual bool isLongPressed() = 0;
-
-    /**
-     * Wait until button is released.
-     */
-    virtual void waitForRelease() = 0;
+    virtual bool isPressed() = 0;
 
 protected:
     /**

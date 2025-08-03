@@ -60,20 +60,9 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isShortPressed()
+bool Button::isPressed()
 {
     return (BUTTON_STATE_PRESSED == ButtonDrv::getInstance().getState(BUTTON_ID_OK));
-}
-
-bool Button::isLongPressed()
-{
-    /* Not implemented. */
-    return false;
-}
-
-void Button::waitForRelease()
-{
-    /* Nothing to do. */
 }
 
 /******************************************************************************
