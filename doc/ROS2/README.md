@@ -50,14 +50,14 @@ Key features of micro-ROS include:
 
 - [Small Footprint](https://micro.ros.org/docs/concepts/benchmarking/memo_prof/): Optimized for microcontrollers with limited resources.
 - [Real-Time Capabilities](https://micro.ros.org/docs/concepts/rtos/): Supports real-time operation on microcontrollers.
-- [ROS 2 Compatibility](https://micro.ros.org/docs/overview/ROS_2_feature_comparison/): Fully compatible with ROS 2, allowing seamless integration with larger ROS 2 systems. See 
+- [ROS 2 Compatibility](https://micro.ros.org/docs/overview/ROS_2_feature_comparison/): Fully compatible with ROS 2, allowing seamless integration with larger ROS 2 systems. See
 - [Cross-Platform](https://micro.ros.org/docs/overview/hardware/): Supports a variety of microcontroller platforms and RTOS (Real-Time Operating Systems).
 
 ## External micro-ROS build system
 
 micro-ROS supports a variety of external build system beyond the micro_ros_setup tool such as PlatformIO [micro_ros_platformio](https://github.com/micro-ROS/micro_ros_platformio/). The following component diagram depi
 
-![uros_ws](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/feature/ROS2/doc/ROS2/uml/micro-ros_build_system.puml)
+![uros_ws](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/main/doc/ROS2/uml/micro-ros_build_system.puml)
 
 ## ROS 2 in DCS
 
@@ -67,7 +67,7 @@ This section describes the integration of micro-ROS in the existing workspace, e
 
 The following diagram illustrates the component deployment of micro-ROS in the DroidControlSystem.
 
-![turtle_sim](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/feature/ROS2/doc/ROS2/uml/turtle_sim.plantuml)
+![turtle_sim](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/main/doc/ROS2/uml/turtle_sim.plantuml)
 
 ## Installation Steps
 
