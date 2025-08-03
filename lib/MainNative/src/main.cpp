@@ -125,10 +125,10 @@ static const char PRG_ARG_MQTT_ADDR_DEFAULT[] = "localhost";
 static const char PRG_ARG_MQTT_PORT_DEFAULT[] = "1883";
 
 /** Program argument default value of the serial rx channel. */
-static const char PRG_ARG_SERIAL_RX_CH_DEFAULT[] = "2";
+static const char PRG_ARG_SERIAL_RX_CH_DEFAULT[] = "4";
 
 /** Program argument default value of the serial tx channel. */
-static const char PRG_ARG_SERIAL_TX_CH_DEFAULT[] = "1";
+static const char PRG_ARG_SERIAL_TX_CH_DEFAULT[] = "3";
 
 /** Program argument default value of the configuration file. */
 static const char PRG_ARG_CFG_FILE_DEFAULT[] = "./data/config/config.json";
