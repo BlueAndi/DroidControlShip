@@ -8,3 +8,5 @@ lib/Webots
 webots/worlds/*.wbproj
 webots/worlds/*.jpg
 doc/doxygen/*/*
+lib/libmicroros
+platformio_override.ini

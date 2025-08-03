@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -76,12 +76,6 @@ const char* V2VCommManager::TOPIC_NAME_IVS = "ivs";
 
 /* MQTT subtopic name for Platoon Length. */
 const char* V2VCommManager::TOPIC_NAME_PLATOON_LENGTH = "length";
-
-/** Buffer size for JSON serialization of heartbeat messages. */
-static const uint32_t JSON_HEARTBEAT_MAX_SIZE = 128U;
-
-/** Default size of the JSON Document for parsing. */
-static const uint32_t JSON_DOC_DEFAULT_SIZE = 512U;
 
 /******************************************************************************
  * Public Methods
@@ -302,8 +296,8 @@ bool V2VCommManager::sendIVS(const int32_t ivs) const
     V2VEventType type         = V2V_EVENT_IVS;
 
     /* Create JSON document. */
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    String                                    payload;
+    JsonDocument jsonPayload;
+    String       payload;
 
     jsonPayload["ivs"] = ivs;
 
@@ -375,8 +369,8 @@ int32_t V2VCommManager::getPlatoonLength() const
 void V2VCommManager::eventCallback(const String& payload)
 {
     /* Deserialize payload. */
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    DeserializationError                      error = deserializeJson(jsonPayload, payload.c_str());
+    JsonDocument         jsonPayload;
+    DeserializationError error = deserializeJson(jsonPayload, payload.c_str());
 
     if (DeserializationError::Ok != error)
     {
@@ -384,20 +378,20 @@ void V2VCommManager::eventCallback(const String& payload)
     }
     else
     {
-        JsonVariant jsonEventVehicleId = jsonPayload["id"];        /* Vehicle ID. */
-        JsonVariant jsonEventType      = jsonPayload["type"];      /* Event type. */
-        JsonVariant jsonEventTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
-        JsonVariant jsonEventData      = jsonPayload["data"];      /* Event data. */
+        JsonVariantConst jsonEventVehicleId = jsonPayload["id"];        /* Vehicle ID. */
+        JsonVariantConst jsonEventType      = jsonPayload["type"];      /* Event type. */
+        JsonVariantConst jsonEventTimestamp = jsonPayload["timestamp"]; /* Timestamp [ms]. */
+        JsonVariantConst jsonEventData      = jsonPayload["data"];      /* Event data. */
 
         if ((false == jsonEventVehicleId.isNull()) && (false == jsonEventType.isNull()) &&
             (false == jsonEventTimestamp.isNull()) && (false == jsonEventData.isNull()))
         {
-            bool         pushEventToQueue = false;
-            uint8_t      eventVehicleId   = jsonEventVehicleId.as<uint8_t>();
-            V2VEventType eventType        = jsonEventType.as<V2VEventType>();
-            uint32_t     eventTimestamp   = jsonEventTimestamp.as<uint32_t>();
-            JsonObject   eventDataAsJson  = jsonEventData.as<JsonObject>();
-            void*        eventData        = nullptr;
+            bool            pushEventToQueue = false;
+            uint8_t         eventVehicleId   = jsonEventVehicleId.as<uint8_t>();
+            V2VEventType    eventType        = jsonEventType.as<V2VEventType>();
+            uint32_t        eventTimestamp   = jsonEventTimestamp.as<uint32_t>();
+            JsonObjectConst eventDataAsJson  = jsonEventData.as<JsonObjectConst>();
+            void*           eventData        = nullptr;
 
             switch (eventType)
             {
@@ -446,8 +440,8 @@ void V2VCommManager::eventCallback(const String& payload)
                 }
                 else
                 {
-                    JsonVariant jsonEventDataStatus    = eventDataAsJson["status"];    /* Vehicle status. */
-                    JsonVariant jsonEventDataTimestamp = eventDataAsJson["timestamp"]; /* Timestamp [ms]. */
+                    JsonVariantConst jsonEventDataStatus    = eventDataAsJson["status"];    /* Vehicle status. */
+                    JsonVariantConst jsonEventDataTimestamp = eventDataAsJson["timestamp"]; /* Timestamp [ms]. */
 
                     if ((false == jsonEventDataStatus.isNull()) && (false == jsonEventDataTimestamp.isNull()))
                     {
@@ -466,18 +460,19 @@ void V2VCommManager::eventCallback(const String& payload)
             case V2V_EVENT_PLATOON_HEARTBEAT:
                 if (PLATOON_LEADER_ID != m_vehicleId)
                 {
-                    JsonVariant jsonEventDataTimestamp = eventDataAsJson["timestamp"]; /* Timestamp [ms]. */
+                    JsonVariantConst jsonEventDataTimestamp = eventDataAsJson["timestamp"]; /* Timestamp [ms]. */
 
                     if (false == jsonEventDataTimestamp.isNull())
                     {
                         /* Timestamp is sent back to acknowledge synchronization. */
-                        uint32_t eventDataTimestamp = jsonEventDataTimestamp.as<uint32_t>();
-                        StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
-                        heartbeatDoc["timestamp"] = eventDataTimestamp;
-                        heartbeatDoc["status"]    = m_vehicleStatus;
+                        uint32_t     eventDataTimestamp = jsonEventDataTimestamp.as<uint32_t>();
+                        JsonDocument jsonHeartbeatDoc;
+
+                        jsonHeartbeatDoc["timestamp"] = eventDataTimestamp;
+                        jsonHeartbeatDoc["status"]    = m_vehicleStatus;
 
                         if (false == publishEvent(m_heartbeatResponseTopic, V2V_EVENT_VEHICLE_HEARTBEAT,
-                                                  heartbeatDoc.as<JsonObject>()))
+                                                  jsonHeartbeatDoc.as<JsonObject>()))
                         {
                             LOG_ERROR("Failed to publish MQTT message to %s.", m_heartbeatResponseTopic.c_str());
                         }
@@ -500,7 +495,7 @@ void V2VCommManager::eventCallback(const String& payload)
                 }
                 else
                 {
-                    JsonVariant jsonEventDataIVS = eventDataAsJson["ivs"]; /* Inter Vehicle Space. */
+                    JsonVariantConst jsonEventDataIVS = eventDataAsJson["ivs"]; /* Inter Vehicle Space. */
 
                     if (false == jsonEventDataIVS.isNull())
                     {
@@ -729,13 +724,13 @@ bool V2VCommManager::sendPlatoonHeartbeat()
     bool isSuccessful = false;
 
     /* Send platoon heartbeat. */
-    StaticJsonDocument<JSON_HEARTBEAT_MAX_SIZE> heartbeatDoc;
-    String                                      heartbeatPayload;
-    uint32_t                                    timestamp = millis();
+    JsonDocument jsonHeartbeatDoc;
+    String       heartbeatPayload;
+    uint32_t     timestamp = millis();
 
-    heartbeatDoc["timestamp"] = timestamp;
+    jsonHeartbeatDoc["timestamp"] = timestamp;
 
-    if (0U == serializeJson(heartbeatDoc, heartbeatPayload))
+    if (0U == serializeJson(jsonHeartbeatDoc, heartbeatPayload))
     {
         LOG_ERROR("Failed to serialize heartbeat.");
     }
@@ -762,8 +757,8 @@ bool V2VCommManager::publishEvent(const String& topic, V2VEventType type, const 
     bool isSuccessful = false;
 
     /* Create JSON document. */
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    String                                    payload;
+    JsonDocument jsonPayload;
+    String       payload;
 
     jsonPayload["id"]        = m_vehicleId;
     jsonPayload["type"]      = type;
@@ -844,8 +839,8 @@ bool V2VCommManager::sendPlatoonLength(const int32_t length) const
     V2VEventType type         = V2V_EVENT_IVS;
 
     /* Create JSON document. */
-    StaticJsonDocument<JSON_DOC_DEFAULT_SIZE> jsonPayload;
-    String                                    payload;
+    JsonDocument jsonPayload;
+    String       payload;
 
     jsonPayload["length"] = length;
 

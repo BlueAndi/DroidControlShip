@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -92,10 +92,8 @@ public:
 
     /**
      * Process board components.
-     *
-     * @returns If all components are processed correctly, returns true. Otherwise, false
      */
-    bool process() final;
+    void process() final;
 
     /**
      * Get battery driver.
@@ -168,6 +166,15 @@ public:
     }
 
     /**
+     * Trigger simulation time step (wrapper for SimTime::step)
+     * @return True if step was successful, false otherwise.
+     */
+    bool stepTime()
+    {
+        return m_simTime.step();
+    }
+
+    /**
      * Get the file path of the configuration (settings).
      *
      * @return Configuration file path
@@ -196,6 +203,9 @@ private:
 
     /** Serial driver to communicate with the host robot, DCS is connected to. */
     WebotsSerialDrv m_serialDrv;
+
+    /** Own keyboard that wraps the webots keyboard. */
+    Keyboard m_keyboard;
 
     /** Battery driver */
     Battery m_battery;
@@ -232,9 +242,7 @@ private:
     /**
      * Destroys the concrete board.
      */
-    virtual ~Board()
-    {
-    }
+    virtual ~Board();
 
     /**
      * Set the file path of the configuration (settings).

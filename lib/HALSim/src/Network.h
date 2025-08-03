@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -76,10 +76,8 @@ public:
 
     /**
      * Process network tasks according to current state.
-     *
-     * @returns True if tasks successful, otherwise false.
      */
-    bool process() final;
+    void process() final;
 
     /**
      * Set network configuration.
@@ -99,9 +97,9 @@ public:
     /**
      * Get the IP address.
      *
-     * @return IP address if available, otherwise an empty string.
+     * @return IP address if available, otherwise IPAddr(), which is 0.0.0.0.
      */
-    String getIp() const final;
+    IPAddress getIp() const final;
 
 private:
     /** Network Service States. */
@@ -124,45 +122,33 @@ private:
 
     /**
      * Setup network connection
-     *
-     * @return True if connection establishment successful, otherwise false.
      */
-    bool handleStationSetup();
+    void handleStationSetup();
 
     /**
      * Check if the connection was established and change state if so.
-     *
-     * @return True.
      */
-    bool handleConnectingState();
+    void handleConnectingState();
 
     /**
      * Handle connection specific tasks.
-     *
-     * @return If connection management successful, returns true. Otherwise, false.
      */
-    virtual bool manageConnection();
+    void manageConnection();
 
     /**
      * Switch WiFi to Access Point Mode.
-     *
-     * @return True.
      */
-    bool switchToAPMode();
+    void switchToAPMode();
 
     /**
      * Setup WiFi Access Point.
-     *
-     * @return If AP setup successful, returns true. Otherwise, false.
      */
-    bool handleAPSetup();
+    void handleAPSetup();
 
     /**
      * Handle Access Point Management.
-     *
-     * @returns True.
      */
-    bool handleAPState();
+    void handleAPState();
 };
 
 /******************************************************************************

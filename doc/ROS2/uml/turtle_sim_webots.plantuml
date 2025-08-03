@@ -1,0 +1,104 @@
+@startuml TurtleSim for DCS
+
+node "PC" as pc {
+  
+    package "Webots" {
+        component "World-file"  <<world>> as world
+        component "WebotsSim"  <<executable>> as wbsim
+        component "Zumo"  <<proto>> as wbZumo
+        component "ZumoComSystem"  <<proto>> as wbDcs
+        component "ROS2SupervisorProto" <<proto>> as WbRos2Proto
+
+        wbsim ..> world
+        wbsim ..> wbZumo
+        wbsim ..> wbDcs
+        wbsim ..> WbRos2Proto
+    }
+       
+    note bottom of Webots
+                Standard Zumo World Setup
+    end note
+
+    package "ROS2" {
+        cloud "ROS2 Logical Network" as ros2LogicalNetwork
+
+        node "teleop_turtle" <<executable>> as teleopTurtle {
+            component "/teleop_turtle" <<ros2-node>> as teleop_turtle_node
+        }
+        node "DCS" <<executable>> as dcs {
+            Package "AppTurtle" <<app>> as turtleApp #YellowGreen {
+
+                component "libController" <<lib>>
+                component "MicroRosClient" <<lib>>
+
+            }
+            component "/dcs_zumo" <<ros2-node>> as dcs_zumo_node #YellowGreen{
+
+            }
+            component "/dcs" <<ros2-node>> as dcs_node  {
+
+            }
+        }
+
+        node "Ros2SuperVisor" <<executable>> as wbSuperVisorApp {
+            component "/Ros2SuperVisor/Ros2SuperVisor" <<ros2-node>> as wb_ros2_supervisor
+        }
+
+        node "micro-ROS\nAgent" <<executable>> as agent {
+
+        }
+
+        turtleApp .u.> dcs_node
+        turtleApp .u.> dcs_zumo_node
+
+        teleop_turtle_node ---> dcs_zumo_node : Twist-Messages
+
+        agent -u-> ros2LogicalNetwork
+        dcs <-> agent : \n\nXRCE Protocol over UDP
+
+        note bottom of dcs_node
+            Not used for turtle sim
+            Only shown as example for
+            cs specific node.
+            Could be GPS, leds ...
+        end note
+
+        note right of turtleApp
+            Translate between ROS2 messaging and
+            RemoteControl SerMux
+        end note
+
+        note left of dcs
+            DCS is a ROS2 package
+            that acts as a webots controller.
+        end note
+
+        note bottom of wb_ros2_supervisor
+            Simulation time through /clock topic.
+            May not be required.
+        end note
+    }
+
+    Package "RadonUlzer" {
+        component "RemoteControl" <<app>> as RuRcApp {
+
+        }
+    }
+
+    interface PortOrPipe 
+    note left of PortOrPipe
+        Webots Controller API Messages
+        TcpIp Port or Pipe
+    end note
+
+    cloud "ROS2 Logical Network" as ros2LogicalNetwork
+
+    wbsim -u-() PortOrPipe
+    turtleApp --( PortOrPipe : To ZumoComSystem Proto
+
+    turtleApp <-> RuRcApp : SerMux Protocol
+    RuRcApp --( PortOrPipe : To Zumo Proto
+
+    WbRos2Proto ---- wb_ros2_supervisor
+
+@enduml

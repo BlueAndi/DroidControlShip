@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -189,6 +189,21 @@ extern uint32_t Util::hexToUInt32(const String& str)
     }
 
     return value;
+}
+
+bool Util::isButtonTriggered(IButton& button, bool& lastState)
+{
+    bool isTriggered = false;
+    bool isPressed   = button.isShortPressed();
+
+    if ((false == isPressed) && (true == lastState))
+    {
+        isTriggered = true;
+    }
+
+    lastState = isPressed;
+
+    return isTriggered;
 }
 
 /******************************************************************************

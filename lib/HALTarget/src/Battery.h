@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -93,7 +93,7 @@ private:
     static const uint32_t REFERENCE_VOLTAGE = 3300U;  /**< Reference voltage of the ADCs in millivolts*/
     static const uint32_t CONVERSION_FACTOR = 10000U; /**< Conversion factor from measured to real battery voltage. */
 
-    MovAvg<uint32_t, 2> m_voltMovAvg; /**< The moving average of the measured voltage over 2 calling cycles. */
+    MovAvg<uint32_t, uint32_t, 2U> m_voltMovAvg; /**< The moving average of the measured voltage over 2 calling cycles. */
 };
 
 /******************************************************************************

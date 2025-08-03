@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,8 +40,11 @@
  * Includes
  *****************************************************************************/
 #include "Stream.h"
-#include <webots/emitter.hpp>
-#include <webots/receiver.hpp>
+#include "Sender.h"
+#include "Receiver.h"
+
+#include <webots/Emitter.hpp>
+#include <webots/Receiver.hpp>
 
 /******************************************************************************
  * Macros
@@ -217,9 +220,8 @@ public:
     size_t readBytes(uint8_t* buffer, size_t length) final;
 
 private:
-    webots::Emitter*  m_emitter;     /**< The emitter used to send data. */
-    webots::Receiver* m_receiver;    /**< The receiver used to receive data. */
-    size_t            m_dataRemains; /**< Number of bytes which are remaining in head packet. */
+    Sender   m_sender;   /**< The sender to send data over simulated serial. */
+    Receiver m_receiver; /**< The receiver to receive data over simulated serial. */
 
     /**
      * Default constructor.

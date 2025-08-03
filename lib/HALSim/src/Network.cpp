@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -83,47 +83,42 @@ bool Network::init()
     return isSuccess;
 }
 
-bool Network::process()
+void Network::process()
 {
-    bool isSuccess = false;
-
     switch (m_state)
     {
     case STATE_UNINITIALIZED:
         /* Nothing to do. */
-        isSuccess = true;
         break;
 
     case STATE_SETUP:
-        isSuccess = handleStationSetup();
+        handleStationSetup();
         break;
 
     case STATE_CONNECTING:
-        isSuccess = handleConnectingState();
+        handleConnectingState();
         break;
 
     case STATE_CONNECTED:
-        isSuccess = manageConnection();
+        manageConnection();
         break;
 
     case STATE_DISCONNECTED:
-        isSuccess = switchToAPMode();
+        switchToAPMode();
         break;
 
     case STATE_AP_SETUP:
-        isSuccess = handleAPSetup();
+        handleAPSetup();
         break;
 
     case STATE_AP_UP:
-        isSuccess = handleAPState();
+        handleAPState();
         break;
 
     default:
         /* Should never be called - defensive code. */
         break;
     }
-
-    return isSuccess;
 }
 
 bool Network::setConfig(const NetworkSettings& settings)
@@ -139,10 +134,10 @@ bool Network::isUp() const
     return true;
 }
 
-String Network::getIp() const
+IPAddress Network::getIp() const
 {
     /* Simulation uses localhost IP. */
-    return "127.0.0.1";
+    return IPAddress(127, 0, 0, 1);
 }
 
 /******************************************************************************
@@ -153,47 +148,40 @@ String Network::getIp() const
  * Private Methods
  *****************************************************************************/
 
-bool Network::handleStationSetup()
+void Network::handleStationSetup()
 {
     if (true == m_configSet)
     {
         m_state = STATE_CONNECTING;
     }
-
-    return (STATE_CONNECTING == m_state);
 }
 
-bool Network::handleConnectingState()
+void Network::handleConnectingState()
 {
     /* Act like a connection was successfully established in simulation. */
     m_state = STATE_CONNECTED;
-    return true;
 }
 
-bool Network::manageConnection()
+void Network::manageConnection()
 {
     /* Do nothing in simulation. */
-    return (STATE_CONNECTED == m_state);
 }
 
-bool Network::switchToAPMode()
+void Network::switchToAPMode()
 {
     /* Don't need to handle AP mode in simulation. */
     m_state = STATE_AP_SETUP;
-    return true;
 }
 
-bool Network::handleAPSetup()
+void Network::handleAPSetup()
 {
     /* Don't need to handle AP mode in simulation. */
     m_state = STATE_AP_UP;
-    return true;
 }
 
-bool Network::handleAPState()
+void Network::handleAPState()
 {
     /* Don't need to handle AP mode in simulation. */
-    return true;
 }
 
 /******************************************************************************

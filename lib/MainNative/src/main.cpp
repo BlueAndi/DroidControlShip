@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,11 +33,12 @@
  * Includes
  *****************************************************************************/
 
+#include <unistd.h>
 #include <Arduino.h>
 #include <Terminal.h>
 #include <Board.h>
 #include <getopt.h>
-#include <direct.h>
+#include <sys/stat.h>
 #include <ArduinoJson.h>
 #include <ConfigurationKeys.h>
 
@@ -82,6 +83,7 @@ static int           makeDirRecursively(const char* path);
 static void          extractDirectoryPath(const char* filePath, char* buffer, size_t bufferSize);
 static unsigned long getSystemTick();
 static void          systemDelay(unsigned long ms);
+static inline bool   createDir(const char* path);
 
 /******************************************************************************
  * Local Variables
@@ -110,6 +112,7 @@ static const struct option LONG_OPTIONS[] = {{"help", no_argument, nullptr, 0},
                                              {"xPosition", required_argument, nullptr, 0},
                                              {"yPosition", required_argument, nullptr, 0},
                                              {"heading", required_argument, nullptr, 0},
+                                             {"cwd", required_argument, nullptr, 0},
                                              {nullptr, no_argument, nullptr, 0}}; /* Marks the end. */
 
 /** Program argument default value of the robot name. */
@@ -122,10 +125,10 @@ static const char PRG_ARG_MQTT_ADDR_DEFAULT[] = "localhost";
 static const char PRG_ARG_MQTT_PORT_DEFAULT[] = "1883";
 
 /** Program argument default value of the serial rx channel. */
-static const char PRG_ARG_SERIAL_RX_CH_DEFAULT[] = "2";
+static const char PRG_ARG_SERIAL_RX_CH_DEFAULT[] = "4";
 
 /** Program argument default value of the serial tx channel. */
-static const char PRG_ARG_SERIAL_TX_CH_DEFAULT[] = "1";
+static const char PRG_ARG_SERIAL_TX_CH_DEFAULT[] = "3";
 
 /** Program argument default value of the configuration file. */
 static const char PRG_ARG_CFG_FILE_DEFAULT[] = "./data/config/config.json";
@@ -376,6 +379,10 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             {
                 prgArguments.heading = optarg;
             }
+            else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "cwd"))
+            {
+                chdir(optarg);
+            }
             else
             {
                 status = -1;
@@ -432,6 +439,7 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
         printf(" Default: %s\n", PRG_ARG_Y_POS);                             /* Initial Y position default value */
         printf("\t--heading <HEADING>\t\tSet initial heading in mrad.");     /* Initial heading in mrad */
         printf(" Default: %s\n", PRG_ARG_HEADING);                           /* Initial heading default value */
+        printf("\t--cwd <dir>\t\tSpecify working directory.");               /* Set process working directory */
     }
 
     return status;
@@ -519,8 +527,7 @@ static int createConfigFile(const PrgArguments& prgArgs)
             }
             else
             {
-                const size_t        JSON_DOC_SIZE = 2048U;
-                DynamicJsonDocument jsonDoc(JSON_DOC_SIZE);
+                JsonDocument jsonDoc;
 
                 jsonDoc[ConfigurationKeys::ROBOT_NAME]                             = prgArgs.robotName;
                 jsonDoc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID]          = WIFI_SSID_DEFAULT;
@@ -583,7 +590,7 @@ static int makeDirRecursively(const char* path)
                 /* Temporarily truncate the string. */
                 dir[idx] = '\0';
 
-                if ((_mkdir(dir) != 0) && (errno != EEXIST))
+                if ((false == createDir(dir)) && (errno != EEXIST))
                 {
                     printf("Failed to create directory: %s\n", dir);
                     retVal = -1;
@@ -600,7 +607,7 @@ static int makeDirRecursively(const char* path)
 
         if (0 == retVal)
         {
-            if ((_mkdir(dir) != 0) && (errno != EEXIST))
+            if ((false == createDir(dir)) && (errno != EEXIST))
             {
                 printf("Failed to create directory: %s\n", dir);
                 retVal = -1;
@@ -674,4 +681,24 @@ static void systemDelay(unsigned long ms)
             break;
         }
     }
+}
+
+/**
+ * Create a directory.
+ *
+ * @param[in] path  Path of the directory.
+ *
+ * @return If successful, it will return true otherwise false.
+ */
+static inline bool createDir(const char* path)
+{
+    int retval = -1;
+
+#ifdef _WIN32
+    retval = mkdir(path); /**< Make new directory in Windows OS. Does not accept permissions argument. */
+#else
+    retval = mkdir(path, 0755); /**< Make new directory in Linux OS. Uses 0755 as default permissions. */
+#endif
+
+    return (0 == retval);
 }

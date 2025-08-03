@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,7 @@
 #include <stdint.h>
 #include <WString.h>
 #include <cerrno>
+#include <IButton.h>
 
 /******************************************************************************
  * Macros
@@ -131,7 +132,18 @@ namespace Util
      */
     extern uint32_t hexToUInt32(const String& str);
 
-} // namespace Util
+    /**
+     * Is button triggered?
+     * Triggered means a pressed/released change.
+     *
+     * @param[in]       button      The button.
+     * @param[inout]    lastState   The last button state.
+     *
+     * @return If button is triggered, it will return true otherwise false.
+     */
+    bool isButtonTriggered(IButton& button, bool& lastState);
+
+} /* namespace Util */
 
 /******************************************************************************
  * Functions

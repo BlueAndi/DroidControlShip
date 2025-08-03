@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,7 +71,7 @@ public:
     /**
      * Destroys the robot adapter.
      */
-    virtual ~Robot()
+    ~Robot() final
     {
     }
 
@@ -84,10 +84,8 @@ public:
 
     /**
      * Process communication with the robot.
-     *
-     * @return If communication is successful, returns true. Otherwise, false.
      */
-    bool process() final;
+    void process() final;
 
     /**
      * Get comunication stream.

@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,11 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#endif
+
 #include "Board.h"
 #include <Logging.h>
 #include "RobotDeviceNames.h"
@@ -68,27 +73,27 @@ bool Board::init()
 {
     bool isReady = true;
 
+#ifdef _WIN32
+    WORD    wVersionRequested = MAKEWORD(2, 2);
+    WSADATA wsaData;
+    int     result = WSAStartup(wVersionRequested, &wsaData);
+
+    if (0 != result)
+    {
+        LOG_FATAL("WSAStartup error %d", result);
+        isReady = false;
+    }
+#endif
+
     /* Nothing to do. */
 
     return isReady;
 }
 
-bool Board::process()
+void Board::process()
 {
-    bool isSuccess = false;
-
-    if (false == m_network.process())
-    {
-        /* Log Network error */
-        LOG_ERROR("Network process failed.");
-    }
-    else
-    {
-        /* No Errors */
-        isSuccess = true;
-    }
-
-    return isSuccess;
+    m_network.process();
+    m_keyboard.getPressedButtons();
 }
 
 /******************************************************************************
@@ -105,8 +110,9 @@ Board::Board() :
     m_simTime(m_robot),
     m_serialDrv(m_robot.getEmitter(RobotDeviceNames::EMITTER_NAME_SERIAL),
                 m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)),
+    m_keyboard(m_simTime, m_robot.getKeyboard()),
     m_battery(),
-    m_button(),
+    m_button(m_keyboard),
     m_ledBlue(),
     m_ledGreen(),
     m_ledRed(),
@@ -117,13 +123,56 @@ Board::Board() :
 {
 }
 
+Board::~Board()
+{
+#ifdef _WIN32
+    WSACleanup();
+#endif
+}
+
 void Board::enableSimulationDevices()
 {
-    const int timeStep = m_simTime.getTimeStep();
+    const int         timeStep = m_simTime.getTimeStep();
+    webots::Receiver* receiver = m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL);
+    webots::GPS*      gps      = m_robot.getGPS(RobotDeviceNames::GPS_NAME);
+    webots::Compass*  compass  = m_robot.getCompass(RobotDeviceNames::COMPASS_NAME);
+    webots::Keyboard* keyboard = m_robot.getKeyboard();
 
-    m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)->enable(timeStep);
-    m_robot.getGPS(RobotDeviceNames::GPS_NAME)->enable(timeStep);
-    m_robot.getCompass(RobotDeviceNames::COMPASS_NAME)->enable(timeStep);
+    if (nullptr != receiver)
+    {
+        receiver->enable(timeStep);
+    }
+    else
+    {
+        LOG_ERROR("Receiver %s not found.", RobotDeviceNames::RECEIVER_NAME_SERIAL);
+    }
+
+    if (nullptr != gps)
+    {
+        gps->enable(timeStep);
+    }
+    else
+    {
+        LOG_ERROR("GPS %s not found.", RobotDeviceNames::GPS_NAME);
+    }
+
+    if (nullptr != compass)
+    {
+        compass->enable(timeStep);
+    }
+    else
+    {
+        LOG_ERROR("Compass %s not found.", RobotDeviceNames::COMPASS_NAME);
+    }
+
+    if (nullptr != keyboard)
+    {
+        keyboard->enable(timeStep);
+    }
+    else
+    {
+        LOG_ERROR("Keyboard not found.");
+    }
 }
 
 /******************************************************************************

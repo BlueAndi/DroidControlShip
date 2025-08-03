@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,7 +68,7 @@ public:
      */
     CollisionAvoidance(Telemetry::Range closestProximityRangeValue, Telemetry::Range rangeThreshold) :
         m_closestProximityRangeValue(closestProximityRangeValue),
-        m_rangeThreshold(rangeThreshold){};
+        m_rangeThreshold(rangeThreshold) {};
 
     /**
      * Default Destructor.
@@ -80,10 +80,10 @@ public:
     /**
      * Limit the speed of the vehicle to avoid collision.
      *
-     * @param[out] speedSetpoint The speed setpoint to be limited in steps/s.
+     * @param[out] speedSetpoint The speed setpoint to be limited in mm/s.
      * @param[in] vehicleData The vehicle data structure.
      */
-    void limitSpeedToAvoidCollision(int16_t& speedSetpoint, const Telemetry& vehicleData) const
+    void limitSpeedToAvoidCollision(int32_t& speedSetpoint, const Telemetry& vehicleData) const
     {
         /* Is vehicle is closer than the threshold? */
         if (vehicleData.proximity >= m_rangeThreshold)
@@ -96,11 +96,11 @@ public:
     /**
      * Limit the speed of the vehicle to avoid collision.
      *
-     * @param[out] leftSpeedSetpoint The left motor speed setpoint to be limited in steps/s.
-     * @param[out] rightSpeedSetpoint The right motor speed setpoint to be limited in steps/s.
+     * @param[out] leftSpeedSetpoint The left motor speed setpoint to be limited in mm/s.
+     * @param[out] rightSpeedSetpoint The right motor speed setpoint to be limited in mm/s.
      * @param[in] vehicleData The vehicle data structure.
      */
-    void limitSpeedToAvoidCollision(int16_t& leftSpeedSetpoint, int16_t& rightSpeedSetpoint,
+    void limitSpeedToAvoidCollision(int32_t& leftSpeedSetpoint, int32_t& rightSpeedSetpoint,
                                     const Telemetry& vehicleData) const
     {
         /* Is vehicle is closer than the threshold? */

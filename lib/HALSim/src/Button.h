@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,7 @@
  * Includes
  *****************************************************************************/
 #include "IButton.h"
+#include "Keyboard.h"
 
 /******************************************************************************
  * Macros
@@ -59,8 +60,10 @@ class Button : public IButton
 public:
     /**
      * Constructs the button adapter.
+     *
+     * @param[in] keyboard The keyboard to use for button simulation.
      */
-    Button() : IButton()
+    Button(Keyboard& keyboard) : IButton(), m_keyboard(keyboard)
     {
     }
 
@@ -91,6 +94,7 @@ public:
     void waitForRelease() final;
 
 private:
+    Keyboard& m_keyboard; /**< Robot keyboard */
 };
 
 /******************************************************************************

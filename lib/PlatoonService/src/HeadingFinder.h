@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,8 +70,8 @@ public:
         int32_t currentXPos;       /**< Current X position [mm]. */
         int32_t currentYPos;       /**< Current Y position[mm]. */
         int32_t currentHeading;    /**< Current heading [mrad]. */
-        int16_t currentSpeedLeft;  /**< Current speed of the left motor [steps/s]. */
-        int16_t currentSpeedRight; /**< Current speed of the right motor [steps/s]. */
+        int32_t currentSpeedLeft;  /**< Current speed of the left motor [mm/s]. */
+        int32_t currentSpeedRight; /**< Current speed of the right motor [mm/s]. */
         int32_t targetXPos;        /**< Target X position[mm]. */
         int32_t targetYPos;        /**< Target Y position[mm]. */
         int32_t targetHeading;     /**< Target heading [mrad]. */
@@ -98,13 +98,13 @@ public:
 
     /**
      * Process the Heading finder and calculate the target speed for the motors.
-     * @param[out] targetSpeedLeft Target speed of the left motor [steps/s].
-     * @param[out] targetSpeedRight Target speed of the right motor [steps/s].
+     * @param[out] targetSpeedLeft Target speed of the left motor [mm/s].
+     * @param[out] targetSpeedRight Target speed of the right motor [mm/s].
      *
-     * @return the delta speed [steps/s] calculated by the PID controller, if available.
+     * @return the delta speed [mm/s] calculated by the PID controller, if available.
      *        Otherwise 0.
      */
-    int16_t process(int16_t& targetSpeedLeft, int16_t& targetSpeedRight);
+    int32_t process(int32_t& targetSpeedLeft, int32_t& targetSpeedRight);
 
     /**
      * Set lastest odometry data.
@@ -116,10 +116,10 @@ public:
 
     /**
      * Set latest motor speed data.
-     * @param[in] speedLeft Speed of the left motor [steps/s].
-     * @param[in] speedRight Speed of the right motor [steps/s].
+     * @param[in] speedLeft Speed of the left motor [mm/s].
+     * @param[in] speedRight Speed of the right motor [mm/s].
      */
-    void setMotorSpeedData(int16_t speedLeft, int16_t speedRight);
+    void setMotorSpeedData(int32_t speedLeft, int32_t speedRight);
 
     /**
      * Set the target heading the robot shall face to using its x and y coordinates.
@@ -139,8 +139,8 @@ private:
     /** Period in ms for PID processing. */
     static const uint32_t PID_PROCESS_PERIOD = 40U;
 
-    /** Maximum motor speed in encoder steps/s */
-    static const int16_t MAX_MOTOR_SPEED = 3000;
+    /** Maximum motor speed in mm/s */
+    static const int32_t MAX_MOTOR_SPEED = 373;
 
     /** The PID proportional factor numerator for the heading controller. */
     static const int32_t PID_P_NUMERATOR = 4;

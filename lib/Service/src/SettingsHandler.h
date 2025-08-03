@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,6 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
 #include <WString.h>
 #include <stdint.h>
 #include <FileHandler.h>
@@ -150,9 +149,9 @@ public:
     }
 
     /**
-     * Get MQTT Broker IP/HOST.
+     * Get MQTT broker IP/HOST.
      *
-     * @returns MQTT Broker IP/HOST.
+     * @returns MQTT broker IP/HOST.
      */
     const String& getMqttBrokerAddress()
     {
@@ -160,9 +159,9 @@ public:
     }
 
     /**
-     * Get MQTT Broker Port.
+     * Get MQTT broker port.
      *
-     * @returns MQTT Broker Port.
+     * @returns MQTT broker port.
      */
     uint16_t getMqttPort()
     {
@@ -170,9 +169,9 @@ public:
     }
 
     /**
-     * Get Access Point SSID.
+     * Get access point SSID.
      *
-     * @returns Access Point SSID.
+     * @returns Access point SSID.
      */
     const String& getApSSID()
     {
@@ -180,9 +179,9 @@ public:
     }
 
     /**
-     * Get Access Point Password.
+     * Get access point password.
      *
-     * @returns Access Point Password.
+     * @returns Access point password.
      */
     const String& getApPassword()
     {
@@ -200,9 +199,9 @@ public:
     }
 
     /**
-     * Get Web Server Password.
+     * Get Web Server password.
      *
-     * @returns Web Server Password.
+     * @returns Web Server password.
      */
     const String& getWebServerPassword()
     {
@@ -259,6 +258,26 @@ public:
         return m_initialHeading;
     }
 
+    /**
+     * Get Micro-ROS agent IP/HOST.
+     *
+     * @returns Micro-ROS agent IP/HOST.
+     */
+    const String& getMicroROSAgentAddress()
+    {
+        return m_microROSAgentAddress;
+    }
+
+    /**
+     * Get Micro-ROS agent port.
+     *
+     * @returns Micro-ROS agent port.
+     */
+    uint16_t getMicroROSAgentPort()
+    {
+        return m_microROSAgentPort;
+    }
+
 private:
     /**
      * Instance Name.
@@ -271,27 +290,27 @@ private:
     String m_wifiSSID;
 
     /**
-     * Network Password.
+     * Network password.
      */
     String m_wifiPassword;
 
     /**
-     * MQTT Broker IP/HOST.
+     * MQTT broker IP/HOST.
      */
     String m_mqttBrokerAddress;
 
     /**
-     * MQTT Broker Port.
+     * MQTT broker port.
      */
     uint16_t m_mqttPort;
 
     /**
-     * Access Point SSID.
+     * Access point SSID.
      */
     String m_apSSID;
 
     /**
-     * Access Point Password.
+     * Access point password.
      */
     String m_apPassword;
 
@@ -301,7 +320,7 @@ private:
     String m_webServerUser;
 
     /**
-     * Web Server Password.
+     * Web Server password.
      */
     String m_webServerPassword;
 
@@ -329,6 +348,16 @@ private:
      * Initial Position: Heading [mrad]
      */
     int32_t m_initialHeading;
+
+    /**
+     * Micro-ROS agent IP/HOST.
+     */
+    String m_microROSAgentAddress;
+
+    /**
+     * Micro-ROS agent port.
+     */
+    uint16_t m_microROSAgentPort;
 
     /**
      * FileHandler instance.

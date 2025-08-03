@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -460,8 +460,6 @@ void MqttClient::resubscribe()
 
 void MqttClient::attemptConnection()
 {
-    bool isSuccess = false;
-
     if ((true == m_brokerAddress.isEmpty()) || (0U == m_brokerPort))
     {
         LOG_ERROR("Broker address or port not set.");
@@ -474,6 +472,8 @@ void MqttClient::attemptConnection()
     }
     else
     {
+        bool isSuccess;
+
         if (true == m_willTopic.isEmpty())
         {
             isSuccess = m_mqttClient.connect(m_clientId.c_str());

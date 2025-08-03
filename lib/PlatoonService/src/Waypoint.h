@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,9 +65,9 @@ public:
     int32_t xPos;        /**< X position [mm]. */
     int32_t yPos;        /**< Y position [mm]. */
     int32_t orientation; /**< Orientation [mrad]. */
-    int16_t left;        /**< Left motor speed [steps/s]. */
-    int16_t right;       /**< Right motor speed [steps/s]. */
-    int16_t center;      /**< Center speed [steps/s]. */
+    int32_t left;        /**< Left motor speed [mm/s]. */
+    int32_t right;       /**< Right motor speed [mm/s]. */
+    int32_t center;      /**< Center speed [mm/s]. */
 
     /**
      * Default constructor.
@@ -82,11 +82,11 @@ public:
      * @param[in] xPos          X position [mm].
      * @param[in] yPos          Y position [mm].
      * @param[in] orientation   Orientation [mrad].
-     * @param[in] left          Left motor speed [steps/s].
-     * @param[in] right         Right motor speed [steps/s].
-     * @param[in] center        Center speed [steps/s].
+     * @param[in] left          Left motor speed [mm/s].
+     * @param[in] right         Right motor speed [mm/s].
+     * @param[in] center        Center speed [mm/s].
      */
-    Waypoint(int32_t xPos, int32_t yPos, int32_t orientation, int16_t left, int16_t right, int16_t center) :
+    Waypoint(int32_t xPos, int32_t yPos, int32_t orientation, int32_t left, int32_t right, int32_t center) :
         xPos(xPos),
         yPos(yPos),
         orientation(orientation),
@@ -114,7 +114,7 @@ public:
      *
      * @return Pointer to a waypoint object. In case of an error, it returns nullptr.
      */
-    static Waypoint* fromJsonObject(const JsonObject& jsonWaypoint);
+    static Waypoint* fromJsonObject(const JsonObjectConst& jsonWaypoint);
 
     /**
      * Serialize the waypoint.

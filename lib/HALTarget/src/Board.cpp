@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -99,27 +99,10 @@ bool Board::init()
     return isReady;
 }
 
-bool Board::process()
+void Board::process()
 {
-    bool isSuccess = false;
-
-    if (false == m_hostRobot.process())
-    {
-        /* Log robot error */
-        LOG_ERROR("Robot process failed.");
-    }
-    else if (false == m_network.process())
-    {
-        /* Log Network error */
-        LOG_ERROR("Network process failed.");
-    }
-    else
-    {
-        /* No Errors */
-        isSuccess = true;
-    }
-
-    return isSuccess;
+    m_hostRobot.process();
+    m_network.process();
 }
 
 /******************************************************************************

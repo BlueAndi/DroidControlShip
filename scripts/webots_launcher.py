@@ -2,7 +2,7 @@
 
 # MIT License
 #
-# Copyright (c) 2022 - 2024 Andreas Merkle (web@blue-andi.de)
+# Copyright (c) 2022 - 2025 Andreas Merkle (web@blue-andi.de)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,30 +38,36 @@ OS_PLATFORM_TYPE_WIN = "Windows"
 OS_PLATFORM_TYPE_LINUX = "Linux"
 OS_PLATFORM_TYPE_MACOS = "Darwin"
 OS_PLATFORM_TYPE = platform.system()
+
 ROBOT_NAME = env.GetProjectOption("webots_robot_name") # pylint: disable=undefined-variable
+
 ROBOT_SERIAL_RX_CHANNEL = env.GetProjectOption("webots_robot_serial_rx_channel") # pylint: disable=undefined-variable
 ROBOT_SERIAL_TX_CHANNEL = env.GetProjectOption("webots_robot_serial_tx_channel") # pylint: disable=undefined-variable
+
 PROGRAM_PATH = "$BUILD_DIR/"
 PROGRAM_OPTIONS = '--cfgFilePath "../../../data/config/config.json" ' \
                 + '--serialRxCh ' + ROBOT_SERIAL_RX_CHANNEL + ' ' \
                 + '--serialTxCh ' + ROBOT_SERIAL_TX_CHANNEL + ' ' \
                 + '-v'
 WEBOTS_CONTROLLER_OPTIONS = '--robot-name=' + ROBOT_NAME + ' --stdout-redirect'
+WEBOTS_HOME = os.getenv('WEBOTS_HOME')
 
 if OS_PLATFORM_TYPE == OS_PLATFORM_TYPE_WIN:
 
-    WEBOTS_HOME = os.getenv('WEBOTS_HOME').replace('\\', '/')
-    WEBOTS_CONTROLLER = '"' + WEBOTS_HOME + '/msys64/mingw64/bin/webots-controller.exe"'
+    WEBOTS_HOME = WEBOTS_HOME.replace('\\', '/')
+    WEBOTS_CONTROLLER  = "\""
+    WEBOTS_CONTROLLER += f"{WEBOTS_HOME}/msys64/mingw64/bin/webots-controller.exe"
+    WEBOTS_CONTROLLER += "\""
     PROGRAM_NAME = "${PROGNAME}.exe"
 
 elif OS_PLATFORM_TYPE == OS_PLATFORM_TYPE_LINUX:
 
-    WEBOTS_CONTROLLER = "$WEBOTS_HOME/webots-controller"
+    WEBOTS_CONTROLLER = f"{WEBOTS_HOME}/webots-controller"
     PROGRAM_NAME = "${PROGNAME}"
 
 elif OS_PLATFORM_TYPE == OS_PLATFORM_TYPE_MACOS:
 
-    WEBOTS_CONTROLLER = "$WEBOTS_HOME/Contents/MacOS/webots-controller"
+    WEBOTS_CONTROLLER = f"{WEBOTS_HOME}/Contents/MacOS/webots-controller"
     PROGRAM_NAME = "${PROGNAME}"
 
 else:

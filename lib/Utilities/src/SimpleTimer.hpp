@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2024 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -189,11 +189,22 @@ public:
         return isTimeout;
     }
 
+    /**
+     * Get current duration in ms, till the timer was started.
+     * It is independed of whether the timer is stopped or timeout.
+     *
+     * @return Current duration in ms
+     */
+    uint32_t getCurrentDuration() const
+    {
+        return millis() - m_start;
+    }
+
 private:
     bool     m_isRunning; /**< Timer is running or not. */
     bool     m_isTimeout; /**< Timer timeout active or not. */
-    uint32_t m_duration;  /**< Duration in ms */
-    uint32_t m_start;     /**< Timestamp at start time */
+    uint32_t m_duration;  /**< Duration in ms. */
+    uint32_t m_start;     /**< Timestamp at start time. */
 };
 
 /******************************************************************************
