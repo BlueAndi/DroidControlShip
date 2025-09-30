@@ -136,7 +136,7 @@ The main features of the software include:
 
   - The ZumoComSystem shall receive odometry from the Zumo32U4 via USB (using the RadonUlzer firmware).
   - The ZumoComSystem may receive IMU data from the Zumo32U4 via USB.
-  - The ZumoComSystem shall receive absolute position, orientationm, and velocity from the SpaceShipRadar via MQTT.
+  - The ZumoComSystem shall receive absolute position, orientation, and velocity from the SpaceShipRadar via MQTT.
 
 - **Sensor Fusion**
 
