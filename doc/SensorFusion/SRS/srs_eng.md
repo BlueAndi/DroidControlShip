@@ -1,6 +1,6 @@
 # Software Requirements Specification (SRS)
 
-## Project Title: Sensorfusion of Localization data for Pololu Zumo32U4
+## Project Title: Sensor fusion of Localization data for Pololu Zumo32U4
 
 Author: Tobias Haeckel <br>
 Bachelor Thesis
@@ -36,7 +36,7 @@ Bachelor Thesis
 
 ### 1.1 Purpose
 
-The purpose of this document is to specify the software requirements for the project _Sensorfusion of Localization data for Pololu Zumo32U4_ with the ZumoComSystem (ESP32). It serves as a guide for design, implementation, verification and later maintenance of the software.
+The purpose of this document is to specify the software requirements for the project Sensor fusion of Localization data for Pololu Zumo32U4 with the ZumoComSystem (ESP32). It serves as a guide for design, implementation, verification and later maintenance of the software.
 The intended audience includes:
 
 - The supervisor(s) of the bachelor thesis
@@ -196,13 +196,13 @@ The main features of the software include:
 
 #### 3.2.2 Sensor Fusion
 
-| ID                  | Description                                                                                                                                 | Verified by | Implemented by |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
-| FREQ-204            | The ZumoComSystem shall time-align odometry, SSR, (and if enabled IMU measurements) within a configurable latency budget.                   |             |                |
-| FREQ-205            | The ZumoComSystem shall fuse odometry with external absolute pose to estimate x, y, orientation, and linear velocity in SI units.           |             |                |
-| FREQ-203 (Optional) | The ZumoComSystem may integrate IMU measurements into the sensor fusion when enabled                                                        |             |                |
-| FREQ-204            | The ZumoComSystem shall reject outlier and late measurements based on configurable gating thresholds before applying sensor fusion updates. |             |                |
-| FREQ-206            | The ZumoComSystem shall align the track coordinates with the Webots world coordinate frame                                                  |             |                |
+| ID       | Description                                                                                                                                 | Verified by | Implemented by |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
+| FREQ-204 | The ZumoComSystem shall time-align odometry, SSR, (and if enabled IMU measurements) within a configurable latency budget.                   |             |                |
+| FREQ-205 | The ZumoComSystem shall fuse odometry with external absolute pose to estimate x, y, orientation, and linear velocity in SI units.           |             |                |
+| FREQ-203 | The ZumoComSystem may integrate IMU measurements into the sensor fusion when enabled                                                        |             |                |
+| FREQ-204 | The ZumoComSystem shall reject outlier and late measurements based on configurable gating thresholds before applying sensor fusion updates. |             |                |
+| FREQ-206 | The ZumoComSystem shall align the track coordinates with the Webots world coordinate frame                                                  |             |                |
 
 #### 3.2.3 Modes of Operation
 
