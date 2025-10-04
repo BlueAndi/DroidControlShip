@@ -2,8 +2,7 @@
 
 ## Project Title: Sensor fusion of Localization data for Pololu Zumo32U4
 
-Author: Tobias Haeckel
-</br>
+Author: Tobias Haeckel  
 Bachelor Thesis
 
 ## Table of Contents
@@ -142,15 +141,15 @@ The main features of the software include:
 
 #### 2.3.1 Assumptions
 
-| ID   | Type       | Description                                                         | Status                  |
-| ---- | ---------- | ------------------------------------------------------------------- | ----------------------- |
-| A-01 | Assumption | The ZumoComSystem shall receive odometry at least every 100ms.     | open                    |
-| A-02 | Assumption | The ZumoComSystem may receive IMU data minimally every 100ms        | needs to be implemented |
-| A-03 | Assumption | An MQTT broker should be available and reachable by all components. | open                    |
-| A-04 | Assumption | The ZumoComSystem shall connect to an MQTT broker                   | open                    |
-| A-05 | Assumption | The SpaceShipRadar shall provide absolute position data at least every 200ms. | open          |
-| A-06 | Assumption | The RadonUlzer firmware on the Zumo32U4 shall stop the robot if SpaceShipRadar sets motor speed to zero. | open          |
-| A-07 | Assumption | The Communication between Zumo32U4 and ZumoComSystem shall be safe and reliable. | open                    |
+| ID   | Type       | Description                                                                                              | Status                  |
+| ---- | ---------- | -------------------------------------------------------------------------------------------------------- | ----------------------- |
+| A-01 | Assumption | The ZumoComSystem shall receive odometry at least every 100ms.                                           | open                    |
+| A-02 | Assumption | The ZumoComSystem may receive IMU data minimally every 100ms                                             | needs to be implemented |
+| A-03 | Assumption | An MQTT broker should be available and reachable by all components.                                      | open                    |
+| A-04 | Assumption | The ZumoComSystem shall connect to an MQTT broker                                                        | open                    |
+| A-05 | Assumption | The SpaceShipRadar shall provide absolute position data at least every 200ms.                            | open                    |
+| A-06 | Assumption | The RadonUlzer firmware on the Zumo32U4 shall stop the robot if SpaceShipRadar sets motor speed to zero. | open                    |
+| A-07 | Assumption | The Communication between Zumo32U4 and ZumoComSystem shall be safe and reliable.                         | open                    |
 
 #### 2.3.2 Dependencies
 
@@ -226,30 +225,30 @@ The main features of the software include:
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
 | FREQ-501 | The ZumoComSystem shall detect fault and exception conditions.                                                                                                                                            |             |                |
 | FREQ-502 | The ZumoComSystem shall publish error and status messages([per 3.2.5.3](3.2.5.3)) via MQTT topic `zumo/<id>/status`.                                                                                      |             |                |
-| FREQ-503 | The ZumoComSystem shall trigger a status transition to OK/INFO/WARN/ERROR ([per 3.2.5.4](3.2.5.4))                                                                                                          |             |                |
+| FREQ-503 | The ZumoComSystem shall trigger a status transition to OK/INFO/WARN/ERROR ([per 3.2.5.4](3.2.5.4))                                                                                                        |             |                |
 | FREQ-504 | The system shall continue operation for non-critical faults (INFO/WARN) and discard faulty inputs.                                                                                                        |             |                |
 | FREQ-505 | The ZumoComSystem shall enter a safe state (ERROR) and stop the sensor fusion when critical faults occur.                                                                                                 |             |                |
 | FREQ-506 | The ZumoComSystem shall apply a fallback/recovery strategy (e.g., MQTT reconnect with bounded backoff; resubscribe; resume processing) when a fault is detected and publish corresponding status updates. |             |                |
-| FREQ-507 | In safe state (ERROR), the Robot shall stop moving.                                                                                                                                     |             |                |
+| FREQ-507 | In safe state (ERROR), the Robot shall stop moving.                                                                                                                                                       |             |                |
 
 **Safe State**:
 
-| ID       | Description                                                                                         | Verified by | Implemented by |
-| -------- | --------------------------------------------------------------------------------------------------- | ----------- | -------------- |
-| FREQ-510 | In safe state (ERROR), the Robot shall stop moving.                                                 |             |                |
-| FREQ-511 | In safe state (ERROR), the ZumoComSystem shall cease publishing data.                               |             |                |
-| FREQ-512 | In safe state (ERROR), the ZumoComSystem shall stop sensor fusion.                                  |             |                |
+| ID       | Description                                                           | Verified by | Implemented by |
+| -------- | --------------------------------------------------------------------- | ----------- | -------------- |
+| FREQ-510 | In safe state (ERROR), the Robot shall stop moving.                   |             |                |
+| FREQ-511 | In safe state (ERROR), the ZumoComSystem shall cease publishing data. |             |                |
+| FREQ-512 | In safe state (ERROR), the ZumoComSystem shall stop sensor fusion.    |             |                |
 
 ##### 3.2.5.2 Status Levels
 
 The ZumoComSystem shall provide the following status levels:
 
-| Level     | Meaning / Emission rule                                                                                                   |
-| --------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **OK**    | Nominal operation. Emit once after startup self-check, and again after any WARN/ERROR condition has been cleared.         |
-| **INFO**  | Informational/diagnostic event with no functional impact (e.g., start/stop, parameter load).                              |
-| **WARN**  | Non-critical fault; the system continues in a degraded mode (e.g., external pose temporarily unavailable).                |
-| **ERROR** | Critical fault; sensor fusion is stopped and publication of fused data ceases.                                            |
+| Level     | Meaning / Emission rule                                                                                           |
+| --------- | ----------------------------------------------------------------------------------------------------------------- |
+| **OK**    | Nominal operation. Emit once after startup self-check, and again after any WARN/ERROR condition has been cleared. |
+| **INFO**  | Informational/diagnostic event with no functional impact (e.g., start/stop, parameter load).                      |
+| **WARN**  | Non-critical fault; the system continues in a degraded mode (e.g., external pose temporarily unavailable).        |
+| **ERROR** | Critical fault; sensor fusion is stopped and publication of fused data ceases.                                    |
 
 ##### 3.2.5.3 Status / Event Codes
 
@@ -299,23 +298,23 @@ May be extended later.
 
 #### 3.3.3 Standards & Compliance
 
-| ID                                               | Description                                                                                                                        | Verified by | Implemented by |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
-| COMP-301                                         | The RadonUlzer and DroidControlShip firmwares shall be implemented in C++11.                                                       |             |                |
-| COMP-302                                         | All C++ code shall conform to the project’s Path Finder Rule coding guideline.                                                     |             |                |
-| COMP-303                                         | All PC/host programs shall be programmed in Python ≥ 3.10.                                                                         |             |                |
-| COMP-304                                         | All Python code shall conform to PEP-8 style guide.                                                                                |             |                |
-| COMP-305                                         | SI units shall be used for all published and stored numerical data                                                                 |             |                |
-| COMP-306                                         | The [LineFollowerTrack](https://github.com/BlueAndi/RadonUlzer/blob/main/webots/worlds/zumo_with_com_system/LineFollowerTrack.wbt) shall be used as the most basic track for tests. |             |                |
+| ID       | Description                                                                                                                                                                         | Verified by | Implemented by |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
+| COMP-301 | The RadonUlzer and DroidControlShip firmwares shall be implemented in C++11.                                                                                                        |             |                |
+| COMP-302 | All C++ code shall conform to the project’s Path Finder Rule coding guideline.                                                                                                      |             |                |
+| COMP-303 | All PC/host programs shall be programmed in Python ≥ 3.10.                                                                                                                          |             |                |
+| COMP-304 | All Python code shall conform to PEP-8 style guide.                                                                                                                                 |             |                |
+| COMP-305 | SI units shall be used for all published and stored numerical data                                                                                                                  |             |                |
+| COMP-306 | The [LineFollowerTrack](https://github.com/BlueAndi/RadonUlzer/blob/main/webots/worlds/zumo_with_com_system/LineFollowerTrack.wbt) shall be used as the most basic track for tests. |             |                |
 
 ### 3.4 Design- and Implementation Constraints
 
 #### 3.4.1 Installation
 
-| ID | Description | Verified by | Implemented by |
+| ID       | Description                                                                                                  | Verified by | Implemented by |
 | -------- | ------------------------------------------------------------------------------------------------------------ | ----------- | -------------- |
-| INST-001 | The development environment shall be operational: VS Code, PlatformIO (ESP32/Zumo) and Python ≥ 3.10 (host). | | |
-| INST-002 | All runtime dependencies shall be installable: MQTT client, OpenCV, Webots. | | |
+| INST-001 | The development environment shall be operational: VS Code, PlatformIO (ESP32/Zumo) and Python ≥ 3.10 (host). |             |                |
+| INST-002 | All runtime dependencies shall be installable: MQTT client, OpenCV, Webots.                                  |             |                |
 
 #### 3.4.2 Distribution
 
