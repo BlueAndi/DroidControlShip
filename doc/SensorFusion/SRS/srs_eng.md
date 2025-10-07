@@ -229,7 +229,7 @@ The main features of the software include:
 | FREQ-504 | The system shall continue operation for non-critical faults (INFO/WARN) and discard faulty inputs.                                                                                                        |             |                |
 | FREQ-505 | The ZumoComSystem shall enter a safe state (ERROR) and stop the sensor fusion when critical faults occur.                                                                                                 |             |                |
 | FREQ-506 | The ZumoComSystem shall apply a fallback/recovery strategy (e.g., MQTT reconnect with bounded backoff; resubscribe; resume processing) when a fault is detected and publish corresponding status updates. |             |                |
-| FREQ-507 | In safe state (ERROR), the Robot shall stop moving.                                                                                                                                                       |             |                |
+| FREQ-507 | In safe state (ERROR), the robot shall stop moving.                                                                                                                                                       |             |                |
 
 **Safe State**:
 
