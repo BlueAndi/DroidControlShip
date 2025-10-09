@@ -230,6 +230,7 @@ The main features of the software include:
 | FREQ-503 | The system shall continue operation for non-critical faults (INFO/WARN) and discard faulty inputs.                                                                                                        |             |                |
 | FREQ-504 | The ZumoComSystem shall enter a safe state (ERROR) and stop the sensor fusion when critical faults occur.                                                                                                 |             |                |
 | FREQ-505 | The ZumoComSystem shall apply a fallback/recovery strategy (e.g., MQTT reconnect with bounded backoff; resubscribe; resume processing) when a fault is detected and publish corresponding status updates. |             |                |
+| FREQ-506 | The ZumoComSystem shall provide the status levels OK, INFO, WARN, and ERROR. Further defined in [3.2.5.2](#3252-status-levels)                                                                                                                |             |                |
 
 **Safe State**:
 
@@ -244,7 +245,7 @@ The ZumoComSystem shall provide the following status levels:
 
 | Level     | Meaning / Emission rule                                                                                           |
 | --------- | ----------------------------------------------------------------------------------------------------------------- |
-| **OK**    | Nominal operation. Emit once after startup self-check, and again after any WARN/ERROR condition has been cleared. |
+| **OK**    | Nominal operation. Emit once after startup self-check, and again after any WARN condition has been cleared. |
 | **INFO**  | Informational/diagnostic event with no functional impact (e.g., start/stop, parameter load).                      |
 | **WARN**  | Non-critical fault; the system continues in a degraded mode (e.g., external pose temporarily unavailable).        |
 | **ERROR** | Critical fault; sensor fusion is stopped and publication of fused data ceases.                                    |
