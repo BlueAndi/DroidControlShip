@@ -224,19 +224,17 @@ The main features of the software include:
 | ID       | Description                                                                                                                                                                                               | Verified by | Implemented by |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
 | FREQ-501 | The ZumoComSystem shall detect fault and exception conditions.                                                                                                                                            |             |                |
-| FREQ-502 | The ZumoComSystem shall publish error and status messages [per 3.2.5.3](#3253-status--event-codes) via MQTT topic `zumo/<id>/status`.                                                                                      |             |                |
-| FREQ-503 | The ZumoComSystem shall trigger a status transition to OK/INFO/WARN/ERROR [per 3.2.5.2](#3252-status-levels)                                                                                                        |             |                |
-| FREQ-504 | The system shall continue operation for non-critical faults (INFO/WARN) and discard faulty inputs.                                                                                                        |             |                |
-| FREQ-505 | The ZumoComSystem shall enter a safe state (ERROR) and stop the sensor fusion when critical faults occur.                                                                                                 |             |                |
-| FREQ-506 | The ZumoComSystem shall apply a fallback/recovery strategy (e.g., MQTT reconnect with bounded backoff; resubscribe; resume processing) when a fault is detected and publish corresponding status updates. |             |                |
+| FREQ-502 | The ZumoComSystem shall publish status messages [per 3.2.5.3](#3253-status--event-codes) via MQTT topic `zumo/<id>/status`.                                                                                      |             |                |
+| FREQ-503 | The system shall continue operation for non-critical faults (INFO/WARN) and discard faulty inputs.                                                                                                        |             |                |
+| FREQ-504 | The ZumoComSystem shall enter a safe state (ERROR) and stop the sensor fusion when critical faults occur.                                                                                                 |             |                |
+| FREQ-505 | The ZumoComSystem shall apply a fallback/recovery strategy (e.g., MQTT reconnect with bounded backoff; resubscribe; resume processing) when a fault is detected and publish corresponding status updates. |             |                |
 
 **Safe State**:
 
 | ID       | Description                                                           | Verified by | Implemented by |
 | -------- | --------------------------------------------------------------------- | ----------- | -------------- |
 | FREQ-510 | In safe state (ERROR), the Robot shall stop moving.                   |             |                |
-| FREQ-511 | In safe state (ERROR), the ZumoComSystem shall cease publishing data. |             |                |
-| FREQ-512 | In safe state (ERROR), the ZumoComSystem shall stop sensor fusion.    |             |                |
+| FREQ-511 | In safe state (ERROR), the ZumoComSystem shall stop sensor fusion.    |             |                |
 
 ##### 3.2.5.2 Status Levels
 
