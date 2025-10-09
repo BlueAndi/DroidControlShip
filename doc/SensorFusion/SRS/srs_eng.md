@@ -150,6 +150,8 @@ The main features of the software include:
 | A-05 | Assumption | The SpaceShipRadar shall provide absolute position data at least every 200ms.                            | open                    |
 | A-06 | Assumption | The RadonUlzer firmware on the Zumo32U4 shall stop the robot if SpaceShipRadar sets motor speed to zero. | open                    |
 | A-07 | Assumption | The Communication between Zumo32U4 and ZumoComSystem shall be safe and reliable.                         | open                    |
+| A-08 | Assumption | The development environment shall be operational: VS Code, PlatformIO (ESP32/Zumo) and Python ≥ 3.10 (host). | open                    |
+| A-09 | Assumption | All runtime dependencies shall be installable: MQTT client, OpenCV, Webots.                             | open                    |
 
 #### 2.3.2 Dependencies
 
@@ -306,14 +308,7 @@ May be extended later.
 
 ### 3.4 Design- and Implementation Constraints
 
-#### 3.4.1 Installation
-
-| ID       | Description                                                                                                  | Verified by | Implemented by |
-| -------- | ------------------------------------------------------------------------------------------------------------ | ----------- | -------------- |
-| INST-001 | The development environment shall be operational: VS Code, PlatformIO (ESP32/Zumo) and Python ≥ 3.10 (host). |             |                |
-| INST-002 | All runtime dependencies shall be installable: MQTT client, OpenCV, Webots.                                  |             |                |
-
-#### 3.4.2 Distribution
+#### 3.4.1 Distribution
 
 | ID       | Description                                                                                                                                   | Verified by | Implemented by |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
