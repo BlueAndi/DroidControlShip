@@ -1,0 +1,38 @@
+@startuml UseCaseDiagram
+left to right direction
+actor "Pololu Zumo32u4" as Zumo
+actor "SpaceShipRadar" as Radar
+actor "MQTT Broker" as Broker
+
+
+rectangle "ZumoComSystem\nSensor Fusion Software" as ZumoComSystem {
+    usecase "Empfange\nOdometrie-Daten" as UC1
+    usecase "Empfange\nIMU-Daten" as UC2
+    usecase "Empfange\nExterne Pose" as UC3
+    usecase "Führe\nSensorfusion aus" as UC4
+    usecase "Veröffentliche\nfusionierte Pose" as UC5
+    usecase "Veröffentliche\nStatus" as UC6
+    usecase "Veröffentliche\nRohdaten" as UC7
+}
+
+' === Akteur <-> Use Case ===
+Zumo --> UC1
+Zumo --> UC2
+Radar --> UC3
+Broker --> UC3
+
+' === Use Case <-> Use Case ===
+UC1 --> UC4
+UC2 --> UC4
+UC1 --> UC7
+UC2 --> UC7
+UC3 --> UC4
+UC4 --> UC5
+
+' === Use Case <-> Broker ===
+UC5 --> Broker
+UC6 --> Broker
+UC7 --> Broker
+
+
+@enduml
