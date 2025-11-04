@@ -1,0 +1,12 @@
+@startuml StateDiagram
+[*] --> StartupState
+StartupState --> LineSensorCalibrationState : onButtonPress
+StartupState --> ErrorState : onError
+LineSensorCalibrationState --> ReadyState : onCalibrationComplete
+LineSensorCalibrationState --> ErrorState : onError
+ReadyState --> ReleaseTrackState : onButtonPress
+ReadyState --> ErrorState : onError
+ReleaseTrackState --> DrivingState : onStartLineDetected
+DrivingState --> ReadyState : onEndLineDetected
+
+@enduml
