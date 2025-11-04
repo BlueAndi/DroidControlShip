@@ -1,0 +1,18 @@
+@startuml ClassDiagram
+class App
+class LineSensors
+class Motors
+class RemoteControl
+class SerialMuxChannels
+class SerMusChannelProvider
+class SensorFusion
+class StateMachine
+class DrivingState
+class ErrorState
+class LineSensorCalibrationState
+class ParameterSets
+class ReadyState
+class ReleaseTrackState
+class StartupState
+
+@enduml
