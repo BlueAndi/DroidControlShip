@@ -1,18 +1,450 @@
 @startuml ClassDiagram
-class App
-class LineSensors
-class Motors
-class RemoteControl
-class SerialMuxChannels
-class SerMusChannelProvider
-class SensorFusion
-class StateMachine
-class DrivingState
-class ErrorState
-class LineSensorCalibrationState
-class ParameterSets
-class ReadyState
-class ReleaseTrackState
-class StartupState
+class App {
+  +App()
+  +~App()
+  +setup() : void
+  +loop() : void
 
+  -- non-copyable (privat deklariert) --
+  -App(app: App)
+  -operator=(app: App) : App&
+
+  -- Attribute --
+  -m_initialDataSent : bool
+  -m_statusTimer : SimpleTimer
+  -m_serMuxChannelProvider : SerMuxChannelProvider
+  -m_lineSensors : LineSensors
+  -m_motors : Motors
+  -m_stateMachine : StateMachine
+}
+class LineSensors {
+  +LineSensors(serMuxChannelProvider: SerMuxChannelProvider&)
+  +~LineSensors()
+  +readLine() : int16_t
+  +getSensorValues() const : const uint16_t*
+  +getNumLineSensors() : uint8_t <<static>>
+  +getSensorValueMax() : int16_t <<static>>
+  --
+  -MAX_SENSORS : size_t <<static const>>
+  -SENSOR_MAX_VALUE : int16_t <<static const>>
+  -SENSOR_OFF_LINE_THRESHOLD : uint16_t <<static const>>
+  -m_serMuxChannelProvider : SerMuxChannelProvider&
+  -m_lineSensorData : uint16_t[MAX_SENSORS]
+  -m_lastPosValue : int16_t
+  --
+  -LineSensors()
+  -LineSensors(other: LineSensors)
+  -operator=(other: LineSensors) : LineSensors&
+  -serMuxLineSensorChannelCallback(data: LineSensorData) : void
+}
+class Motors {
+  +Motors(serMuxChannelProvider: SerMuxChannelProvider&)
+  +~Motors()
+  +setSpeeds(leftSpeed: int16_t, rightSpeed: int16_t) : void
+  +getMaxSpeed() const : int16_t
+  +setMaxSpeed(maxSpeed: int16_t) : void
+  --
+  -m_serMuxChannelProvider : SerMuxChannelProvider&
+  -m_maxMotorSpeed : int16_t
+  --
+  -Motors()
+  -Motors(other: Motors)
+  -operator=(other: Motors) : Motors&
+}
+package "RemoteControl" <<namespace>> {
+  enum CmdId {
+    CMD_ID_IDLE
+    CMD_ID_START_LINE_SENSOR_CALIB
+    CMD_ID_START_MOTOR_SPEED_CALIB
+    CMD_ID_REINIT_BOARD
+    CMD_ID_GET_MAX_SPEED
+  }
+}
+package "SerialMuxChannels" <<namespace>> {
+  ' typedef
+  class SMPServer <<typedef>> {
+    {static} MAX_CHANNELS = 10
+  }
+
+  package "SMPChannelPayload" <<namespace>> {
+    enum CmdId {
+      CMD_ID_IDLE
+      CMD_ID_START_LINE_SENSOR_CALIB
+      CMD_ID_START_MOTOR_SPEED_CALIB
+      CMD_ID_REINIT_BOARD
+      CMD_ID_GET_MAX_SPEED
+      CMD_ID_START_DRIVING
+      CMD_ID_SET_INIT_POS
+    }
+    enum RspId {
+      RSP_ID_OK
+      RSP_ID_PENDING
+      RSP_ID_ERROR
+    }
+    enum Status {
+      STATUS_FLAG_OK
+      STATUS_FLAG_ERROR
+    }
+    enum Range {
+      RANGE_NO_OBJECT
+      RANGE_25_30
+      RANGE_20_25
+      RANGE_15_20
+      RANGE_10_15
+      RANGE_5_10
+      RANGE_0_5
+    }
+  }
+
+  ' Payload-Structs
+  class Command <<struct>> {
+    +commandId : SMPChannelPayload::CmdId
+    --
+    +xPos : int32_t
+    +yPos : int32_t
+    +orientation : int32_t
+  }
+  class CommandResponse <<struct>> {
+    +commandId : SMPChannelPayload::CmdId
+    +responseId : SMPChannelPayload::RspId
+    --
+    +maxMotorSpeed : int32_t
+  }
+  class MotorSpeed <<struct>> {
+    +left : int32_t
+    +right : int32_t
+  }
+  class RobotSpeed <<struct>> {
+    +linearCenter : int32_t
+    +angular : int32_t
+  }
+  class VehicleData <<struct>> {
+    +xPos : int32_t
+    +yPos : int32_t
+    +orientation : int32_t
+    +left : int32_t
+    +right : int32_t
+    +center : int32_t
+    +proximity : SMPChannelPayload::Range
+  }
+  class Status <<struct>> {
+    +status : SMPChannelPayload::Status
+  }
+  class LineSensorData <<struct>> {
+    +lineSensorData : uint16_t[5]
+  }
+  note as N1
+  #define COMMAND_CHANNEL_NAME "CMD"
+  #define COMMAND_RESPONSE_CHANNEL_NAME "CMD_RSP"
+  #define MOTOR_SPEED_SETPOINT_CHANNEL_NAME "MOTOR_SET"
+  #define ROBOT_SPEED_SETPOINT_CHANNEL_NAME "ROBOT_SET"
+  #define CURRENT_VEHICLE_DATA_CHANNEL_NAME "CURR_DATA"
+  #define STATUS_CHANNEL_NAME "STATUS"
+  #define LINE_SENSOR_CHANNEL_NAME "LINE_SENS"
+  --
+  DLCs: sizeof(Command/CommandResponse/MotorSpeed/RobotSpeed/VehicleData/Status/LineSensorData)
+  end note
+}
+interface IState {
+  +entry() : void
+  +process(sm: StateMachine&) : void
+  +exit() : void
+}
+class StateMachine {
+  +StateMachine()
+  +~StateMachine()
+  +setState(state: IState&) : void
+  +getState() : IState*
+  +process() : void
+  --
+  -m_currentState : IState*
+  -m_nextState : IState*
+  -StateMachine(sm: StateMachine)
+  -operator=(sm: StateMachine) : StateMachine&
+}
+
+class SerMuxChannelProvider {
+  +SerMuxChannelProvider(stream: Stream&)
+  +~SerMuxChannelProvider()
+  +init() : bool
+  +isInSync() : bool
+  +registerLineSensorCallback(callback: LineSensorCallback) : void
+  +registerVehicleDataCallback(callback: VehicleDataCallback) : void
+  +sendStatus(status: Status) const : bool
+  +sendMotorSpeed(motorSpeed: MotorSpeed) const : bool
+  +sendRobotSpeed(robotSpeed: RobotSpeed) const : bool
+  +requestMaxMotorSpeed(cb: MaxMotorSpeedFunc) : bool
+  +requestLineSensorCalibration(cb: LineSensorCalibFunc) : bool
+  +requestMotorSpeedCalibration(cb: MotorSpeedCalibFunc) : bool
+  +requestReinitBoard(cb: ReinitBoardFunc) : bool
+  +process() : void
+  --
+  .. Callback-Typen ..
+  +LineSensorCallback : std::function<void(const LineSensorData&)>
+  +VehicleDataCallback : std::function<void(const VehicleData&)>
+  +MaxMotorSpeedFunc : std::function<void(SMPChannelPayload::RspId,int16_t)>
+  +LineSensorCalibFunc : std::function<void(SMPChannelPayload::RspId)>
+  +MotorSpeedCalibFunc : std::function<void(SMPChannelPayload::RspId)>
+  +ReinitBoardFunc : std::function<void(SMPChannelPayload::RspId)>
+  --
+  .. Channel-Konfiguration ..
+  -ChannelCfgId : enum { COMMAND, COMMAND_RESPONSE, MOTOR_SPEED_SETPOINT, ROBOT_SPEED_SETPOINT, CURRENT_VEHICLE_DATA, STATUS, LINE_SENSOR }
+  -ChannelCfg : struct { name: const char*; dlc: uint8_t; callback: ChannelCallback }
+  {static} -CHANNEL_CFG : ChannelCfg[]
+  --
+  .. Attribute ..
+  -m_smpServer : SMPServer
+  -m_channelIds : uint8_t[MAX_CHANNELS]
+  -m_lineSensorCallback : LineSensorCallback
+  -m_vehicleDataCallback : VehicleDataCallback
+  -m_maxMotorSpeedCallback : MaxMotorSpeedFunc
+  -m_lineSensorCalibCallback : LineSensorCalibFunc
+  -m_motorSpeedCalibCallback : MotorSpeedCalibFunc
+  -m_reinitBoardCallback : ReinitBoardFunc
+  --
+  .. Private ..
+  -SerMuxChannelProvider()  ' no default ctor
+  -serMuxCdRspChannelCallback(cmdRsp: const CommandResponse*) : void
+  --
+  .. Friends ..
+  {static} SerMuxChannelProvider_cmdRspChannelCallback(payload: const uint8_t*, payloadSize: const uint8_t, userData: void*)
+  {static} SerMuxChannelProvider_currentVehicleChannelCallback(payload: const uint8_t*, payloadSize: const uint8_t, userData: void*)
+  {static} SerMuxChannelProvider_lineSensorChannelCallback(payload: const uint8_t*, payloadSize: const uint8_t, userData: void*)
+}
+'=== States ===
+
+class DrivingState {
+  {static} +getInstance() : DrivingState&
+  +entry() : void
+  +process(sm: StateMachine&) : void
+  +exit() : void
+  +injectDependencies(lineSensors: LineSensors&, motors: Motors&) : void
+  --
+  .. Enums ..
+  +LineStatus : enum { NO_START_LINE_DETECTED, START_LINE_DETECTED, STOP_LINE_DETECTED }
+  +TrackStatus : enum { NORMAL, START_STOP_LINE, TRACK_LOST_BY_GAP, TRACK_LOST_BY_MANOEUVRE, FINISHED }
+  --
+  .. Konstante Parameter ..
+  {static} -OBSERVATION_DURATION : uint32_t = 3000000
+  {static} -PID_PROCESS_PERIOD : uint32_t = 10
+  {static} -LINE_SENSOR_ON_TRACK_MIN_VALUE : uint16_t = 200
+  {static} -SENSOR_VALUE_MAX : uint16_t
+  {static} -POSITION_SET_POINT : int16_t
+  {static} -SENSOR_ID_MOST_LEFT : uint8_t
+  {static} -SENSOR_ID_MIDDLE : uint8_t
+  {static} -SENSOR_ID_MOST_RIGHT : uint8_t
+  {static} -POSITION_MIDDLE_MIN : int16_t
+  {static} -POSITION_MIDDLE_MAX : int16_t
+  --
+  .. Member ..
+  -m_lineSensors : LineSensors*
+  -m_motors : Motors*
+  -m_observationTimer : SimpleTimer
+  -m_lapTime : SimpleTimer
+  -m_pidProcessTime : SimpleTimer
+  -m_pidCtrl : PIDController
+  -m_topSpeed : int16_t
+  -m_lineStatus : LineStatus
+  -m_trackStatus : TrackStatus
+  -m_isStartStopLineDetected : bool
+  -m_lastSensorIdSawTrack : uint8_t
+  -m_lastPosition : int16_t
+  -m_isTrackLost : bool
+  --
+  .. Hilfsmethoden ..
+  -calcPosition3(position: int16_t&, lineSensorValues: const uint16_t*, length: uint8_t) : bool
+  -evaluateSituation(lineSensorValues: const uint16_t*, length: uint8_t, position: int16_t, isTrackLost: bool) : TrackStatus
+  -isStartStopLineDetected(lineSensorValues: const uint16_t*, length: uint8_t) : bool
+  -isNoLineDetected(lineSensorValues: const uint16_t*, length: uint8_t) : bool
+  -processSituation(position: int16_t&, allowNegativeMotorSpeed: bool&, trackStatus: TrackStatus, position3: int16_t) : void
+  -adaptDriving(position: int16_t, allowNegativeMotorSpeed: bool) : void
+  -isAbortRequired() : bool
+  --
+  .. Singleton & verbotene Kopie ..
+  -DrivingState()
+  +~DrivingState()
+  -DrivingState(state: DrivingState)
+  -operator=(state: DrivingState) : DrivingState&
+}
+
+class ErrorState {
+  {static} +getInstance() : ErrorState&
+  +entry() : void
+  +process(sm: StateMachine&) : void
+  +exit() : void
+  --
+  -ErrorState()
+  +~ErrorState()
+  -ErrorState(state: ErrorState)
+  -operator=(state: ErrorState) : ErrorState&
+}
+
+class LineSensorsCalibrationState {
+  {static} +getInstance() : LineSensorsCalibrationState&
+  +entry() : void
+  +process(sm: StateMachine&) : void
+  +exit() : void
+  +injectDependencies(serMuxChannelProvider: SerMuxChannelProvider&) : void
+  --
+  {static} -TIMEOUT_MS : uint32_t = 5000
+  -m_serMuxChannelProvider : SerMuxChannelProvider*
+  -m_isError : bool
+  -m_isFinished : bool
+  --
+  -LineSensorsCalibrationState()
+  +~LineSensorsCalibrationState()
+  -LineSensorsCalibrationState(state: LineSensorsCalibrationState)
+  -operator=(state: LineSensorsCalibrationState) : LineSensorsCalibrationState&
+}
+
+class ParameterSets {
+  {static} +getInstance() : ParameterSets&
+  +choose(setId: uint8_t) : void
+  +next() : void
+  +getCurrentSetId() const : uint8_t
+  +getParameterSet() const : const ParameterSet&
+  --
+  {static} +MAX_SETS : uint8_t = 4
+  -m_currentSetId : uint8_t
+  -m_parSets : ParameterSet[MAX_SETS]
+  --
+  -ParameterSets()
+  +~ParameterSets()
+  -ParameterSets(set: ParameterSets)
+  -operator=(set: ParameterSets) : ParameterSets&
+}
+
+class ParameterSet <<struct>> {
+  +name : const char*
+  +topSpeed : int16_t
+  +kPNumerator : int16_t
+  +kPDenominator : int16_t
+  +kINumerator : int16_t
+  +kIDenominator : int16_t
+  +kDNumerator : int16_t
+  +kDDenominator : int16_t
+}
+
+
+class ReadyState {
+  {static} +getInstance() : ReadyState&
+  +entry() : void
+  +process(sm: StateMachine&) : void
+  +exit() : void
+  +setLapTime(lapTime: uint32_t) : void
+  +injectDependencies(lineSensors: LineSensors&) : void
+  --
+  -m_timer : SimpleTimer
+  -m_isLapTimeAvailable : bool
+  -m_lapTime : uint32_t
+  -m_isButtonPressed : bool
+  -m_lineSensors : LineSensors*
+  --
+  -ReadyState()
+  +~ReadyState()
+  -ReadyState(state: ReadyState)
+  -operator=(state: ReadyState) : ReadyState&
+}
+
+class ReleaseTrackState {
+  {static} +getInstance() : ReleaseTrackState&
+  +entry() : void
+  +process(sm: StateMachine&) : void
+  +exit() : void
+  --
+  {static} -TRACK_RELEASE_DURATION : uint32_t = 5000
+  -m_releaseTimer : SimpleTimer
+  -m_isButtonPressed : bool
+  --
+  -ReleaseTrackState()
+  +~ReleaseTrackState()
+  -ReleaseTrackState(state: ReleaseTrackState)
+  -operator=(state: ReleaseTrackState) : ReleaseTrackState&
+  --
+  -showParSet() const : void
+}
+class StartupState {
+  {static} +getInstance() : StartupState&
+  +entry() : void
+  +process(sm: StateMachine&) : void
+  +exit() : void
+  +injectDependencies(serMuxChannelProvider: SerMuxChannelProvider&, motors: Motors&) : void
+  --
+  .. Sub-Statemachine ..
+  +SubState : enum { SUB_STATE_WAIT_FOR_SYNC, SUB_STATE_WAIT_FOR_MAX_MOTOR_SPEED, SUB_STATE_FINISHED, SUB_STATE_ERROR }
+  {static} -TIMEOUT_MS : uint32_t = 2000
+  --
+  -m_serMuxChannelProvider : SerMuxChannelProvider*
+  -m_motors : Motors*
+  -m_subState : SubState
+  -m_timer : SimpleTimer
+  -m_isButtonPressed : bool
+  --
+  -StartupState()
+  +~StartupState()
+  -StartupState(state: StartupState)
+  -operator=(state: StartupState) : StartupState&
+}
+
+' ====== Ergänzte RELATIONEN ======
+' App besitzt diese Komponenten (per Wert) -> Komposition
+App *-- StateMachine
+App *-- SerMuxChannelProvider
+App *-- LineSensors
+App *-- Motors
+App *-- SimpleTimer
+
+' LineSensors & Motors halten Referenzen auf Provider -> Aggregation
+LineSensors o-- SerMuxChannelProvider : uses (ref)
+Motors o-- SerMuxChannelProvider : uses (ref)
+
+' LineSensors nutzt LineSensorData (Callback)
+LineSensors ..> LineSensorData : uses
+
+' SerMuxChannelProvider besitzt SMPServer
+SerMuxChannelProvider *-- SMPServer
+
+' SerMuxChannelProvider nutzt Payload-Typen / Enums
+SerMuxChannelProvider ..> CommandResponse : uses
+SerMuxChannelProvider ..> MotorSpeed : uses
+SerMuxChannelProvider ..> RobotSpeed : uses
+SerMuxChannelProvider ..> VehicleData : uses
+SerMuxChannelProvider ..> Status : uses
+SerMuxChannelProvider ..> LineSensorData : uses
+SerMuxChannelProvider ..> SMPChannelPayload::RspId : uses
+SerMuxChannelProvider ..> SMPChannelPayload::CmdId : uses
+
+' StateMachine hält Zeiger auf IState (current/next)
+StateMachine o-- IState : current/next
+
+' Alle States erben von IState
+DrivingState -|> IState
+ErrorState -|> IState
+LineSensorsCalibrationState -|> IState
+ReadyState -|> IState
+ReleaseTrackState -|> IState
+StartupState -|> IState
+
+' States: Abhängigkeiten & Kompositionen
+' DrivingState nutzt LineSensors & Motors (Zeiger), besitzt Timer & PID
+DrivingState ..> LineSensors : uses (ptr)
+DrivingState ..> Motors : uses (ptr)
+class "PIDController<int16_t>" as PIDController
+DrivingState *-- SimpleTimer
+DrivingState *-- PIDController
+
+' ReadyState besitzt Timer, nutzt LineSensors
+ReadyState *-- SimpleTimer
+ReadyState ..> LineSensors : uses (ptr)
+
+' ReleaseTrackState besitzt Timer
+ReleaseTrackState *-- SimpleTimer
+
+' LineSensorsCalibrationState nutzt Provider
+LineSensorsCalibrationState ..> SerMuxChannelProvider : uses (ptr)
+
+' StartupState nutzt Provider & Motors, besitzt Timer
+StartupState ..> SerMuxChannelProvider : uses (ptr)
+StartupState ..> Motors : uses (ptr)
+StartupState *-- SimpleTimer
 @enduml
