@@ -9,4 +9,24 @@ ReadyState --> ErrorState : onError
 ReleaseTrackState --> DrivingState : onStartLineDetected
 DrivingState --> ReadyState : onEndLineDetected
 
+StartupState : entry()
+StartupState : process()
+StartupState : exit()
+LineSensorCalibrationState : entry()
+LineSensorCalibrationState : process()
+LineSensorCalibrationState : exit()
+ReadyState : entry()
+ReadyState : process()
+ReadyState : exit()
+ReleaseTrackState : entry()
+ReleaseTrackState : process()
+ReleaseTrackState : exit()
+DrivingState : entry()
+DrivingState : process()
+DrivingState : exit()
+ErrorState : entry()
+ErrorState : process()
+ErrorState : exit()
+
+
 @enduml
