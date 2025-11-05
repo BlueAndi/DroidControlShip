@@ -1,0 +1,90 @@
+@startuml ClassDiagram_Minimal
+left to right direction
+hide empty members
+set namespaceSeparator ::
+
+' === Kernklassen ===
+class App
+class LineSensors
+class Motors
+
+struct ParameterSets::ParameterSet <<struct>>
+
+' === States ===
+class StateMachine
+interface IState
+package "States" {
+  class StartupState
+  class ReadyState
+  class LineSensorsCalibrationState
+  class ReleaseTrackState
+  class DrivingState
+  class ErrorState
+}
+
+' === Communication SerialMux ===
+enum SerialMuxChannels::SMPChannelPayload::CmdId
+enum SerialMuxChannels::SMPChannelPayload::RspId
+enum SerialMuxChannels::SMPChannelPayload::Status
+enum SerialMuxChannels::SMPChannelPayload::Range
+struct SerialMuxChannels::Command <<struct>>
+struct SerialMuxChannels::CommandResponse <<struct>>
+struct SerialMuxChannels::MotorSpeed <<struct>>
+struct SerialMuxChannels::RobotSpeed <<struct>>
+struct SerialMuxChannels::VehicleData <<struct>>
+struct SerialMuxChannels::Status <<struct>>
+struct SerialMuxChannels::LineSensorData <<struct>>
+
+
+
+App *-- StateMachine
+App *-- SerMuxChannelProvider
+App *-- LineSensors
+App *-- Motors
+
+LineSensors o-- SerMuxChannelProvider
+Motors o-- SerMuxChannelProvider
+
+' State Machine
+StateMachine o-- IState
+IState <|-- StartupState
+IState <|-- ReadyState
+IState <|-- LineSensorsCalibrationState
+IState <|-- ReleaseTrackState
+IState <|-- DrivingState
+IState <|-- ErrorState
+
+StartupState                ..> LineSensorsCalibrationState
+StartupState                ..> ErrorState
+ReadyState                  ..> ReleaseTrackState
+LineSensorsCalibrationState ..> ReadyState
+LineSensorsCalibrationState ..> ErrorState
+ReleaseTrackState           ..> DrivingState
+DrivingState                ..> ReadyState
+
+' States
+StartupState ..> Motors
+StartupState ..> SerMuxChannelProvider
+
+ReadyState ..> LineSensors
+
+LineSensorsCalibrationState ..> SerMuxChannelProvider
+
+DrivingState ..> LineSensors
+DrivingState ..> Motors
+
+DrivingState ..> ParameterSets
+ReleaseTrackState ..> ParameterSets
+
+SerMuxChannelProvider ..> SerialMuxChannels::Command
+SerMuxChannelProvider ..> SerialMuxChannels::CommandResponse
+SerMuxChannelProvider ..> SerialMuxChannels::MotorSpeed
+SerMuxChannelProvider ..> SerialMuxChannels::RobotSpeed
+SerMuxChannelProvider ..> SerialMuxChannels::VehicleData
+SerMuxChannelProvider ..> SerialMuxChannels::Status
+SerMuxChannelProvider ..> SerialMuxChannels::LineSensorData
+SerMuxChannelProvider ..> SerialMuxChannels::SMPChannelPayload::CmdId
+SerMuxChannelProvider ..> SerialMuxChannels::SMPChannelPayload::RspId
+SerMuxChannelProvider ..> SerialMuxChannels::SMPChannelPayload::Status
+
+@enduml
