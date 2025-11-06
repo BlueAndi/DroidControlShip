@@ -1,0 +1,131 @@
+@startuml ClassDiagram_Minimal
+hide empty members
+set namespaceSeparator ::
+
+' === Kernklassen ===
+class App
+class LineSensors
+class Motors
+class SerMuxChannelProvider
+' === States ===
+class StateMachine
+package "States" {
+  interface IState
+  class StartupState
+  class ReadyState
+  class LineSensorsCalibrationState
+  class ReleaseTrackState
+  class DrivingState
+  class ErrorState
+}
+
+package Diagnostics {
+  class HealthManager
+  enum StatusLevel
+  enum StatusCode
+}
+
+' === Communication SerialMux ===
+enum SerialMuxChannels::SMPChannelPayload::CmdId
+enum SerialMuxChannels::SMPChannelPayload::RspId
+enum SerialMuxChannels::SMPChannelPayload::Status
+enum SerialMuxChannels::SMPChannelPayload::Range
+struct SerialMuxChannels::Command <<struct>>
+struct SerialMuxChannels::CommandResponse <<struct>>
+struct SerialMuxChannels::MotorSpeed <<struct>>
+struct SerialMuxChannels::RobotSpeed <<struct>>
+struct SerialMuxChannels::VehicleData <<struct>>
+struct SerialMuxChannels::Status <<struct>>
+struct SerialMuxChannels::LineSensorData <<struct>>
+
+package SensorFusion {
+  interface IFusion
+  class EKFusion
+  class TimeAligner
+  struct FusionPose <<struct>>
+  struct FusionParams <<struct>>
+}
+package Messaging {
+  interface IMqttClient
+  class MqttClient
+  struct MsgFusionPose <<struct>>
+  struct MsgStatus <<struct>>
+  struct MsgSensors <<struct>>
+}
+
+package Adapters {
+  class OdometryAdapter
+  class ImuAdapter
+  class SSRAdapter
+}
+
+class TimeSynchronizer
+
+' Compositions
+App *-- StateMachine
+App *-- SerMuxChannelProvider
+App *-- LineSensors
+App *-- Motors
+App *-- OdometryAdapter
+App *-- ImuAdapter
+App *-- SSRAdapter
+App *-- MqttClient
+App *-- HealthManager
+App *-- EKFusion
+App *-- TimeSynchronizer
+
+' Aggregations
+EKFusion "1" o-- "1" TimeAligner
+EKFusion "1" o-- "1" FusionParams
+
+' Realizations
+EKFusion ..|> IFusion
+MqttClient ..|> IMqttClient
+
+IState <|-- StartupState
+IState <|-- ReadyState
+IState <|-- LineSensorsCalibrationState
+IState <|-- ReleaseTrackState
+IState <|-- DrivingState
+IState <|-- ErrorState
+
+' Dependencies
+SerMuxChannelProvider ..> SerialMuxChannels::Command
+SerMuxChannelProvider ..> SerialMuxChannels::CommandResponse
+SerMuxChannelProvider ..> SerialMuxChannels::MotorSpeed
+SerMuxChannelProvider ..> SerialMuxChannels::RobotSpeed
+SerMuxChannelProvider ..> SerialMuxChannels::VehicleData
+SerMuxChannelProvider ..> SerialMuxChannels::Status
+SerMuxChannelProvider ..> SerialMuxChannels::LineSensorData
+SerMuxChannelProvider ..> SerialMuxChannels::SMPChannelPayload::CmdId
+SerMuxChannelProvider ..> SerialMuxChannels::SMPChannelPayload::RspId
+SerMuxChannelProvider ..> SerialMuxChannels::SMPChannelPayload::Status
+SerMuxChannelProvider ..> SerialMuxChannels::SMPChannelPayload::Range
+
+SerMuxChannelProvider <.. OdometryAdapter
+SerMuxChannelProvider <.. ImuAdapter
+SerMuxChannelProvider <.. Motors
+SerMuxChannelProvider <.. LineSensors
+
+ImuAdapter        ..> IMqttClient : publish(...)
+OdometryAdapter   ..> IMqttClient : publish(...)
+HealthManager     ..> IMqttClient : publish(...)
+EKFusion          ..> IMqttClient : publish(...)
+SSRAdapter        ..> IMqttClient : onMessage(...)
+
+ImuAdapter        ..> MsgSensors
+OdometryAdapter   ..> MsgSensors
+HealthManager     ..> MsgStatus
+EKFusion          ..> MsgFusionPose
+
+ImuAdapter ..> TimeAligner
+OdometryAdapter ..> TimeAligner
+SSRAdapter ..> TimeAligner
+IFusion ..> FusionPose
+
+HealthManager       ..> StatusCode
+HealthManager       ..> StatusLevel
+
+StateMachine ..> IState
+
+@enduml

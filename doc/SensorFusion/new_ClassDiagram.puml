@@ -1,0 +1,161 @@
+@startuml ClassDiagram_Minimal
+hide empty members
+set namespaceSeparator none
+
+' === Kernklassen ===
+class App
+class LineSensors
+class Motors
+class SerMuxChannelProvider
+' === States ===
+class StateMachine
+package "States" {
+  interface IState
+  class StartupState
+  class ReadyState
+  class LineSensorsCalibrationState
+  class ReleaseTrackState
+  class DrivingState
+  class ErrorState
+}
+
+package Diagnostics {
+  class DiagnosticsManager
+  class FaultManager
+  enum StatusLevel
+  enum StatusCode
+}
+
+set namespaceSeparator ::
+' === Communication SerialMux ===
+enum SerialMuxChannels::SMPChannelPayload::CmdId
+enum SerialMuxChannels::SMPChannelPayload::RspId
+enum SerialMuxChannels::SMPChannelPayload::Status
+enum SerialMuxChannels::SMPChannelPayload::Range
+struct SerialMuxChannels::Command <<struct>>
+struct SerialMuxChannels::CommandResponse <<struct>>
+struct SerialMuxChannels::MotorSpeed <<struct>>
+struct SerialMuxChannels::RobotSpeed <<struct>>
+struct SerialMuxChannels::VehicleData <<struct>>
+struct SerialMuxChannels::Status <<struct>>
+struct SerialMuxChannels::LineSensorData <<struct>>
+
+package SensorFusion {
+  interface IFusion
+  class EKFusion
+  class TimeAligner
+  struct FusionPose <<struct>>
+  struct FusionParams <<struct>>
+}
+package Messaging {
+  interface IMqttClient
+  class MqttClient
+  class TopicRouter
+  class Publisher
+  class Subscriber
+  struct MsgFusionPose <<struct>>
+  struct MsgStatus <<struct>>
+  struct MsgSensors <<struct>>
+}
+
+package Adapters {
+  class OdometryAdapter
+  class ImuAdapter
+  class SSRAdapter
+}
+
+' App-Komposition/Aggregation (Besitz)
+App *-- StateMachine
+App *-- SerMuxChannelProvider
+App *-- LineSensors
+App *-- Motors
+App *-- OdometryAdapter
+App *-- ImuAdapter
+
+' Sensoren/Motoren nutzen Provider
+LineSensors ..> SerMuxChannelProvider
+Motors ..> SerMuxChannelProvider
+ImuAdapter ..> SerMuxChannelProvider
+OdometryAdapter ..> SerMuxChannelProvider
+
+' State Machine nutzt States (Strategy-Pattern)
+StateMachine ..> IState
+StartupState                ..|> IState
+ReadyState                  ..|> IState
+LineSensorsCalibrationState ..|> IState
+ReleaseTrackState           ..|> IState
+DrivingState                ..|> IState
+ErrorState                  ..|> IState
+
+' Zustandsübergänge
+StartupState                ..> LineSensorsCalibrationState
+StartupState                ..> ErrorState
+ReadyState                  ..> ReleaseTrackState
+LineSensorsCalibrationState ..> ReadyState
+LineSensorsCalibrationState ..> ErrorState
+ReleaseTrackState           ..> DrivingState
+DrivingState                ..> ReadyState
+
+' States (Nutzungsabhängigkeiten auf Subsysteme)
+StartupState ..> Motors
+StartupState ..> SerMuxChannelProvider
+ReadyState   ..> LineSensors
+LineSensorsCalibrationState ..> SerMuxChannelProvider
+DrivingState ..> LineSensors
+DrivingState ..> Motors
+
+' SerMuxChannelProvider nutzt Protokolltypen
+SerMuxChannelProvider ..> SerialMuxChannels::Command
+SerMuxChannelProvider ..> SerialMuxChannels::CommandResponse
+SerMuxChannelProvider ..> SerialMuxChannels::MotorSpeed
+SerMuxChannelProvider ..> SerialMuxChannels::RobotSpeed
+SerMuxChannelProvider ..> SerialMuxChannels::VehicleData
+SerMuxChannelProvider ..> SerialMuxChannels::Status
+SerMuxChannelProvider ..> SerialMuxChannels::LineSensorData
+SerMuxChannelProvider ..> SerialMuxChannels::SMPChannelPayload::CmdId
+SerMuxChannelProvider ..> SerialMuxChannels::SMPChannelPayload::RspId
+SerMuxChannelProvider ..> SerialMuxChannels::SMPChannelPayload::Status
+
+' === Sensor Fusion Specific ===
+
+
+' Implementierung & Besitz
+IFusion ..> FusionPose
+EKFusion ..|> IFusion
+EKFusion *-- TimeAligner
+EKFusion o-- FusionParams
+IFusion ..> Publisher
+
+
+MqttClient ..|> IMqttClient
+Publisher ..> IMqttClient
+Subscriber ..> IMqttClient
+
+' Router besitzt Endpunkte (Diamant am Router)
+TopicRouter o-- Publisher
+TopicRouter o-- Subscriber
+IMqttClient --> TopicRouter
+
+Publisher ..> MsgFusionPose
+Publisher ..> MsgSensors
+Publisher ..> MsgStatus
+
+
+
+SSRAdapter ..> Subscriber
+
+DiagnosticsManager ..> StatusLevel
+DiagnosticsManager ..> StatusCode
+DiagnosticsManager o-- Publisher
+
+FaultManager o-- DiagnosticsManager
+FaultManager ..> StatusLevel
+FaultManager ..> StatusCode
+FaultManager ..> IFusion
+FaultManager ..> IMqttClient
+
+ImuAdapter ..> Publisher
+ImuAdapter ..> IFusion
+OdometryAdapter ..> Publisher
+OdometryAdapter ..> IFusion
+@enduml
