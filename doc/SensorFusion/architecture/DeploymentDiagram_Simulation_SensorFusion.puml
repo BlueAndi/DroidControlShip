@@ -1,0 +1,52 @@
+@startuml ZumoSim_MQTT
+skinparam dpi 150
+skinparam componentStyle rectangle
+skinparam ArrowColor #555
+skinparam ArrowThickness 1.2
+skinparam defaultFontName Helvetica
+
+node "PC" as PC {
+
+  package "Webots" {
+    component "World-file" <<world>> as world
+    component "Webots Engine" <<executable>> as wbsim
+    component "Zumo32U4" <<sim>> as wbZumo
+    component "ZumoComSystem" <<sim>> as wbDcs
+    component "Supervisor" <<sim>> as wbSupervisor
+    component "Camera" <<sim>> as wbCamera
+
+    wbsim ..> world
+    wbsim ..> wbZumo
+    wbsim ..> wbDcs
+    wbsim ..> wbSupervisor
+    wbsim ..> wbCamera
+  }
+
+  package "Host Apps" {
+    node "DroidControlShip" <<executable>> as DCS {
+      component "LineFollower_SensorFusion" <<app>> as LineFollowerApp
+    }
+    node "RadonUlzer" <<executable>> as RadonUlzer {
+      component "RemoteControl" <<app>> as RemoteControlApp
+    }
+    node "SpaceShipRadar" <<executable>> as ssr
+    node "MQTT Broker (Mosquitto)" <<executable>> as broker
+  }
+
+  ' Webots Controller API (TCP/Port/Pipe)
+  interface PortOrPipe
+
+  ' Controller-API Verbindungen
+  wbsim -u-() PortOrPipe
+  LineFollowerApp --( PortOrPipe : → Sim ZumoComSystem
+  RemoteControlApp  --( PortOrPipe : → Sim Zumo32U4
+  ssr --( PortOrPipe : → Sim Camera
+
+  ' Virtuelle serielle Links in Webots
+  wbZumo <--> wbDcs : virtual serial
+  wbSupervisor <--> wbZumo : virtual serial
+
+  ssr --> broker : MQTT (Publish)
+  LineFollowerApp <--> broker : MQTT (Publish/Subscribe)
+}
+@enduml
