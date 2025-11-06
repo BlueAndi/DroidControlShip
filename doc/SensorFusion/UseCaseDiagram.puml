@@ -1,0 +1,43 @@
+@startuml UseCaseDiagram
+left to right direction
+
+actor "RadonUlzer" as Zumo
+actor "SpaceShipRadar (External Tracking)" as Radar
+actor "MQTT Broker" as Broker
+
+rectangle "Droid Control Ship\nSensor Fusion Software" as ZumoComSystem {
+    usecase "Receive\nOdometryData" as UC_ReceiveOdometry
+    usecase "Receive\nIMUData" as UC_ReceiveImu
+    usecase "Receive\nExternalPose" as UC_ReceiveExternalPose
+    usecase "Perform\nSensorFusion" as UC_PerformSensorFusion
+    usecase "Publish\nFusedPose" as UC_PublishFusedPose
+    usecase "Publish\nSystemStatus" as UC_PublishSystemStatus
+    usecase "Publish\nRawSensorData" as UC_PublishRawData
+    usecase "Monitor\nSystemHealth" as UC_MonitorSystemHealth
+}
+
+usecase "Publish\nExternalPose" as UC_PublishExternalPose
+
+' === Actor to Use Case ===
+Zumo --> UC_ReceiveOdometry
+Zumo --> UC_ReceiveImu
+
+Radar --> UC_PublishExternalPose
+UC_PublishExternalPose --> Broker
+Broker --> UC_ReceiveExternalPose
+
+' === Use Case Dependencies ===
+UC_ReceiveOdometry ..> UC_PerformSensorFusion : <<include>>
+UC_ReceiveImu ..> UC_PerformSensorFusion : <<include>>
+UC_ReceiveExternalPose ..> UC_PerformSensorFusion : <<include>>
+UC_PerformSensorFusion ..> UC_PublishFusedPose : <<include>>
+UC_ReceiveOdometry ..> UC_PublishRawData : <<include>>
+UC_ReceiveImu ..> UC_PublishRawData : <<include>>
+UC_MonitorSystemHealth ..> UC_PublishSystemStatus : <<extend>>
+
+' === Publishing to Broker ===
+UC_PublishFusedPose --> Broker
+UC_PublishSystemStatus --> Broker
+UC_PublishRawData --> Broker
+
+@enduml
