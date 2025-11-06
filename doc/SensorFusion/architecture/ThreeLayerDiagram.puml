@@ -1,0 +1,36 @@
+@startuml ThreeLayerArchitecture
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+
+' ===== Layer: Application =====
+package "Application Layer (App)" as AppLayer {
+  component "App" <<app>> as App
+}
+' ===== Layer: Service =====
+package "Service Layer" as ServiceLayer {
+    component "SensorFusion" <<service>> as SensorFusionService
+    component "TimeSynchronization" <<service>> as TimeSyncService
+    component "HealthManager" <<service>> as HealthManagerService
+    component "CommunicationManager" <<service>> as CommManagerService
+}
+
+' ===== Layer: Hardware Abstraction Layer (HAL) =====
+package "Hardware Abstraction Layer (HAL)" as HALLayer {
+    component "MQTT Client" <<hal>> as MQTTClientHAL
+}
+
+' ===== Relationships =====
+App -down-> SensorFusionService
+App -down-> TimeSyncService
+App -down-> HealthManagerService
+
+SensorFusionService -down-> CommManagerService
+CommManagerService -down-> MQTTClientHAL
+TimeSyncService -down-> CommManagerService
+
+
+
+
+@enduml
