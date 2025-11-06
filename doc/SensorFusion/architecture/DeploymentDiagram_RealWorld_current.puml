@@ -1,0 +1,20 @@
+@startuml DeploymentDiagram
+
+node "Host Computer (Laptop/PC)" as HOST {
+  artifact "SpaceShipRadar" as SSR
+  artifact "MQTT Broker" as BROKER
+}
+
+node "Robot System" as ROBOT {
+  node "ZumoComSystem" as ZCS {
+    artifact "DroidControlShip\n<<SensorFusion>>" as DCS
+  }
+  node "Pololu Zumo32U4" as ZUMO {
+    artifact "RadonUlzer\n<<RemoteControl>>" as RU
+  }
+}
+
+SSR --> BROKER : MQTT (Publish)
+ZUMO  <--> ZCS         : UART / SerialMux
+
+@enduml
