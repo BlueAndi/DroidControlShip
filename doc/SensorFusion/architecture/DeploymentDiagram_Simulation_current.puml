@@ -8,18 +8,9 @@ skinparam defaultFontName Helvetica
 node "PC" as PC {
 
   package "Webots" {
-    component "World-file" <<world>> as world
-    component "Webots Engine" <<executable>> as wbsim
-    component "Zumo32U4" <<sim>> as wbZumo
-    component "ZumoComSystem" <<sim>> as wbDcs
-    component "Supervisor" <<sim>> as wbSupervisor
-    component "Camera" <<sim>> as wbCamera
-
-    wbsim ..> world
-    wbsim ..> wbZumo
-    wbsim ..> wbDcs
-    wbsim ..> wbSupervisor
-    wbsim ..> wbCamera
+    node "Zumo32U4" <<sim>> as wbZumo
+    node "ZumoComSystem" <<sim>> as wbDcs
+    node "Camera" <<sim>> as wbCamera
   }
 
   package "Host Apps" {
@@ -30,23 +21,22 @@ node "PC" as PC {
       component "RemoteControl" <<app>> as RemoteControlApp
     }
     node "SpaceShipRadar" <<executable>> as ssr
-    node "MQTT Broker (Mosquitto)" <<executable>> as broker
+    node "MQTT Broker" <<executable>> as broker
   }
 
-  ' Webots Controller API (TCP/Port/Pipe)
-  interface PortOrPipe
+  interface "Socket" as SocketCamera
+  interface "Socket" as SocketDCS
+  interface "Socket" as SocketRemoteCTRL
 
-  ' Controller-API Verbindungen
-  wbsim -u-() PortOrPipe
-  LineFollowerApp --( PortOrPipe : → Sim ZumoComSystem
-  RemoteControlApp  --( PortOrPipe : → Sim Zumo32U4
-  ssr --( PortOrPipe : → Sim Camera
+  wbCamera --() SocketCamera: <<protocol>>\nWebots specific
+  ssr --( SocketCamera
+  wbDcs --() SocketDCS: <<protocol>>\nWebots specific
+  DCS --( SocketDCS
+  wbZumo --() SocketRemoteCTRL: <<protocol>>\nWebots specific
+  RadonUlzer --( SocketRemoteCTRL
 
-  ' Virtuelle serielle Links in Webots
+
   wbZumo <--> wbDcs : virtual serial
-  wbSupervisor <--> wbZumo : virtual serial
-
-  ' MQTT Fluss (Host-seitig)
   ssr --> broker : MQTT (Publish)
 }
 @enduml
