@@ -21,7 +21,7 @@ node "PC" as PC {
       component "RemoteControl" <<app>> as RemoteControlApp
     }
     node "SpaceShipRadar" <<executable>> as ssr
-    node "MQTT Broker" <<executable>> as broker
+    node "MQTT Broker" as broker
   }
 
   interface "Socket" as SocketCamera

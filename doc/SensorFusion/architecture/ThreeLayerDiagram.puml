@@ -6,19 +6,19 @@ skinparam defaultFontName Helvetica
 
 ' ===== Layer: Application =====
 package "Application Layer (App)" as AppLayer {
-  component "App" <<app>> as App
+  component "App" as App
 }
 ' ===== Layer: Service =====
 package "Service Layer" as ServiceLayer {
-    component "SensorFusion" <<service>> as SensorFusionService
-    component "TimeSynchronization" <<service>> as TimeSyncService
-    component "HealthManager" <<service>> as HealthManagerService
-    component "CommunicationManager" <<service>> as CommManagerService
+    component "SensorFusion" as SensorFusionService
+    component "TimeSynchronization" as TimeSyncService
+    component "HealthManager" as HealthManagerService
+    component "CommunicationManager" as CommManagerService
 }
 
 ' ===== Layer: Hardware Abstraction Layer (HAL) =====
 package "Hardware Abstraction Layer (HAL)" as HALLayer {
-    component "MQTT Client" <<hal>> as MQTTClientHAL
+    component "MQTT Client" as MQTTClientHAL
 }
 
 ' ===== Relationships =====

@@ -8,17 +8,17 @@ skinparam defaultFontName Helvetica
 
 
 node "Robot Hardware" {
-node "ZumoComSystem" <<device>> as ZCS {
-    component "DroidControlShip" <<executable>> as DCS {
-    component "LineFollower_SensorFusion" <<app>> as LineFollowerApp
+    node "ZumoComSystem" <<device>> as ZCS {
+        component "DroidControlShip" <<executable>> as DCS {
+            component "LineFollower_SensorFusion" <<app>> as LineFollowerApp
+        }
     }
-}
 
-node "Pololu Zumo32U4" <<device>> as ZUMO {
-    component "RadonUlzer" <<executable>> as RadonUlzer {
-    component "RemoteControl" <<app>> as RemoteControlApp
+    node "Pololu Zumo32U4" <<device>> as ZUMO {
+        component "RadonUlzer" <<executable>> as RadonUlzer {
+            component "RemoteControl" <<app>> as RemoteControlApp
+        }
     }
-}
 }
 
 node "Laptop / PC" <<device>> as HOST {
@@ -28,13 +28,8 @@ node "Laptop / PC" <<device>> as HOST {
 
 component "Camera" <<device>> as CAMERA
 
-
-' ==== Datenverbindungen ====
-ZUMO <--> ZCS : UART / SerialMux
+ZUMO <--> ZCS : UART / SerialMuxProt
 DCS <--> BROKER : MQTT (Publish/Subscribe)
 SSR --> BROKER : MQTT (Publish)
-CAMERA -- SSR : USB
-
-
-
+CAMERA -- HOST : USB
 @enduml
