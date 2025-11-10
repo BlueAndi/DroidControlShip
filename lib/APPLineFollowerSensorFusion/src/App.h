@@ -51,6 +51,7 @@
 #include "SerMuxChannelProvider.h"
 #include "LineSensors.h"
 #include "Motors.h"
+#include <MQTTClient.h>
 
 /******************************************************************************
  * Macros
@@ -87,6 +88,23 @@ public:
     void loop();
 
 private:
+    /** MQTT topic name for birth messages. */
+    static const char* TOPIC_NAME_BIRTH;
+
+    /** MQTT topic name for will messages. */
+    static const char* TOPIC_NAME_WILL;
+
+    /** MQTT topic name for status messages. */
+    static const char* TOPIC_NAME_STATUS;
+
+    /** MQTT topic name for fusion Pose */
+    static const char* TOPIC_NAME_FUSION_POSE;
+
+    /** MQTT topic name for raw Sensor data */
+    static const char* TOPIC_NAME_RAW_SENSORS;
+
+    /** MQTT topic name for receiving Space Ship Radar Pose. */
+    static const char* TOPIC_NAME_RADAR_POSE;
 
     /**
      * Flag for setting initial data through SMP.
@@ -117,6 +135,29 @@ private:
      * State machine for the application.
      */
     StateMachine m_stateMachine;
+
+    /**
+     * MQTT client handler.
+     */
+    MqttClient m_mqttClient;
+
+    /**
+     * Setup the MQTT connection.
+     *
+     * @param[in] clientId      The MQTT client id.
+     * @param[in] brokerAddr    The address of the MQTT broker.
+     * @param[in] brokerPort    The port of the MQTT broker.
+     *
+     * @return true if successful, otherwise false.
+     */
+    bool setupMqtt(const String& clientId, const String& brokerAddr, uint16_t brokerPort);
+
+    /**
+     * Callback for receiving Space Ship Radar Pose over MQTT topic.
+     *
+     * @param[in] payload   The topic payload.
+     */
+    void SSRTopicCallback(const String& payload);
 
     /**
      * Copy construction of an instance.

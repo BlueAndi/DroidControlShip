@@ -76,6 +76,27 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 /** Serial log sink */
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 
+/* MQTT topic name for birth messages. */
+const char* App::TOPIC_NAME_BIRTH = "birth";
+
+/* MQTT topic name for will messages. */
+const char* App::TOPIC_NAME_WILL = "will";
+
+/** MQTT topic name for status messages. */
+const char* App::TOPIC_NAME_STATUS = "zumo/%s/status";
+
+/** MQTT topic name for fusion Pose */
+const char* App::TOPIC_NAME_FUSION_POSE = "zumo/%s/fusion";
+
+/** MQTT topic name for raw Sensor data */
+const char* App::TOPIC_NAME_RAW_SENSORS = "zumo/%s/sensors";
+
+/** MQTT topic name for receiving Space Ship Radar Pose. */
+const char* App::TOPIC_NAME_RADAR_POSE = "ssr/%s";
+
+/** Buffer size for JSON serialization of birth / will message */
+static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -86,7 +107,8 @@ App::App() :
     m_serMuxChannelProvider(Board::getInstance().getRobot().getStream()),
     m_lineSensors(m_serMuxChannelProvider),
     m_motors(m_serMuxChannelProvider),
-    m_stateMachine()
+    m_stateMachine(),
+    m_mqttClient()
 {
     /* Inject dependencies into states. */
     StartupState::getInstance().injectDependencies(m_serMuxChannelProvider, m_motors);
@@ -146,6 +168,10 @@ void App::setup()
         {
             LOG_FATAL("SerialMuxChannelProvider init failed.");
         }
+        else if (false == setupMqtt(settings.getRobotName(), settings.getMqttBrokerAddress(), settings.getMqttPort()))
+        {
+            LOG_FATAL("MQTT connection could not be setup.");
+        }
         else
         {
             m_statusTimer.start(1000U);
@@ -171,6 +197,9 @@ void App::loop()
 {
     /* Process battery, device and network. */
     Board::getInstance().process();
+
+    /* Process MQTT Communication */
+    m_mqttClient.process();
 
     /* Process serial multiplexer. */
     m_serMuxChannelProvider.process();
@@ -204,6 +233,66 @@ void App::loop()
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
+bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t brokerPort)
+{
+    bool         isSuccessful = false;
+    JsonDocument jsonBirthDoc;
+    char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
+    String       birthMessage;
+
+    jsonBirthDoc["name"] = clientId.c_str();
+    (void)serializeJson(jsonBirthDoc, birthMsgArray);
+    birthMessage = birthMsgArray;
+
+    if (false == m_mqttClient.init())
+    {
+        LOG_FATAL("Failed to initialize MQTT client.");
+    }
+    else
+    {
+        MqttSettings mqttSettings = {clientId,     brokerAddr,      brokerPort,   TOPIC_NAME_BIRTH,
+                                     birthMessage, TOPIC_NAME_WILL, birthMessage, true};
+
+        if (false == m_mqttClient.setConfig(mqttSettings))
+        {
+            LOG_FATAL("MQTT configuration could not be set.");
+        }
+        /* Subscribe to Command Topic. */
+        else if (false == m_mqttClient.subscribe(TOPIC_NAME_RADAR_POSE, true,
+                                                 [this](const String& payload) { SSRTopicCallback(payload); }))
+        {
+            LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_RADAR_POSE);
+        }
+        else
+        {
+            isSuccessful = true;
+        }
+    }
+
+    return isSuccessful;
+}
+
+void App::SSRTopicCallback(const String& payload)
+{
+    JsonDocument         jsonPayload;
+    DeserializationError error = deserializeJson(jsonPayload, payload.c_str());
+
+    if (error != DeserializationError::Ok)
+    {
+        LOG_ERROR("JSON Deserialization error %d.", error);
+    }
+    else
+    {
+        JsonVariantConst xPos_mm    = jsonPayload["positionX"];  // int : in mm
+        JsonVariantConst yPos_mm    = jsonPayload["positionY"];  // int : in mm
+        JsonVariantConst xVel_mms   = jsonPayload["speedX"];     // int : in mm/s
+        JsonVariantConst yVel_mms   = jsonPayload["speedY"];     // int : in mm/s
+        JsonVariantConst angle_mrad = jsonPayload["angle"];      // int : in mrad
+        JsonVariantConst id         = jsonPayload["identifier"]; // int : unique id of the target
+        LOG_DEBUG("SSR pose: xPos=%dmm yPos=%dmm angle=%dmrad vx=%dmm/s vy=%dmm/s", xPos_mm, yPos_mm, angle_mrad,
+                  xVel_mms, yVel_mms);
+    }
+}
 
 /******************************************************************************
  * External Functions
