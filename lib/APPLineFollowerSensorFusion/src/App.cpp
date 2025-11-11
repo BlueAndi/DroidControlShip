@@ -83,16 +83,16 @@ const char* App::TOPIC_NAME_BIRTH = "birth";
 const char* App::TOPIC_NAME_WILL = "will";
 
 /** MQTT topic name for status messages. */
-const char* App::TOPIC_NAME_STATUS = "zumo/%s/status";
+const char* App::TOPIC_NAME_STATUS = "zumo/status";
 
 /** MQTT topic name for fusion Pose */
-const char* App::TOPIC_NAME_FUSION_POSE = "zumo/%s/fusion";
+const char* App::TOPIC_NAME_FUSION_POSE = "zumo/fusion";
 
 /** MQTT topic name for raw Sensor data */
-const char* App::TOPIC_NAME_RAW_SENSORS = "zumo/%s/sensors";
+const char* App::TOPIC_NAME_RAW_SENSORS = "zumo/sensors";
 
 /** MQTT topic name for receiving Space Ship Radar Pose. */
-const char* App::TOPIC_NAME_RADAR_POSE = "ssr/%s";
+const char* App::TOPIC_NAME_RADAR_POSE = "ssr";
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
@@ -239,6 +239,7 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
     JsonDocument jsonBirthDoc;
     char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
     String       birthMessage;
+    const String ssrTopic = String(TOPIC_NAME_RADAR_POSE) + "/" + clientId;
 
     jsonBirthDoc["name"] = clientId.c_str();
     (void)serializeJson(jsonBirthDoc, birthMsgArray);
@@ -258,8 +259,8 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
             LOG_FATAL("MQTT configuration could not be set.");
         }
         /* Subscribe to Space Ship Radar Topic. */
-        else if (false == m_mqttClient.subscribe(TOPIC_NAME_RADAR_POSE, true,
-                                                 [this](const String& payload) { SSRTopicCallback(payload); }))
+        else if (false ==
+                 m_mqttClient.subscribe(ssrTopic, false, [this](const String& payload) { SSRTopicCallback(payload); }))
         {
             LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_RADAR_POSE);
         }
