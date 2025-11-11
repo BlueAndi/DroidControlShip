@@ -257,7 +257,7 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
         {
             LOG_FATAL("MQTT configuration could not be set.");
         }
-        /* Subscribe to Command Topic. */
+        /* Subscribe to Space Ship Radar Topic. */
         else if (false == m_mqttClient.subscribe(TOPIC_NAME_RADAR_POSE, true,
                                                  [this](const String& payload) { SSRTopicCallback(payload); }))
         {
