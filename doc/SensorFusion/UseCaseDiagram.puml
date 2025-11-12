@@ -3,41 +3,46 @@ left to right direction
 
 actor "RadonUlzer" as Zumo
 actor "SpaceShipRadar (External Tracking)" as Radar
-actor "MQTT Broker" as Broker
+actor "DroidControlShip" as DroidControlShip
 
-rectangle "Droid Control Ship\nSensor Fusion Software" as ZumoComSystem {
-    usecase "Receive\nOdometryData" as UC_ReceiveOdometry
-    usecase "Receive\nIMUData" as UC_ReceiveImu
-    usecase "Receive\nExternalPose" as UC_ReceiveExternalPose
-    usecase "Perform\nSensorFusion" as UC_PerformSensorFusion
-    usecase "Publish\nFusedPose" as UC_PublishFusedPose
-    usecase "Publish\nSystemStatus" as UC_PublishSystemStatus
-    usecase "Publish\nRawSensorData" as UC_PublishRawData
-    usecase "Monitor\nSystemHealth" as UC_MonitorSystemHealth
+rectangle "SensorFusion" as SensorFusionService {
+    ' Use Cases RadonUlzer
+    usecase "Provides\nIMU" as PublishIMU
+    usecase "Provides\nOdometry" as PublishOdometry
+
+    ' Use Cases SpaceShipRadar
+    usecase "Publish\nExternal Pose" as PublishExternalPose
+
+    ' Use Cases DroidControlShip
+    usecase "Perform\nSensor Fusion" as PerformSensorFusion
+    usecase "Receive\nIMU Data" as ReceiveIMUData
+    usecase "Receive\nOdometry Data" as ReceiveOdometryData
+    usecase "Receive\nExternal Pose Data" as ReceiveExternalPoseData
+    usecase "Monitor\nSystem Health" as MonitorSystemHealth
+    usecase "Publish\nFused Pose" as PublishFusedPose
+    usecase "Publish\nHealth Status" as PublishHealthStatus
+    usecase "Publish\nRaw Sensor Data" as PublishRawSensorData
 }
 
-usecase "Publish\nExternalPose" as UC_PublishExternalPose
+' Relationships RadonUlzer
+Zumo --> PublishIMU
+Zumo --> PublishOdometry
 
-' === Actor to Use Case ===
-Zumo --> UC_ReceiveOdometry
-Zumo --> UC_ReceiveImu
+' Relationships SpaceShipRadar
+Radar --> PublishExternalPose
 
-Radar --> UC_PublishExternalPose
-UC_PublishExternalPose --> Broker
-Broker --> UC_ReceiveExternalPose
+' Relationships DroidControlShip
+DroidControlShip --> PerformSensorFusion
+DroidControlShip --> MonitorSystemHealth
 
-' === Use Case Dependencies ===
-UC_ReceiveOdometry ..> UC_PerformSensorFusion : <<include>>
-UC_ReceiveImu ..> UC_PerformSensorFusion : <<include>>
-UC_ReceiveExternalPose ..> UC_PerformSensorFusion : <<include>>
-UC_PerformSensorFusion ..> UC_PublishFusedPose : <<include>>
-UC_ReceiveOdometry ..> UC_PublishRawData : <<include>>
-UC_ReceiveImu ..> UC_PublishRawData : <<include>>
-UC_MonitorSystemHealth ..> UC_PublishSystemStatus : <<extend>>
+' Includes/Extends PerformSensorFusion
+PerformSensorFusion ..> ReceiveIMUData : includes
+PerformSensorFusion ..> ReceiveOdometryData : includes
+PerformSensorFusion ..> ReceiveExternalPoseData : includes
+PerformSensorFusion ..> PublishFusedPose : includes
+PerformSensorFusion ..> PublishRawSensorData : includes
 
-' === Publishing to Broker ===
-UC_PublishFusedPose --> Broker
-UC_PublishSystemStatus --> Broker
-UC_PublishRawData --> Broker
+' Includes/Extends MonitorSystemHealth
+MonitorSystemHealth <.. PublishHealthStatus : extends
 
 @enduml
