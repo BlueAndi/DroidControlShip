@@ -1,0 +1,48 @@
+@startuml UseCaseDiagram
+left to right direction
+
+actor "RadonUlzer" as Zumo
+actor "SpaceShipRadar (External Tracking)" as Radar
+actor "DroidControlShip" as DroidControlShip
+
+rectangle "SensorFusion" as SensorFusionService {
+    ' Use Cases RadonUlzer
+    usecase "Provides\nIMU" as PublishIMU
+    usecase "Provides\nOdometry" as PublishOdometry
+
+    ' Use Cases SpaceShipRadar
+    usecase "Publish\nExternal Pose" as PublishExternalPose
+
+    ' Use Cases DroidControlShip
+    usecase "Perform\nSensor Fusion" as PerformSensorFusion
+    usecase "Receive\nIMU Data" as ReceiveIMUData
+    usecase "Receive\nOdometry Data" as ReceiveOdometryData
+    usecase "Receive\nExternal Pose Data" as ReceiveExternalPoseData
+    usecase "Monitor\nSystem Health" as MonitorSystemHealth
+    usecase "Publish\nFused Pose" as PublishFusedPose
+    usecase "Publish\nHealth Status" as PublishHealthStatus
+    usecase "Publish\nRaw Sensor Data" as PublishRawSensorData
+}
+
+' Relationships RadonUlzer
+Zumo --> PublishIMU
+Zumo --> PublishOdometry
+
+' Relationships SpaceShipRadar
+Radar --> PublishExternalPose
+
+' Relationships DroidControlShip
+DroidControlShip --> PerformSensorFusion
+DroidControlShip --> MonitorSystemHealth
+
+' Includes/Extends PerformSensorFusion
+PerformSensorFusion ..> ReceiveIMUData : includes
+PerformSensorFusion ..> ReceiveOdometryData : includes
+PerformSensorFusion ..> ReceiveExternalPoseData : includes
+PerformSensorFusion ..> PublishFusedPose : includes
+PerformSensorFusion ..> PublishRawSensorData : includes
+
+' Includes/Extends MonitorSystemHealth
+MonitorSystemHealth <.. PublishHealthStatus : extends
+
+@enduml
