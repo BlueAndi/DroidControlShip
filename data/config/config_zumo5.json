@@ -1,0 +1,32 @@
+{
+  "robotName": "5",
+  "wifi": {
+    "ssid": "",
+    "pswd": ""
+  },
+  "mqtt": {
+    "host": "localhost",
+    "port": "1883"
+  },
+  "ap": {
+    "ssid": "DCS_AP",
+    "pswd": "hanshotfirst"
+  },
+  "webServer": {
+    "user": "admin",
+    "pswd": "admin"
+  },
+  "platoon": {
+    "platoonId": "0",
+    "vehicleId": "0"
+  },
+  "initialPosition": {
+    "x": "0",
+    "y": "0",
+    "heading": "0"
+  },
+  "microROSAgent": {
+    "host": "127.0.0.1",
+    "port": "8888"
+  }
+}

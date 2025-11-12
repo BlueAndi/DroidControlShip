@@ -186,7 +186,7 @@ void App::setup()
     }
     else
     {
-        LOG_INFO("Line follower application is ready.");
+        LOG_INFO("Line follower Sensor Fusion application is ready.");
 
         /* Set initial state of the state machine. */
         m_stateMachine.setState(StartupState::getInstance());
@@ -267,9 +267,11 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
         else
         {
             isSuccessful = true;
+            LOG_INFO("Subscribed to MQTT topic: %s.", ssrTopic.c_str());
         }
     }
 
+    LOG_INFO("MQTT setup %s.", (true == isSuccessful) ? "successful" : "failed");
     return isSuccessful;
 }
 
@@ -290,8 +292,8 @@ void App::SSRTopicCallback(const String& payload)
         JsonVariantConst yVel_mms   = jsonPayload["speedY"];     // int : in mm/s
         JsonVariantConst angle_mrad = jsonPayload["angle"];      // int : in mrad
         JsonVariantConst id         = jsonPayload["identifier"]; // int : unique id of the target
-        LOG_DEBUG("SSR pose: xPos=%dmm yPos=%dmm angle=%dmrad vx=%dmm/s vy=%dmm/s", xPos_mm, yPos_mm, angle_mrad,
-                  xVel_mms, yVel_mms);
+        LOG_INFO("SSR pose: xPos=%dmm yPos=%dmm angle=%dmrad vx=%dmm/s vy=%dmm/s", xPos_mm, yPos_mm, angle_mrad,
+                 xVel_mms, yVel_mms);
     }
 }
 

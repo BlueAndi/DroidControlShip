@@ -45,7 +45,7 @@ ROBOT_SERIAL_RX_CHANNEL = env.GetProjectOption("webots_robot_serial_rx_channel")
 ROBOT_SERIAL_TX_CHANNEL = env.GetProjectOption("webots_robot_serial_tx_channel") # pylint: disable=undefined-variable
 
 PROGRAM_PATH = "$BUILD_DIR/"
-PROGRAM_OPTIONS = '--cfgFilePath "../../../data/config/config.json" ' \
+PROGRAM_OPTIONS = '--cfgFilePath "../../../data/config/config_zumo1.json" ' \
                 + '--serialRxCh ' + ROBOT_SERIAL_RX_CHANNEL + ' ' \
                 + '--serialTxCh ' + ROBOT_SERIAL_TX_CHANNEL + ' ' \
                 + '-v'
