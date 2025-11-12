@@ -29,8 +29,6 @@ App -down-> HealthManagerService
 SensorFusionService -down-> CommManagerService
 CommManagerService -down-> MQTTClientHAL
 TimeSyncService -down-> CommManagerService
-
-
-
+HealthManagerService -down-> CommManagerService
 
 @enduml
