@@ -201,11 +201,6 @@ void App::loop()
     /* Process MQTT Communication */
     m_mqttClient.process();
 
-    m_mqttClient.publish(TOPIC_NAME_RAW_SENSORS, true,
-                         "Hello from Line Follower Sensor Fusion! Sensor data goes here...");
-    m_mqttClient.publish(TOPIC_NAME_FUSION_POSE, true, "Fusion Pose data goes here...");
-    m_mqttClient.publish(TOPIC_NAME_STATUS, true, "Status data goes here...");
-
     /* Process serial multiplexer. */
     m_serMuxChannelProvider.process();
 
