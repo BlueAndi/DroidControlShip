@@ -69,9 +69,6 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-uint32_t pingPeriodMs = 100U;    /**< Serial ping period [ms]. (5 minutes)*/
-uint32_t rtcRefreshMs = 300000U; /**< RTC refresh period [ms]. (5 minutes) */
-
 /** Serial interface baudrate. */
 static const uint32_t SERIAL_BAUDRATE = 115200U;
 
@@ -177,8 +174,8 @@ void App::setup()
         }
         else
         {
-            /* Start network time (SNTP) against Host and Zumo serial ping-pong. */
-            m_timeSync.begin(settings.getMqttBrokerAddress().c_str(), pingPeriodMs, rtcRefreshMs);
+            /* Start network time (NTP) against Host and Zumo serial ping-pong. */
+            m_timeSync.begin();
             m_statusTimer.start(1000U);
             isSuccessful = true;
         }
@@ -209,7 +206,7 @@ void App::loop()
     /* Process serial multiplexer. */
     m_serMuxChannelProvider.process();
 
-    /* Process time synchronization (SNTP refresh + serial ping-pong). */
+    /* Process time synchronization (NTP refresh + serial ping-pong). */
     m_timeSync.process();
 
     /* Process statemachine. */
@@ -229,7 +226,6 @@ void App::loop()
         {
             LOG_WARNING("Failed to send status to RU.");
         }
-
         m_statusTimer.restart();
     }
 }

@@ -81,13 +81,8 @@ public:
 
     /**
      * Initialize time synchronization.
-     * - Configures SNTP to use the given NTP server (Host)
-     * - Starts periodic serial ping-pong with the Zumo
-     *
-     * @param[in] ntpServerAddr  NTP server address (e.g., MQTT broker/Host IP).
-     * @param[in] pingPeriodMs   Serial ping period [ms].
      */
-    void begin(const char* ntpServerAddr, uint32_t pingPeriodMs, uint32_t rtcRefreshMs);
+    void begin();
 
     /**
      * Process periodic activities (send pings, housekeeping).
@@ -149,16 +144,13 @@ public:
 private:
     SerMuxChannelProvider& m_serMuxProvider; /**< SerialMux provider. */
 
-    // --- RTC (SNTP) ---
-    WiFiUDP       m_ntpUdp;               /**< UDP socket for NTP client. */
-    NTPClient     m_ntpClient;            /**< NTP client instance. */
-    char          m_ntpServer[64];        /**< Current NTP server name (for logging). */
-    long          m_ntpTimeOffsetSec;     /**< Timezone offset [s] applied in NTP client. */
-    unsigned long m_ntpUpdateIntervalMs;  /**< NTP update interval [ms] (for logging). */
-    bool          m_rtcSynced;            /**< RTC synchronized flag. */
-    int64_t       m_epochToLocalOffsetMs; /**< Epoch time - local time [ms]. */
-    uint32_t      m_rtcRefreshMs;         /**< RTC mapping refresh period. */
-    SimpleTimer   m_rtcTimer;             /**< Timer for refreshing RTC mapping. */
+    // --- RTC (NTP) ---
+    WiFiUDP     m_ntpUdp;               /**< UDP socket for NTP client. */
+    NTPClient   m_ntpClient;            /**< NTP client instance. */
+    bool        m_rtcSynced;            /**< RTC synchronized flag. */
+    int64_t     m_epochToLocalOffsetMs; /**< Epoch time - local time [ms]. */
+    uint32_t    m_rtcRefreshMs;         /**< RTC mapping refresh period. */
+    SimpleTimer m_rtcTimer;             /**< Timer for refreshing RTC mapping. */
 
     // --- Serial ping-pong with Zumo ---
     SimpleTimer m_pingTimer;          /**< Ping timer. */

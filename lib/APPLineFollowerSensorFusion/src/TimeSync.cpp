@@ -34,7 +34,6 @@
  *****************************************************************************/
 #include "TimeSync.h"
 #include <Logging.h>
-#include <cstring>
 
 /******************************************************************************
  * Macros
@@ -53,9 +52,6 @@
  *****************************************************************************/
 namespace
 {
-    /** Periodic RTC refresh */
-    constexpr uint32_t TSYNC_RTC_REFRESH_MS = 5000U;
-
     /** Default ping period for time synchronization (ms). */
     constexpr uint32_t TSYNC_DEFAULT_PING_PERIOD_MS = 200U;
 
@@ -88,12 +84,9 @@ TimeSync::TimeSync(SerMuxChannelProvider& serMuxProvider) :
     m_serMuxProvider(serMuxProvider),
     m_ntpUdp(),
     m_ntpClient(m_ntpUdp, TSYNC_DEFAULT_NTP_SERVER, 0L, TSYNC_NTP_UPDATE_INTERVAL_MS),
-    m_ntpServer{0},
-    m_ntpTimeOffsetSec(TSYNC_GMT_OFFSET_SEC),
-    m_ntpUpdateIntervalMs(TSYNC_NTP_UPDATE_INTERVAL_MS),
     m_rtcSynced(false),
     m_epochToLocalOffsetMs(0),
-    m_rtcRefreshMs(TSYNC_RTC_REFRESH_MS),
+    m_rtcRefreshMs(TSYNC_NTP_UPDATE_INTERVAL_MS),
     m_rtcTimer(),
     m_pingTimer(),
     m_pingPeriodMs(TSYNC_DEFAULT_PING_PERIOD_MS),
@@ -106,35 +99,26 @@ TimeSync::TimeSync(SerMuxChannelProvider& serMuxProvider) :
     m_zumoToEspOffsetMs(0),
     m_zumoGoodSamples(0U)
 {
-    std::strncpy(m_ntpServer, TSYNC_DEFAULT_NTP_SERVER, sizeof(m_ntpServer) - 1U);
 }
 
-void TimeSync::begin(const char* ntpServerAddr, uint32_t pingPeriodMs, uint32_t rtcRefreshMs)
+void TimeSync::begin()
 {
-    m_pingPeriodMs = pingPeriodMs;
-    m_rtcRefreshMs = rtcRefreshMs;
     m_pingTimer.start(m_pingPeriodMs);
-    m_rtcTimer.start(m_rtcRefreshMs);
 
     /* Register time sync response callback. */
     m_serMuxProvider.registerTimeSyncResponseCallback([this](const TimeSyncResponse& rsp) { onTimeSyncResponse(rsp); });
 
-    /* Configure and start NTP client (WiFi connectivity is assumed to be handled externally). */
-    if (nullptr != ntpServerAddr)
-    {
-        m_ntpClient.setPoolServerName(ntpServerAddr);
-        std::strncpy(m_ntpServer, ntpServerAddr, sizeof(m_ntpServer) - 1U);
-        m_ntpServer[sizeof(m_ntpServer) - 1U] = '\0';
-    }
-    m_ntpTimeOffsetSec = TSYNC_GMT_OFFSET_SEC;
-    m_ntpClient.setTimeOffset(m_ntpTimeOffsetSec);
     m_ntpClient.begin();
-    (void)m_ntpClient.update(); /* Best-effort initial sync. */
-    refreshRtcMapping();        /* Establish initial epoch-to-local mapping if possible. */
+
+    refreshRtcMapping(); /* Establish initial epoch-to-local mapping if possible. */
+    logRtcStatus();
+    logZumoStatus();
 }
 
 void TimeSync::process()
 {
+    (void)m_ntpClient.update(); /* Best-effort initial sync. */
+
     if (m_pending && (localNowMs() - m_pendingT1_64 > TSYNC_REQUEST_TIMEOUT_MS)) // 1 s
     {
         LOG_WARNING("TimeSync: request timeout (no response)");
@@ -297,44 +281,16 @@ void TimeSync::refreshRtcMapping()
 
 void TimeSync::logRtcStatus() const
 {
-    const uint64_t localMs = localNowMs();
-    const uint64_t epochMs = nowEpochMs();
-
     LOG_INFO("════════ RTC / NTP Status ════════════════════════════════");
-    LOG_INFO("RTC synced:           %s", m_rtcSynced ? "YES" : "NO");
-    LOG_INFO("NTP server:           %s", m_ntpServer);
-    LOG_INFO("NTP time offset:      %ld s", m_ntpTimeOffsetSec);
-    LOG_INFO("NTP update interval:  %lu ms", (unsigned long)m_ntpUpdateIntervalMs);
-    LOG_INFO("RTC refresh period:   %lu ms", (unsigned long)m_rtcRefreshMs);
-    LOG_INFO("Local now:            %llu ms", (unsigned long long)localMs);
-    LOG_INFO("Epoch now:            %llu ms", (unsigned long long)epochMs);
-    LOG_INFO("Epoch-Local offset:   %+lld ms", (long long)m_epochToLocalOffsetMs);
-    LOG_INFO("═══════════════════════════════════════════════════════════");
+    LOG_INFO("RTC Synced:           %s", m_rtcSynced ? "yes" : "no");
+    LOG_INFO("Epoch to Local Offset: %lld ms", m_epochToLocalOffsetMs);
+    LOG_INFO("Local time now:      %llu ms", localNowMs());
+    LOG_INFO("Epoch time now:      %llu ms", nowEpochMs());
 }
 
 void TimeSync::logZumoStatus() const
 {
-    const bool     inSync       = m_serMuxProvider.isInSync();
-    const bool     pending      = m_pending;
-    const uint64_t nowMs        = localNowMs();
-    const uint64_t pendingAgeMs = pending ? (nowMs - m_pendingT1_64) : 0ULL;
-
-    LOG_INFO("════════ Zumo Serial Time Sync ════════════════════════════");
-    LOG_INFO("SerialMux in sync:     %s", inSync ? "YES" : "NO");
-    LOG_INFO("Ping period:           %lu ms", (unsigned long)m_pingPeriodMs);
-    LOG_INFO("Next seq:              %lu", (unsigned long)m_seq);
-    LOG_INFO("Pending request:       %s", pending ? "YES" : "NO");
-    if (pending)
-    {
-        LOG_INFO("  Pending seq:         %lu", (unsigned long)m_pendingSeq);
-        LOG_INFO("  Pending t1_32:       %lu ms", (unsigned long)m_pendingT1_32);
-        LOG_INFO("  Pending t1_64 age:   %llu ms", (unsigned long long)pendingAgeMs);
-    }
-    LOG_INFO("Best RTT (min):        %lu ms", (unsigned long)m_minRttMs);
-    LOG_INFO("Clock offset Zumo->ESP:%+lld ms", (long long)m_zumoToEspOffsetMs);
-    LOG_INFO("Accepted samples:      %u", (unsigned)m_zumoGoodSamples);
-    LOG_INFO("Zumo synced (>=3):     %s", (m_zumoGoodSamples >= 3U) ? "YES" : "NO");
-    LOG_INFO("═══════════════════════════════════════════════════════════");
+    LOG_INFO("════════ Zumo Time Sync Status ═══════════════════════════");
 }
 
 void TimeSync::logStatus() const
