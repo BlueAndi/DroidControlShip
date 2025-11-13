@@ -43,6 +43,8 @@
  * Includes
  *****************************************************************************/
 #include <SimpleTimer.hpp>
+#include <WiFiUdp.h>
+#include <NTPClient.h>
 #include "SerMuxChannelProvider.h"
 #include "SerialMuxChannels.h"
 
@@ -71,6 +73,11 @@ public:
      * @param[in] serMuxProvider SerialMux provider to send/receive time sync frames.
      */
     TimeSync(SerMuxChannelProvider& serMuxProvider);
+
+    /**
+     * Log current time sync status (for debugging/testing).
+     */
+    void logStatus() const;
 
     /**
      * Initialize time synchronization.
@@ -117,33 +124,54 @@ public:
     uint64_t localNowMs() const;
 
     /**
-     * Get estimated RU->DCS offset [ms]. Positive means RU ahead of DCS.
+     * Get current epoch time [ms] if RTC mapping is available, otherwise 0.
+     */
+    uint64_t nowEpochMs() const;
+
+    /**
+     * Get estimated Zumo->ESP offset [ms]. Positive means Zumo ahead of ESP.
      */
     int64_t getZumoToEspOffsetMs() const
     {
         return m_zumoToEspOffsetMs;
     }
 
+    /**
+     * Log detailed RTC/NTP status information.
+     */
+    void logRtcStatus() const;
+
+    /**
+     * Log detailed serial (Zumo) time sync status information.
+     */
+    void logZumoStatus() const;
+
 private:
     SerMuxChannelProvider& m_serMuxProvider; /**< SerialMux provider. */
 
     // --- RTC (SNTP) ---
-    bool        m_rtcSynced;            /**< RTC synchronized flag. */
-    int64_t     m_epochToLocalOffsetMs; /**< Epoch time - local time [ms]. */
-    uint32_t    m_rtcRefreshMs;         /**< RTC mapping refresh period. */
-    SimpleTimer m_rtcTimer;             /**< Timer for refreshing RTC mapping. */
+    WiFiUDP       m_ntpUdp;               /**< UDP socket for NTP client. */
+    NTPClient     m_ntpClient;            /**< NTP client instance. */
+    char          m_ntpServer[64];        /**< Current NTP server name (for logging). */
+    long          m_ntpTimeOffsetSec;     /**< Timezone offset [s] applied in NTP client. */
+    unsigned long m_ntpUpdateIntervalMs;  /**< NTP update interval [ms] (for logging). */
+    bool          m_rtcSynced;            /**< RTC synchronized flag. */
+    int64_t       m_epochToLocalOffsetMs; /**< Epoch time - local time [ms]. */
+    uint32_t      m_rtcRefreshMs;         /**< RTC mapping refresh period. */
+    SimpleTimer   m_rtcTimer;             /**< Timer for refreshing RTC mapping. */
 
     // --- Serial ping-pong with Zumo ---
-    SimpleTimer m_pingTimer;         /**< Ping timer. */
-    uint32_t    m_pingPeriodMs;      /**< Ping period [ms]. */
-    uint32_t    m_seq;               /**< Sequence counter. */
-    bool        m_pending;           /**< Waiting for response. */
-    uint32_t    m_pendingT1_32;      /**< Pending T1 (lower 32 bits) [ms]. */
-    uint64_t    m_pendingT1_64;      /**< Pending T1 [ms]. */
-    uint32_t    m_minRttMs;          /**< Best observed RTT [ms]. */
-    int64_t     m_zumoToEspOffsetMs; /**< Estimated offset Zumo->ESP [ms]. */
-    uint8_t     m_zumoGoodSamples;   /**< Number of good samples collected. */
-    uint32_t    m_pendingSeq;        /**< Sequence number of pending request. */
+    SimpleTimer m_pingTimer;          /**< Ping timer. */
+    uint32_t    m_pingPeriodMs;       /**< Ping period [ms]. */
+    uint32_t    m_seq;                /**< Sequence counter. */
+    bool        m_pending;            /**< Waiting for response. */
+    uint32_t    m_pendingT1_32;       /**< Pending T1 (lower 32 bits) [ms]. */
+    uint64_t    m_pendingT1_64;       /**< Pending T1 [ms]. */
+    uint32_t    m_minRttMs;           /**< Best observed RTT [ms]. */
+    int64_t     m_zumoToEspOffsetMs;  /**< Estimated offset Zumo->ESP [ms]. */
+    uint8_t     m_zumoGoodSamples;    /**< Number of good samples collected. */
+    uint32_t    m_pendingSeq;         /**< Sequence number of pending request. */
+    uint64_t    m_lastStatusLogMs{0}; /**< Last status log time [ms]. */
 
     /**
      * Handle an incoming time sync response from Zumo.
