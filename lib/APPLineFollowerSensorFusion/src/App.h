@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Line follower application
+ * @brief  Line follower Sensor fusion application
  * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup Application
@@ -52,6 +52,7 @@
 #include "LineSensors.h"
 #include "Motors.h"
 #include <MQTTClient.h>
+#include "TimeSync.h"
 
 /******************************************************************************
  * Macros
@@ -120,6 +121,11 @@ private:
      * SerialMux Channel Provider handler.
      */
     SerMuxChannelProvider m_serMuxChannelProvider;
+
+    /**
+     * Time synchronization handler.
+     */
+    TimeSync m_timeSync;
 
     /**
      * Line sensors handler.

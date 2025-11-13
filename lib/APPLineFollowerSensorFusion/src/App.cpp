@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Line follower application
+ * @brief  Line follower Sensor Fusion application
  * @author Andreas Merkle <web@blue-andi.de>
  */
 
@@ -69,6 +69,8 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
+uint32_t pingPeriodMs = 100U;    /**< Serial ping period [ms]. (5 minutes)*/
+uint32_t rtcRefreshMs = 300000U; /**< RTC refresh period [ms]. (5 minutes) */
 
 /** Serial interface baudrate. */
 static const uint32_t SERIAL_BAUDRATE = 115200U;
@@ -105,6 +107,7 @@ App::App() :
     m_initialDataSent(false),
     m_statusTimer(),
     m_serMuxChannelProvider(Board::getInstance().getRobot().getStream()),
+    m_timeSync(m_serMuxChannelProvider),
     m_lineSensors(m_serMuxChannelProvider),
     m_motors(m_serMuxChannelProvider),
     m_stateMachine(),
@@ -174,6 +177,8 @@ void App::setup()
         }
         else
         {
+            /* Start network time (SNTP) against Host and Zumo serial ping-pong. */
+            m_timeSync.begin(settings.getMqttBrokerAddress().c_str(), pingPeriodMs, rtcRefreshMs);
             m_statusTimer.start(1000U);
             isSuccessful = true;
         }
@@ -203,6 +208,9 @@ void App::loop()
 
     /* Process serial multiplexer. */
     m_serMuxChannelProvider.process();
+
+    /* Process time synchronization (SNTP refresh + serial ping-pong). */
+    m_timeSync.process();
 
     /* Process statemachine. */
     m_stateMachine.process();

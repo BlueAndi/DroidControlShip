@@ -75,6 +75,11 @@ public:
     typedef std::function<void(const VehicleData& data)> VehicleDataCallback;
 
     /**
+     * This type defines the callback for time sync responses.
+     */
+    typedef std::function<void(const TimeSyncResponse& rsp)> TimeSyncResponseCallback;
+
+    /**
      * This type defines the callback function for handling maximum motor speed requests.
      */
     typedef std::function<void(SMPChannelPayload::RspId status, int16_t maxMotorSpeed)> MaxMotorSpeedFunc;
@@ -222,6 +227,26 @@ public:
     bool requestReinitBoard(ReinitBoardFunc cb);
 
     /**
+     * Send a time synchronization request to the Radon Ulzer controller.
+     *
+     * @param[in] seq   Sequence number.
+     * @param[in] t1_us ESP32 timestamp at send [us].
+     *
+     * @return true on success; otherwise false.
+     */
+    bool sendTimeSyncRequest(uint32_t seq, uint32_t t1_us) const;
+
+    /**
+     * Register a callback for time sync responses.
+     *
+     * @param[in] callback Callback to be called when time sync response is received.
+     */
+    void registerTimeSyncResponseCallback(TimeSyncResponseCallback callback)
+    {
+        m_timeSyncResponseCallback = callback;
+    }
+
+    /**
      * Process the serial multiplexer protocol server.
      * This method must be called cyclic to process incoming data and manage the server.
      */
@@ -240,7 +265,9 @@ private:
         CHANNEL_CFG_ID_ROBOT_SPEED_SETPOINT, /**< Robot speed setpoint channel ID */
         CHANNEL_CFG_ID_CURRENT_VEHICLE_DATA, /**< Current vehicle data channel ID */
         CHANNEL_CFG_ID_STATUS,               /**< Status channel ID */
-        CHANNEL_CFG_ID_LINE_SENSOR           /**< Line sensor channel ID */
+        CHANNEL_CFG_ID_LINE_SENSOR,          /**< Line sensor channel ID */
+        CHANNEL_CFG_ID_TIME_SYNC_REQUEST,    /**< Time sync request channel ID (TX) */
+        CHANNEL_CFG_ID_TIME_SYNC_RESPONSE    /**< Time sync response channel ID (RX) */
 
     } ChannelCfgId;
 
@@ -280,6 +307,9 @@ private:
      * Callback for vehicle data.
      */
     VehicleDataCallback m_vehicleDataCallback;
+
+    /** Callback for time sync responses. */
+    TimeSyncResponseCallback m_timeSyncResponseCallback;
 
     /**
      * Callback for handling maximum motor speed requests.
@@ -321,6 +351,10 @@ private:
 
     friend void SerMuxChannelProvider_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize,
                                                                 void* userData);
+
+    friend void SerMuxChannelProvider_timeSyncRspChannelCallback(const uint8_t* payload,
+                                                                 const uint8_t payloadSize,
+                                                                 void* userData);
 };
 
 /******************************************************************************
