@@ -381,7 +381,8 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             }
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "cwd"))
             {
-                chdir(optarg);
+                int ret = chdir(optarg);
+                ret = ret; /* Suppress compiler warning. */
             }
             else
             {
