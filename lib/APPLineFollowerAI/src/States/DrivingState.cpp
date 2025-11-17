@@ -77,27 +77,27 @@ const int16_t DrivingState::POSITION_MIDDLE_MAX = POSITION_SET_POINT + (SENSOR_V
 /**
  * Pre-trained neural network hidden layer weights.
  */
-const DrivingState::WeightsInputHiddenType DrivingState::HIDDEN_LAYER_WEIGHTS({{0.12f, 0.0f, 0.0f, 0.0f, 0.0f},
-                                                                               {0.0f, 0.20f, 0.0f, 0.0f, 0.0f},
-                                                                               {0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
-                                                                               {0.0f, 0.0f, 0.0f, 0.20f, 0.0f},
-                                                                               {0.0f, 0.0f, 0.0f, 0.0f, 0.12f}});
+const DrivingState::WeightsInputHiddenType DrivingState::HIDDEN_LAYER_WEIGHTS({{0.12F, 0.0F, 0.0F, 0.0F, 0.0F},
+                                                                               {0.0F, 0.20F, 0.0F, 0.0F, 0.0F},
+                                                                               {0.0F, 0.0F, 1.0F, 0.0F, 0.0F},
+                                                                               {0.0F, 0.0F, 0.0F, 0.20F, 0.0F},
+                                                                               {0.0F, 0.0F, 0.0F, 0.0F, 0.12F}});
 
 /**
  * Pre-trained neural network hidden layer biases.
  */
-const DrivingState::BiasesHiddenType DrivingState::HIDDEN_LAYER_BIASES({{0.0f}, {0.0f}, {0.0f}, {0.0f}, {0.0f}});
+const DrivingState::BiasesHiddenType DrivingState::HIDDEN_LAYER_BIASES({{0.0F}, {0.0F}, {0.0F}, {0.0F}, {0.0F}});
 
 /**
  * Pre-trained neural network output layer weights.
  */
-const DrivingState::WeightsHiddenOutputType DrivingState::OUTPUT_LAYER_WEIGHTS({{1.0f, 0.5f, 0.0f, -0.5f, -1.0f},
-                                                                                {-1.0f, -0.5f, 0.0f, 0.5f, 1.0f}});
+const DrivingState::WeightsHiddenOutputType DrivingState::OUTPUT_LAYER_WEIGHTS({{1.0F, 0.5F, 0.0F, -0.5F, -1.0F},
+                                                                                {-1.0F, -0.5F, 0.0F, 0.5F, 1.0F}});
 
 /**
  * Pre-trained neural network output layer biases.
  */
-const DrivingState::BiasesOutputType DrivingState::OUTPUT_LAYER_BIASES({{0.25f}, {0.25f}});
+const DrivingState::BiasesOutputType DrivingState::OUTPUT_LAYER_BIASES({{0.25F}, {0.25F}});
 
 /******************************************************************************
  * Public Methods
