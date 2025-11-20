@@ -94,7 +94,7 @@ public:
      */
     bool isZumoSynced() const
     {
-        return m_zumoGoodSamples >= 3U;
+        return m_zumoGoodSamples >= 3;
     }
 
     /**
@@ -164,6 +164,14 @@ private:
     uint8_t     m_zumoGoodSamples;    /**< Number of good samples collected. */
     uint32_t    m_pendingSeq;         /**< Sequence number of pending request. */
     uint64_t    m_lastStatusLogMs{0}; /**< Last status log time [ms]. */
+
+    uint64_t m_lastRtcUpdateLocalMs{0}; /**< Local time of last RTC update [ms]. */
+    int64_t  m_lastRtcCorrectionMs{0};  /**< Last RTC correction applied [ms]. */
+    int64_t  m_maxRtcCorrectionMs{0};   /**< Maximum RTC correction applied [ms]. */
+    uint32_t m_lastAcceptedRttMs{0};    /**< Last accepted RTT [ms]. */
+    int64_t  m_lastOffsetEstMs{0};      /**< Last offset estimate [ms]. */
+    int64_t  m_minOffsetMs{0};          /**< Minimum observed offset [ms]. */
+    int64_t  m_maxOffsetMs{0};          /**< Maximum observed offset [ms]. */
 
     /**
      * Handle an incoming time sync response from Zumo.

@@ -174,6 +174,33 @@ void App::setup()
         }
         else
         {
+            /* Log incoming vehicle data and corresponding time sync information. */
+            m_serMuxChannelProvider.registerVehicleDataCallback(
+                [this](const VehicleData& data)
+                {
+                    const uint32_t zumoTs32      = static_cast<uint32_t>(data.timestamp);
+                    const uint64_t mappedLocalMs = m_timeSync.mapZumoToLocalMs(zumoTs32);
+                    const uint64_t localNowMs    = m_timeSync.localNowMs();
+                    const uint64_t epochNowMs    = m_timeSync.nowEpochMs();
+                    const int64_t  offsetMs      = m_timeSync.getZumoToEspOffsetMs();
+                    const bool     zumoSynced    = m_timeSync.isZumoSynced();
+                    const bool     rtcSynced     = m_timeSync.isRtcSynced();
+
+                    LOG_INFO("VehicleData: ts=%lldms x=%ldmm y=%ldmm orient=%ldmrad vL=%ldmm/s vR=%ldmm/s vC=%ldmm/s "
+                             "prox=%u",
+                             static_cast<long long>(data.timestamp), static_cast<long>(data.xPos),
+                             static_cast<long>(data.yPos), static_cast<long>(data.orientation),
+                             static_cast<long>(data.left), static_cast<long>(data.right),
+                             static_cast<long>(data.center), static_cast<unsigned>(data.proximity));
+
+                    LOG_INFO("TimeSyncFromVD: zumoTs32=%lu mappedLocal=%llu localNow=%llu epochNow=%llu offsetZ2E=%lld "
+                             "zumoSynced=%s rtcSynced=%s",
+                             static_cast<unsigned long>(zumoTs32), static_cast<unsigned long long>(mappedLocalMs),
+                             static_cast<unsigned long long>(localNowMs), static_cast<unsigned long long>(epochNowMs),
+                             static_cast<long long>(offsetMs), true == zumoSynced ? "yes" : "no",
+                             true == rtcSynced ? "yes" : "no");
+                });
+
             /* Start network time (NTP) against Host and Zumo serial ping-pong. */
             m_timeSync.begin();
             m_statusTimer.start(1000U);
@@ -226,6 +253,10 @@ void App::loop()
         {
             LOG_WARNING("Failed to send status to RU.");
         }
+
+        /* Log current NTP and Zumo time sync status for diagnostics. */
+        m_timeSync.logStatus();
+
         m_statusTimer.restart();
     }
 }

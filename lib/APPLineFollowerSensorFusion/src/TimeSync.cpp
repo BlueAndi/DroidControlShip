@@ -56,7 +56,7 @@ namespace
     constexpr uint32_t TSYNC_DEFAULT_PING_PERIOD_MS = 200U;
 
     /** Timeout for a pending time-sync request (ms). */
-    constexpr uint64_t TSYNC_REQUEST_TIMEOUT_MS = 1000ULL;
+    constexpr uint64_t TSYNC_REQUEST_TIMEOUT_MS = 10000ULL;
 
     /** Initial value for the minimum RTT (max uint32_t). */
     constexpr uint32_t TSYNC_MIN_RTT_INITIAL = 0xFFFFFFFFUL;
@@ -83,7 +83,7 @@ namespace
 TimeSync::TimeSync(SerMuxChannelProvider& serMuxProvider) :
     m_serMuxProvider(serMuxProvider),
     m_ntpUdp(),
-    m_ntpClient(m_ntpUdp, TSYNC_DEFAULT_NTP_SERVER, 0L, TSYNC_NTP_UPDATE_INTERVAL_MS),
+    m_ntpClient(m_ntpUdp, TSYNC_DEFAULT_NTP_SERVER, TSYNC_GMT_OFFSET_SEC, TSYNC_NTP_UPDATE_INTERVAL_MS),
     m_rtcSynced(false),
     m_epochToLocalOffsetMs(0),
     m_rtcRefreshMs(TSYNC_NTP_UPDATE_INTERVAL_MS),
@@ -107,19 +107,16 @@ void TimeSync::begin()
 
     /* Register time sync response callback. */
     m_serMuxProvider.registerTimeSyncResponseCallback([this](const TimeSyncResponse& rsp) { onTimeSyncResponse(rsp); });
-
     m_ntpClient.begin();
 
     refreshRtcMapping(); /* Establish initial epoch-to-local mapping if possible. */
-    logRtcStatus();
-    logZumoStatus();
 }
 
 void TimeSync::process()
 {
     (void)m_ntpClient.update(); /* Best-effort initial sync. */
 
-    if (m_pending && (localNowMs() - m_pendingT1_64 > TSYNC_REQUEST_TIMEOUT_MS)) // 1 s
+    if (m_pending && (localNowMs() - m_pendingT1_64 > TSYNC_REQUEST_TIMEOUT_MS))
     {
         LOG_WARNING("TimeSync: request timeout (no response)");
         m_pending = false;
@@ -221,6 +218,9 @@ void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
     const int64_t d2         = static_cast<int32_t>(rsp.t3_ms - t4_32);
     const int64_t offset_est = (d1 + d2) / 2;
 
+    m_lastAcceptedRttMs = rtt_ms;
+    m_lastOffsetEstMs   = offset_est;
+
     /* Keep the best samples (min RTT heuristic). */
     bool accept = false;
     if (rtt_ms <= m_minRttMs)
@@ -236,9 +236,27 @@ void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
     if (true == accept)
     {
         m_zumoToEspOffsetMs = offset_est;
+
         if (m_zumoGoodSamples < TSYNC_MAX_GOOD_SAMPLES)
         {
             ++m_zumoGoodSamples;
+        }
+
+        if (1U == m_zumoGoodSamples) // erstes gutes Sample
+        {
+            m_minOffsetMs = offset_est;
+            m_maxOffsetMs = offset_est;
+        }
+        else
+        {
+            if (offset_est < m_minOffsetMs)
+            {
+                m_minOffsetMs = offset_est;
+            }
+            if (offset_est > m_maxOffsetMs)
+            {
+                m_maxOffsetMs = offset_est;
+            }
         }
     }
 
@@ -271,7 +289,24 @@ void TimeSync::refreshRtcMapping()
     const uint64_t      epochMs  = static_cast<uint64_t>(epochSec) * 1000ULL;
     const uint64_t      localMs  = localNowMs();
 
+    /* Log correction info for diagnostics. */
+    if (true == m_rtcSynced)
+    {
+        const int64_t  oldOffset        = m_epochToLocalOffsetMs;
+        const uint64_t predictedEpoch   = static_cast<uint64_t>(static_cast<int64_t>(localMs) + oldOffset);
+        const int64_t  correction       = static_cast<int64_t>(epochMs) - static_cast<int64_t>(predictedEpoch);
+        const int64_t  absCorrection    = (correction >= 0) ? correction : -correction;
+        const int64_t  absMaxCorrection = (m_maxRtcCorrectionMs >= 0) ? m_maxRtcCorrectionMs : -m_maxRtcCorrectionMs;
+
+        m_lastRtcCorrectionMs = correction;
+        if (absCorrection > absMaxCorrection)
+        {
+            m_maxRtcCorrectionMs = correction;
+        }
+    }
+
     m_epochToLocalOffsetMs = static_cast<int64_t>(epochMs) - static_cast<int64_t>(localMs);
+    m_lastRtcUpdateLocalMs = localMs;
     m_rtcSynced            = true;
 }
 
@@ -281,20 +316,45 @@ void TimeSync::refreshRtcMapping()
 
 void TimeSync::logRtcStatus() const
 {
-    LOG_INFO("════════ RTC / NTP Status ════════════════════════════════");
-    LOG_INFO("RTC Synced:           %s", m_rtcSynced ? "yes" : "no");
-    LOG_INFO("Epoch to Local Offset: %lld ms", m_epochToLocalOffsetMs);
-    LOG_INFO("Local time now:      %llu ms", localNowMs());
-    LOG_INFO("Epoch time now:      %llu ms", nowEpochMs());
+    LOG_INFO("RTC / NTP Status");
+    LOG_INFO("RTC Synced:            %s", m_rtcSynced ? "yes" : "no");
+    LOG_INFO("Epoch to Local Offset: %lld ms", static_cast<long long>(m_epochToLocalOffsetMs));
+    LOG_INFO("Local/Epoch time now:   %llu / %llu ms", static_cast<unsigned long long>(localNowMs()),
+             static_cast<unsigned long long>(nowEpochMs()));
 }
 
 void TimeSync::logZumoStatus() const
 {
-    LOG_INFO("════════ Zumo Time Sync Status ═══════════════════════════");
+    const uint32_t bestRttMs = (TSYNC_MIN_RTT_INITIAL == m_minRttMs) ? 0U : m_minRttMs;
+    const uint32_t estAccuMs = bestRttMs / 2U;
+
+    LOG_INFO("Zumo sync: pending=%s seq=%u goodSamples=%u", m_pending ? "yes" : "no",
+             static_cast<unsigned>(m_pendingSeq), static_cast<unsigned>(m_zumoGoodSamples));
+
+    LOG_INFO("Zumo sync: lastRTT=%lu ms minRTT=%lu ms", static_cast<unsigned long>(m_lastAcceptedRttMs),
+             static_cast<unsigned long>(bestRttMs));
+
+    if (m_zumoGoodSamples > 0U)
+    {
+        const long offset32    = static_cast<long>(m_zumoToEspOffsetMs);
+        const long minOffset32 = static_cast<long>(m_minOffsetMs);
+        const long maxOffset32 = static_cast<long>(m_maxOffsetMs);
+        const long span32      = maxOffset32 - minOffset32;
+        const long absSpan32   = (span32 >= 0) ? span32 : -span32;
+
+        LOG_INFO("Zumo sync: offsetZ2E=%ld ms span=[%ld .. %ld] ms", offset32, minOffset32, maxOffset32);
+        LOG_INFO("Zumo sync: est. accuracy=+/- %lu ms (from minRTT/2, span=%ld ms)",
+                 static_cast<unsigned long>(estAccuMs), absSpan32);
+    }
+    else
+    {
+        LOG_INFO("Zumo sync: no valid samples yet.");
+    }
 }
 
 void TimeSync::logStatus() const
 {
+
     LOG_INFO("================= TimeSync Detailed Status =================");
     logRtcStatus();
     logZumoStatus();
