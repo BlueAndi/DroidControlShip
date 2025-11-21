@@ -221,13 +221,6 @@ void App::setup()
                     }
                 });
 
-            /* Publish combined vehicle and line sensor data via MQTT. */
-            m_serMuxChannelProvider.registerLineSensorCallback(
-                [this](const LineSensorData& /*data*/)
-                {
-                    /* Line sensor data is stored in m_lineSensors; publish on next vehicle frame. */
-                });
-
             /* Start network time (NTP) against Host and Zumo serial ping-pong. */
             m_timeSync.begin();
             m_statusTimer.start(1000U);
