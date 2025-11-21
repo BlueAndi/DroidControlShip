@@ -36,27 +36,12 @@
 #include <Logging.h>
 
 /******************************************************************************
- * Macros
- *****************************************************************************/
-
-/******************************************************************************
- * Types and Classes
- *****************************************************************************/
-
-/******************************************************************************
- * Prototypes
- *****************************************************************************/
-
-/******************************************************************************
- * Local Variables
+ * Local Variables / Constants
  *****************************************************************************/
 namespace
 {
     /** Default ping period for time synchronization (ms). */
-    constexpr uint32_t TSYNC_DEFAULT_PING_PERIOD_MS = 200U;
-
-    /** Timeout for a pending time-sync request (ms). */
-    constexpr uint64_t TSYNC_REQUEST_TIMEOUT_MS = 10000ULL;
+    constexpr uint32_t TSYNC_DEFAULT_PING_PERIOD_MS = 10000U;
 
     /** Initial value for the minimum RTT (max uint32_t). */
     constexpr uint32_t TSYNC_MIN_RTT_INITIAL = 0xFFFFFFFFUL;
@@ -91,10 +76,8 @@ TimeSync::TimeSync(SerMuxChannelProvider& serMuxProvider) :
     m_pingTimer(),
     m_pingPeriodMs(TSYNC_DEFAULT_PING_PERIOD_MS),
     m_seq(0U),
-    m_pending(false),
     m_pendingSeq(0U),
     m_pendingT1_32(0U),
-    m_pendingT1_64(0U),
     m_minRttMs(TSYNC_MIN_RTT_INITIAL),
     m_zumoToEspOffsetMs(0),
     m_zumoGoodSamples(0U)
@@ -107,49 +90,35 @@ void TimeSync::begin()
 
     /* Register time sync response callback. */
     m_serMuxProvider.registerTimeSyncResponseCallback([this](const TimeSyncResponse& rsp) { onTimeSyncResponse(rsp); });
+
     m_ntpClient.begin();
 
-    refreshRtcMapping(); /* Establish initial epoch-to-local mapping if possible. */
+    /* Establish initial epoch-to-local mapping if possible. */
+    refreshRtcMapping();
 }
 
 void TimeSync::process()
 {
-    (void)m_ntpClient.update(); /* Best-effort initial sync. */
-
-    if (m_pending && (localNowMs() - m_pendingT1_64 > TSYNC_REQUEST_TIMEOUT_MS))
-    {
-        LOG_WARNING("TimeSync: request timeout (no response)");
-        m_pending = false;
-    }
-
-    /* Send ping if SerialMux is synced and no ping pending. */
-    if ((true == m_serMuxProvider.isInSync()) && (true == m_pingTimer.isTimeout()) && (false == m_pending))
+    if ((true == m_serMuxProvider.isInSync()) && (true == m_pingTimer.isTimeout()))
     {
         const uint64_t now64 = localNowMs();
         const uint32_t now32 = static_cast<uint32_t>(now64);
 
         if (false == m_serMuxProvider.sendTimeSyncRequest(m_seq, now32))
         {
-            LOG_WARNING("Failed to send TIME_SYNC_REQ.");
+            LOG_WARNING("TimeSync: Failed to send TIME_SYNC_REQ.");
         }
         else
         {
-            m_pending      = true;
             m_pendingSeq   = m_seq;
             m_pendingT1_32 = now32;
-            m_pendingT1_64 = now64;
-            m_seq++;
+            ++m_seq;
         }
 
+        // logStatus();
         m_pingTimer.restart();
     }
-
-    /* Periodically refresh RTC mapping using NTP time. */
-    if (true == m_rtcTimer.isTimeout())
-    {
-        refreshRtcMapping();
-        m_rtcTimer.restart();
-    }
+    refreshRtcMapping();
 }
 
 uint64_t TimeSync::mapZumoToLocalMs(uint32_t zumoTsMs) const
@@ -178,22 +147,19 @@ uint64_t TimeSync::nowEpochMs() const
     {
         return 0ULL;
     }
+
     const int64_t epochMs = static_cast<int64_t>(localNowMs()) + m_epochToLocalOffsetMs;
     return (epochMs >= 0) ? static_cast<uint64_t>(epochMs) : 0ULL;
 }
 
 void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
 {
-    if (!m_pending)
-    {
-        LOG_WARNING("TimeSync: Unexpected response (no pending request). seq=%u", rsp.seq);
-        return;
-    }
+    /* Wenn seq nicht passt, warnen – aber trotzdem die letzte bekannte T1 nutzen. */
     if (rsp.seq != m_pendingSeq)
     {
-        LOG_WARNING("TimeSync: seq mismatch (expected=%u, got=%u)", m_pendingSeq, rsp.seq);
-        m_pending = false;
-        return;
+        LOG_WARNING("TimeSync: seq mismatch (expected=%u, got=%u) – using last T1", static_cast<unsigned>(m_pendingSeq),
+                    rsp.seq);
+        /* Kein early return mehr. */
     }
 
     const uint64_t t4_64 = localNowMs();
@@ -206,7 +172,6 @@ void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
     if (delta_local < delta_zumo)
     {
         LOG_WARNING("TimeSync: invalid deltas (delta_local=%u, delta_zumo=%u)", delta_local, delta_zumo);
-        m_pending = false;
         return;
     }
 
@@ -242,7 +207,7 @@ void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
             ++m_zumoGoodSamples;
         }
 
-        if (1U == m_zumoGoodSamples) // erstes gutes Sample
+        if (1U == m_zumoGoodSamples)
         {
             m_minOffsetMs = offset_est;
             m_maxOffsetMs = offset_est;
@@ -259,13 +224,7 @@ void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
             }
         }
     }
-
-    m_pending = false;
 }
-
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
 
 /******************************************************************************
  * Private Methods
@@ -328,8 +287,8 @@ void TimeSync::logZumoStatus() const
     const uint32_t bestRttMs = (TSYNC_MIN_RTT_INITIAL == m_minRttMs) ? 0U : m_minRttMs;
     const uint32_t estAccuMs = bestRttMs / 2U;
 
-    LOG_INFO("Zumo sync: pending=%s seq=%u goodSamples=%u", m_pending ? "yes" : "no",
-             static_cast<unsigned>(m_pendingSeq), static_cast<unsigned>(m_zumoGoodSamples));
+    LOG_INFO("Zumo sync: lastSeq=%u goodSamples=%u", static_cast<unsigned>(m_pendingSeq),
+             static_cast<unsigned>(m_zumoGoodSamples));
 
     LOG_INFO("Zumo sync: lastRTT=%lu ms minRTT=%lu ms", static_cast<unsigned long>(m_lastAcceptedRttMs),
              static_cast<unsigned long>(bestRttMs));
@@ -354,17 +313,8 @@ void TimeSync::logZumoStatus() const
 
 void TimeSync::logStatus() const
 {
-
     LOG_INFO("================= TimeSync Detailed Status =================");
     logRtcStatus();
     logZumoStatus();
     LOG_INFO("============================================================");
 }
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/

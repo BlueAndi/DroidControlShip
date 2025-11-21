@@ -95,6 +95,8 @@ const char* App::TOPIC_NAME_RADAR_POSE = "ssr";
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
+/** Buffer size for JSON serialization of combined sensor snapshot */
+static const uint32_t JSON_SENSOR_SNAPSHOT_MAX_SIZE = 256U;
 
 /******************************************************************************
  * Public Methods
@@ -186,19 +188,44 @@ void App::setup()
                     const bool     zumoSynced    = m_timeSync.isZumoSynced();
                     const bool     rtcSynced     = m_timeSync.isRtcSynced();
 
-                    LOG_INFO("VehicleData: ts=%lldms x=%ldmm y=%ldmm orient=%ldmrad vL=%ldmm/s vR=%ldmm/s vC=%ldmm/s "
-                             "prox=%u",
-                             static_cast<long long>(data.timestamp), static_cast<long>(data.xPos),
-                             static_cast<long>(data.yPos), static_cast<long>(data.orientation),
-                             static_cast<long>(data.left), static_cast<long>(data.right),
-                             static_cast<long>(data.center), static_cast<unsigned>(data.proximity));
+                    /* Publish snapshot of vehicle + line sensor data. */
+                    const uint16_t* lineSensorValues = m_lineSensors.getSensorValues();
+                    JsonDocument    payloadJson;
+                    char            payloadArray[JSON_SENSOR_SNAPSHOT_MAX_SIZE];
 
-                    LOG_INFO("TimeSyncFromVD: zumoTs32=%lu mappedLocal=%llu localNow=%llu epochNow=%llu offsetZ2E=%lld "
-                             "zumoSynced=%s rtcSynced=%s",
-                             static_cast<unsigned long>(zumoTs32), static_cast<unsigned long long>(mappedLocalMs),
-                             static_cast<unsigned long long>(localNowMs), static_cast<unsigned long long>(epochNowMs),
-                             static_cast<long long>(offsetMs), true == zumoSynced ? "yes" : "no",
-                             true == rtcSynced ? "yes" : "no");
+                    payloadJson["ts_epoch"]    = epochNowMs;
+                    payloadJson["ts_local_ms"] = mappedLocalMs;
+
+                    JsonObject vehicleObj          = payloadJson.createNestedObject("vehicle");
+                    vehicleObj["ts_zumo_ms"]       = static_cast<int64_t>(data.timestamp);
+                    vehicleObj["x_mm"]             = static_cast<int32_t>(data.xPos);
+                    vehicleObj["y_mm"]             = static_cast<int32_t>(data.yPos);
+                    vehicleObj["orientation_mrad"] = static_cast<int32_t>(data.orientation);
+                    vehicleObj["vL_mms"]           = static_cast<int32_t>(data.left);
+                    vehicleObj["vR_mms"]           = static_cast<int32_t>(data.right);
+                    vehicleObj["vC_mms"]           = static_cast<int32_t>(data.center);
+                    vehicleObj["proximity"]        = static_cast<uint8_t>(data.proximity);
+
+                    JsonObject lineObj = payloadJson.createNestedObject("line");
+                    JsonArray  values  = lineObj.createNestedArray("values");
+                    for (uint32_t idx = 0U; idx < LineSensors::getNumLineSensors(); ++idx)
+                    {
+                        values.add(static_cast<int32_t>(lineSensorValues[idx]));
+                    }
+
+                    (void)serializeJson(payloadJson, payloadArray);
+                    String payloadStr(payloadArray);
+                    if (false == m_mqttClient.publish(TOPIC_NAME_RAW_SENSORS, true, payloadStr))
+                    {
+                        LOG_WARNING("Publishing vehicle + sensor snapshot via MQTT failed.");
+                    }
+                });
+
+            /* Publish combined vehicle and line sensor data via MQTT. */
+            m_serMuxChannelProvider.registerLineSensorCallback(
+                [this](const LineSensorData& /*data*/)
+                {
+                    /* Line sensor data is stored in m_lineSensors; publish on next vehicle frame. */
                 });
 
             /* Start network time (NTP) against Host and Zumo serial ping-pong. */
@@ -253,10 +280,6 @@ void App::loop()
         {
             LOG_WARNING("Failed to send status to RU.");
         }
-
-        /* Log current NTP and Zumo time sync status for diagnostics. */
-        m_timeSync.logStatus();
-
         m_statusTimer.restart();
     }
 }

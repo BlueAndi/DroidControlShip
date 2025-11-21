@@ -156,9 +156,7 @@ private:
     SimpleTimer m_pingTimer;          /**< Ping timer. */
     uint32_t    m_pingPeriodMs;       /**< Ping period [ms]. */
     uint32_t    m_seq;                /**< Sequence counter. */
-    bool        m_pending;            /**< Waiting for response. */
-    uint32_t    m_pendingT1_32;       /**< Pending T1 (lower 32 bits) [ms]. */
-    uint64_t    m_pendingT1_64;       /**< Pending T1 [ms]. */
+    uint32_t    m_pendingT1_32;       /**< T1 of pending request [ms]. */
     uint32_t    m_minRttMs;           /**< Best observed RTT [ms]. */
     int64_t     m_zumoToEspOffsetMs;  /**< Estimated offset Zumo->ESP [ms]. */
     uint8_t     m_zumoGoodSamples;    /**< Number of good samples collected. */
