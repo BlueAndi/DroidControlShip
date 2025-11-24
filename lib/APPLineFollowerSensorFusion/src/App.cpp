@@ -286,12 +286,12 @@ void App::SSRTopicCallback(const String& payload)
     }
     else
     {
-        JsonVariantConst xPos_mm    = jsonPayload["positionX"];  // int : in mm
-        JsonVariantConst yPos_mm    = jsonPayload["positionY"];  // int : in mm
-        JsonVariantConst xVel_mms   = jsonPayload["speedX"];     // int : in mm/s
-        JsonVariantConst yVel_mms   = jsonPayload["speedY"];     // int : in mm/s
-        JsonVariantConst angle_mrad = jsonPayload["angle"];      // int : in mrad
-        JsonVariantConst id         = jsonPayload["identifier"]; // int : unique id of the target
+        JsonVariantConst xPos_mm    = jsonPayload["positionX"];  /* int : in mm */
+        JsonVariantConst yPos_mm    = jsonPayload["positionY"];  /* int : in mm */
+        JsonVariantConst xVel_mms   = jsonPayload["speedX"];     /* int : in mm/s */
+        JsonVariantConst yVel_mms   = jsonPayload["speedY"];     /* int : in mm/s */
+        JsonVariantConst angle_mrad = jsonPayload["angle"];      /* int : in mrad */
+        JsonVariantConst id         = jsonPayload["identifier"]; /* int : unique id of the target */
         LOG_INFO("SSR pose: xPos=%dmm yPos=%dmm angle=%dmrad vx=%dmm/s vy=%dmm/s", xPos_mm, yPos_mm, angle_mrad,
                  xVel_mms, yVel_mms);
     }

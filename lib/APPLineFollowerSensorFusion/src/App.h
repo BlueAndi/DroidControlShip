@@ -157,7 +157,7 @@ private:
      *
      * @param[in] payload   The topic payload.
      */
-    void SSRTopicCallback(const String& payload);
+    void ssrTopicCallback(const String& payload);
 
     /**
      * Copy construction of an instance.
