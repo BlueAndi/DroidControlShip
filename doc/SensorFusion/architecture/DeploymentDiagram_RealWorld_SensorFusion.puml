@@ -7,7 +7,7 @@ skinparam defaultFontName Helvetica
 
 
 
-node "Robot Hardware" {
+rectangle "Robot Hardware" {
     node "ZumoComSystem" <<device>> as ZCS {
         component "DroidControlShip" <<executable>> as DCS {
             component "LineFollower_SensorFusion" <<app>> as LineFollowerApp
