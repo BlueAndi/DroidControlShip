@@ -94,8 +94,7 @@ const SerMuxChannelProvider::ChannelCfg SerMuxChannelProvider::CHANNEL_CFG[MAX_C
 
     /* Rx: Time sync response channel */
     {TIME_SYNC_RESPONSE_CHANNEL_NAME, TIME_SYNC_RESPONSE_CHANNEL_DLC, SerMuxChannelProvider_timeSyncRspChannelCallback},
-    {nullptr, 0U, nullptr}
-};
+    {nullptr, 0U, nullptr}};
 
 /******************************************************************************
  * Public Methods
@@ -355,12 +354,11 @@ void SerMuxChannelProvider_lineSensorChannelCallback(const uint8_t* payload, con
  * @param[in] payloadSize   Size of time sync response data.
  * @param[in] userData      Instance of provider.
  */
-void SerMuxChannelProvider_timeSyncRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize,
-                                                      void* userData)
+void SerMuxChannelProvider_timeSyncRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
     if ((nullptr != payload) && (TIME_SYNC_RESPONSE_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
-        SerMuxChannelProvider* provider      = static_cast<SerMuxChannelProvider*>(userData);
+        SerMuxChannelProvider*  provider     = static_cast<SerMuxChannelProvider*>(userData);
         const TimeSyncResponse* timeSyncResp = reinterpret_cast<const TimeSyncResponse*>(payload);
 
         if (nullptr != provider->m_timeSyncResponseCallback)

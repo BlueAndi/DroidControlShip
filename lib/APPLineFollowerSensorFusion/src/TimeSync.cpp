@@ -55,10 +55,10 @@ namespace
 
     /** Default NTP client configuration. */
     constexpr const char*   TSYNC_DEFAULT_NTP_SERVER     = "pool.ntp.org";
-    constexpr unsigned long TSYNC_NTP_UPDATE_INTERVAL_MS = 60000UL; // 60 s
+    constexpr unsigned long TSYNC_NTP_UPDATE_INTERVAL_MS = 60000UL;
 
     /** Timezone config for NTP client (example: GMT+1). */
-    constexpr long TSYNC_GMT_OFFSET_SEC = 3600L; // CET base offset (no DST handling here)
+    constexpr long TSYNC_GMT_OFFSET_SEC = 3600L;
 } // namespace
 
 /******************************************************************************
@@ -80,7 +80,15 @@ TimeSync::TimeSync(SerMuxChannelProvider& serMuxProvider) :
     m_pendingT1_32(0U),
     m_minRttMs(TSYNC_MIN_RTT_INITIAL),
     m_zumoToEspOffsetMs(0),
-    m_zumoGoodSamples(0U)
+    m_zumoGoodSamples(0U),
+    m_lastStatusLogMs(0),
+    m_lastRtcUpdateLocalMs(0),
+    m_lastRtcCorrectionMs(0),
+    m_maxRtcCorrectionMs(0),
+    m_lastAcceptedRttMs(0),
+    m_lastOffsetEstMs(0),
+    m_minOffsetMs(0),
+    m_maxOffsetMs(0)
 {
 }
 
@@ -114,8 +122,6 @@ void TimeSync::process()
             m_pendingT1_32 = now32;
             ++m_seq;
         }
-
-        // logStatus();
         m_pingTimer.restart();
     }
     refreshRtcMapping();
@@ -154,12 +160,10 @@ uint64_t TimeSync::nowEpochMs() const
 
 void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
 {
-    /* Wenn seq nicht passt, warnen – aber trotzdem die letzte bekannte T1 nutzen. */
-    if (rsp.seq != m_pendingSeq)
+    if (rsp.sequenz != m_pendingSeq)
     {
         LOG_WARNING("TimeSync: seq mismatch (expected=%u, got=%u) – using last T1", static_cast<unsigned>(m_pendingSeq),
-                    rsp.seq);
-        /* Kein early return mehr. */
+                    rsp.sequenz);
     }
 
     const uint64_t t4_64 = localNowMs();

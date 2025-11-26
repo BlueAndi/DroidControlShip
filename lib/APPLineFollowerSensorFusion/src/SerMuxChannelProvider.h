@@ -229,12 +229,12 @@ public:
     /**
      * Send a time synchronization request to the Radon Ulzer controller.
      *
-     * @param[in] seq   Sequence number.
-     * @param[in] t1_us ESP32 timestamp at send [us].
+     * @param[in] sequenz   Sequence number.
+     * @param[in] t1_ms ESP32 timestamp at send [ms].
      *
      * @return true on success; otherwise false.
      */
-    bool sendTimeSyncRequest(uint32_t seq, uint32_t t1_us) const;
+    bool sendTimeSyncRequest(uint32_t sequenz, uint32_t t1_ms) const;
 
     /**
      * Register a callback for time sync responses.
@@ -352,8 +352,7 @@ private:
     friend void SerMuxChannelProvider_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize,
                                                                 void* userData);
 
-    friend void SerMuxChannelProvider_timeSyncRspChannelCallback(const uint8_t* payload,
-                                                                 const uint8_t payloadSize,
+    friend void SerMuxChannelProvider_timeSyncRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize,
                                                                  void* userData);
 };
 

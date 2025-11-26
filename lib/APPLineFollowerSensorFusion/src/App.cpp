@@ -95,6 +95,7 @@ const char* App::TOPIC_NAME_RADAR_POSE = "ssr";
 
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
+
 /** Buffer size for JSON serialization of combined sensor snapshot */
 static const uint32_t JSON_SENSOR_SNAPSHOT_MAX_SIZE = 256U;
 

@@ -1,18 +1,18 @@
 /*
  * MIT License
- * 
+ *
  * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -46,7 +46,7 @@
  * Includes
  *****************************************************************************/
 #include <chrono>
-#include <cstdint>
+#include <stdint.h>
 #include "WiFiUdp.h"
 
 /******************************************************************************
@@ -71,13 +71,12 @@ public:
      * @param[in] timeOffset        Time offset in seconds applied to host time.
      * @param[in] updateInterval    Update interval in milliseconds (unused).
      */
-    NTPClient(WiFiUDP& udp, const char* poolServerName, long timeOffset, unsigned long updateInterval) :
+    NTPClient(WiFiUDP& udp, const char* poolServerName, int32_t timeOffset, uint32_t updateInterval) :
         m_udp(udp),
         m_server(poolServerName),
         m_timeOffsetSec(timeOffset),
         m_updateIntervalMs(updateInterval)
     {
-        (void)m_updateIntervalMs;
     }
 
     /**
@@ -95,7 +94,7 @@ public:
      *
      * @param[in] seconds New offset in seconds.
      */
-    void setTimeOffset(long seconds)
+    void setTimeOffset(int32_t seconds)
     {
         m_timeOffsetSec = seconds;
     }
@@ -131,20 +130,20 @@ public:
      *
      * @return Current time in seconds since UNIX epoch (UTC).
      */
-    unsigned long getEpochTime()
+    uint32_t getEpochTime()
     {
         using namespace std::chrono;
-        const auto now   = system_clock::now();
-        const auto secs  = duration_cast<seconds>(now.time_since_epoch()).count();
-        const auto epoch = static_cast<long long>(secs) + static_cast<long long>(m_timeOffsetSec);
-        return static_cast<unsigned long>(epoch);
+        const system_clock::time_point now   = system_clock::now();
+        const seconds::rep             secs  = duration_cast<seconds>(now.time_since_epoch()).count();
+        const int64_t                  epoch = static_cast<int64_t>(secs) + static_cast<int64_t>(m_timeOffsetSec);
+        return static_cast<uint32_t>(epoch);
     }
 
 private:
-    WiFiUDP&      m_udp;               /**< Reference to UDP interface (unused in simulation). */
-    const char*   m_server;            /**< Simulated NTP pool server name. */
-    long          m_timeOffsetSec;     /**< Offset applied to host system time. */
-    unsigned long m_updateIntervalMs;  /**< Update interval (unused in simulation). */
+    WiFiUDP&    m_udp;              /**< Reference to UDP interface (unused in simulation). */
+    const char* m_server;           /**< Simulated NTP pool server name. */
+    int32_t     m_timeOffsetSec;    /**< Offset applied to host system time. */
+    uint32_t    m_updateIntervalMs; /**< Update interval (unused in simulation). */
 };
 
 #endif /* NTPCLIENT_H */
