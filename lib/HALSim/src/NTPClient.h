@@ -69,12 +69,16 @@ public:
     void begin();
 
     /**
-     * @brief Sets the time offset relative to host time.
+     * @brief Sets the time offset relative to UTC.
+     *
+     * @param [in] seconds Time offset in seconds relative to UTC.
      */
     void setTimeOffset(int32_t seconds);
 
     /**
-     * @brief Sets the pool server name (simulation only).
+     * @brief Sets the pool server name.
+     *
+     * @param[in] server Symbolic NTP server name (no effect in Simulation).
      */
     void setPoolServerName(const char* server);
 
@@ -98,3 +102,5 @@ private:
 };
 
 #endif /* NTPCLIENT_H */
+
+/** @} */ //
