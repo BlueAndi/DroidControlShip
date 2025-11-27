@@ -192,9 +192,9 @@ void SerMuxChannelProvider::process()
     m_smpServer.process(millis());
 }
 
-bool SerMuxChannelProvider::sendTimeSyncRequest(uint32_t seq, uint32_t t1_us) const
+bool SerMuxChannelProvider::sendTimeSyncRequest(uint32_t sequenceNumber, uint32_t t1_us) const
 {
-    TimeSyncRequest req = {seq, t1_us};
+    TimeSyncRequest req = {sequenceNumber, t1_us};
     return m_smpServer.sendData(m_channelIds[CHANNEL_CFG_ID_TIME_SYNC_REQUEST], &req, sizeof(req));
 }
 

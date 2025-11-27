@@ -160,10 +160,10 @@ uint64_t TimeSync::nowEpochMs() const
 
 void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
 {
-    if (rsp.sequenz != m_pendingSeq)
+    if (rsp.sequenceNumber != m_pendingSeq)
     {
         LOG_WARNING("TimeSync: seq mismatch (expected=%u, got=%u) – using last T1", static_cast<unsigned>(m_pendingSeq),
-                    rsp.sequenz);
+                    rsp.sequenceNumber);
     }
 
     const uint64_t t4_64 = localNowMs();

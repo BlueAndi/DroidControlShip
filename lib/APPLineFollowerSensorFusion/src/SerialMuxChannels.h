@@ -237,17 +237,17 @@ typedef struct _LineSensorData
 /** Struct of the "Time Sync Request" channel payload. */
 typedef struct _TimeSyncRequest
 {
-    uint32_t seq;   /**< Sequence number to correlate request/response. */
-    uint32_t t1_ms; /**< ESP32 timestamp at request send [ms]. */
+    uint32_t sequenceNumber; /**< Sequence number to correlate request/response. */
+    uint32_t t1_ms;          /**< ESP32 timestamp at request send [ms]. */
 } __attribute__((packed)) TimeSyncRequest;
 
 /** Struct of the "Time Sync Response" channel payload. */
 typedef struct _TimeSyncResponse
 {
-    uint32_t seq;   /**< Correlated sequence number. */
-    uint32_t t1_ms; /**< Echo of ESP32 request send time [ms]. */
-    uint32_t t2_ms; /**< Zumo timestamp at request receive [ms]. */
-    uint32_t t3_ms; /**< Zumo timestamp at response send [ms]. */
+    uint32_t sequenceNumber; /**< Correlated sequence number. */
+    uint32_t t1_ms;          /**< Echo of ESP32 request send time [ms]. */
+    uint32_t t2_ms;          /**< Zumo timestamp at request receive [ms]. */
+    uint32_t t3_ms;          /**< Zumo timestamp at response send [ms]. */
 } __attribute__((packed)) TimeSyncResponse;
 
 /******************************************************************************

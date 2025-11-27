@@ -229,12 +229,12 @@ public:
     /**
      * Send a time synchronization request to the Radon Ulzer controller.
      *
-     * @param[in] sequenz   Sequence number.
+     * @param[in] sequenceNumber   Sequence number.
      * @param[in] t1_ms ESP32 timestamp at send [ms].
      *
      * @return true on success; otherwise false.
      */
-    bool sendTimeSyncRequest(uint32_t sequenz, uint32_t t1_ms) const;
+    bool sendTimeSyncRequest(uint32_t sequenceNumber, uint32_t t1_ms) const;
 
     /**
      * Register a callback for time sync responses.

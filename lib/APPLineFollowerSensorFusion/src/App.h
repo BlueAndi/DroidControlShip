@@ -26,7 +26,7 @@
 *******************************************************************************/
 /**
  * @brief  Line follower Sensor fusion application
- * @author Andreas Merkle <web@blue-andi.de>
+ * @author Tobias Haeckel <tobias.haeckel@gmx.net>
  *
  * @addtogroup Application
  *
@@ -164,6 +164,13 @@ private:
      * @param[in] payload   The topic payload.
      */
     void ssrTopicCallback(const String& payload);
+
+    /**
+     * Publish a combined snapshot of vehicle and line sensor data via MQTT.
+     *
+     * @param[in] data  Vehicle data received via SerialMux.
+     */
+    void publishVehicleAndSensorSnapshot(const VehicleData& data);
 
     /**
      * Copy construction of an instance.
