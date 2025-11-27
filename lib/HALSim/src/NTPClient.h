@@ -91,6 +91,8 @@ public:
 
     /**
      * @brief Returns current epoch time in seconds (UTC + offset).
+     *
+     * @return Epoch time in seconds.
      */
     uint32_t getEpochTime();
 
