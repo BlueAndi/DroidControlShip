@@ -51,7 +51,7 @@
 #include "SerMuxChannelProvider.h"
 #include "LineSensors.h"
 #include "Motors.h"
-#include <MQTTClient.h>
+#include <MqttClient.h>
 #include "TimeSync.h"
 
 /******************************************************************************
