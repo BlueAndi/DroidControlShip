@@ -1,0 +1,15 @@
+{
+    "name": "APPLineFollowerSensorFusion",
+    "version": "0.1.0",
+    "description": "Line follower sensor fusion application",
+    "authors": [{
+        "name": "Tobias Haeckel",
+        "email": "tobias.haeckel@gmx.net",
+        "url": "https://github.com/haecto",
+        "maintainer": true
+    }],
+    "license": "MIT",
+    "dependencies": [],
+    "frameworks": "*",
+    "platforms": "*"
+}
