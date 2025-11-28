@@ -25,8 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Line follower application
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Line follower Sensor Fusion application
+ * @author Tobias Haeckel <tobias.haeckel@gmx.net>
  */
 
 /******************************************************************************
@@ -69,7 +69,6 @@
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
-
 /** Serial interface baudrate. */
 static const uint32_t SERIAL_BAUDRATE = 115200U;
 
@@ -97,6 +96,9 @@ const char* App::TOPIC_NAME_RADAR_POSE = "ssr";
 /** Buffer size for JSON serialization of birth / will message */
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
+/** Buffer size for JSON serialization of combined sensor snapshot */
+static const uint32_t JSON_SENSOR_SNAPSHOT_MAX_SIZE = 256U;
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -105,6 +107,7 @@ App::App() :
     m_initialDataSent(false),
     m_statusTimer(),
     m_serMuxChannelProvider(Board::getInstance().getRobot().getStream()),
+    m_timeSync(m_serMuxChannelProvider),
     m_lineSensors(m_serMuxChannelProvider),
     m_motors(m_serMuxChannelProvider),
     m_stateMachine(),
@@ -174,6 +177,12 @@ void App::setup()
         }
         else
         {
+            /* Log incoming vehicle data and corresponding time sync information. */
+            m_serMuxChannelProvider.registerVehicleDataCallback([this](const VehicleData& data)
+                                                                { publishVehicleAndSensorSnapshot(data); });
+
+            /* Start network time (NTP) against Host and Zumo serial ping-pong. */
+            m_timeSync.begin();
             m_statusTimer.start(1000U);
             isSuccessful = true;
         }
@@ -204,6 +213,9 @@ void App::loop()
     /* Process serial multiplexer. */
     m_serMuxChannelProvider.process();
 
+    /* Process time synchronization (NTP refresh + serial ping-pong). */
+    m_timeSync.process();
+
     /* Process statemachine. */
     m_stateMachine.process();
 
@@ -221,7 +233,6 @@ void App::loop()
         {
             LOG_WARNING("Failed to send status to RU.");
         }
-
         m_statusTimer.restart();
     }
 }
@@ -292,8 +303,52 @@ void App::ssrTopicCallback(const String& payload)
         JsonVariantConst yVel_mms   = jsonPayload["speedY"];     /* int : in mm/s */
         JsonVariantConst angle_mrad = jsonPayload["angle"];      /* int : in mrad */
         JsonVariantConst id         = jsonPayload["identifier"]; /* int : unique id of the target */
+
         LOG_INFO("SSR pose: xPos=%dmm yPos=%dmm angle=%dmrad vx=%dmm/s vy=%dmm/s", xPos_mm, yPos_mm, angle_mrad,
                  xVel_mms, yVel_mms);
+    }
+}
+
+void App::publishVehicleAndSensorSnapshot(const VehicleData& data)
+{
+    const uint32_t zumoTs32      = static_cast<uint32_t>(data.timestamp);
+    const uint64_t mappedLocalMs = m_timeSync.mapZumoToLocalMs(zumoTs32);
+    const uint64_t localNowMs    = m_timeSync.localNowMs();
+    const uint64_t epochNowMs    = m_timeSync.nowEpochMs();
+    const int64_t  offsetMs      = m_timeSync.getZumoToEspOffsetMs();
+    const bool     zumoSynced    = m_timeSync.isZumoSynced();
+    const bool     rtcSynced     = m_timeSync.isRtcSynced();
+
+    /* Publish snapshot of vehicle + line sensor data. */
+    const uint16_t* lineSensorValues = m_lineSensors.getSensorValues();
+    JsonDocument    payloadJson;
+    char            payloadArray[JSON_SENSOR_SNAPSHOT_MAX_SIZE];
+
+    payloadJson["ts_epoch"]    = epochNowMs;
+    payloadJson["ts_local_ms"] = mappedLocalMs;
+
+    JsonObject vehicleObj          = payloadJson["vehicle"].to<JsonObject>();
+    vehicleObj["ts_zumo_ms"]       = static_cast<int64_t>(data.timestamp);
+    vehicleObj["x_mm"]             = static_cast<int32_t>(data.xPos);
+    vehicleObj["y_mm"]             = static_cast<int32_t>(data.yPos);
+    vehicleObj["orientation_mrad"] = static_cast<int32_t>(data.orientation);
+    vehicleObj["vL_mms"]           = static_cast<int32_t>(data.left);
+    vehicleObj["vR_mms"]           = static_cast<int32_t>(data.right);
+    vehicleObj["vC_mms"]           = static_cast<int32_t>(data.center);
+    vehicleObj["proximity"]        = static_cast<uint8_t>(data.proximity);
+
+    JsonObject lineObj = payloadJson["line"].to<JsonObject>();
+    JsonArray  values  = lineObj["values"].to<JsonArray>();
+    for (uint32_t idx = 0U; idx < LineSensors::getNumLineSensors(); ++idx)
+    {
+        values.add(static_cast<int32_t>(lineSensorValues[idx]));
+    }
+
+    (void)serializeJson(payloadJson, payloadArray);
+    String payloadStr(payloadArray);
+    if (false == m_mqttClient.publish(TOPIC_NAME_RAW_SENSORS, true, payloadStr))
+    {
+        LOG_WARNING("Publishing vehicle + sensor snapshot via MQTT failed.");
     }
 }
 

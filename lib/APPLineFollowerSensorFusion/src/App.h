@@ -25,8 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Line follower application
- * @author Andreas Merkle <web@blue-andi.de>
+ * @brief  Line follower Sensor fusion application
+ * @author Tobias Haeckel <tobias.haeckel@gmx.net>
  *
  * @addtogroup Application
  *
@@ -51,7 +51,8 @@
 #include "SerMuxChannelProvider.h"
 #include "LineSensors.h"
 #include "Motors.h"
-#include <MQTTClient.h>
+#include <MqttClient.h>
+#include "TimeSync.h"
 
 /******************************************************************************
  * Macros
@@ -122,6 +123,11 @@ private:
     SerMuxChannelProvider m_serMuxChannelProvider;
 
     /**
+     * Time synchronization handler.
+     */
+    TimeSync m_timeSync;
+
+    /**
      * Line sensors handler.
      */
     LineSensors m_lineSensors;
@@ -158,6 +164,13 @@ private:
      * @param[in] payload   The topic payload.
      */
     void ssrTopicCallback(const String& payload);
+
+    /**
+     * Publish a combined snapshot of vehicle and line sensor data via MQTT.
+     *
+     * @param[in] data  Vehicle data received via SerialMux.
+     */
+    void publishVehicleAndSensorSnapshot(const VehicleData& data);
 
     /**
      * Copy construction of an instance.

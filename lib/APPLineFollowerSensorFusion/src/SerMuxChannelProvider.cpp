@@ -59,6 +59,8 @@ extern void SerMuxChannelProvider_currentVehicleChannelCallback(const uint8_t* p
 
 extern void SerMuxChannelProvider_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize,
                                                             void* userData);
+extern void SerMuxChannelProvider_timeSyncRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize,
+                                                             void* userData);
 
 /******************************************************************************
  * Local Variables
@@ -87,11 +89,12 @@ const SerMuxChannelProvider::ChannelCfg SerMuxChannelProvider::CHANNEL_CFG[MAX_C
     /* Rx: Line sensor channel */
     {LINE_SENSOR_CHANNEL_NAME, LINE_SENSOR_CHANNEL_DLC, SerMuxChannelProvider_lineSensorChannelCallback},
 
-    /* Not used. */
-    {nullptr, 0U, nullptr},
-    {nullptr, 0U, nullptr},
-    {nullptr, 0U, nullptr}
-};
+    /* Tx: Time sync request channel */
+    {TIME_SYNC_REQUEST_CHANNEL_NAME, TIME_SYNC_REQUEST_CHANNEL_DLC, nullptr},
+
+    /* Rx: Time sync response channel */
+    {TIME_SYNC_RESPONSE_CHANNEL_NAME, TIME_SYNC_RESPONSE_CHANNEL_DLC, SerMuxChannelProvider_timeSyncRspChannelCallback},
+    {nullptr, 0U, nullptr}};
 
 /******************************************************************************
  * Public Methods
@@ -187,6 +190,12 @@ bool SerMuxChannelProvider::requestReinitBoard(ReinitBoardFunc cb)
 void SerMuxChannelProvider::process()
 {
     m_smpServer.process(millis());
+}
+
+bool SerMuxChannelProvider::sendTimeSyncRequest(uint32_t sequenceNumber, uint32_t t1_us) const
+{
+    TimeSyncRequest req = {sequenceNumber, t1_us};
+    return m_smpServer.sendData(m_channelIds[CHANNEL_CFG_ID_TIME_SYNC_REQUEST], &req, sizeof(req));
 }
 
 /******************************************************************************
@@ -335,6 +344,32 @@ void SerMuxChannelProvider_lineSensorChannelCallback(const uint8_t* payload, con
     {
         LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u", LINE_SENSOR_CHANNEL_NAME,
                     LINE_SENSOR_CHANNEL_DLC, payloadSize);
+    }
+}
+
+/**
+ * Receives time sync responses over SerialMuxProt channel.
+ *
+ * @param[in] payload       Time sync response data.
+ * @param[in] payloadSize   Size of time sync response data.
+ * @param[in] userData      Instance of provider.
+ */
+void SerMuxChannelProvider_timeSyncRspChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
+{
+    if ((nullptr != payload) && (TIME_SYNC_RESPONSE_CHANNEL_DLC == payloadSize) && (nullptr != userData))
+    {
+        SerMuxChannelProvider*  provider     = static_cast<SerMuxChannelProvider*>(userData);
+        const TimeSyncResponse* timeSyncResp = reinterpret_cast<const TimeSyncResponse*>(payload);
+
+        if (nullptr != provider->m_timeSyncResponseCallback)
+        {
+            provider->m_timeSyncResponseCallback(*timeSyncResp);
+        }
+    }
+    else
+    {
+        LOG_WARNING("%s: Invalid payload size. Expected: %u Received: %u", TIME_SYNC_RESPONSE_CHANNEL_NAME,
+                    TIME_SYNC_RESPONSE_CHANNEL_DLC, payloadSize);
     }
 }
 

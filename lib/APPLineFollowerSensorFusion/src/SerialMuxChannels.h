@@ -92,6 +92,18 @@
 /** DLC of Line Sensor Channel */
 #define LINE_SENSOR_CHANNEL_DLC (sizeof(LineSensorData))
 
+/** Name of the Channel to send time sync requests to the RU. */
+#define TIME_SYNC_REQUEST_CHANNEL_NAME "TIME_SYNC_REQ"
+
+/** DLC of Time Sync Request Channel */
+#define TIME_SYNC_REQUEST_CHANNEL_DLC (sizeof(TimeSyncRequest))
+
+/** Name of the Channel to receive time sync responses from the RU. */
+#define TIME_SYNC_RESPONSE_CHANNEL_NAME "TIME_SYNC_RSP"
+
+/** DLC of Time Sync Response Channel */
+#define TIME_SYNC_RESPONSE_CHANNEL_DLC (sizeof(TimeSyncResponse))
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
@@ -200,6 +212,7 @@ typedef struct _RobotSpeed
 /** Struct of the "Current Vehicle Data" channel payload. */
 typedef struct _VehicleData
 {
+    uint32_t                 timestamp;   /**< Timestamp [ms]. */
     int32_t                  xPos;        /**< X position [mm]. */
     int32_t                  yPos;        /**< Y position [mm]. */
     int32_t                  orientation; /**< Orientation [mrad]. */
@@ -220,6 +233,22 @@ typedef struct _LineSensorData
 {
     uint16_t lineSensorData[5U]; /**< Line sensor data [digits] normalized to max 1000 digits. */
 } __attribute__((packed)) LineSensorData;
+
+/** Struct of the "Time Sync Request" channel payload. */
+typedef struct _TimeSyncRequest
+{
+    uint32_t sequenceNumber; /**< Sequence number to correlate request/response. */
+    uint32_t t1_ms;          /**< ESP32 timestamp at request send [ms]. */
+} __attribute__((packed)) TimeSyncRequest;
+
+/** Struct of the "Time Sync Response" channel payload. */
+typedef struct _TimeSyncResponse
+{
+    uint32_t sequenceNumber; /**< Correlated sequence number. */
+    uint32_t t1_ms;          /**< Echo of ESP32 request send time [ms]. */
+    uint32_t t2_ms;          /**< Zumo timestamp at request receive [ms]. */
+    uint32_t t3_ms;          /**< Zumo timestamp at response send [ms]. */
+} __attribute__((packed)) TimeSyncResponse;
 
 /******************************************************************************
  * Functions
