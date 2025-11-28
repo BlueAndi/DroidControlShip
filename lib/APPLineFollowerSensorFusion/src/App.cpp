@@ -260,7 +260,7 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
         }
         /* Subscribe to Space Ship Radar Topic. */
         else if (false ==
-                 m_mqttClient.subscribe(ssrTopic, false, [this](const String& payload) { SSRTopicCallback(payload); }))
+                 m_mqttClient.subscribe(ssrTopic, false, [this](const String& payload) { ssrTopicCallback(payload); }))
         {
             LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_RADAR_POSE);
         }
@@ -275,7 +275,7 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
     return isSuccessful;
 }
 
-void App::SSRTopicCallback(const String& payload)
+void App::ssrTopicCallback(const String& payload)
 {
     JsonDocument         jsonPayload;
     DeserializationError error = deserializeJson(jsonPayload, payload.c_str());
