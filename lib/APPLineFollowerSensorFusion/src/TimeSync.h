@@ -117,6 +117,17 @@ public:
     uint64_t mapZumoToLocalMs(uint32_t zumoTsMs) const;
 
     /**
+     * @brief Map epoch time in milliseconds to local milliseconds (millis()).
+     *
+     * Requires that the RTC/NTP mapping is synced (isRtcSynced() == true).
+     * If RTC is not synced, falls back to localNowMs().
+     *
+     * @param epochMs  Epoch time in ms (Unix).
+     * @return uint64_t Local time in ms.
+     */
+    uint64_t epochToLocalMs(uint64_t epochMs) const;
+
+    /**
      * Get current local time [ms].
      * @return Local time [ms].
      */

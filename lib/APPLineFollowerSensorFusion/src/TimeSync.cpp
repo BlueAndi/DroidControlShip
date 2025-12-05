@@ -273,6 +273,25 @@ void TimeSync::refreshRtcMapping()
     m_rtcSynced            = true;
 }
 
+uint64_t TimeSync::epochToLocalMs(uint64_t epochMs) const
+{
+    if (false == m_rtcSynced)
+    {
+        LOG_WARNING("TimeSync: epochToLocalMs() called without RTC sync, using localNowMs() as fallback.");
+        return localNowMs();
+    }
+
+    /* epoch = local + offset  =>  local = epoch - offset */
+    const int64_t localMs = static_cast<int64_t>(epochMs) - m_epochToLocalOffsetMs;
+
+    if (localMs < 0)
+    {
+        return 0ULL;
+    }
+
+    return static_cast<uint64_t>(localMs);
+}
+
 /******************************************************************************
  * Diagnostic Logging
  *****************************************************************************/

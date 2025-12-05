@@ -340,25 +340,26 @@ void App::ssrTopicCallback(const String& payload)
         JsonVariantConst xVel_mms   = jsonPayload["speedX"];     /* int : in mm/s */
         JsonVariantConst yVel_mms   = jsonPayload["speedY"];     /* int : in mm/s */
         JsonVariantConst angle_mrad = jsonPayload["angle"];      /* int : in mrad */
-        JsonVariantConst id         = jsonPayload["identifier"]; /* int : unique id of the target */
+        JsonVariantConst timestamp_ms = jsonPayload["timestamp_ms"]; /* int : epoch in ms */
 
         const int x_mm_i     = xPos_mm.as<int>();
         const int y_mm_i     = yPos_mm.as<int>();
         const int vx_mms_i   = xVel_mms.as<int>();
         const int vy_mms_i   = yVel_mms.as<int>();
         const int ang_mrad_i = angle_mrad.as<int>();
+        const uint64_t timestampEpochMs = timestamp_ms.as<uint64_t>();
 
-        LOG_INFO("SSR pose: xPos=%dmm yPos=%dmm angle=%dmrad vx=%dmm/s vy=%dmm/s",
-                 x_mm_i, y_mm_i, ang_mrad_i, vx_mms_i, vy_mms_i);
+        LOG_INFO("SSR pose: xPos=%dmm yPos=%dmm angle=%dmrad vx=%dmm/s vy=%dmm/s ts_epoch_ms=%llu",
+                 x_mm_i, y_mm_i, ang_mrad_i, vx_mms_i, vy_mms_i, timestampEpochMs);
 
         /* 1) Copy pose into struct. */
         SpaceShipRadarPose ssrPose;
-        ssrPose.timestamp = static_cast<uint32_t>(m_timeSync.localNowMs());
         ssrPose.x         = static_cast<float>(x_mm_i);
         ssrPose.y         = static_cast<float>(y_mm_i);
         ssrPose.theta     = static_cast<float>(ang_mrad_i);
         ssrPose.v_x       = static_cast<float>(vx_mms_i);
         ssrPose.v_y       = static_cast<float>(vy_mms_i);
+        ssrPose.timestamp = static_cast<uint32_t>(m_timeSync.epochToLocalMs(timestampEpochMs));
 
         /* 2) Initialize odometry origin from first SSR pose. */
         if (false == m_odoOriginInitialized)
@@ -473,19 +474,20 @@ void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRada
         return;
     }
 
-    const uint32_t zumoTs32 = static_cast<uint32_t>(vehicleData.timestamp);
-    const uint32_t ssrTs32  = static_cast<uint32_t>(ssrPose.timestamp);
+    const uint32_t zumoTs32       = static_cast<uint32_t>(vehicleData.timestamp);
+    const uint32_t zumoLocalMs32  = static_cast<uint32_t>(m_timeSync.mapZumoToLocalMs(zumoTs32));
+    const uint32_t ssrLocalMs32   = static_cast<uint32_t>(ssrPose.timestamp);
 
     /* If EKF has no valid timestamp yet, initialize from the first available one. */
     if (0U == m_lastEkfUpdateMs)
     {
-        if (0U != zumoTs32)
+        if (0U != zumoLocalMs32)
         {
-            m_lastEkfUpdateMs = zumoTs32;
+            m_lastEkfUpdateMs = zumoLocalMs32;
         }
-        else if (0U != ssrTs32)
+        else if (0U != ssrLocalMs32)
         {
-            m_lastEkfUpdateMs = ssrTs32;
+            m_lastEkfUpdateMs = ssrLocalMs32;
         }
         else
         {
@@ -502,17 +504,17 @@ void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRada
     };
 
     Source   newestSource = Source::None;
-    uint32_t newestTs     = m_lastEkfUpdateMs;
+    uint32_t newestLocalTs      = m_lastEkfUpdateMs;
 
-    if (zumoTs32 > newestTs)
+    if (zumoLocalMs32 > newestLocalTs)
     {
-        newestTs     = zumoTs32;
+        newestLocalTs     = zumoLocalMs32;
         newestSource = Source::Vehicle;
     }
 
-    if (ssrTs32 > newestTs)
+    if (ssrLocalMs32 > newestLocalTs)
     {
-        newestTs     = ssrTs32;
+        newestLocalTs     = ssrLocalMs32;
         newestSource = Source::SSR;
     }
 
@@ -523,32 +525,31 @@ void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRada
     }
 
     /* Time difference in seconds for prediction. */
-    const uint32_t dtMs = newestTs - m_lastEkfUpdateMs;
+    const uint32_t dtMs = newestLocalTs - m_lastEkfUpdateMs;
     const float    dt   = static_cast<float>(dtMs) / 1000.0F;
 
-    /* Longitudinal acceleration as input to the process model (mm/s^2). */
+    /* Longitudinal acceleration input (raw accelerometer digits). */
     const float a_x = static_cast<float>(vehicleData.accelerationX);
 
     /* EKF prediction step. */
     m_ekf.predict(a_x, dt);
+
+    LOG_INFO("EKF Source =%s dt=%.3fs", (Source::Vehicle == newestSource) ? "Vehicle" : "SSR", dt);
 
     /* Measurement update depending on source. */
     if (Source::Vehicle == newestSource)
     {
         /* IMU update: only yaw rate (turnRateZ). */
         {
-            ImuMeasVector z_imu;
-            z_imu(0) = static_cast<float>(vehicleData.turnRateZ); /* [mrad/s] */
-            m_ekf.updateImu(z_imu);
+            const int16_t rawGyroZ = static_cast<int16_t>(vehicleData.turnRateZ);
+            m_ekf.updateImuFromDigits(rawGyroZ);
         }
 
         /* Odometry update in global frame.
          *
          * EKF odometryModel(x):
-         *   z_odo(0) = p_x
-         *   z_odo(1) = p_y
-         *   z_odo(2) = v
-         *   z_odo(3) = theta
+         *   z_odo(0) = v
+         *   z_odo(1) = theta
          */
         {
             float xGlob_mm      = 0.0F;
@@ -558,10 +559,8 @@ void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRada
             transformOdometryToGlobal(vehicleData, xGlob_mm, yGlob_mm, thetaGlob_mrad);
 
             OdoMeasVector z_odo;
-            z_odo(0) = xGlob_mm;                               /* global p_x [mm] */
-            z_odo(1) = yGlob_mm;                               /* global p_y [mm] */
-            z_odo(2) = static_cast<float>(vehicleData.center); /* speed [mm/s] (v_center) */
-            z_odo(3) = thetaGlob_mrad;                         /* global theta [mrad] */
+            z_odo(0) = static_cast<float>(vehicleData.center); /* speed [mm/s] (v_center) */
+            z_odo(1) = thetaGlob_mrad;                         /* global theta [mrad] */
 
             m_ekf.updateOdometry(z_odo);
         }
@@ -588,10 +587,10 @@ void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRada
     }
 
     /* Update timestamp of last EKF update. */
-    m_lastEkfUpdateMs = newestTs;
+    m_lastEkfUpdateMs = newestLocalTs;
 
     /* Publish fused pose. */
-    publishFusionPose(newestTs);
+    publishFusionPose(newestLocalTs);
 }
 
 void App::transformOdometryToGlobal(const VehicleData& vehicleData,
@@ -601,7 +600,7 @@ void App::transformOdometryToGlobal(const VehicleData& vehicleData,
 {
     /* Y axis and heading sign differ between local odometry frame and SSR frame. */
     constexpr float Y_SIGN     = -1.0F;
-    constexpr float THETA_SIGN = -1.0F;
+    constexpr float THETA_SIGN = 1.0F;
 
     const float xLocal_mm       = static_cast<float>(vehicleData.xPos);
     const float yLocal_mm       = static_cast<float>(vehicleData.yPos);

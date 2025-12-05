@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Implementation of the Extended Kalman Filter (5D state)
+ * @brief  Implementation of the Extended Kalman Filter
  * @author Tobias Haeckel
  */
 
@@ -34,47 +34,38 @@
  *****************************************************************************/
 #include "EKF.h"
 #include <cmath>
-
-/* Some toolchains do not define M_PI. */
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-/******************************************************************************
- * Local Namespace
- *****************************************************************************/
+#include "SensorConstants.h"
 
 namespace
 {
-    constexpr float PI_MRAD      = 1000.0F * static_cast<float>(M_PI);
-    constexpr float TWO_PI_MRAD  = 2.0F * PI_MRAD;
+    constexpr float PI_MRAD     = 1000.0F * static_cast<float>(M_PI);
+    constexpr float TWO_PI_MRAD = 2.0F * PI_MRAD;
 
-    /* Default process noise standard deviations. */
-    constexpr float SIGMA_PX      = 1.0F;  /* [mm] */
-    constexpr float SIGMA_PY      = 1.0F;  /* [mm] */
-    constexpr float SIGMA_THETA_P = 5.0F;  /* [mrad] */
-    constexpr float SIGMA_V_P     = 5.0F;  /* [mm/s] */
-    constexpr float SIGMA_OMEGA_P = 2.0F;  /* [mrad/s] */
+    // Default process noise standard deviations.
+    constexpr float SIGMA_PX      = 1.0F;  // [mm]
+    constexpr float SIGMA_PY      = 1.0F;  // [mm]
+    constexpr float SIGMA_THETA_P = 5.0F;  // [mrad]
+    constexpr float SIGMA_V_P     = 5.0F;  // [mm/s]
+    constexpr float SIGMA_OMEGA_P = 2.0F;  // [mrad/s]
 
-    /* Camera (SSR) measurement noise std dev. */
-    constexpr float SIGMA_CAM_POS   = 2.0F; /* [mm] */
-    constexpr float SIGMA_CAM_THETA = 5.0F;  /* [mrad] */
-    constexpr float SIGMA_CAM_V     = 20.0F; /* [mm/s] */
+    // Camera noise.
+    constexpr float SIGMA_CAM_POS   = 2.0F; // [mm]
+    constexpr float SIGMA_CAM_THETA = 5.0F;  // [mrad]
+    constexpr float SIGMA_CAM_V     = 20.0F; // [mm/s]
 
-    /* Odometry measurement noise std dev. */
-    constexpr float SIGMA_ODO_POS   = 100000.0F; /* [mm] */
-    constexpr float SIGMA_ODO_V     = 10.0F; /* [mm/s] */
-    constexpr float SIGMA_ODO_THETA = 5.0F;  /* [mrad] */
+    // Odometry noise (only v and theta).
+    constexpr float SIGMA_ODO_V     = 10.0F; // [mm/s]
+    constexpr float SIGMA_ODO_THETA = 5.0F;  // [mrad]
 
-    /* IMU yaw noise std dev. */
-    constexpr float SIGMA_IMU_OMEGA = 20.0F;  /* [mrad/s] */
+    // IMU yaw noise.
+    constexpr float SIGMA_IMU_OMEGA = 1.0F;  // [mrad/s]
 
-    /* Default initial state (will usually be overwritten by SSR init). */
-    constexpr float EKF_START_X_MM         = 705.0F; /* [mm] */
-    constexpr float EKF_START_Y_MM         = 939.0F; /* [mm] */
-    constexpr float EKF_START_THETA_MRAD   = 0.0F;   /* [mrad] */
-    constexpr float EKF_START_V_MMS        = 0.0F;   /* [mm/s] */
-    constexpr float EKF_START_OMEGA_MRADPS = 0.0F;   /* [mrad/s] */
+    // Default initial state.
+    constexpr float EKF_START_X_MM         = 705.0F; // [mm]
+    constexpr float EKF_START_Y_MM         = 939.0F; // [mm]
+    constexpr float EKF_START_THETA_MRAD   = 0.0F;   // [mrad]
+    constexpr float EKF_START_V_MMS        = 0.0F;   // [mm/s]
+    constexpr float EKF_START_OMEGA_MRADPS = 0.0F;   // [mrad/s]
 }
 
 /******************************************************************************
@@ -105,10 +96,8 @@ ExtendedKalmanFilter5D::ExtendedKalmanFilter5D()
 
     /* Odometry measurement noise R_odo. */
     m_R_odo.setZero();
-    m_R_odo(0, 0) = SIGMA_ODO_POS   * SIGMA_ODO_POS;
-    m_R_odo(1, 1) = SIGMA_ODO_POS   * SIGMA_ODO_POS;
-    m_R_odo(2, 2) = SIGMA_ODO_V     * SIGMA_ODO_V;
-    m_R_odo(3, 3) = SIGMA_ODO_THETA * SIGMA_ODO_THETA;
+    m_R_odo(0, 0) = SIGMA_ODO_V     * SIGMA_ODO_V;
+    m_R_odo(1, 1) = SIGMA_ODO_THETA * SIGMA_ODO_THETA;
 
     /* IMU yaw noise R_imu. */
     m_R_imu.setZero();
@@ -125,27 +114,30 @@ bool ExtendedKalmanFilter5D::init(const StateVector& x0, const StateMatrix& P0)
 bool ExtendedKalmanFilter5D::init()
 {
     m_state.setZero();
-
-    m_state(0) = EKF_START_X_MM;         /* p_x [mm] */
-    m_state(1) = EKF_START_Y_MM;         /* p_y [mm] */
-    m_state(2) = EKF_START_THETA_MRAD;   /* theta [mrad] */
-    m_state(3) = EKF_START_V_MMS;        /* v [mm/s] */
-    m_state(4) = EKF_START_OMEGA_MRADPS; /* omega [mrad/s] */
+    m_state(0) = EKF_START_X_MM;
+    m_state(1) = EKF_START_Y_MM;
+    m_state(2) = EKF_START_THETA_MRAD;
+    m_state(3) = EKF_START_V_MMS;
+    m_state(4) = EKF_START_OMEGA_MRADPS;
 
     m_covariance.setIdentity();
     return true;
 }
 
-void ExtendedKalmanFilter5D::predict(float a_x, float dt)
+void ExtendedKalmanFilter5D::predict(float accX_raw, float dt)
 {
+    /* Convert raw accelerometer digits to physical acceleration [mm/s^2]. */
+    const float a_x_mms =
+        accX_raw * SensorConstants::ACCELEROMETER_SENSITIVITY_FACTOR;
+
     /* Nonlinear prediction. */
-    StateVector x_pred = processModel(m_state, a_x, dt);
+    StateVector x_pred = processModel(m_state, a_x_mms, dt);
 
     /* Wrap heading angle (index 2). */
     x_pred(2) = wrapAngleMrad(x_pred(2));
 
     /* Linearization. */
-    StateMatrix jacobianF = processJacobianF(m_state, a_x, dt);
+    StateMatrix jacobianF = processJacobianF(m_state, dt);
 
     /* Covariance prediction. */
     StateMatrix P_pred = jacobianF * m_covariance * jacobianF.transpose() + m_Q;
@@ -186,8 +178,8 @@ void ExtendedKalmanFilter5D::updateOdometry(const OdoMeasVector& z_odo)
     /* Innovation. */
     OdoMeasVector y = z_odo - z_pred;
 
-    /* Wrap angle innovation (index 3 is theta). */
-    y(3) = wrapAngleMrad(y(3));
+    /* Wrap angle innovation (index 1 is theta). */
+    y(1) = wrapAngleMrad(y(1));
 
     /* EKF update. */
     const OdoMeasMatrix S = H * m_covariance * H.transpose() + m_R_odo;
@@ -218,18 +210,30 @@ void ExtendedKalmanFilter5D::updateImu(const ImuMeasVector& z_imu)
     m_covariance = (StateMatrix::Identity() - K * H) * m_covariance;
 }
 
+void ExtendedKalmanFilter5D::updateImuFromDigits(int16_t rawGyroZ)
+{
+    ImuMeasVector z_imu;
+    /* Convert raw gyro digits to physical yaw rate [mrad/s]. */
+    z_imu(0) = static_cast<float>(rawGyroZ) *
+               SensorConstants::GYRO_SENSITIVITY_FACTOR;
+
+    updateImu(z_imu);
+}
+
 /******************************************************************************
  * Private Methods
  *****************************************************************************/
 
 ExtendedKalmanFilter5D::StateVector
-ExtendedKalmanFilter5D::processModel(const StateVector& x, float a_x, float dt) const
+ExtendedKalmanFilter5D::processModel(const StateVector& x,
+                                     float              a_x_mms,
+                                     float              dt) const
 {
     const float px        = x(0);
     const float py        = x(1);
     const float thetaMrad = x(2);
     const float v         = x(3);
-    const float omegaMrad = x(4);
+    const float omegaMrad = x(4);          /* already in mrad/s */
 
     const float thetaRad  = thetaMrad / 1000.0F;
 
@@ -237,35 +241,35 @@ ExtendedKalmanFilter5D::processModel(const StateVector& x, float a_x, float dt) 
     x_next(0) = px + v * std::cos(thetaRad) * dt; /* p_x */
     x_next(1) = py + v * std::sin(thetaRad) * dt; /* p_y */
     x_next(2) = thetaMrad + omegaMrad * dt;       /* theta [mrad] */
-    x_next(3) = v + a_x * dt;                     /* v */
-    x_next(4) = omegaMrad;                        /* omega (no angular accel) */
+    x_next(3) = v + a_x_mms * dt;                 /* v */
+    x_next(4) = omegaMrad;                        /* omega */
 
     return x_next;
 }
 
 ExtendedKalmanFilter5D::StateMatrix
-ExtendedKalmanFilter5D::processJacobianF(const StateVector& x, float /*a_x*/, float dt) const
+ExtendedKalmanFilter5D::processJacobianF(const StateVector& x, float dt) const
 {
     const float thetaMrad = x(2);
     const float v         = x(3);
     const float thetaRad  = thetaMrad / 1000.0F;
 
-    StateMatrix jacobianF = StateMatrix::Identity();
+    StateMatrix F = StateMatrix::Identity();
 
-    /* d p_x / d theta */
-    jacobianF(0, 2) = -v * std::sin(thetaRad) * dt / 1000.0F;
-    /* d p_x / d v */
-    jacobianF(0, 3) = std::cos(thetaRad) * dt;
+    /* d p_x / d theta. */
+    F(0, 2) = -v * std::sin(thetaRad) * dt / 1000.0F;
+    /* d p_x / d v. */
+    F(0, 3) =  std::cos(thetaRad) * dt;
 
-    /* d p_y / d theta */
-    jacobianF(1, 2) = v * std::cos(thetaRad) * dt / 1000.0F;
-    /* d p_y / d v */
-    jacobianF(1, 3) = std::sin(thetaRad) * dt;
+    /* d p_y / d theta. */
+    F(1, 2) =  v * std::cos(thetaRad) * dt / 1000.0F;
+    /* d p_y / d v. */
+    F(1, 3) =  std::sin(thetaRad) * dt;
 
-    /* d theta / d omega */
-    jacobianF(2, 4) = dt;
+    /* d theta / d omega. */
+    F(2, 4) = dt;
 
-    return jacobianF;
+    return F;
 }
 
 /* ---------------- Camera model ---------------- */
@@ -281,11 +285,11 @@ ExtendedKalmanFilter5D::cameraModel(const StateVector& x) const
     const float thetaRad  = thetaMrad / 1000.0F;
 
     CamMeasVector z;
-    z(0) = px;                    /* p_x */
-    z(1) = py;                    /* p_y */
-    z(2) = thetaMrad;             /* theta [mrad] */
-    z(3) = v * std::cos(thetaRad);/* v_x */
-    z(4) = v * std::sin(thetaRad);/* v_y */
+    z(0) = px;                     /* p_x */
+    z(1) = py;                     /* p_y */
+    z(2) = thetaMrad;              /* theta [mrad] */
+    z(3) = v * std::cos(thetaRad); /* v_x */
+    z(4) = v * std::sin(thetaRad); /* v_y */
     return z;
 }
 
@@ -323,10 +327,8 @@ ExtendedKalmanFilter5D::OdoMeasVector
 ExtendedKalmanFilter5D::odometryModel(const StateVector& x) const
 {
     OdoMeasVector z;
-    z(0) = x(0); /* p_x */
-    z(1) = x(1); /* p_y */
-    z(2) = x(3); /* v */
-    z(3) = x(2); /* theta */
+    z(0) = x(3); /* v */
+    z(1) = x(2); /* theta */
     return z;
 }
 
@@ -336,14 +338,10 @@ ExtendedKalmanFilter5D::odometryJacobianH(const StateVector& /*x*/) const
     Eigen::Matrix<float, ODO_MEAS_DIM, STATE_DIM> H;
     H.setZero();
 
-    /* p_x */
-    H(0, 0) = 1.0F;
-    /* p_y */
-    H(1, 1) = 1.0F;
     /* v */
-    H(2, 3) = 1.0F;
+    H(0, 3) = 1.0F;
     /* theta */
-    H(3, 2) = 1.0F;
+    H(1, 2) = 1.0F;
 
     return H;
 }
@@ -377,13 +375,6 @@ float ExtendedKalmanFilter5D::wrapAngleMrad(float angleMrad)
     {
         x += TWO_PI_MRAD;
     }
+
     return x - PI_MRAD;
 }
-
-/******************************************************************************
- * External Functions
- *****************************************************************************/
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
