@@ -123,6 +123,12 @@ private:
     /** MQTT topic name for receiving Space Ship Radar pose. */
     static const char* TOPIC_NAME_RADAR_POSE;
 
+    /** MQTT topic name for host time sync request. */
+    static const char* TOPIC_NAME_HOST_TIMESYNC_REQ;
+
+    /** MQTT topic name for host time sync response. */
+    static const char* TOPIC_NAME_HOST_TIMESYNC_RSP;
+
     /**
      * @brief Flag for setting initial data through SMP.
      */
@@ -132,6 +138,11 @@ private:
      * @brief Timer for sending system status to Radon Ulzer.
      */
     SimpleTimer m_statusTimer;
+
+    /**
+     * @brief Timer for host time synchronization requests.
+     */
+    SimpleTimer m_hostTimeSyncTimer;
 
     /**
      * @brief SerialMux channel provider handler.
@@ -230,6 +241,13 @@ private:
      * @param[in] payload The topic payload as JSON string.
      */
     void ssrTopicCallback(const String& payload);
+
+    /**
+     * @brief Callback for receiving host time sync response over MQTT topic.
+     *
+     * @param[in] payload The topic payload as JSON string.
+     */
+    void hostTimeSyncResponseCallback(const String& payload);
 
     /**
      * @brief Publish a combined snapshot of vehicle and line sensor data via MQTT.
