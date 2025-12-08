@@ -146,7 +146,7 @@ public:
      *  - builds a JSON payload { "seq", "t1_esp_ms" }
      *  - calls the provided publish callback
      *
-     * @param[in] publishFn  MQTT instance.
+     * @param[in] mqttClient  MQTT instance.
      * @param[in] topic      MQTT topic for the request message.
      */
     void sendHostTimeSyncRequest(MqttClient& mqttClient,
@@ -170,6 +170,7 @@ public:
      * @param[in] t1EspMs     T1 on ESP side [ms].
      * @param[in] t2HostMs    T2 on host side [ms].
      * @param[in] t3HostMs    T3 on host side [ms].
+     * @param[in] t4EspMs     T4 on ESP side [ms].
      */
     void onHostTimeSyncResponse(uint32_t seq,
                                 uint64_t t1EspMs,
