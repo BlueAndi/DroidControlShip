@@ -72,17 +72,27 @@ public:
     /** IMU measurement dimension: [omega]. */
     static constexpr std::uint8_t IMU_MEAS_DIM = 1U;
 
+    /** @brief State vector type x = [p_x, p_y, theta, v, omega]^T. */
     using StateVector   = Eigen::Matrix<float, STATE_DIM, 1>;
+
+    /** @brief State covariance matrix type P (STATE_DIM x STATE_DIM). */
     using StateMatrix   = Eigen::Matrix<float, STATE_DIM, STATE_DIM>;
 
+    /** @brief Camera measurement vector z_cam = [p_x, p_y, theta, v_x, v_y]^T. */
     using CamMeasVector = Eigen::Matrix<float, CAM_MEAS_DIM, 1>;
+    /** @brief Camera measurement covariance matrix R_cam. */
     using CamMeasMatrix = Eigen::Matrix<float, CAM_MEAS_DIM, CAM_MEAS_DIM>;
 
+    /** @brief Odometry measurement vector z_odo = [v, theta]^T. */
     using OdoMeasVector = Eigen::Matrix<float, ODO_MEAS_DIM, 1>;
+    /** @brief Odometry measurement covariance matrix R_odo. */
     using OdoMeasMatrix = Eigen::Matrix<float, ODO_MEAS_DIM, ODO_MEAS_DIM>;
 
+    /** @brief IMU measurement vector z_imu = [omega]^T. */
     using ImuMeasVector = Eigen::Matrix<float, IMU_MEAS_DIM, 1>;
+    /** @brief IMU measurement covariance matrix R_imu. */
     using ImuMeasMatrix = Eigen::Matrix<float, IMU_MEAS_DIM, IMU_MEAS_DIM>;
+
 
 public:
     /**
@@ -229,7 +239,7 @@ private:
     /**
      * Jacobian of the process model F = df/dx.
      *
-     * @param[in] x  Current state.
+     * @param[in] x  Current state vector.
      * @param[in] dt Time step [s].
      *
      * @return Process Jacobian matrix.
@@ -267,13 +277,15 @@ private:
      * Odometry measurement Jacobian H_odo = dh_odo/dx.
      *
      * @return Odometry measurement Jacobian.
+     * 
+     * @param[in] x Current state vector.
      */
     Eigen::Matrix<float, ODO_MEAS_DIM, STATE_DIM> odometryJacobianH(const StateVector& x) const;
 
     /**
      * IMU measurement model h_imu(x) = [omega]^T.
      *
-     * @param[in] x Current state.
+     * @param[in] x Current state vector.
      *
      * @return IMU measurement prediction.
      */
@@ -282,7 +294,7 @@ private:
     /**
      * IMU measurement Jacobian H_imu = dh_imu/dx.
      *
-     * @param[in] x Current state (currently unused).
+     * @param[in] x Current state vector.
      *
      * @return IMU Jacobian matrix H_imu.
      */

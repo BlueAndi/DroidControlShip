@@ -254,22 +254,22 @@ ExtendedKalmanFilter5D::processJacobianF(const StateVector& x, float dt) const
     const float v         = x(3);
     const float thetaRad  = thetaMrad / 1000.0F;
 
-    StateMatrix F = StateMatrix::Identity();
+    StateMatrix F_jacobian = StateMatrix::Identity();
 
     /* d p_x / d theta. */
-    F(0, 2) = -v * std::sin(thetaRad) * dt / 1000.0F;
+    F_jacobian(0, 2) = -v * std::sin(thetaRad) * dt / 1000.0F;
     /* d p_x / d v. */
-    F(0, 3) =  std::cos(thetaRad) * dt;
+    F_jacobian(0, 3) =  std::cos(thetaRad) * dt;
 
     /* d p_y / d theta. */
-    F(1, 2) =  v * std::cos(thetaRad) * dt / 1000.0F;
+    F_jacobian(1, 2) =  v * std::cos(thetaRad) * dt / 1000.0F;
     /* d p_y / d v. */
-    F(1, 3) =  std::sin(thetaRad) * dt;
+    F_jacobian(1, 3) =  std::sin(thetaRad) * dt;
 
     /* d theta / d omega. */
-    F(2, 4) = dt;
+    F_jacobian(2, 4) = dt;
 
-    return F;
+    return F_jacobian;
 }
 
 /* ---------------- Camera model ---------------- */
