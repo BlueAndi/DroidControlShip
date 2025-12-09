@@ -268,6 +268,14 @@ private:
     void publishVehicleAndSensorSnapshot(const VehicleData& data);
 
     /**
+     * @brief Publish GPS data via MQTT.
+     * 
+     * @param[in] mqttClient MQTT client to use for publishing.
+     * @param[in] tsMs       Timestamp in ms (local time base) associated with the GPS data.
+     */
+    void publishGps(MqttClient& mqttClient, uint32_t tsMs);
+
+    /**
      * @brief Callback for receiving vehicle data via SerialMux.
      *
      * @param[in] data Vehicle data received via SerialMux.
