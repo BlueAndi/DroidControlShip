@@ -653,7 +653,6 @@ void App::publishGps(MqttClient& mqttClient, uint32_t tsMs)
     int32_t yPosMm      = 0;
     int32_t headingMrad = 0;
 
-    /* Ohne Position kein GPS-Update */
     if (!gps->getPosition(xPosMm, yPosMm))
     {
         LOG_DEBUG("No GPS position available, skipping GPS publish.");
@@ -661,8 +660,7 @@ void App::publishGps(MqttClient& mqttClient, uint32_t tsMs)
     }
 
     bool hasOrientation = gps->getOrientation(headingMrad);
-
-    /* Geschwindigkeit bestimmen */
+    
     static bool     havePrev = false;
     static int32_t  prevX    = 0;
     static int32_t  prevY    = 0;
@@ -693,9 +691,6 @@ void App::publishGps(MqttClient& mqttClient, uint32_t tsMs)
              hasOrientation ? headingMrad : 0,
              speedMmPs);
 
-    /* ---------------------------------------- */
-    /* JSON Payload erzeugen                    */
-    /* ---------------------------------------- */
 
     JsonDocument payloadJson;
     char         payloadArray[JSON_FUSION_POSE_MAX_SIZE];
