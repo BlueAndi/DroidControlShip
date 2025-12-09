@@ -257,6 +257,8 @@ void App::loop()
         m_hostTimeSyncTimer.restart();
     }
 
+    publishGps(m_mqttClient, m_timeSync.localNowMs());
+
     /* Process state machine. */
     m_stateMachine.process();
 
@@ -612,6 +614,89 @@ void App::hostTimeSyncResponseCallback(const String& payload)
 
     m_timeSync.onHostTimeSyncResponse(seq, t1EspMs, t2HostMs, t3HostMs, t4_ts);
 }
+
+void App::publishGps(MqttClient& mqttClient, uint32_t tsMs)
+{
+    IGps* gps = Board::getInstance().getGps();
+
+    if ((nullptr == gps) || (false == mqttClient.isConnected()))
+    {
+        if (nullptr == gps)
+        {
+            LOG_DEBUG("No GPS available, skipping GPS publish.");
+        }
+        
+        return;
+    }
+
+    int32_t xPosMm      = 0;
+    int32_t yPosMm      = 0;
+    int32_t headingMrad = 0;
+
+    /* Ohne Position kein GPS-Update */
+    if (!gps->getPosition(xPosMm, yPosMm))
+    {
+        LOG_DEBUG("No GPS position available, skipping GPS publish.");
+        return;
+    }
+
+    bool hasOrientation = gps->getOrientation(headingMrad);
+
+    /* Geschwindigkeit bestimmen */
+    static bool     havePrev = false;
+    static int32_t  prevX    = 0;
+    static int32_t  prevY    = 0;
+    static uint32_t prevTs   = 0;
+
+    float speedMmPs = 0.0F;
+
+    if (havePrev)
+    {
+        uint32_t dtMs = tsMs - prevTs;
+
+        if (dtMs > 0U)
+        {
+            float dx = static_cast<float>(xPosMm - prevX);
+            float dy = static_cast<float>(yPosMm - prevY);
+            float dist = sqrtf(dx * dx + dy * dy);
+
+            speedMmPs = dist * 1000.0F / static_cast<float>(dtMs);
+        }
+    }
+
+    prevX    = xPosMm;
+    prevY    = yPosMm;
+    prevTs   = tsMs;
+    havePrev = true;
+    LOG_INFO("GPS: x=%dmm y=%dmm heading=%dmrad speed=%.1fmm/s",
+             xPosMm, yPosMm,
+             hasOrientation ? headingMrad : 0,
+             speedMmPs);
+
+    /* ---------------------------------------- */
+    /* JSON Payload erzeugen                    */
+    /* ---------------------------------------- */
+
+    JsonDocument payloadJson;
+    char         payloadArray[JSON_FUSION_POSE_MAX_SIZE];
+
+    payloadJson["ts_ms"]            = static_cast<int64_t>(tsMs);
+    payloadJson["x_mm"]             = xPosMm;
+    payloadJson["y_mm"]             = yPosMm;
+    payloadJson["orientation_mrad"] = hasOrientation ? headingMrad : 0;
+    payloadJson["speed_mms"]        = static_cast<float>(speedMmPs);
+
+    (void)serializeJson(payloadJson, payloadArray);
+    String payloadStr(payloadArray);
+
+    if (false == mqttClient.publish("zumo/gps", true, payloadStr))
+    {
+        LOG_WARNING("Publishing GPS data via MQTT failed.");
+    }
+}
+
+
+
 
 void App::onVehicleData(const VehicleData& data)
 {
