@@ -343,6 +343,12 @@ private:
                                   uint32_t& newestLocalTs) const;
 
 
+    /**
+     * @brief Initialize EKF timestamp on first data reception.
+     * 
+     * @param[in] zumoLocalMs32 Latest vehicle data timestamp [ms] (local time base).
+     * @param[in] ssrLocalMs32  Latest SSR pose timestamp [ms]
+    */
     bool initializeEkfTimestamp(uint32_t zumoLocalMs32,
                                    uint32_t ssrLocalMs32); 
 
