@@ -81,10 +81,10 @@ struct SpaceShipRadarPose
  */
 enum class Source
 {
-    None,
-    Vehicle,
-    SSR,
-    VehicleAndSSR
+    None,          /**< No new data available (no newer timestamp than last EKF update). */
+    Vehicle,       /**< Newest data comes from vehicle (odometry / IMU). */
+    SSR,           /**< Newest data comes from Space Ship Radar (SSR). */
+    VehicleAndSSR  /**< Both vehicle and SSR provide newer data; use both updates. */
 };
 
 /**
