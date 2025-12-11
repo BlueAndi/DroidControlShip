@@ -205,14 +205,13 @@ void TimeSync::onHostTimeSyncResponse(uint32_t seq,
                                       uint64_t t3HostMs,
                                       uint64_t t4EspMs)
 {
-    // NTP-style formulas:
-    // offset = ((T2 - T1) + (T3 - T4)) / 2
-    // rtt    = (T4 - T1) - (T3 - T2)
-    //
-    // T1 = t1EspMs   (ESP)
-    // T2 = t2HostMs  (Host)
-    // T3 = t3HostMs  (Host)
-    // T4 = t4EspMs   (ESP)
+    /* NTP-style formulas: */
+    /* offset = ((T2 - T1) + (T3 - T4)) / 2 */
+    /* rtt    = (T4 - T1) - (T3 - T2) */
+    /* T1 = t1EspMs   (ESP) */
+    /* T2 = t2HostMs  (Host) */
+    /* T3 = t3HostMs  (Host) */
+    /* T4 = t4EspMs   (ESP) */
     LOG_INFO("Host sync: seq=%u", static_cast<unsigned>(seq));
     LOG_INFO("t1=%llu ms", t1EspMs);
     LOG_INFO("t2=%llu ms", t2HostMs);
@@ -232,7 +231,7 @@ void TimeSync::onHostTimeSyncResponse(uint32_t seq,
     m_lastHostRttMs = (rtt >= 0) ? static_cast<uint32_t>(rtt) : 0U;
     m_hostSyncValid = true;
 
-    const double offset_s = static_cast<double>(m_hostOffsetMs) / 1000.0;
+    const float offset_s = static_cast<float>(m_hostOffsetMs) / 1000.0F;
 
     LOG_INFO("Host sync: seq=%u offset=%.3f s rtt=%lu ms",
             static_cast<unsigned>(seq),

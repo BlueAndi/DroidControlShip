@@ -41,31 +41,30 @@ namespace
     constexpr float PI_MRAD     = 1000.0F * static_cast<float>(M_PI);
     constexpr float TWO_PI_MRAD = 2.0F * PI_MRAD;
 
-    // Default process noise standard deviations.
-    constexpr float SIGMA_PX      = 1.0F;  // [mm]
-    constexpr float SIGMA_PY      = 1.0F;  // [mm]
-    constexpr float SIGMA_THETA_P = 5.0F;  // [mrad]
-    constexpr float SIGMA_V_P     = 5.0F;  // [mm/s]
-    constexpr float SIGMA_OMEGA_P = 2.0F;  // [mrad/s]
+    /** Default process noise standard deviations. */
+    constexpr float SIGMA_PX      = 1.0F;  /* [mm] */
+    constexpr float SIGMA_PY      = 1.0F;  /* [mm] */
+    constexpr float SIGMA_THETA_P = 5.0F;  /* [mrad] */
+    constexpr float SIGMA_V_P     = 5.0F;  /* [mm/s] */
+    constexpr float SIGMA_OMEGA_P = 2.0F;  /* [mrad/s] */
 
-    // Camera noise.
-    constexpr float SIGMA_CAM_POS   = 2.0F; // [mm]
-    constexpr float SIGMA_CAM_THETA = 5.0F;  // [mrad]
-    constexpr float SIGMA_CAM_V     = 20.0F; // [mm/s]
+    /** Camera noise. */
+    constexpr float SIGMA_CAM_POS   = 2.0F; /* [mm] */
+    constexpr float SIGMA_CAM_THETA = 5.0F;  /* [mrad] */
+    constexpr float SIGMA_CAM_V     = 20.0F; /* [mm/s] */
 
-    // Odometry noise (only v and theta).
-    constexpr float SIGMA_ODO_V     = 10.0F; // [mm/s]
-    constexpr float SIGMA_ODO_THETA = 5.0F;  // [mrad]
+    /** Odometry noise (only v and theta). */
+    constexpr float SIGMA_ODO_V     = 10.0F; /* [mm/s] */
+    constexpr float SIGMA_ODO_THETA = 5.0F;  /* [mrad] */
 
-    // IMU yaw noise.
-    constexpr float SIGMA_IMU_OMEGA = 1.0F;  // [mrad/s]
-
-    // Default initial state.
-    constexpr float EKF_START_X_MM         = 705.0F; // [mm]
-    constexpr float EKF_START_Y_MM         = 939.0F; // [mm]
-    constexpr float EKF_START_THETA_MRAD   = 0.0F;   // [mrad]
-    constexpr float EKF_START_V_MMS        = 0.0F;   // [mm/s]
-    constexpr float EKF_START_OMEGA_MRADPS = 0.0F;   // [mrad/s]
+    /** IMU yaw noise. */
+    constexpr float SIGMA_IMU_OMEGA = 1.0F;  /* [mrad/s] */
+    /** Default initial state. */
+    constexpr float EKF_START_X_MM         = 705.0F; /* [mm] */
+    constexpr float EKF_START_Y_MM         = 939.0F; /* [mm] */
+    constexpr float EKF_START_THETA_MRAD   = 0.0F;   /* [mrad] */
+    constexpr float EKF_START_V_MMS        = 0.0F;   /* [mm/s] */
+    constexpr float EKF_START_OMEGA_MRADS = 0.0F;   /* [mrad/s] */
 }
 
 /******************************************************************************
@@ -104,11 +103,10 @@ ExtendedKalmanFilter5D::ExtendedKalmanFilter5D()
     m_R_imu(0, 0) = SIGMA_IMU_OMEGA * SIGMA_IMU_OMEGA;
 }
 
-bool ExtendedKalmanFilter5D::init(const StateVector& x0, const StateMatrix& P0)
+void ExtendedKalmanFilter5D::init(const StateVector& x0, const StateMatrix& P0)
 {
     m_state      = x0;
     m_covariance = P0;
-    return true;
 }
 
 bool ExtendedKalmanFilter5D::init()
@@ -118,10 +116,9 @@ bool ExtendedKalmanFilter5D::init()
     m_state(1) = EKF_START_Y_MM;
     m_state(2) = EKF_START_THETA_MRAD;
     m_state(3) = EKF_START_V_MMS;
-    m_state(4) = EKF_START_OMEGA_MRADPS;
+    m_state(4) = EKF_START_OMEGA_MRADS;
 
     m_covariance.setIdentity();
-    return true;
 }
 
 void ExtendedKalmanFilter5D::predict(float accX_raw, float dt)
@@ -151,7 +148,7 @@ void ExtendedKalmanFilter5D::updateCamera(const CamMeasVector& z_cam)
 {
     /* Predicted measurement. */
     CamMeasVector z_pred = cameraModel(m_state);
-    auto          H      = cameraJacobianH(m_state);
+    Eigen::Matrix<float, CAM_MEAS_DIM, STATE_DIM> H = cameraJacobianH(m_state);
 
     /* Innovation. */
     CamMeasVector y = z_cam - z_pred;
@@ -173,7 +170,7 @@ void ExtendedKalmanFilter5D::updateOdometry(const OdoMeasVector& z_odo)
 {
     /* Predicted measurement. */
     OdoMeasVector z_pred = odometryModel(m_state);
-    auto          H      = odometryJacobianH(m_state);
+    Eigen::Matrix<float, ODO_MEAS_DIM, STATE_DIM> H = odometryJacobianH(m_state);
 
     /* Innovation. */
     OdoMeasVector y = z_odo - z_pred;
@@ -195,8 +192,7 @@ void ExtendedKalmanFilter5D::updateImu(const ImuMeasVector& z_imu)
 {
     /* Predicted measurement. */
     ImuMeasVector z_pred = imuModel(m_state);
-    auto          H      = imuJacobianH(m_state);
-
+    Eigen::Matrix<float, IMU_MEAS_DIM, STATE_DIM> H = imuJacobianH(m_state);
     /* Innovation (omega, no wrapping). */
     ImuMeasVector y = z_imu - z_pred;
 
@@ -233,16 +229,16 @@ ExtendedKalmanFilter5D::processModel(const StateVector& x,
     const float py        = x(1);
     const float thetaMrad = x(2);
     const float v         = x(3);
-    const float omegaMrad = x(4);          /* already in mrad/s */
+    const float omegaMrads = x(4);
 
     const float thetaRad  = thetaMrad / 1000.0F;
 
     StateVector x_next;
     x_next(0) = px + v * std::cos(thetaRad) * dt; /* p_x */
     x_next(1) = py + v * std::sin(thetaRad) * dt; /* p_y */
-    x_next(2) = thetaMrad + omegaMrad * dt;       /* theta [mrad] */
+    x_next(2) = thetaMrad + omegaMrads * dt;       /* theta [mrad] */
     x_next(3) = v + a_x_mms * dt;                 /* v */
-    x_next(4) = omegaMrad;                        /* omega */
+    x_next(4) = omegaMrads;                        /* omega */
 
     return x_next;
 }

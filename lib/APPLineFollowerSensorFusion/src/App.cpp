@@ -110,10 +110,16 @@ static const uint32_t JSON_SENSOR_SNAPSHOT_MAX_SIZE = 256U;
 /** Buffer size for JSON serialization of fusion pose. */
 static const uint32_t JSON_FUSION_POSE_MAX_SIZE = 128U;
 
+/** Status send interval in ms. */
+const uint16_t STATUS_SEND_INTERVAL_MS = 1000U;
+
+/** Host time sync interval in ms. */
+const uint16_t HOST_TIMESYNC_INTERVAL_MS = 10000U;
+
 /* Convenience aliases for EKF types. */
-using ImuMeasVector = ExtendedKalmanFilter5D::ImuMeasVector;
-using OdoMeasVector = ExtendedKalmanFilter5D::OdoMeasVector;
-using CamMeasVector = ExtendedKalmanFilter5D::CamMeasVector;
+using ImuMeasurementVector = ExtendedKalmanFilter5D::ImuMeasurementVector;
+using OdoMeasurementVector = ExtendedKalmanFilter5D::OdoMeasurementVector;
+using CamMeasurementVector = ExtendedKalmanFilter5D::CamMeasurementVector;
 using StateVector   = ExtendedKalmanFilter5D::StateVector;
 using StateMatrix   = ExtendedKalmanFilter5D::StateMatrix;
 
@@ -211,24 +217,12 @@ void App::setup()
         {
             /* Log incoming vehicle data and corresponding time sync information. */
             m_serMuxChannelProvider.registerVehicleDataCallback(
-                [this](const VehicleData& data)
-                {
-                    publishVehicleAndSensorSnapshot(data);
-
-                    m_lastVehicleData = data;
-                    m_hasVehicleData  = true;
-
-                    /* Run sensor fusion whenever new vehicle data arrives.
-                     * SSR data may or may not be available yet; fusion will
-                     * only start after SSR-based EKF initialization.
-                     */
-                    filterLocationData(data, m_lastSsrPose);
-                });
+                [this](const VehicleData& data) { onVehicleData(data); });
 
             /* Start network time (NTP) against host and Zumo serial ping-pong. */
             m_timeSync.begin();
-            m_statusTimer.start(1000U);
-            m_hostTimeSyncTimer.start(1000U);
+            m_statusTimer.start(STATUS_SEND_INTERVAL_MS);
+            m_hostTimeSyncTimer.start(HOST_TIMESYNC_INTERVAL_MS);
             isSuccessful = true;
         }
     }
@@ -261,11 +255,11 @@ void App::loop()
     /* Process time synchronization (serial ping-pong). */
     m_timeSync.process();
 
-    //if (m_hostTimeSyncTimer.isTimeout())
-    //{
-    //    m_timeSync.sendHostTimeSyncRequest(m_mqttClient, TOPIC_NAME_HOST_TIMESYNC_REQ);
-    //    m_hostTimeSyncTimer.restart();
-    //}
+    if (m_hostTimeSyncTimer.isTimeout())
+    {
+        m_timeSync.sendHostTimeSyncRequest(m_mqttClient, TOPIC_NAME_HOST_TIMESYNC_REQ);
+        m_hostTimeSyncTimer.restart();
+    }
 
     /* Process state machine. */
     m_stateMachine.process();
@@ -443,7 +437,7 @@ void App::publishVehicleAndSensorSnapshot(const VehicleData& data)
     const bool     zumoSynced    = m_timeSync.isZumoSynced();
     const bool     hostSynced    = m_timeSync.isHostSynced();
 
-    (void)offsetMs; // keep for future debug if not used directly
+    (void)offsetMs; /* keep for future debug if not used directly */
 
     const uint16_t* lineSensorValues = m_lineSensors.getSensorValues();
     JsonDocument    payloadJson;
@@ -480,188 +474,90 @@ void App::publishVehicleAndSensorSnapshot(const VehicleData& data)
 }
 
 
-void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRadarPose& ssrPose)
+void App::filterLocationData(const VehicleData& vehicleData,
+                             const SpaceShipRadarPose& ssrPose)
 {
+    /* Local variables (all declared at top as requested). */
+    uint32_t zumoTs32        = 0U;
+    uint32_t zumoLocalMs32   = 0U;
+    uint32_t ssrLocalMs32    = 0U;
+    uint32_t newestLocalTs   = 0U;
+    uint32_t dtMs            = 0U;
+    float    dt              = 0.0F;
+    float    a_x             = 0.0F;
+    Source   newestSource    = Source::None;
+    bool     ekfReady        = false;
+    bool     hasTimestamp    = false;
+    bool     doProcessing    = false;
+
     /* Do not run fusion until EKF has been initialized from SSR. */
-    if (false == m_ekfInitializedFromSSR)
+    ekfReady = m_ekfInitializedFromSSR;
+
+    if (ekfReady)
     {
-        return;
+        doProcessing = true;
     }
 
-    const uint32_t zumoTs32       = static_cast<uint32_t>(vehicleData.timestamp);
-    const uint32_t zumoLocalMs32  = static_cast<uint32_t>(m_timeSync.mapZumoToLocalMs(zumoTs32));
-    const uint32_t ssrLocalMs32   = static_cast<uint32_t>(ssrPose.timestamp);
-
-    LOG_INFO("Filtering location data: Zumo local ms=%u), SSR local ms=%u",
-             zumoLocalMs32, ssrLocalMs32);
-    /* If EKF has no valid timestamp yet, initialize from the first available one. */
-    if (0U == m_lastEkfUpdateMs)
+    if (doProcessing)
     {
-        if (0U != zumoLocalMs32)
+        /* Timestamp conversion. */
+        zumoTs32      = static_cast<uint32_t>(vehicleData.timestamp);
+        zumoLocalMs32 = static_cast<uint32_t>(m_timeSync.mapZumoToLocalMs(zumoTs32));
+        ssrLocalMs32  = static_cast<uint32_t>(ssrPose.timestamp);
+
+        LOG_INFO("Filtering location data: Zumo=%u ms, SSR=%u ms",
+                 zumoLocalMs32, ssrLocalMs32);
+
+        /* Initialize EKF time on first data. */
+        hasTimestamp = initializeEkfTimestamp(zumoLocalMs32, ssrLocalMs32);
+
+        if (hasTimestamp)
         {
-            m_lastEkfUpdateMs = zumoLocalMs32;
-        }
-        else if (0U != ssrLocalMs32)
-        {
-            m_lastEkfUpdateMs = ssrLocalMs32;
-        }
-        else
-        {
-            return;
-        }
-    }
+            newestLocalTs = m_lastEkfUpdateMs;
 
-    /* Determine which sensor provides the newest information. */
-    enum class Source
-    {
-        None,
-        Vehicle,
-        SSR,
-        VehicleAndSSR
-    };
+            /* Determine which sensor has the newest update. */
+            newestSource = determineNewestSource(zumoLocalMs32,
+                                                 ssrLocalMs32,
+                                                 m_lastEkfUpdateMs,
+                                                 newestLocalTs);
 
-    Source   newestSource = Source::None;
-    uint32_t newestLocalTs      = m_lastEkfUpdateMs;
+            if (newestSource != Source::None)
+            {
+                /* Time delta for prediction step. */
+                dtMs = newestLocalTs - m_lastEkfUpdateMs;
+                dt   = static_cast<float>(dtMs) / 1000.0F;
 
-    if (zumoLocalMs32 > newestLocalTs)
-    {
-        newestLocalTs     = zumoLocalMs32;
-        newestSource = Source::Vehicle;
-    }
+                /* Longitudinal acceleration input. */
+                a_x = static_cast<float>(vehicleData.accelerationX);
 
-    if (ssrLocalMs32 > newestLocalTs)
-    {
-        newestLocalTs     = ssrLocalMs32;
-        newestSource = Source::SSR;
-    }
+                /* EKF prediction. */
+                m_ekf.predict(a_x, dt);
 
-    if ((ssrLocalMs32 > newestLocalTs) && (zumoLocalMs32 > newestLocalTs))
-    {
-        newestLocalTs     = (ssrLocalMs32 > zumoLocalMs32) ? ssrLocalMs32 : zumoLocalMs32;
-        newestSource = Source::VehicleAndSSR;
-    }
-    
+                /* EKF correction step based on sensor source. */
+                if (newestSource == Source::Vehicle)
+                {
+                    updateFromVehicle(vehicleData);
+                }
+                else if (newestSource == Source::SSR)
+                {
+                    updateFromSsr(ssrPose);
+                }
+                else if (newestSource == Source::VehicleAndSSR)
+                {
+                    updateFromVehicle(vehicleData);
+                    updateFromSsr(ssrPose);
+                }
 
-    /* No newer data available -> nothing to do. */
-    if (Source::None == newestSource)
-    {
-        return;
-    }
+                /* Update last EKF timestamp. */
+                m_lastEkfUpdateMs = newestLocalTs;
 
-    /* Time difference in seconds for prediction. */
-    const uint32_t dtMs = newestLocalTs - m_lastEkfUpdateMs;
-    const float    dt   = static_cast<float>(dtMs) / 1000.0F;
-
-    /* Longitudinal acceleration input (raw accelerometer digits). */
-    const float a_x = static_cast<float>(vehicleData.accelerationX);
-
-    /* EKF prediction step. */
-    m_ekf.predict(a_x, dt);
-
-    /* Measurement update depending on source. */
-    if (Source::Vehicle == newestSource)
-    {
-        LOG_INFO("EKF update from Vehicle only.");
-        /* IMU update: only yaw rate (turnRateZ). */
-        {
-            const int16_t rawGyroZ = static_cast<int16_t>(vehicleData.turnRateZ);
-            m_ekf.updateImuFromDigits(rawGyroZ);
-        }
-
-        /* Odometry update in global frame.
-         *
-         * EKF odometryModel(x):
-         *   z_odo(0) = v
-         *   z_odo(1) = theta
-         */
-        {
-            float xGlob_mm      = 0.0F;
-            float yGlob_mm      = 0.0F;
-            float thetaGlob_mrad = 0.0F;
-
-            transformOdometryToGlobal(vehicleData, xGlob_mm, yGlob_mm, thetaGlob_mrad);
-
-            OdoMeasVector z_odo;
-            z_odo(0) = static_cast<float>(vehicleData.center); /* speed [mm/s] (v_center) */
-            z_odo(1) = thetaGlob_mrad;                         /* global theta [mrad] */
-
-            m_ekf.updateOdometry(z_odo);
+                /* Publish fused pose. */
+                publishFusionPose(newestLocalTs);
+            }
         }
     }
-    else if (Source::SSR == newestSource)
-    {
-        LOG_INFO("EKF update from SSR only.");
-        /* Camera / SpaceShipRadar update.
-         *
-         * EKF cameraModel(x):
-         *   z_cam(0) = p_x
-         *   z_cam(1) = p_y
-         *   z_cam(2) = theta [mrad]
-         *   z_cam(3) = v_x
-         *   z_cam(4) = v_y
-         */
-        CamMeasVector z_cam;
-        z_cam(0) = ssrPose.x;     /* p_x [mm] */
-        z_cam(1) = ssrPose.y;     /* p_y [mm] */
-        z_cam(2) = ssrPose.theta; /* theta [mrad] */
-        z_cam(3) = ssrPose.v_x;   /* v_x [mm/s] */
-        z_cam(4) = ssrPose.v_y;   /* v_y [mm/s] */
-
-        m_ekf.updateCamera(z_cam);
-    }
-    else if (Source::VehicleAndSSR == newestSource)
-    {
-        LOG_INFO("EKF update from Vehicle and SSR.");
-                /* IMU update: only yaw rate (turnRateZ). */
-        {
-            const int16_t rawGyroZ = static_cast<int16_t>(vehicleData.turnRateZ);
-            m_ekf.updateImuFromDigits(rawGyroZ);
-        }
-
-        /* Odometry update in global frame.
-         *
-         * EKF odometryModel(x):
-         *   z_odo(0) = v
-         *   z_odo(1) = theta
-         */
-        {
-            float xGlob_mm      = 0.0F;
-            float yGlob_mm      = 0.0F;
-            float thetaGlob_mrad = 0.0F;
-
-            transformOdometryToGlobal(vehicleData, xGlob_mm, yGlob_mm, thetaGlob_mrad);
-
-            OdoMeasVector z_odo;
-            z_odo(0) = static_cast<float>(vehicleData.center); /* speed [mm/s] (v_center) */
-            z_odo(1) = thetaGlob_mrad;                         /* global theta [mrad] */
-
-            m_ekf.updateOdometry(z_odo);
-        }
-        /* Camera / SpaceShipRadar update.
-         *
-         * EKF cameraModel(x):
-         *   z_cam(0) = p_x
-         *   z_cam(1) = p_y
-         *   z_cam(2) = theta [mrad]
-         *   z_cam(3) = v_x
-         *   z_cam(4) = v_y
-         */
-        CamMeasVector z_cam;
-        z_cam(0) = ssrPose.x;     /* p_x [mm] */
-        z_cam(1) = ssrPose.y;     /* p_y [mm] */
-        z_cam(2) = ssrPose.theta; /* theta [mrad] */
-        z_cam(3) = ssrPose.v_x;   /* v_x [mm/s] */
-        z_cam(4) = ssrPose.v_y;   /* v_y [mm/s] */
-
-        m_ekf.updateCamera(z_cam);
-    }
-
-    /* Update timestamp of last EKF update. */
-    m_lastEkfUpdateMs = newestLocalTs;
-
-    /* Publish fused pose. */
-    publishFusionPose(newestLocalTs);
 }
+
 
 void App::transformOdometryToGlobal(const VehicleData& vehicleData,
                                     float&             xGlob_mm,
@@ -721,10 +617,10 @@ void App::hostTimeSyncResponseCallback(const String& payload)
     }
 
 
-    if (!doc["seq"].is<uint32_t>() ||
-        !doc["t1_esp_ms"].is<uint64_t>() ||
-        !doc["t2_host_ms"].is<uint64_t>() ||
-        !doc["t3_host_ms"].is<uint64_t>())
+    if ( (doc["seq"].is<uint32_t>() == false) ||
+        (doc["t1_esp_ms"].is<uint64_t>() == false) ||
+        (doc["t2_host_ms"].is<uint64_t>() == false) ||
+        (doc["t3_host_ms"].is<uint64_t>() == false) )
     {
         LOG_WARNING("HostTimeSync: Missing required fields in response JSON.");
         return;
@@ -737,6 +633,121 @@ void App::hostTimeSyncResponseCallback(const String& payload)
 
     m_timeSync.onHostTimeSyncResponse(seq, t1EspMs, t2HostMs, t3HostMs, t4_ts);
 }
+
+void App::onVehicleData(const VehicleData& data)
+{
+    publishVehicleAndSensorSnapshot(data);
+
+    m_lastVehicleData = data;
+    m_hasVehicleData  = true;
+
+    /* Run sensor fusion whenever new vehicle data arrives.
+     * SSR data may or may not be available yet; fusion will
+     * only start after SSR-based EKF initialization.
+     */
+    filterLocationData(data, m_lastSsrPose);
+}
+
+bool App::initializeEkfTimestamp(uint32_t zumoLocalMs32, uint32_t ssrLocalMs32)
+{
+    bool initialized = true;
+
+    /* If EKF has no reference timestamp yet, initialize from first valid source. */
+    if (m_lastEkfUpdateMs == 0U)
+    {
+        if (zumoLocalMs32 != 0U)
+        {
+            m_lastEkfUpdateMs = zumoLocalMs32;
+        }
+        else if (ssrLocalMs32 != 0U)
+        {
+            m_lastEkfUpdateMs = ssrLocalMs32;
+        }
+        else
+        {
+            /* No valid timestamp available. */
+            initialized = false;
+        }
+    }
+
+    return initialized;
+}
+
+Source App::determineNewestSource(uint32_t zumoLocalMs32,
+                                  uint32_t ssrLocalMs32,
+                                  uint32_t lastEkfUpdateMs,
+                                  uint32_t& newestLocalTs) const
+{
+    Source source = Source::None;
+    uint32_t candidateTs = lastEkfUpdateMs;
+
+    const bool hasVehicle = (zumoLocalMs32 > lastEkfUpdateMs);
+    const bool hasSSR     = (ssrLocalMs32 > lastEkfUpdateMs);
+
+    if (hasVehicle && hasSSR)
+    {
+        source      = Source::VehicleAndSSR;
+        candidateTs = (ssrLocalMs32 > zumoLocalMs32) ? ssrLocalMs32 : zumoLocalMs32;
+    }
+    else if (hasVehicle)
+    {
+        source      = Source::Vehicle;
+        candidateTs = zumoLocalMs32;
+    }
+    else if (hasSSR)
+    {
+        source      = Source::SSR;
+        candidateTs = ssrLocalMs32;
+    }
+
+    newestLocalTs = candidateTs;
+    return source;
+}
+
+void App::updateFromVehicle(const VehicleData& vehicleData)
+{
+    const int16_t rawGyroZ = static_cast<int16_t>(vehicleData.turnRateZ);
+    float xGlob_mm = 0.0F;
+    float yGlob_mm = 0.0F;
+    float thetaGlob_mrad = 0.0F;
+    OdoMeasVector z_odo;
+
+    LOG_INFO("EKF update from Vehicle.");
+
+    /* IMU update using yaw-rate only. */
+    m_ekf.updateImuFromDigits(rawGyroZ);
+
+    /* Convert odometry into global coordinates. */
+    transformOdometryToGlobal(vehicleData, xGlob_mm, yGlob_mm, thetaGlob_mrad);
+
+    /* Update odometry measurement:
+     * z_odo(0) = v
+     * z_odo(1) = theta
+     */
+    z_odo(0) = static_cast<float>(vehicleData.center);
+    z_odo(1) = thetaGlob_mrad;
+
+    m_ekf.updateOdometry(z_odo);
+}
+
+void App::updateFromSsr(const SpaceShipRadarPose& ssrPose)
+{
+    CamMeasVector z_cam;
+
+    LOG_INFO("EKF update from SSR.");
+
+    /* Camera measurement:
+     * z_cam(0..4) = [x, y, theta, v_x, v_y]
+     */
+    z_cam(0) = ssrPose.x;
+    z_cam(1) = ssrPose.y;
+    z_cam(2) = ssrPose.theta;
+    z_cam(3) = ssrPose.v_x;
+    z_cam(4) = ssrPose.v_y;
+
+    m_ekf.updateCamera(z_cam);
+}
+
 
 
 /******************************************************************************

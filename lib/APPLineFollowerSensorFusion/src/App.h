@@ -257,6 +257,13 @@ private:
     void publishVehicleAndSensorSnapshot(const VehicleData& data);
 
     /**
+     * @brief Callback for receiving vehicle data via SerialMux.
+     *
+     * @param[in] data Vehicle data received via SerialMux.
+     */
+    void onVehicleData(const VehicleData& data);
+
+    /**
      * @brief Run sensor fusion for vehicle data and Space Ship Radar pose.
      *
      * This function:
@@ -294,6 +301,40 @@ private:
      * @param[in] tsMs Timestamp in ms (local time base) associated with the EKF state.
      */
     void publishFusionPose(uint32_t tsMs);
+
+    /**
+     * @brief Update EKF from vehicle data (odometry + IMU).
+     * 
+     * @param[in] vehicleData Vehicle data received via SerialMux.
+     */
+    void updateFromVehicle(const VehicleData& vehicleData);
+
+    /**
+     * @brief Update EKF from Space Ship Radar pose.
+     * 
+     * @param[in] ssrPose Latest Space Ship Radar pose (global frame).
+     */
+    void updateFromSsr(const SpaceShipRadarPose& ssrPose);
+
+    /**
+     * @brief Determine which sensor source has the newest data for EKF update.
+     *
+     * @param[in]  zumoLocalMs32     Latest vehicle data timestamp [ms] (local time base).
+     * @param[in]  ssrLocalMs32      Latest SSR pose timestamp [ms] (local time base).
+     * @param[in]  lastEkfUpdateMs   Last EKF update timestamp [ms] (local time base).
+     * @param[out] newestLocalTs     Newest local timestamp [ms] among the sources.
+     *
+     * @return Source enum indicating which sensor has the newest data.
+     */
+    void determineNewestSource(uint32_t zumoLocalMs32,
+                                  uint32_t ssrLocalMs32,
+                                  uint32_t lastEkfUpdateMs,
+                                  uint32_t& newestLocalTs) const;
+
+
+    void initializeEkfTimestamp(uint32_t zumoLocalMs32,
+                                   uint32_t ssrLocalMs32); 
+
 
     /**
      * @brief Copy construction of an instance (not allowed).

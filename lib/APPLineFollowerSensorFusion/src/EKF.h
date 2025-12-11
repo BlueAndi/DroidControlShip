@@ -106,9 +106,8 @@ public:
      * @param[in] x0 Initial state vector (physical units).
      * @param[in] P0 Initial covariance matrix.
      *
-     * @return True if successful, otherwise false.
      */
-    bool init(const StateVector& x0, const StateMatrix& P0);
+    void init(const StateVector& x0, const StateMatrix& P0);
 
     /**
      * Initializes the EKF with a fixed default start pose and identity covariance.
@@ -119,10 +118,8 @@ public:
      *   theta = EKF_START_THETA_MRAD
      *   v     = 0
      *   omega = 0
-     *
-     * @return True if successful, otherwise false.
      */
-    bool init();
+    void init();
 
     /**
      * EKF prediction step.
