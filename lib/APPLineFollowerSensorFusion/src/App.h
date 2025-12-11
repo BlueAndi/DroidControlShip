@@ -348,6 +348,8 @@ private:
      * 
      * @param[in] zumoLocalMs32 Latest vehicle data timestamp [ms] (local time base).
      * @param[in] ssrLocalMs32  Latest SSR pose timestamp [ms]
+     * 
+     * @return true if EKF timestamp is initialized, otherwise false.
     */
     bool initializeEkfTimestamp(uint32_t zumoLocalMs32,
                                    uint32_t ssrLocalMs32); 
