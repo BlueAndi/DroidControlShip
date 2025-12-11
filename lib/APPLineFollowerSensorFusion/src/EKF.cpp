@@ -109,7 +109,7 @@ void ExtendedKalmanFilter5D::init(const StateVector& x0, const StateMatrix& P0)
     m_covariance = P0;
 }
 
-bool ExtendedKalmanFilter5D::init()
+void ExtendedKalmanFilter5D::init()
 {
     m_state.setZero();
     m_state(0) = EKF_START_X_MM;
@@ -144,14 +144,14 @@ void ExtendedKalmanFilter5D::predict(float accX_raw, float dt)
     m_covariance = P_pred;
 }
 
-void ExtendedKalmanFilter5D::updateCamera(const CamMeasVector& z_cam)
+void ExtendedKalmanFilter5D::updateCamera(const CamMeasurementVector& z_cam)
 {
     /* Predicted measurement. */
-    CamMeasVector z_pred = cameraModel(m_state);
+    CamMeasurementVector z_pred = cameraModel(m_state);
     Eigen::Matrix<float, CAM_MEAS_DIM, STATE_DIM> H = cameraJacobianH(m_state);
 
     /* Innovation. */
-    CamMeasVector y = z_cam - z_pred;
+    CamMeasurementVector y = z_cam - z_pred;
 
     /* Wrap angle innovation (index 2 is theta). */
     y(2) = wrapAngleMrad(y(2));
@@ -166,14 +166,14 @@ void ExtendedKalmanFilter5D::updateCamera(const CamMeasVector& z_cam)
     m_covariance = (StateMatrix::Identity() - K * H) * m_covariance;
 }
 
-void ExtendedKalmanFilter5D::updateOdometry(const OdoMeasVector& z_odo)
+void ExtendedKalmanFilter5D::updateOdometry(const OdoMeasurementVector& z_odo)
 {
     /* Predicted measurement. */
-    OdoMeasVector z_pred = odometryModel(m_state);
+    OdoMeasurementVector z_pred = odometryModel(m_state);
     Eigen::Matrix<float, ODO_MEAS_DIM, STATE_DIM> H = odometryJacobianH(m_state);
 
     /* Innovation. */
-    OdoMeasVector y = z_odo - z_pred;
+    OdoMeasurementVector y = z_odo - z_pred;
 
     /* Wrap angle innovation (index 1 is theta). */
     y(1) = wrapAngleMrad(y(1));
@@ -188,13 +188,13 @@ void ExtendedKalmanFilter5D::updateOdometry(const OdoMeasVector& z_odo)
     m_covariance = (StateMatrix::Identity() - K * H) * m_covariance;
 }
 
-void ExtendedKalmanFilter5D::updateImu(const ImuMeasVector& z_imu)
+void ExtendedKalmanFilter5D::updateImu(const ImuMeasurementVector& z_imu)
 {
     /* Predicted measurement. */
-    ImuMeasVector z_pred = imuModel(m_state);
+    ImuMeasurementVector z_pred = imuModel(m_state);
     Eigen::Matrix<float, IMU_MEAS_DIM, STATE_DIM> H = imuJacobianH(m_state);
     /* Innovation (omega, no wrapping). */
-    ImuMeasVector y = z_imu - z_pred;
+    ImuMeasurementVector y = z_imu - z_pred;
 
     /* EKF update. */
     const ImuMeasMatrix S = H * m_covariance * H.transpose() + m_R_imu;
@@ -208,7 +208,7 @@ void ExtendedKalmanFilter5D::updateImu(const ImuMeasVector& z_imu)
 
 void ExtendedKalmanFilter5D::updateImuFromDigits(int16_t rawGyroZ)
 {
-    ImuMeasVector z_imu;
+    ImuMeasurementVector z_imu;
     /* Convert raw gyro digits to physical yaw rate [mrad/s]. */
     z_imu(0) = static_cast<float>(rawGyroZ) *
                SensorConstants::GYRO_SENSITIVITY_FACTOR;
@@ -270,7 +270,7 @@ ExtendedKalmanFilter5D::processJacobianF(const StateVector& x, float dt) const
 
 /* ---------------- Camera model ---------------- */
 
-ExtendedKalmanFilter5D::CamMeasVector
+ExtendedKalmanFilter5D::CamMeasurementVector
 ExtendedKalmanFilter5D::cameraModel(const StateVector& x) const
 {
     const float px        = x(0);
@@ -280,7 +280,7 @@ ExtendedKalmanFilter5D::cameraModel(const StateVector& x) const
 
     const float thetaRad  = thetaMrad / 1000.0F;
 
-    CamMeasVector z;
+    CamMeasurementVector z;
     z(0) = px;                     /* p_x */
     z(1) = py;                     /* p_y */
     z(2) = thetaMrad;              /* theta [mrad] */
@@ -319,10 +319,10 @@ ExtendedKalmanFilter5D::cameraJacobianH(const StateVector& x) const
 
 /* ---------------- Odometry model ---------------- */
 
-ExtendedKalmanFilter5D::OdoMeasVector
+ExtendedKalmanFilter5D::OdoMeasurementVector
 ExtendedKalmanFilter5D::odometryModel(const StateVector& x) const
 {
-    OdoMeasVector z;
+    OdoMeasurementVector z;
     z(0) = x(3); /* v */
     z(1) = x(2); /* theta */
     return z;
@@ -344,10 +344,10 @@ ExtendedKalmanFilter5D::odometryJacobianH(const StateVector& /*x*/) const
 
 /* ---------------- IMU yaw model ---------------- */
 
-ExtendedKalmanFilter5D::ImuMeasVector
+ExtendedKalmanFilter5D::ImuMeasurementVector
 ExtendedKalmanFilter5D::imuModel(const StateVector& x) const
 {
-    ImuMeasVector z;
+    ImuMeasurementVector z;
     z(0) = x(4); /* omega [mrad/s] */
     return z;
 }

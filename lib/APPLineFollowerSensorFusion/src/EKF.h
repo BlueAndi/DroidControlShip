@@ -79,17 +79,17 @@ public:
     using StateMatrix   = Eigen::Matrix<float, STATE_DIM, STATE_DIM>;
 
     /** @brief Camera measurement vector z_cam = [p_x, p_y, theta, v_x, v_y]^T. */
-    using CamMeasVector = Eigen::Matrix<float, CAM_MEAS_DIM, 1>;
+    using CamMeasurementVector = Eigen::Matrix<float, CAM_MEAS_DIM, 1>;
     /** @brief Camera measurement covariance matrix R_cam. */
     using CamMeasMatrix = Eigen::Matrix<float, CAM_MEAS_DIM, CAM_MEAS_DIM>;
 
     /** @brief Odometry measurement vector z_odo = [v, theta]^T. */
-    using OdoMeasVector = Eigen::Matrix<float, ODO_MEAS_DIM, 1>;
+    using OdoMeasurementVector = Eigen::Matrix<float, ODO_MEAS_DIM, 1>;
     /** @brief Odometry measurement covariance matrix R_odo. */
     using OdoMeasMatrix = Eigen::Matrix<float, ODO_MEAS_DIM, ODO_MEAS_DIM>;
 
     /** @brief IMU measurement vector z_imu = [omega]^T. */
-    using ImuMeasVector = Eigen::Matrix<float, IMU_MEAS_DIM, 1>;
+    using ImuMeasurementVector = Eigen::Matrix<float, IMU_MEAS_DIM, 1>;
     /** @brief IMU measurement covariance matrix R_imu. */
     using ImuMeasMatrix = Eigen::Matrix<float, IMU_MEAS_DIM, IMU_MEAS_DIM>;
 
@@ -148,7 +148,7 @@ public:
      *
      * @param[in] z_cam Camera measurement vector.
      */
-    void updateCamera(const CamMeasVector& z_cam);
+    void updateCamera(const CamMeasurementVector& z_cam);
 
     /**
      * EKF update step for odometry measurements.
@@ -161,7 +161,7 @@ public:
      *
      * @param[in] z_odo Odometry measurement vector.
      */
-    void updateOdometry(const OdoMeasVector& z_odo);
+    void updateOdometry(const OdoMeasurementVector& z_odo);
 
     /**
      * EKF update step for IMU measurements (physical units).
@@ -174,7 +174,7 @@ public:
      *
      * @param[in] z_imu IMU measurement vector (omega in mrad/s).
      */
-    void updateImu(const ImuMeasVector& z_imu);
+    void updateImu(const ImuMeasurementVector& z_imu);
 
     /**
      * EKF update step for IMU yaw rate using raw gyro digits.
@@ -250,7 +250,7 @@ private:
      *
      * @return Camera measurement prediction.
      */
-    CamMeasVector cameraModel(const StateVector& x) const;
+    CamMeasurementVector cameraModel(const StateVector& x) const;
 
     /**
      * Camera measurement Jacobian H_cam = dh_cam/dx.
@@ -268,7 +268,7 @@ private:
      *
      * @return Odometry measurement prediction.
      */
-    OdoMeasVector odometryModel(const StateVector& x) const;
+    OdoMeasurementVector odometryModel(const StateVector& x) const;
 
     /**
      * Odometry measurement Jacobian H_odo = dh_odo/dx.
@@ -286,7 +286,7 @@ private:
      *
      * @return IMU measurement prediction.
      */
-    ImuMeasVector imuModel(const StateVector& x) const;
+    ImuMeasurementVector imuModel(const StateVector& x) const;
 
     /**
      * IMU measurement Jacobian H_imu = dh_imu/dx.

@@ -123,6 +123,8 @@ using CamMeasurementVector = ExtendedKalmanFilter5D::CamMeasurementVector;
 using StateVector   = ExtendedKalmanFilter5D::StateVector;
 using StateMatrix   = ExtendedKalmanFilter5D::StateMatrix;
 
+
+
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
@@ -209,10 +211,6 @@ void App::setup()
         {
             LOG_FATAL("MQTT connection could not be setup.");
         }
-        else if (false == m_ekf.init())
-        {
-            LOG_FATAL("Extended Kalman Filter could not be initialized.");
-        }
         else
         {
             /* Log incoming vehicle data and corresponding time sync information. */
@@ -220,6 +218,7 @@ void App::setup()
                 [this](const VehicleData& data) { onVehicleData(data); });
 
             /* Start network time (NTP) against host and Zumo serial ping-pong. */
+            m_ekf.init();
             m_timeSync.begin();
             m_statusTimer.start(STATUS_SEND_INTERVAL_MS);
             m_hostTimeSyncTimer.start(HOST_TIMESYNC_INTERVAL_MS);
@@ -710,7 +709,7 @@ void App::updateFromVehicle(const VehicleData& vehicleData)
     float xGlob_mm = 0.0F;
     float yGlob_mm = 0.0F;
     float thetaGlob_mrad = 0.0F;
-    OdoMeasVector z_odo;
+    OdoMeasurementVector z_odo;
 
     LOG_INFO("EKF update from Vehicle.");
 
@@ -732,7 +731,7 @@ void App::updateFromVehicle(const VehicleData& vehicleData)
 
 void App::updateFromSsr(const SpaceShipRadarPose& ssrPose)
 {
-    CamMeasVector z_cam;
+    CamMeasurementVector z_cam;
 
     LOG_INFO("EKF update from SSR.");
 

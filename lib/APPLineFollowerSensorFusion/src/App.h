@@ -77,6 +77,17 @@ struct SpaceShipRadarPose
 };
 
 /**
+ * @brief Data source for sensor fusion.
+ */
+enum class Source
+{
+    None,
+    Vehicle,
+    SSR,
+    VehicleAndSSR
+};
+
+/**
  * @brief Line follower Sensor Fusion application.
  */
 class App
@@ -326,13 +337,13 @@ private:
      *
      * @return Source enum indicating which sensor has the newest data.
      */
-    void determineNewestSource(uint32_t zumoLocalMs32,
+    Source determineNewestSource(uint32_t zumoLocalMs32,
                                   uint32_t ssrLocalMs32,
                                   uint32_t lastEkfUpdateMs,
                                   uint32_t& newestLocalTs) const;
 
 
-    void initializeEkfTimestamp(uint32_t zumoLocalMs32,
+    bool initializeEkfTimestamp(uint32_t zumoLocalMs32,
                                    uint32_t ssrLocalMs32); 
 
 
