@@ -53,12 +53,15 @@ namespace
     constexpr float SIGMA_CAM_THETA = 5.0F;  /* [mrad] */
     constexpr float SIGMA_CAM_V     = 20.0F; /* [mm/s] */
 
-    /** Odometry noise (only v and theta). */
+    /** Odometry noise. */
+    constexpr float SIGMA_ODO_POS_X = 20.0F; /* [mm] */
+    constexpr float SIGMA_ODO_POS_Y = 20.0F; /* [mm] */
     constexpr float SIGMA_ODO_V     = 10.0F; /* [mm/s] */
     constexpr float SIGMA_ODO_THETA = 5.0F;  /* [mrad] */
 
     /** IMU yaw noise. */
     constexpr float SIGMA_IMU_OMEGA = 1.0F;  /* [mrad/s] */
+
     /** Default initial state. */
     constexpr float EKF_START_X_MM         = 705.0F; /* [mm] */
     constexpr float EKF_START_Y_MM         = 939.0F; /* [mm] */
@@ -95,8 +98,10 @@ ExtendedKalmanFilter5D::ExtendedKalmanFilter5D()
 
     /* Odometry measurement noise R_odo. */
     m_R_odo.setZero();
-    m_R_odo(0, 0) = SIGMA_ODO_V     * SIGMA_ODO_V;
-    m_R_odo(1, 1) = SIGMA_ODO_THETA * SIGMA_ODO_THETA;
+    m_R_odo(0, 0) = SIGMA_ODO_POS_X * SIGMA_ODO_POS_X;
+    m_R_odo(1, 1) = SIGMA_ODO_POS_Y * SIGMA_ODO_POS_Y;
+    m_R_odo(2, 2) = SIGMA_ODO_V     * SIGMA_ODO_V;
+    m_R_odo(3, 3) = SIGMA_ODO_THETA * SIGMA_ODO_THETA;
 
     /* IMU yaw noise R_imu. */
     m_R_imu.setZero();
@@ -175,8 +180,8 @@ void ExtendedKalmanFilter5D::updateOdometry(const OdoMeasurementVector& z_odo)
     /* Innovation. */
     OdoMeasurementVector y = z_odo - z_pred;
 
-    /* Wrap angle innovation (index 1 is theta). */
-    y(1) = wrapAngleMrad(y(1));
+    /* Wrap angle innovation (index 4 is theta). */
+    y(3) = wrapAngleMrad(y(3));
 
     /* EKF update. */
     const OdoMeasMatrix S = H * m_covariance * H.transpose() + m_R_odo;
@@ -323,10 +328,16 @@ ExtendedKalmanFilter5D::OdoMeasurementVector
 ExtendedKalmanFilter5D::odometryModel(const StateVector& x) const
 {
     OdoMeasurementVector z;
-    z(0) = x(3); /* v */
-    z(1) = x(2); /* theta */
+    z.setZero();
+
+    z(0) = x(0); /* p_x */
+    z(1) = x(1); /* p_y */
+    z(2) = x(3); /* v   */
+    z(3) = x(2); /* theta [mrad] */
+
     return z;
 }
+
 
 Eigen::Matrix<float, ExtendedKalmanFilter5D::ODO_MEAS_DIM, ExtendedKalmanFilter5D::STATE_DIM>
 ExtendedKalmanFilter5D::odometryJacobianH(const StateVector& /*x*/) const
@@ -334,10 +345,14 @@ ExtendedKalmanFilter5D::odometryJacobianH(const StateVector& /*x*/) const
     Eigen::Matrix<float, ODO_MEAS_DIM, STATE_DIM> H;
     H.setZero();
 
+    /* p_x */
+    H(0, 0) = 1.0F;
+    /* p_y */
+    H(1, 1) = 1.0F;
     /* v */
-    H(0, 3) = 1.0F;
+    H(2, 3) = 1.0F;
     /* theta */
-    H(1, 2) = 1.0F;
+    H(3, 2) = 1.0F;
 
     return H;
 }

@@ -67,8 +67,8 @@ public:
     static constexpr std::uint8_t STATE_DIM    = 5U;
     /** Camera measurement dimension: [x, y, theta, v_x, v_y]. */
     static constexpr std::uint8_t CAM_MEAS_DIM = 5U;
-    /** Odometry measurement dimension: [v, theta]. */
-    static constexpr std::uint8_t ODO_MEAS_DIM = 2U;
+    /** Odometry measurement dimension: [x, y, v, theta]. */
+    static constexpr std::uint8_t ODO_MEAS_DIM = 4U;
     /** IMU measurement dimension: [omega]. */
     static constexpr std::uint8_t IMU_MEAS_DIM = 1U;
 
@@ -83,7 +83,7 @@ public:
     /** @brief Camera measurement covariance matrix R_cam. */
     using CamMeasMatrix = Eigen::Matrix<float, CAM_MEAS_DIM, CAM_MEAS_DIM>;
 
-    /** @brief Odometry measurement vector z_odo = [v, theta]^T. */
+    /** @brief Odometry measurement vector z_odo = [p_x, p_y, v, theta]^T. */
     using OdoMeasurementVector = Eigen::Matrix<float, ODO_MEAS_DIM, 1>;
     /** @brief Odometry measurement covariance matrix R_odo. */
     using OdoMeasMatrix = Eigen::Matrix<float, ODO_MEAS_DIM, ODO_MEAS_DIM>;
