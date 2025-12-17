@@ -256,8 +256,9 @@ void App::loop()
         m_timeSync.sendHostTimeSyncRequest(m_mqttClient, TOPIC_NAME_HOST_TIMESYNC_REQ);
         m_hostTimeSyncTimer.restart();
     }
-
+#if defined(CONFIG_ENABLE_SIM_GPS)
     publishGps(m_mqttClient, m_timeSync.localNowMs());
+#endif /* CONFIG_ENABLE_SIM_GPS */
 
     /* Process state machine. */
     m_stateMachine.process();
@@ -615,6 +616,7 @@ void App::hostTimeSyncResponseCallback(const String& payload)
     m_timeSync.onHostTimeSyncResponse(seq, t1EspMs, t2HostMs, t3HostMs, t4_ts);
 }
 
+#if defined(CONFIG_ENABLE_SIM_GPS)
 void App::publishGps(MqttClient& mqttClient, uint32_t tsMs)
 {
     IGps* gps = Board::getInstance().getGps();
@@ -689,7 +691,7 @@ void App::publishGps(MqttClient& mqttClient, uint32_t tsMs)
         LOG_WARNING("Publishing GPS data via MQTT failed.");
     }
 }
-
+#endif
 
 
 
