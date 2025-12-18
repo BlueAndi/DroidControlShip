@@ -50,14 +50,14 @@ namespace
 
     /** Camera noise. */
     constexpr float SIGMA_CAM_POS   = 2.0F; /* [mm] */
-    constexpr float SIGMA_CAM_THETA = 5.0F;  /* [mrad] */
+    constexpr float SIGMA_CAM_THETA = 10.0F;  /* [mrad] */
     constexpr float SIGMA_CAM_V     = 20.0F; /* [mm/s] */
 
     /** Odometry noise. */
     constexpr float SIGMA_ODO_POS_X = 20.0F; /* [mm] */
     constexpr float SIGMA_ODO_POS_Y = 20.0F; /* [mm] */
     constexpr float SIGMA_ODO_V     = 10.0F; /* [mm/s] */
-    constexpr float SIGMA_ODO_THETA = 5.0F;  /* [mrad] */
+    constexpr float SIGMA_ODO_THETA = 10.0F;  /* [mrad] */
 
     /** IMU yaw noise. */
     constexpr float SIGMA_IMU_OMEGA = 1.0F;  /* [mrad/s] */

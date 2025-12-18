@@ -507,7 +507,7 @@ void App::filterLocationData(const VehicleData& vehicleData,
         zumoLocalMs32 = static_cast<uint32_t>(m_timeSync.mapZumoToLocalMs(zumoTs32));
         ssrLocalMs32  = static_cast<uint32_t>(ssrPose.timestamp);
 
-        LOG_INFO("Filtering location data: Zumo=%u ms, SSR=%u ms",
+        LOG_DEBUG("Filtering location data: Zumo=%u ms, SSR=%u ms",
                  zumoLocalMs32, ssrLocalMs32);
 
         /* Initialize EKF time on first data. */
@@ -586,6 +586,12 @@ void App::publishFusionPose(uint32_t tsMs)
 {
     /* EKF state: [p_x, p_y, theta, v, omega]. */
     const StateVector& state = m_ekf.getState();
+
+    LOG_WARNING(
+        "EKF STATE @ %ums: x=%.3f y=%.3f theta=%.3f v=%.3f omega=%.3f",
+        tsMs,
+        state(0), state(1), state(2), state(3), state(4)
+    );
 
     JsonDocument payloadJson;
     char         payloadArray[JSON_FUSION_POSE_MAX_SIZE];
@@ -688,7 +694,7 @@ void App::publishGps(MqttClient& mqttClient, uint32_t tsMs)
     prevY    = yPosMm;
     prevTs   = tsMs;
     havePrev = true;
-    LOG_INFO("GPS: x=%dmm y=%dmm heading=%dmrad speed=%.1fmm/s",
+    LOG_DEBUG("GPS: x=%dmm y=%dmm heading=%dmrad speed=%.1fmm/s",
              xPosMm, yPosMm,
              hasOrientation ? headingMrad : 0,
              speedMmPs);
@@ -793,7 +799,7 @@ void App::updateFromVehicle(const VehicleData& vehicleData)
     float thetaGlob_mrad = 0.0F;
     OdoMeasurementVector z_odo;
 
-    LOG_INFO("EKF update from Vehicle.");
+    LOG_DEBUG("EKF update from Vehicle.");
 
     /* IMU update using yaw-rate only. */
     m_ekf.updateImuFromDigits(rawGyroZ);
@@ -805,8 +811,11 @@ void App::updateFromVehicle(const VehicleData& vehicleData)
      * z_odo(0) = v
      * z_odo(1) = theta
      */
-    z_odo(0) = static_cast<float>(vehicleData.center);
-    z_odo(1) = thetaGlob_mrad;
+    z_odo(0) = xGlob_mm;
+    z_odo(1) = yGlob_mm;
+    z_odo(2) = static_cast<float>(vehicleData.center);
+    z_odo(3) = thetaGlob_mrad;
+
 
     m_ekf.updateOdometry(z_odo);
 }
@@ -815,7 +824,7 @@ void App::updateFromSsr(const SpaceShipRadarPose& ssrPose)
 {
     CamMeasurementVector z_cam;
 
-    LOG_INFO("EKF update from SSR.");
+    LOG_DEBUG("EKF update from SSR.");
 
     /* Camera measurement:
      * z_cam(0..4) = [x, y, theta, v_x, v_y]
