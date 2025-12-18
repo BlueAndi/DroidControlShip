@@ -1,78 +1,145 @@
-$envFilePath = ".\.env"
+#requires -Version 5.1
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
-$content = Get-Content -Path $envFilePath
+# =============================================================================
+# Helpers
+# =============================================================================
+function Find-Upwards {
+    param(
+        [Parameter(Mandatory)][string]$StartDir,
+        [Parameter(Mandatory)][string]$Target
+    )
 
-if (-Not $content) {
-    Write-Output "Create a file with named '.env' (See README)"
-    Exit
+    $dir = (Resolve-Path $StartDir).Path
+    while ($true) {
+        $candidate = Join-Path $dir $Target
+        if (Test-Path -LiteralPath $candidate) { return (Resolve-Path $candidate).Path }
+
+        $parent = Split-Path -Parent $dir
+        if ($parent -eq $dir) { break }
+        $dir = $parent
+    }
+    throw "Not found: '$Target' starting from '$StartDir'"
 }
 
-$RadonUlzerfilePathLine = $content | Where-Object { $_ -match '^RadonUlzer_RemoteControlSim_PATH=' }
-if ($RadonUlzerfilePathLine) {
-    $RadonUlzerFilePath = $RadonUlzerfilePathLine -split '=' | Select-Object -Last 1
-    Write-Output "Der Dateipfad ist: $RadonUlzerFilePath"
-} else {
-    Write-Output "Key RadonUlzer_RemoteControlSim_PATH not found"
-    Exit
+function Get-GitRepoRoot {
+    param([Parameter(Mandatory)][string]$StartDir)
+    $gitPath = Find-Upwards -StartDir $StartDir -Target ".git"
+    return (Split-Path -Parent $gitPath)
 }
 
-$SpaceShipRadarfilePathLine = $content | Where-Object { $_ -match '^SpaceShipRadar_PATH=' }
-if ($SpaceShipRadarfilePathLine) {
-    $SpaceShipRadarFilePath = $SpaceShipRadarfilePathLine -split '=' | Select-Object -Last 1
-    Write-Output "Der Dateipfad ist: $SpaceShipRadarFilePath"
-} else {
-    Write-Output "Key SpaceShipRadar_PATH not found"
-    Exit
+function Assert-Exists {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$Label
+    )
+    if (-not (Test-Path -LiteralPath $Path)) {
+        throw "$Label not found: $Path"
+    }
 }
 
-$DCSfilePathLine = $content | Where-Object { $_ -match '^DroidControlShip_PATH=' }
-if ($DCSfilePathLine) {
-    $DCSFilePath = $DCSfilePathLine -split '=' | Select-Object -Last 1
-    Write-Output "Der Dateipfad ist: $DCSFilePath"
-} else {
-    Write-Output "Key DroidControlShip_PATH not found"
-    Exit
-}
+# =============================================================================
+# A) Script -> RepoRoot -> Workspace
+# =============================================================================
+$ScriptPath     = $MyInvocation.MyCommand.Path
+$ScriptDir      = Split-Path -Parent $ScriptPath
+$ScriptRepoRoot = Get-GitRepoRoot -StartDir $ScriptDir
+$WorkspaceDir   = Split-Path -Parent $ScriptRepoRoot
 
-# Pfad zum webots-controller
+Write-Host "Script:     $ScriptPath"
+Write-Host "ScriptDir:  $ScriptDir"
+Write-Host "RepoRoot:   $ScriptRepoRoot"
+Write-Host "Workspace:  $WorkspaceDir"
+
+# =============================================================================
+# B) Repos in workspace (adjust names here if needed)
+# =============================================================================
+$RadonUlzerRepo = Join-Path $WorkspaceDir "RadonUlzer"
+$SSRRepo        = Join-Path $WorkspaceDir "SpaceShipRadar"
+$DCSRepo        = Join-Path $WorkspaceDir "DroidControlShip"
+
+Assert-Exists $RadonUlzerRepo "RadonUlzer repo"
+Assert-Exists $SSRRepo        "SpaceShipRadar repo"
+Assert-Exists $DCSRepo        "DroidControlShip repo"
+
+Write-Host "`nRepos:"
+Write-Host "  RadonUlzer:      $RadonUlzerRepo"
+Write-Host "  SpaceShipRadar:  $SSRRepo"
+Write-Host "  DroidControlShip:$DCSRepo"
+
+# =============================================================================
+# C) Derive targets (relative to workspace)
+# =============================================================================
+$RadonUlzer_RemoteControlSim = Join-Path $RadonUlzerRepo ".pio\build\RemoteControlSim\program.exe"
+$DCS_LineFollowerSensorFusionSim = Join-Path $DCSRepo ".pio\build\LineFollowerSensorFusionSim\program.exe"
+
+$SSR_Script            = Join-Path $SSRRepo "src\space_ship_radar\space_ship_radar.py"
+$SSR_CalibrationFolder = Join-Path $SSRRepo "src\calibration\"
+
+$RadonUlzer_Settings = Join-Path $RadonUlzerRepo "settings\settings.json"
+
+# Path to webots-controller
+if (-not $env:WEBOTS_HOME) { throw "WEBOTS_HOME is not set." }
 $webotsController = Join-Path $env:WEBOTS_HOME "msys64\mingw64\bin\webots-controller.exe"
 
-# ===== RadonUlzer (Zumo / RemoteControlSim) ==================================
-# Entspricht deinem PIO-Build-Aufruf:
-# --robot-name=Zumo --stdout-redirect <RadonUlzerFilePath> -c --supervisorRxCh 1 ...
+# Validate
+Assert-Exists $RadonUlzer_RemoteControlSim "RemoteControlSim program.exe"
+Assert-Exists $DCS_LineFollowerSensorFusionSim "DCS program.exe"
+Assert-Exists $SSR_Script "SpaceShipRadar script"
+Assert-Exists $SSR_CalibrationFolder "Calibration folder"
+Assert-Exists $RadonUlzer_Settings "RadonUlzer settings.json"
+Assert-Exists $webotsController "webots-controller.exe"
+
+Write-Host "`nTargets:"
+Write-Host "  RadonUlzer RemoteControlSim: $RadonUlzer_RemoteControlSim"
+Write-Host "  DCS SensorFusionSim:         $DCS_LineFollowerSensorFusionSim"
+Write-Host "  SSR script:                  $SSR_Script"
+Write-Host "  SSR calibration folder:      $SSR_CalibrationFolder"
+Write-Host "  RadonUlzer settings.json:    $RadonUlzer_Settings"
+Write-Host "  webots-controller.exe:       $webotsController"
+
+# =============================================================================
+# IMPORTANT:
+# This script assumes Webots is already running and the world contains <extern>
+# controllers for the robots listed below.
+# =============================================================================  
+
+# =============================================================================
+# Start RadonUlzer (Zumo / RemoteControlSim)
+# =============================================================================
 Start-Process -FilePath $webotsController `
     -ArgumentList @(
         "--robot-name=Zumo",
-        "--stdout-redirect", $RadonUlzerFilePath,
+        "--stdout-redirect", $RadonUlzer_RemoteControlSim,
         "-c",
         "--supervisorRxCh", "1",
         "--supervisorTxCh", "2",
         "--serialRxCh",     "3",
         "--serialTxCh",     "4",
-        "--settingsPath",   "C:\Users\thaeckel\Documents\Repos\RadonUlzer\./settings/settings.json",
+        "--settingsPath",   $RadonUlzer_Settings,
         "-v"
     )
 
-# ===== SpaceShipRadar (MyBot) ================================================
+# =============================================================================
+# Start SpaceShipRadar (MyBot)
+# =============================================================================
 Start-Process -FilePath $webotsController `
     -ArgumentList @(
         "--robot-name=MyBot",
-        "--stdout-redirect", $SpaceShipRadarFilePath
+        "--stdout-redirect", $SSR_Script
     )
 
-# ===== DroidControlShip / LineFollowerSensorFusionSim ========================
-# Hier spiegeln wir den PIO-Aufruf:
-# --robot-name=ZumoComSystem --stdout-redirect <DCSFilePath> \
-# --cfgFilePath "../../../data/config/config.json" --serialRxCh 4 --serialTxCh 3 -v
-
-# Arbeitsverzeichnis so setzen, dass der relative cfg-Pfad passt
-$DCSWorkDir = Split-Path $DCSFilePath
+# =============================================================================
+# Start DroidControlShip / LineFollowerSensorFusionSim
+# =============================================================================
+$DCSWorkDir = Split-Path -Parent $DCS_LineFollowerSensorFusionSim
 
 Start-Process -FilePath $webotsController `
     -WorkingDirectory $DCSWorkDir `
     -ArgumentList @(
         "--robot-name=ZumoComSystem",
-        "--stdout-redirect", $DCSFilePath,
+        "--stdout-redirect", $DCS_LineFollowerSensorFusionSim,
         "--cfgFilePath", "../../../data/config/config_zumo1.json",
         "--serialRxCh", "4",
         "--serialTxCh", "3",
