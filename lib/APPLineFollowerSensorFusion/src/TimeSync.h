@@ -36,33 +36,25 @@
 #define TIMESYNC_H
 
 /******************************************************************************
- * Compile Switches
- *****************************************************************************/
-
-/******************************************************************************
  * Includes
  *****************************************************************************/
+#include <stdint.h>
 #include <SimpleTimer.hpp>
-#include <WiFiUdp.h>
-#include <NTPClient.h>
 #include "SerMuxChannelProvider.h"
 #include "SerialMuxChannels.h"
-
-/******************************************************************************
- * Macros
- *****************************************************************************/
+#include <MqttClient.h>
 
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
 
 /**
- * @brief  Time synchronization orchestrator (ESP32 side).
+ * @brief Time synchronization orchestrator (ESP32 side).
  *
- * Provides:
- * - Network time via SNTP (Host as NTP server)
+ * Responsibilities:
  * - Serial ping-pong time sync with Zumo32u4 over SerialMux
- * - Linear time mapping helpers for future extensions
+ * - Mapping Zumo millis() timestamps to ESP32 local time (millis())
+ * - Host (Laptop/PC) time sync over MQTT using NTP-style T1..T4 timestamps
  */
 class TimeSync
 {
@@ -75,62 +67,55 @@ public:
     TimeSync(SerMuxChannelProvider& serMuxProvider);
 
     /**
-     * Log current time sync status (for debugging/testing).
-     */
-    void logStatus() const;
-
-    /**
      * Initialize time synchronization.
      */
     void begin();
 
     /**
-     * Process periodic activities (send pings, housekeeping).
+     * Process periodic activities (send Zumo pings, housekeeping).
      */
     void process();
 
     /**
+     * Log current time sync status (Zumo + host).
+     */
+    void logStatus() const;
+
+    /**********************************************************************
+     * Zumo <-> ESP (SerialMux)
+     *********************************************************************/
+
+    /**
      * Returns whether serial ping-pong has a valid offset estimate.
-     * @return true if synced; otherwise false.
+     *
+     * @return true if Zumo<->ESP is considered synchronized; otherwise false.
      */
     bool isZumoSynced() const
     {
-        static const uint8_t REQUIRED_GOOD_SAMPLES = 3;
+        static const uint8_t REQUIRED_GOOD_SAMPLES = 3U;
         return m_zumoGoodSamples >= REQUIRED_GOOD_SAMPLES;
     }
 
     /**
-     * Returns whether RTC (SNTP) is available.
-     * @return true if RTC is synced; otherwise false.
-     */
-    bool isRtcSynced() const
-    {
-        return m_rtcSynced;
-    }
-
-    /**
-     * Map Zumo timestamp [ms] to ESP32 local time [ms] using latest offset.
+     * Map Zumo timestamp [ms] to ESP32 local time [ms] using the latest offset.
      *
      * @param[in] zumoTsMs  Zumo millis() timestamp [ms].
-     * @return ESP32 local time [ms].
+     *
+     * @return ESP32 local time [ms] corresponding to the given Zumo timestamp.
      */
     uint64_t mapZumoToLocalMs(uint32_t zumoTsMs) const;
 
     /**
-     * Get current local time [ms].
+     * Get current ESP32 local time [ms] (wrapper around millis()).
+     *
      * @return Local time [ms].
      */
     uint64_t localNowMs() const;
 
     /**
-     * Get current epoch time [ms] if RTC mapping is available, otherwise 0.
-     * @return Epoch time [ms]
-     */
-    uint64_t nowEpochMs() const;
-
-    /**
-     * Get estimated Zumo->ESP offset [ms]. Positive means Zumo ahead of ESP.
-     * @return Time Offset Zumo->ESP [ms]
+     * Get estimated Zumo->ESP offset [ms]. Positive means Zumo is ahead of ESP.
+     *
+     * @return Time offset Zumo->ESP [ms].
      */
     int64_t getZumoToEspOffsetMs() const
     {
@@ -138,25 +123,101 @@ public:
     }
 
     /**
-     * Log detailed RTC/NTP status information.
-     */
-    void logRtcStatus() const;
-
-    /**
      * Log detailed serial (Zumo) time sync status information.
      */
     void logZumoStatus() const;
 
+    /**********************************************************************
+     * Host <-> ESP (MQTT, T1..T4)
+     *
+     * Protocol:
+     *  - ESP sends request (T1_esp_ms, seq)
+     *  - Host (Python) records T2_host_ms, T3_host_ms and sends a response
+     *  - ESP records T4_esp_ms on reception and computes offset + RTT
+     *********************************************************************/
+
+
+    /**
+     * @brief Send a host time sync request message via MQTT.
+     *
+     * The function:
+     *  - increments the host sequence counter
+     *  - measures T1 (ESP localNowMs())
+     *  - builds a JSON payload { "seq", "t1_esp_ms" }
+     *  - calls the provided publish callback
+     *
+     * @param[in] mqttClient  MQTT instance.
+     * @param[in] topic      MQTT topic for the request message.
+     */
+    void sendHostTimeSyncRequest(MqttClient& mqttClient,
+                                 const char* topic);
+
+    /**
+     * @brief Handle a host time sync response received via MQTT.
+     *
+     * Expected payload (generated by the host):
+     *  - seq         : Sequence number (must match the sent request).
+     *  - t1_esp_ms   : T1 (as originally sent by the ESP).
+     *  - t2_host_ms  : T2 (host receive time of the request).
+     *  - t3_host_ms  : T3 (host send time of the response).
+     *
+     * The function:
+     *  - measures T4 (ESP localNowMs())
+     *  - computes offset and RTT using NTP-style formulas
+     *  - stores offset and RTT for later use
+     *
+     * @param[in] seq         Sequence number.
+     * @param[in] t1EspMs     T1 on ESP side [ms].
+     * @param[in] t2HostMs    T2 on host side [ms].
+     * @param[in] t3HostMs    T3 on host side [ms].
+     * @param[in] t4EspMs     T4 on ESP side [ms].
+     */
+    void onHostTimeSyncResponse(uint32_t seq,
+                                uint64_t t1EspMs,
+                                uint64_t t2HostMs,
+                                uint64_t t3HostMs,
+                                uint64_t t4EspMs);
+
+    /**
+     * @brief Returns whether a valid host synchronization offset is available.
+     *
+     * @return true if a valid host<->ESP offset is available; otherwise false.
+     */
+    bool isHostSynced() const
+    {
+        return m_hostSyncValid;
+    }
+
+    /**
+     * @brief Get the estimated Host->ESP offset [ms].
+     *
+     * Interpretation:
+     *   host_time_ms ≈ esp_local_ms + offsetHostMinusEsp
+     *
+     * @return Estimated Host->ESP offset [ms].
+     */
+    int64_t getHostOffsetMs() const
+    {
+        return m_hostOffsetMs;
+    }
+
+    /**
+     * @brief Convert a host timestamp [ms] to ESP local time [ms].
+     *
+     * Uses the estimated host offset:
+     *   host_time_ms ≈ esp_local_ms + offset
+     *   => esp_local_ms ≈ host_time_ms - offset
+     *
+     * If no valid host sync is available, localNowMs() is returned.
+     *
+     * @param[in] hostMs  Host time [ms].
+     *
+     * @return Approximate ESP local time [ms] corresponding to the host time.
+     */
+    uint64_t hostToEspLocalMs(uint64_t hostMs) const;
+
 private:
     SerMuxChannelProvider& m_serMuxProvider; /**< SerialMux provider. */
-
-    /* --- RTC (NTP) --- */
-    WiFiUDP     m_ntpUdp;               /**< UDP socket for NTP client. */
-    NTPClient   m_ntpClient;            /**< NTP client instance. */
-    bool        m_rtcSynced;            /**< RTC synchronized flag. */
-    int64_t     m_epochToLocalOffsetMs; /**< Epoch time - local time [ms]. */
-    uint32_t    m_rtcRefreshMs;         /**< RTC mapping refresh period. */
-    SimpleTimer m_rtcTimer;             /**< Timer for refreshing RTC mapping. */
 
     /* --- Serial ping-pong with Zumo --- */
     SimpleTimer m_pingTimer;         /**< Ping timer. */
@@ -169,29 +230,24 @@ private:
     uint32_t    m_pendingSeq;        /**< Sequence number of pending request. */
     uint64_t    m_lastStatusLogMs;   /**< Last status log time [ms]. */
 
-    uint64_t m_lastRtcUpdateLocalMs; /**< Local time of last RTC update [ms]. */
-    int64_t  m_lastRtcCorrectionMs;  /**< Last RTC correction applied [ms]. */
-    int64_t  m_maxRtcCorrectionMs;   /**< Maximum RTC correction applied [ms]. */
-    uint32_t m_lastAcceptedRttMs;    /**< Last accepted RTT [ms]. */
-    int64_t  m_lastOffsetEstMs;      /**< Last offset estimate [ms]. */
-    int64_t  m_minOffsetMs;          /**< Minimum observed offset [ms]. */
-    int64_t  m_maxOffsetMs;          /**< Maximum observed offset [ms]. */
+    uint32_t m_lastAcceptedRttMs; /**< Last accepted RTT [ms]. */
+    int64_t  m_lastOffsetEstMs;   /**< Last offset estimate [ms]. */
+    int64_t  m_minOffsetMs;       /**< Minimum observed offset [ms]. */
+    int64_t  m_maxOffsetMs;       /**< Maximum observed offset [ms]. */
+
+    /* --- Host time sync over MQTT --- */
+    uint32_t m_hostSeq;       /**< Host sync sequence counter. */
+    bool     m_hostSyncValid; /**< Host sync offset valid flag. */
+    int64_t  m_hostOffsetMs;  /**< Estimated offset Host->ESP [ms]. */
+    uint32_t m_lastHostRttMs; /**< Last RTT to host [ms]. */
 
     /**
-     * Handle an incoming time sync response from Zumo.
-     * @param[in] rsp Time sync response frame.
+     * @brief Handle an incoming time sync response from the Zumo.
+     *
+     * @param[in] rsp Time sync response frame received via SerialMux.
      */
     void onTimeSyncResponse(const TimeSyncResponse& rsp);
-
-    /**
-     * Try to refresh epoch-to-local mapping using RTC (SNTP) if available.
-     */
-    void refreshRtcMapping();
 };
-
-/******************************************************************************
- * Functions
- *****************************************************************************/
 
 #endif /* TIMESYNC_H */
 /** @} */
