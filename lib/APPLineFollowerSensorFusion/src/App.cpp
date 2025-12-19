@@ -497,7 +497,7 @@ void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRada
         zumoLocalMs32 = static_cast<uint32_t>(m_timeSync.mapZumoToLocalMs(zumoTs32));
         ssrLocalMs32  = static_cast<uint32_t>(ssrPose.timestamp);
 
-        LOG_DEBUG("Filtering location data: Zumo=%u ms, SSR=%u ms", zumoLocalMs32, ssrLocalMs32);
+        LOG_INFO("Filtering location data: Zumo=%u ms, SSR=%u ms", zumoLocalMs32, ssrLocalMs32);
 
         /* Initialize EKF time on first data. */
         hasTimestamp = initializeEkfTimestamp(zumoLocalMs32, ssrLocalMs32);
@@ -569,6 +569,9 @@ void App::publishFusionPose(uint32_t tsMs)
 {
     /* EKF state: [p_x, p_y, theta, v, omega]. */
     const StateVector& state = m_ekf.getState();
+
+    LOG_WARNING("EKF STATE @ %ums: x=%.3f y=%.3f theta=%.3f v=%.3f omega=%.3f", tsMs, state(0), state(1), state(2),
+                state(3), state(4));
 
     LOG_WARNING("EKF STATE @ %ums: x=%.3f y=%.3f theta=%.3f v=%.3f omega=%.3f", tsMs, state(0), state(1), state(2),
                 state(3), state(4));
