@@ -46,7 +46,6 @@
 #include "States/ReadyState.h"
 #include "States/DrivingState.h"
 
-
 /******************************************************************************
  * Compiler Switches
  *****************************************************************************/
@@ -120,10 +119,8 @@ const uint16_t HOST_TIMESYNC_INTERVAL_MS = 10000U;
 using ImuMeasurementVector = ExtendedKalmanFilter5D::ImuMeasurementVector;
 using OdoMeasurementVector = ExtendedKalmanFilter5D::OdoMeasurementVector;
 using CamMeasurementVector = ExtendedKalmanFilter5D::CamMeasurementVector;
-using StateVector   = ExtendedKalmanFilter5D::StateVector;
-using StateMatrix   = ExtendedKalmanFilter5D::StateMatrix;
-
-
+using StateVector          = ExtendedKalmanFilter5D::StateVector;
+using StateMatrix          = ExtendedKalmanFilter5D::StateMatrix;
 
 /******************************************************************************
  * Public Methods
@@ -214,8 +211,8 @@ void App::setup()
         else
         {
             /* Log incoming vehicle data and corresponding time sync information. */
-            m_serMuxChannelProvider.registerVehicleDataCallback(
-                [this](const VehicleData& data) { onVehicleData(data); });
+            m_serMuxChannelProvider.registerVehicleDataCallback([this](const VehicleData& data)
+                                                                { onVehicleData(data); });
 
             /* Start network time (NTP) against host and Zumo serial ping-pong. */
             m_ekf.init();
@@ -295,7 +292,7 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
     JsonDocument jsonBirthDoc;
     char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
     String       birthMessage;
-    const String ssrTopic      = String(TOPIC_NAME_RADAR_POSE) + "/" + clientId;
+    const String ssrTopic = String(TOPIC_NAME_RADAR_POSE) + "/" + clientId;
 
     jsonBirthDoc["name"] = clientId.c_str();
     (void)serializeJson(jsonBirthDoc, birthMsgArray);
@@ -319,9 +316,8 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
         {
             LOG_FATAL("Could not subscribe to MQTT topic: %s.", TOPIC_NAME_RADAR_POSE);
         }
-        else if (false ==
-                 m_mqttClient.subscribe(TOPIC_NAME_HOST_TIMESYNC_RSP, true,
-                                        [this](const String& payload) { hostTimeSyncResponseCallback(payload); }))
+        else if (false == m_mqttClient.subscribe(TOPIC_NAME_HOST_TIMESYNC_RSP, true, [this](const String& payload)
+                                                 { hostTimeSyncResponseCallback(payload); }))
         {
             LOG_FATAL("Could not subscribe to MQTT topic: %s.", TOPIC_NAME_HOST_TIMESYNC_RSP);
         }
@@ -337,7 +333,6 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
     return isSuccessful;
 }
 
-
 void App::ssrTopicCallback(const String& payload)
 {
     JsonDocument         jsonPayload;
@@ -349,12 +344,12 @@ void App::ssrTopicCallback(const String& payload)
     }
     else
     {
-        JsonVariantConst xPos_mm       = jsonPayload["positionX"];   /* int : in mm */
-        JsonVariantConst yPos_mm       = jsonPayload["positionY"];   /* int : in mm */
-        JsonVariantConst xVel_mms      = jsonPayload["speedX"];      /* int : in mm/s */
-        JsonVariantConst yVel_mms      = jsonPayload["speedY"];      /* int : in mm/s */
-        JsonVariantConst angle_mrad    = jsonPayload["angle"];       /* int : in mrad */
-        JsonVariantConst timestamp_ms  = jsonPayload["timestamp_ms"];/* int : host epoch in ms */
+        JsonVariantConst xPos_mm      = jsonPayload["positionX"];    /* int : in mm */
+        JsonVariantConst yPos_mm      = jsonPayload["positionY"];    /* int : in mm */
+        JsonVariantConst xVel_mms     = jsonPayload["speedX"];       /* int : in mm/s */
+        JsonVariantConst yVel_mms     = jsonPayload["speedY"];       /* int : in mm/s */
+        JsonVariantConst angle_mrad   = jsonPayload["angle"];        /* int : in mrad */
+        JsonVariantConst timestamp_ms = jsonPayload["timestamp_ms"]; /* int : host epoch in ms */
 
         const int      x_mm_i      = xPos_mm.as<int>();
         const int      y_mm_i      = yPos_mm.as<int>();
@@ -363,14 +358,12 @@ void App::ssrTopicCallback(const String& payload)
         const int      ang_mrad_i  = angle_mrad.as<int>();
         const uint64_t hostEpochMs = timestamp_ms.as<uint64_t>();
 
-        const bool hostSynced = m_timeSync.isHostSynced();
+        const bool     hostSynced = m_timeSync.isHostSynced();
         const uint64_t ssrLocalTsMs =
             hostSynced ? m_timeSync.hostToEspLocalMs(hostEpochMs)
-                       : m_timeSync.localNowMs();  // fallback if no host sync yet
+                       : m_timeSync.localNowMs(); /* Fallback: use local time if host is not synced */
 
-        LOG_INFO("SSR pose: ts_host_ms=%llu (hostSync=%s)",
-                 hostEpochMs,
-                 hostSynced ? "true" : "false");
+        LOG_INFO("SSR pose: ts_host_ms=%llu (hostSync=%s)", hostEpochMs, hostSynced ? "true" : "false");
 
         SpaceShipRadarPose ssrPose;
         ssrPose.x         = static_cast<float>(x_mm_i);
@@ -403,18 +396,18 @@ void App::ssrTopicCallback(const String& payload)
             x0(4)             = 0.0F;
 
             StateMatrix P0 = StateMatrix::Identity();
-            P0(0,0) = 50.0F * 50.0F;
-            P0(1,1) = 50.0F * 50.0F;
-            P0(2,2) = 200.0F * 200.0F;
-            P0(3,3) = 200.0F * 200.0F;
-            P0(4,4) = 200.0F * 200.0F;
+            P0(0, 0)       = 50.0F * 50.0F;
+            P0(1, 1)       = 50.0F * 50.0F;
+            P0(2, 2)       = 200.0F * 200.0F;
+            P0(3, 3)       = 200.0F * 200.0F;
+            P0(4, 4)       = 200.0F * 200.0F;
 
             (void)m_ekf.init(x0, P0);
             m_lastEkfUpdateMs       = ssrPose.timestamp;
             m_ekfInitializedFromSSR = true;
 
-            LOG_INFO("EKF initialized from SSR: x=%.1fmm y=%.1fmm theta=%.1fmrad v=%.1fmm/s",
-                     x0(0), x0(1), x0(2), x0(3));
+            LOG_INFO("EKF initialized from SSR: x=%.1fmm y=%.1fmm theta=%.1fmrad v=%.1fmm/s", x0(0), x0(1), x0(2),
+                     x0(3));
         }
 
         m_lastSsrPose = ssrPose;
@@ -426,7 +419,6 @@ void App::ssrTopicCallback(const String& payload)
         }
     }
 }
-
 
 void App::publishVehicleAndSensorSnapshot(const VehicleData& data)
 {
@@ -442,9 +434,9 @@ void App::publishVehicleAndSensorSnapshot(const VehicleData& data)
     JsonDocument    payloadJson;
     char            payloadArray[JSON_SENSOR_SNAPSHOT_MAX_SIZE];
 
-    payloadJson["ts_local_ms"]    = mappedLocalMs;
-    payloadJson["zumo_sync_ok"]   = zumoSynced;
-    payloadJson["host_sync_ok"]   = hostSynced;
+    payloadJson["ts_local_ms"]  = mappedLocalMs;
+    payloadJson["zumo_sync_ok"] = zumoSynced;
+    payloadJson["host_sync_ok"] = hostSynced;
 
     JsonObject vehicleObj          = payloadJson["vehicle"].to<JsonObject>();
     vehicleObj["ts_zumo_ms"]       = static_cast<int64_t>(data.timestamp);
@@ -472,22 +464,20 @@ void App::publishVehicleAndSensorSnapshot(const VehicleData& data)
     }
 }
 
-
-void App::filterLocationData(const VehicleData& vehicleData,
-                             const SpaceShipRadarPose& ssrPose)
+void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRadarPose& ssrPose)
 {
     /* Local variables (all declared at top as requested). */
-    uint32_t zumoTs32        = 0U;
-    uint32_t zumoLocalMs32   = 0U;
-    uint32_t ssrLocalMs32    = 0U;
-    uint32_t newestLocalTs   = 0U;
-    uint32_t dtMs            = 0U;
-    float    dt              = 0.0F;
-    float    a_x             = 0.0F;
-    Source   newestSource    = Source::None;
-    bool     ekfReady        = false;
-    bool     hasTimestamp    = false;
-    bool     doProcessing    = false;
+    uint32_t zumoTs32      = 0U;
+    uint32_t zumoLocalMs32 = 0U;
+    uint32_t ssrLocalMs32  = 0U;
+    uint32_t newestLocalTs = 0U;
+    uint32_t dtMs          = 0U;
+    float    dt            = 0.0F;
+    float    a_x           = 0.0F;
+    Source   newestSource  = Source::None;
+    bool     ekfReady      = false;
+    bool     hasTimestamp  = false;
+    bool     doProcessing  = false;
 
     /* Do not run fusion until EKF has been initialized from SSR. */
     ekfReady = m_ekfInitializedFromSSR;
@@ -504,8 +494,7 @@ void App::filterLocationData(const VehicleData& vehicleData,
         zumoLocalMs32 = static_cast<uint32_t>(m_timeSync.mapZumoToLocalMs(zumoTs32));
         ssrLocalMs32  = static_cast<uint32_t>(ssrPose.timestamp);
 
-        LOG_INFO("Filtering location data: Zumo=%u ms, SSR=%u ms",
-                 zumoLocalMs32, ssrLocalMs32);
+        LOG_INFO("Filtering location data: Zumo=%u ms, SSR=%u ms", zumoLocalMs32, ssrLocalMs32);
 
         /* Initialize EKF time on first data. */
         hasTimestamp = initializeEkfTimestamp(zumoLocalMs32, ssrLocalMs32);
@@ -515,10 +504,7 @@ void App::filterLocationData(const VehicleData& vehicleData,
             newestLocalTs = m_lastEkfUpdateMs;
 
             /* Determine which sensor has the newest update. */
-            newestSource = determineNewestSource(zumoLocalMs32,
-                                                 ssrLocalMs32,
-                                                 m_lastEkfUpdateMs,
-                                                 newestLocalTs);
+            newestSource = determineNewestSource(zumoLocalMs32, ssrLocalMs32, m_lastEkfUpdateMs, newestLocalTs);
 
             if (newestSource != Source::None)
             {
@@ -557,11 +543,8 @@ void App::filterLocationData(const VehicleData& vehicleData,
     }
 }
 
-
-void App::transformOdometryToGlobal(const VehicleData& vehicleData,
-                                    float&             xGlob_mm,
-                                    float&             yGlob_mm,
-                                    float&             thetaGlob_mrad) const
+void App::transformOdometryToGlobal(const VehicleData& vehicleData, float& xGlob_mm, float& yGlob_mm,
+                                    float& thetaGlob_mrad) const
 {
     /* Y axis and heading sign differ between local odometry frame and SSR frame. */
     constexpr float Y_SIGN     = -1.0F;
@@ -605,7 +588,7 @@ void App::publishFusionPose(uint32_t tsMs)
 
 void App::hostTimeSyncResponseCallback(const String& payload)
 {
-    uint64_t t4_ts = millis();
+    uint64_t             t4_ts = millis();
     JsonDocument         doc;
     DeserializationError err = deserializeJson(doc, payload);
 
@@ -615,11 +598,8 @@ void App::hostTimeSyncResponseCallback(const String& payload)
         return;
     }
 
-
-    if ( (doc["seq"].is<uint32_t>() == false) ||
-        (doc["t1_esp_ms"].is<uint64_t>() == false) ||
-        (doc["t2_host_ms"].is<uint64_t>() == false) ||
-        (doc["t3_host_ms"].is<uint64_t>() == false) )
+    if ((doc["seq"].is<uint32_t>() == false) || (doc["t1_esp_ms"].is<uint64_t>() == false) ||
+        (doc["t2_host_ms"].is<uint64_t>() == false) || (doc["t3_host_ms"].is<uint64_t>() == false))
     {
         LOG_WARNING("HostTimeSync: Missing required fields in response JSON.");
         return;
@@ -672,12 +652,10 @@ bool App::initializeEkfTimestamp(uint32_t zumoLocalMs32, uint32_t ssrLocalMs32)
     return initialized;
 }
 
-Source App::determineNewestSource(uint32_t zumoLocalMs32,
-                                  uint32_t ssrLocalMs32,
-                                  uint32_t lastEkfUpdateMs,
+Source App::determineNewestSource(uint32_t zumoLocalMs32, uint32_t ssrLocalMs32, uint32_t lastEkfUpdateMs,
                                   uint32_t& newestLocalTs) const
 {
-    Source source = Source::None;
+    Source   source      = Source::None;
     uint32_t candidateTs = lastEkfUpdateMs;
 
     const bool hasVehicle = (zumoLocalMs32 > lastEkfUpdateMs);
@@ -705,10 +683,10 @@ Source App::determineNewestSource(uint32_t zumoLocalMs32,
 
 void App::updateFromVehicle(const VehicleData& vehicleData)
 {
-    const int16_t rawGyroZ = static_cast<int16_t>(vehicleData.turnRateZ);
-    float xGlob_mm = 0.0F;
-    float yGlob_mm = 0.0F;
-    float thetaGlob_mrad = 0.0F;
+    const int16_t        rawGyroZ       = static_cast<int16_t>(vehicleData.turnRateZ);
+    float                xGlob_mm       = 0.0F;
+    float                yGlob_mm       = 0.0F;
+    float                thetaGlob_mrad = 0.0F;
     OdoMeasurementVector z_odo;
 
     LOG_INFO("EKF update from Vehicle.");
@@ -746,8 +724,6 @@ void App::updateFromSsr(const SpaceShipRadarPose& ssrPose)
 
     m_ekf.updateCamera(z_cam);
 }
-
-
 
 /******************************************************************************
  * External Functions
