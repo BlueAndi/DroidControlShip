@@ -64,23 +64,41 @@ namespace GpioPins
     namespace Pin
     {
         /** Pin for push button for system reset/AP mode start (ACTIVE LOW) */
-        constexpr uint8_t PIN_WIFI_AND_RESET_KEY = 4;
+        constexpr uint8_t PIN_WIFI_AND_RESET_KEY = 48;
 
         /** Pin for resetting the attached Zumo robot (ACTIVE LOW) */
-        constexpr uint8_t PIN_DEVICE_RESET = 27;
+        constexpr uint8_t PIN_DEVICE_RESET = 5;
 
         /** Pin for info LED RGB channel RED (ACTIVE LOW) */
-        constexpr uint8_t INFO_LED_R = 16;
+        constexpr uint8_t INFO_LED_R = 38;
 
         /** Pin for info LED RGB channel GREEN (ACTIVE LOW) */
-        constexpr uint8_t INFO_LED_G = 22;
+        constexpr uint8_t INFO_LED_G = 1;
 
         /** Pin for info LED RGB channel BLUE (ACTIVE LOW) */
-        constexpr uint8_t INFO_LED_B = 21;
+        constexpr uint8_t INFO_LED_B = 2;
 
         /** Pin for analog measurement of battery voltage */
-        constexpr uint8_t PIN_BATT_MEASUREMENT = 35;
+        constexpr uint8_t PIN_BATT_MEASUREMENT = 10;
 
+        /** Pin for push button A */
+        constexpr uint8_t PIN_BUTTON_A = 7;
+
+        /** Pin for push button B */
+        constexpr uint8_t PIN_BUTTON_B = 15;
+
+        /** Pin for push button C */
+        constexpr uint8_t PIN_BUTTON_C = 17;
+
+        /** Pin for LED A */
+        constexpr uint8_t PIN_LED_A = 6;
+
+        /** Pin for LED B */
+
+        constexpr uint8_t PIN_LED_B = 16;
+
+        /** Pin for LED C */
+        constexpr uint8_t PIN_LED_C = 18;
     }; // namespace Pin
 
     /**
@@ -114,11 +132,41 @@ namespace GpioPins
     extern const AnalogPin<Pin::PIN_BATT_MEASUREMENT> batteryVoltagePin;
 
     /**
+     * Digital input pin: Button A.
+     */
+    extern const DInPin<Pin::PIN_BUTTON_A, INPUT_PULLUP> buttonAPin;
+
+    /**
+     * Digital input pin: Button B.
+     */
+    extern const DInPin<Pin::PIN_BUTTON_B, INPUT_PULLUP> buttonBPin;
+
+    /**
+     * Digital input pin: Button C.
+     */
+    extern const DInPin<Pin::PIN_BUTTON_C, INPUT_PULLUP> buttonCPin;
+
+    /**
+     * Digital output pin: LED A.
+     */
+    extern const DOutPin<Pin::PIN_LED_A> ledAPin;
+
+    /**
+     * Digital output pin: LED B.
+     */
+    extern const DOutPin<Pin::PIN_LED_B> ledBPin;
+
+    /**
+     * Digital output pin: LED C.
+     */
+    extern const DOutPin<Pin::PIN_LED_C> ledCPin;
+
+    /**
      * Initialize all i/o pins.
      */
     extern void init();
 
-}; // namespace GPIO
+}; // namespace GpioPins
 
 /******************************************************************************
  * Functions
