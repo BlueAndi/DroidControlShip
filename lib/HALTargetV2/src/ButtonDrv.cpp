@@ -62,6 +62,9 @@ static void IRAM_ATTR isrButton(void* arg);
 
 const IoPin* ButtonDrv::BUTTON_PIN[BUTTON_ID_CNT] = {
     &GpioPins::resetButtonPin,
+    &GpioPins::buttonAPin,
+    &GpioPins::buttonBPin,
+    &GpioPins::buttonCPin,
 };
 
 /**
@@ -71,6 +74,9 @@ const IoPin* ButtonDrv::BUTTON_PIN[BUTTON_ID_CNT] = {
  */
 static ButtonId gButtonId[BUTTON_ID_CNT] = {
     BUTTON_ID_OK,
+    BUTTON_ID_A,
+    BUTTON_ID_B,
+    BUTTON_ID_C,
 };
 
 /** Number of elements in the button id queue. */

@@ -62,6 +62,9 @@
 typedef enum
 {
     BUTTON_ID_OK = 0, /**< Button "ok" */
+    BUTTON_ID_A,      /**< Button "A" */
+    BUTTON_ID_B,      /**< Button "B" */
+    BUTTON_ID_C,      /**< Button "C" */
     BUTTON_ID_CNT     /**< Number of buttons */
 
 } ButtonId;
