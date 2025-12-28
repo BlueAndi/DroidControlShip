@@ -81,10 +81,10 @@ struct SpaceShipRadarPose
  */
 enum class Source
 {
-    None,          /**< No new data available (no newer timestamp than last EKF update). */
-    Vehicle,       /**< Newest data comes from vehicle (odometry / IMU). */
-    SSR,           /**< Newest data comes from Space Ship Radar (SSR). */
-    VehicleAndSSR  /**< Both vehicle and SSR provide newer data; use both updates. */
+    None,         /**< No new data available (no newer timestamp than last EKF update). */
+    Vehicle,      /**< Newest data comes from vehicle (odometry / IMU). */
+    SSR,          /**< Newest data comes from Space Ship Radar (SSR). */
+    VehicleAndSSR /**< Both vehicle and SSR provide newer data; use both updates. */
 };
 
 /**
@@ -218,7 +218,7 @@ private:
     /**
      * @brief Flag indicating if the odometry origin in the global frame is initialized.
      */
-    bool  m_odoOriginInitialized;
+    bool m_odoOriginInitialized;
 
     /**
      * @brief Odometry origin X coordinate in mm in global (SSR) frame.
@@ -229,6 +229,31 @@ private:
      * @brief Odometry origin Y coordinate in mm in global (SSR) frame.
      */
     float m_odoOriginY_mm;
+
+    /**
+     * @brief Odometry origin heading in mrad in global (SSR) frame.
+     */
+    float m_odoOriginTheta_mrad;
+
+    /**
+     * @brief Flag indicating if the odometry zero point is initialized.
+     */
+    bool m_odoZeroInitialized;
+
+    /**
+     * @brief Odometry zero point X coordinate in mm in local Zumo frame.
+     */
+    float m_odoZeroX_mm;
+
+    /**
+     * @brief Odometry zero point Y coordinate in mm in local Zumo frame.
+     */
+    float m_odoZeroY_mm;
+
+    /**
+     * @brief Odometry zero point heading in mrad in local Zumo frame.
+     */
+    float m_odoZeroTheta_mrad;
 
     /**
      * @brief Flag indicating if the EKF has been initialized from SSR.
@@ -269,7 +294,7 @@ private:
 
     /**
      * @brief Publish GPS data via MQTT.
-     * 
+     *
      * @param[in] mqttClient MQTT client to use for publishing.
      * @param[in] tsMs       Timestamp in ms (local time base) associated with the GPS data.
      */
@@ -309,10 +334,8 @@ private:
      * @param[out] yGlob_mm        Global Y position in mm.
      * @param[out] thetaGlob_mrad  Global heading in mrad.
      */
-    void transformOdometryToGlobal(const VehicleData& vehicleData,
-                                   float&             xGlob_mm,
-                                   float&             yGlob_mm,
-                                   float&             thetaGlob_mrad) const;
+    void transformOdometryToGlobal(const VehicleData& vehicleData, float& xGlob_mm, float& yGlob_mm,
+                                   float& thetaGlob_mrad) const;
 
     /**
      * @brief Publish the current EKF fusion pose via MQTT.
@@ -323,14 +346,14 @@ private:
 
     /**
      * @brief Update EKF from vehicle data (odometry + IMU).
-     * 
+     *
      * @param[in] vehicleData Vehicle data received via SerialMux.
      */
     void updateFromVehicle(const VehicleData& vehicleData);
 
     /**
      * @brief Update EKF from Space Ship Radar pose.
-     * 
+     *
      * @param[in] ssrPose Latest Space Ship Radar pose (global frame).
      */
     void updateFromSsr(const SpaceShipRadarPose& ssrPose);
@@ -345,23 +368,18 @@ private:
      *
      * @return Source enum indicating which sensor has the newest data.
      */
-    Source determineNewestSource(uint32_t zumoLocalMs32,
-                                  uint32_t ssrLocalMs32,
-                                  uint32_t lastEkfUpdateMs,
-                                  uint32_t& newestLocalTs) const;
-
+    Source determineNewestSource(uint32_t zumoLocalMs32, uint32_t ssrLocalMs32, uint32_t lastEkfUpdateMs,
+                                 uint32_t& newestLocalTs) const;
 
     /**
      * @brief Initialize EKF timestamp on first data reception.
-     * 
+     *
      * @param[in] zumoLocalMs32 Latest vehicle data timestamp [ms] (local time base).
      * @param[in] ssrLocalMs32  Latest SSR pose timestamp [ms]
-     * 
+     *
      * @return true if EKF timestamp is initialized, otherwise false.
-    */
-    bool initializeEkfTimestamp(uint32_t zumoLocalMs32,
-                                   uint32_t ssrLocalMs32); 
-
+     */
+    bool initializeEkfTimestamp(uint32_t zumoLocalMs32, uint32_t ssrLocalMs32);
 
     /**
      * @brief Copy construction of an instance (not allowed).

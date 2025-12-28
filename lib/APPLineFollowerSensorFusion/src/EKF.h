@@ -64,7 +64,7 @@ class ExtendedKalmanFilter5D
 {
 public:
     /** State dimension. */
-    static constexpr std::uint8_t STATE_DIM    = 5U;
+    static constexpr std::uint8_t STATE_DIM = 5U;
     /** Camera measurement dimension: [x, y, theta, v_x, v_y]. */
     static constexpr std::uint8_t CAM_MEAS_DIM = 5U;
     /** Odometry measurement dimension: [x, y, v, theta]. */
@@ -73,10 +73,10 @@ public:
     static constexpr std::uint8_t IMU_MEAS_DIM = 1U;
 
     /** @brief State vector type x = [p_x, p_y, theta, v, omega]^T. */
-    using StateVector   = Eigen::Matrix<float, STATE_DIM, 1>;
+    using StateVector = Eigen::Matrix<float, STATE_DIM, 1>;
 
     /** @brief State covariance matrix type P (STATE_DIM x STATE_DIM). */
-    using StateMatrix   = Eigen::Matrix<float, STATE_DIM, STATE_DIM>;
+    using StateMatrix = Eigen::Matrix<float, STATE_DIM, STATE_DIM>;
 
     /** @brief Camera measurement vector z_cam = [p_x, p_y, theta, v_x, v_y]^T. */
     using CamMeasurementVector = Eigen::Matrix<float, CAM_MEAS_DIM, 1>;
@@ -92,7 +92,6 @@ public:
     using ImuMeasurementVector = Eigen::Matrix<float, IMU_MEAS_DIM, 1>;
     /** @brief IMU measurement covariance matrix R_imu. */
     using ImuMeasMatrix = Eigen::Matrix<float, IMU_MEAS_DIM, IMU_MEAS_DIM>;
-
 
 public:
     /**
@@ -212,8 +211,14 @@ private:
     /** Current covariance estimate. */
     StateMatrix m_covariance;
 
-    /** Process noise covariance Q. */
-    StateMatrix   m_Q;
+    /**
+     * @brief Create process noise covariance matrix Q.
+     *
+     * @param[in] dt Time step [s].
+     * @return Process noise covariance matrix Q.
+     */
+    StateMatrix makeProcessNoiseQ(float dt) const;
+
     /** Camera measurement noise covariance R_cam. */
     CamMeasMatrix m_R_cam;
     /** Odometry measurement noise covariance R_odo. */
@@ -274,7 +279,7 @@ private:
      * Odometry measurement Jacobian H_odo = dh_odo/dx.
      *
      * @return Odometry measurement Jacobian.
-     * 
+     *
      * @param[in] x Current state vector.
      */
     Eigen::Matrix<float, ODO_MEAS_DIM, STATE_DIM> odometryJacobianH(const StateVector& x) const;

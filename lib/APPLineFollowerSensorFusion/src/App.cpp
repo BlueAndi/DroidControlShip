@@ -104,7 +104,7 @@ const char* App::TOPIC_NAME_HOST_TIMESYNC_RSP = "zumo/time_sync/response";
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
 /** Buffer size for JSON serialization of combined sensor snapshot. */
-static const uint32_t JSON_SENSOR_SNAPSHOT_MAX_SIZE = 256U;
+static const uint32_t JSON_SENSOR_SNAPSHOT_MAX_SIZE = 512U;
 
 /** Buffer size for JSON serialization of fusion pose. */
 static const uint32_t JSON_FUSION_POSE_MAX_SIZE = 128U;
@@ -144,6 +144,11 @@ App::App() :
     m_odoOriginInitialized(false),
     m_odoOriginX_mm(0.0F),
     m_odoOriginY_mm(0.0F),
+    m_odoOriginTheta_mrad(0.0F),
+    m_odoZeroInitialized(false),
+    m_odoZeroX_mm(0.0F),
+    m_odoZeroY_mm(0.0F),
+    m_odoZeroTheta_mrad(0.0F),
     m_ekfInitializedFromSSR(false)
 {
     /* Inject dependencies into states. */
@@ -251,7 +256,7 @@ void App::loop()
     /* Process time synchronization (serial ping-pong). */
     m_timeSync.process();
 
-    if (m_hostTimeSyncTimer.isTimeout())
+    if (m_hostTimeSyncTimer.isTimeout() || (false == m_timeSync.isHostSynced()))
     {
         m_timeSync.sendHostTimeSyncRequest(m_mqttClient, TOPIC_NAME_HOST_TIMESYNC_REQ);
         m_hostTimeSyncTimer.restart();
@@ -338,6 +343,8 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
 
 void App::ssrTopicCallback(const String& payload)
 {
+    constexpr float      Y_SIGN     = 1.0F;
+    constexpr float      THETA_SIGN = 1.0F;
     JsonDocument         jsonPayload;
     DeserializationError error = deserializeJson(jsonPayload, payload.c_str());
 
@@ -370,17 +377,23 @@ void App::ssrTopicCallback(const String& payload)
 
         SpaceShipRadarPose ssrPose;
         ssrPose.x         = static_cast<float>(x_mm_i);
-        ssrPose.y         = static_cast<float>(y_mm_i);
-        ssrPose.theta     = static_cast<float>(ang_mrad_i);
+        ssrPose.y         = Y_SIGN * static_cast<float>(y_mm_i);
+        ssrPose.theta     = THETA_SIGN * static_cast<float>(ang_mrad_i);
         ssrPose.v_x       = static_cast<float>(vx_mms_i);
-        ssrPose.v_y       = static_cast<float>(vy_mms_i);
+        ssrPose.v_y       = Y_SIGN * static_cast<float>(vy_mms_i);
         ssrPose.timestamp = static_cast<uint32_t>(ssrLocalTsMs);
 
         if (false == m_odoOriginInitialized)
         {
             m_odoOriginX_mm        = ssrPose.x;
             m_odoOriginY_mm        = ssrPose.y;
+            m_odoOriginTheta_mrad  = ssrPose.theta;
             m_odoOriginInitialized = true;
+
+            m_odoZeroX_mm        = static_cast<float>(m_lastVehicleData.xPos);
+            m_odoZeroY_mm        = static_cast<float>(m_lastVehicleData.yPos);
+            m_odoZeroTheta_mrad  = static_cast<float>(m_lastVehicleData.orientation);
+            m_odoZeroInitialized = true;
 
             LOG_INFO("Odometry origin set from SSR: x=%dmm y=%dmm", x_mm_i, y_mm_i);
         }
@@ -430,22 +443,27 @@ void App::publishVehicleAndSensorSnapshot(const VehicleData& data)
     const int64_t  offsetMs      = m_timeSync.getZumoToEspOffsetMs();
     const bool     zumoSynced    = m_timeSync.isZumoSynced();
     const bool     hostSynced    = m_timeSync.isHostSynced();
+    float          xW_mm         = 0.0F;
+    float          yW_mm         = 0.0F;
+    float          thW_mrad      = 0.0F;
 
     (void)offsetMs; /* keep for future debug if not used directly */
 
     const uint16_t* lineSensorValues = m_lineSensors.getSensorValues();
     JsonDocument    payloadJson;
-    char            payloadArray[JSON_SENSOR_SNAPSHOT_MAX_SIZE];
+    char            payloadArray[JSON_SENSOR_SNAPSHOT_MAX_SIZE] = {0};
 
     payloadJson["ts_local_ms"]  = mappedLocalMs;
     payloadJson["zumo_sync_ok"] = zumoSynced;
     payloadJson["host_sync_ok"] = hostSynced;
 
+    transformOdometryToGlobal(data, xW_mm, yW_mm, thW_mrad);
+
     JsonObject vehicleObj          = payloadJson["vehicle"].to<JsonObject>();
     vehicleObj["ts_zumo_ms"]       = static_cast<int64_t>(data.timestamp);
-    vehicleObj["x_mm"]             = static_cast<int32_t>(data.xPos);
-    vehicleObj["y_mm"]             = static_cast<int32_t>(data.yPos);
-    vehicleObj["orientation_mrad"] = static_cast<int32_t>(data.orientation);
+    vehicleObj["x_mm"]             = static_cast<int32_t>(xW_mm);
+    vehicleObj["y_mm"]             = static_cast<int32_t>(yW_mm);
+    vehicleObj["orientation_mrad"] = static_cast<int32_t>(thW_mrad);
     vehicleObj["vL_mms"]           = static_cast<int32_t>(data.left);
     vehicleObj["vR_mms"]           = static_cast<int32_t>(data.right);
     vehicleObj["vC_mms"]           = static_cast<int32_t>(data.center);
@@ -459,7 +477,16 @@ void App::publishVehicleAndSensorSnapshot(const VehicleData& data)
         values.add(static_cast<int32_t>(lineSensorValues[idx]));
     }
 
-    (void)serializeJson(payloadJson, payloadArray);
+    const size_t n = serializeJson(payloadJson, payloadArray, sizeof(payloadArray));
+    if (n < sizeof(payloadArray))
+    {
+        payloadArray[n] = '\0';
+    }
+    else
+    {
+        payloadArray[sizeof(payloadArray) - 1] = '\0';
+    }
+
     String payloadStr(payloadArray);
     if (false == m_mqttClient.publish(TOPIC_NAME_RAW_SENSORS, true, payloadStr))
     {
@@ -549,32 +576,59 @@ void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRada
 void App::transformOdometryToGlobal(const VehicleData& vehicleData, float& xGlob_mm, float& yGlob_mm,
                                     float& thetaGlob_mrad) const
 {
-    /* Y axis and heading sign differ between local odometry frame and SSR frame. */
-    constexpr float Y_SIGN     = -1.0F;
-    constexpr float THETA_SIGN = 1.0F;
+    /* Fallback if origin or odometry zero is not initialized yet. */
+    if ((false == m_odoOriginInitialized) || (false == m_odoZeroInitialized))
+    {
+        xGlob_mm       = static_cast<float>(vehicleData.xPos);
+        yGlob_mm       = static_cast<float>(vehicleData.yPos);
+        thetaGlob_mrad = static_cast<float>(vehicleData.orientation);
+        return;
+    }
 
-    const float xLocal_mm       = static_cast<float>(vehicleData.xPos);
-    const float yLocal_mm       = static_cast<float>(vehicleData.yPos);
-    const float thetaLocal_mrad = static_cast<float>(vehicleData.orientation);
+    /* Odometry delta since SSR origin was captured. */
+    const float xLocal_mm       = static_cast<float>(vehicleData.xPos) - m_odoZeroX_mm;
+    const float yLocal_mm       = static_cast<float>(vehicleData.yPos) - m_odoZeroY_mm;
+    const float thetaLocal_mrad = static_cast<float>(vehicleData.orientation) - m_odoZeroTheta_mrad;
 
-    const float originX = (true == m_odoOriginInitialized) ? m_odoOriginX_mm : 0.0F;
-    const float originY = (true == m_odoOriginInitialized) ? m_odoOriginY_mm : 0.0F;
+    /* ------------------------------------------------------------------
+     * 1) Fixed frame rotation between odometry frame and SSR world frame.
+     *    Only a pure +/- 90 deg rotation, no mirroring.
+     * ------------------------------------------------------------------ */
+    constexpr float PHI_MRAD = -M_PI / 2.0F * 1000.0F; // -pi/2 * 1000 -> -90 deg
 
-    xGlob_mm       = originX + xLocal_mm;
-    yGlob_mm       = originY + (Y_SIGN * yLocal_mm);
-    thetaGlob_mrad = THETA_SIGN * thetaLocal_mrad;
+    const float phi_rad = PHI_MRAD / 1000.0F;
+    const float cP      = cosf(phi_rad);
+    const float sP      = sinf(phi_rad);
+
+    const float xPhi_mm = cP * xLocal_mm - sP * yLocal_mm;
+    const float yPhi_mm = sP * xLocal_mm + cP * yLocal_mm;
+
+    /* ------------------------------------------------------------------
+     * 2) Rotate by SSR origin yaw (world orientation at capture time).
+     * ------------------------------------------------------------------ */
+    const float originTh_rad = m_odoOriginTheta_mrad / 1000.0F;
+    const float c0           = cosf(originTh_rad);
+    const float s0           = sinf(originTh_rad);
+
+    const float dxW_mm = c0 * xPhi_mm - s0 * yPhi_mm;
+    const float dyW_mm = s0 * xPhi_mm + c0 * yPhi_mm;
+
+    /* ------------------------------------------------------------------
+     * 3) Translate into SSR world frame.
+     * ------------------------------------------------------------------ */
+    xGlob_mm = m_odoOriginX_mm + dxW_mm;
+    yGlob_mm = m_odoOriginY_mm + dyW_mm;
+
+    /* ------------------------------------------------------------------
+     * 4) Heading: origin yaw + fixed frame offset + odometry delta.
+     * ------------------------------------------------------------------ */
+    thetaGlob_mrad = m_odoOriginTheta_mrad + PHI_MRAD + thetaLocal_mrad;
 }
 
 void App::publishFusionPose(uint32_t tsMs)
 {
     /* EKF state: [p_x, p_y, theta, v, omega]. */
     const StateVector& state = m_ekf.getState();
-
-    LOG_WARNING("EKF STATE @ %ums: x=%.3f y=%.3f theta=%.3f v=%.3f omega=%.3f", tsMs, state(0), state(1), state(2),
-                state(3), state(4));
-
-    LOG_WARNING("EKF STATE @ %ums: x=%.3f y=%.3f theta=%.3f v=%.3f omega=%.3f", tsMs, state(0), state(1), state(2),
-                state(3), state(4));
 
     JsonDocument payloadJson;
     char         payloadArray[JSON_FUSION_POSE_MAX_SIZE];
