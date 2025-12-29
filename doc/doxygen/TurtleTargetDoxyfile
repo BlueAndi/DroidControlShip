@@ -995,7 +995,8 @@ INPUT                  = mainpage.dox \
                          ../../src \
                          ../../lib/APPTurtle \
                          ../../lib/HALInterfaces \
-                         ../../lib/HALTarget \
+                         ../../lib/HALTargetCommon \
+                         ../../lib/HALTargetV1 \
                          ../../lib/Service \
                          ../../lib/Utilities
 
