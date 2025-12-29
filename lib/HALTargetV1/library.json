@@ -11,9 +11,6 @@
     "license": "MIT",
     "dependencies": [{
         "name": "Os"
-    },
-    {
-        "name": "HALTargetCommon"
     }],
     "frameworks": "arduino",
     "platforms": "*"
