@@ -373,7 +373,7 @@ void App::ssrTopicCallback(const String& payload)
             hostSynced ? m_timeSync.hostToEspLocalMs(hostEpochMs)
                        : m_timeSync.localNowMs(); /* Fallback: use local time if host is not synced */
 
-        LOG_INFO("SSR pose: ts_host_ms=%llu (hostSync=%s)", hostEpochMs, hostSynced ? "true" : "false");
+        LOG_DEBUG("SSR pose: ts_host_ms=%llu (hostSync=%s)", hostEpochMs, hostSynced ? "true" : "false");
 
         SpaceShipRadarPose ssrPose;
         ssrPose.x         = static_cast<float>(x_mm_i);
@@ -383,22 +383,22 @@ void App::ssrTopicCallback(const String& payload)
         ssrPose.v_y       = Y_SIGN * static_cast<float>(vy_mms_i);
         ssrPose.timestamp = static_cast<uint32_t>(ssrLocalTsMs);
 
-        if (false == m_odoOriginInitialized)
+        if ((false == m_odoOriginInitialized || false == m_odoZeroInitialized) && m_hasVehicleData == true)
         {
             m_odoOriginX_mm        = ssrPose.x;
             m_odoOriginY_mm        = ssrPose.y;
             m_odoOriginTheta_mrad  = ssrPose.theta;
             m_odoOriginInitialized = true;
+            m_odoZeroX_mm          = static_cast<float>(m_lastVehicleData.xPos);
+            m_odoZeroY_mm          = static_cast<float>(m_lastVehicleData.yPos);
+            m_odoZeroTheta_mrad    = static_cast<float>(m_lastVehicleData.orientation);
+            m_odoZeroInitialized   = true;
 
-            m_odoZeroX_mm        = static_cast<float>(m_lastVehicleData.xPos);
-            m_odoZeroY_mm        = static_cast<float>(m_lastVehicleData.yPos);
-            m_odoZeroTheta_mrad  = static_cast<float>(m_lastVehicleData.orientation);
-            m_odoZeroInitialized = true;
-
-            LOG_INFO("Odometry origin set from SSR: x=%dmm y=%dmm", x_mm_i, y_mm_i);
+            LOG_INFO("Odometry origin set from SSR: x=%fmm y=%fmm, theta=%f mrad", m_odoOriginX_mm, m_odoOriginY_mm,
+                     m_odoOriginTheta_mrad);
         }
 
-        if (false == m_ekfInitializedFromSSR)
+        if (false == m_ekfInitializedFromSSR && true == m_odoOriginInitialized && true == m_odoZeroInitialized)
         {
             StateVector x0;
             x0.setZero();
@@ -524,7 +524,7 @@ void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRada
         zumoLocalMs32 = static_cast<uint32_t>(m_timeSync.mapZumoToLocalMs(zumoTs32));
         ssrLocalMs32  = static_cast<uint32_t>(ssrPose.timestamp);
 
-        LOG_INFO("Filtering location data: Zumo=%u ms, SSR=%u ms", zumoLocalMs32, ssrLocalMs32);
+        LOG_DEBUG("Filtering location data: Zumo=%u ms, SSR=%u ms", zumoLocalMs32, ssrLocalMs32);
 
         /* Initialize EKF time on first data. */
         hasTimestamp = initializeEkfTimestamp(zumoLocalMs32, ssrLocalMs32);
@@ -576,7 +576,6 @@ void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRada
 void App::transformOdometryToGlobal(const VehicleData& vehicleData, float& xGlob_mm, float& yGlob_mm,
                                     float& thetaGlob_mrad) const
 {
-    /* Fallback if origin or odometry zero is not initialized yet. */
     if ((false == m_odoOriginInitialized) || (false == m_odoZeroInitialized))
     {
         xGlob_mm       = static_cast<float>(vehicleData.xPos);
@@ -585,44 +584,32 @@ void App::transformOdometryToGlobal(const VehicleData& vehicleData, float& xGlob
         return;
     }
 
-    /* Odometry delta since SSR origin was captured. */
-    const float xLocal_mm       = static_cast<float>(vehicleData.xPos) - m_odoZeroX_mm;
-    const float yLocal_mm       = static_cast<float>(vehicleData.yPos) - m_odoZeroY_mm;
+    const float xLocal_raw = static_cast<float>(vehicleData.xPos) - m_odoZeroX_mm;
+    const float yLocal_raw = static_cast<float>(vehicleData.yPos) - m_odoZeroY_mm;
+
+    // Map ODO pos to ENU (East/North)
+    const float xLocal_mm = yLocal_raw;  // East
+    const float yLocal_mm = -xLocal_raw; // North
+
+    // ODO delta since SSR origin was captured
     const float thetaLocal_mrad = static_cast<float>(vehicleData.orientation) - m_odoZeroTheta_mrad;
 
-    /* ------------------------------------------------------------------
-     * 1) Fixed frame rotation between odometry frame and SSR world frame.
-     *    Only a pure +/- 90 deg rotation, no mirroring.
-     * ------------------------------------------------------------------ */
-    constexpr float PHI_MRAD = -M_PI / 2.0F * 1000.0F; // -pi/2 * 1000 -> -90 deg
-
-    const float phi_rad = PHI_MRAD / 1000.0F;
-    const float cP      = cosf(phi_rad);
-    const float sP      = sinf(phi_rad);
-
-    const float xPhi_mm = cP * xLocal_mm - sP * yLocal_mm;
-    const float yPhi_mm = sP * xLocal_mm + cP * yLocal_mm;
-
-    /* ------------------------------------------------------------------
-     * 2) Rotate by SSR origin yaw (world orientation at capture time).
-     * ------------------------------------------------------------------ */
+    // Rotate delta into SSR world frame using SSR yaw at capture time
     const float originTh_rad = m_odoOriginTheta_mrad / 1000.0F;
     const float c0           = cosf(originTh_rad);
     const float s0           = sinf(originTh_rad);
 
-    const float dxW_mm = c0 * xPhi_mm - s0 * yPhi_mm;
-    const float dyW_mm = s0 * xPhi_mm + c0 * yPhi_mm;
+    const float dxW_mm = c0 * xLocal_mm - s0 * yLocal_mm;
+    const float dyW_mm = s0 * xLocal_mm + c0 * yLocal_mm;
 
-    /* ------------------------------------------------------------------
-     * 3) Translate into SSR world frame.
-     * ------------------------------------------------------------------ */
+    // Translate into SSR world frame
     xGlob_mm = m_odoOriginX_mm + dxW_mm;
     yGlob_mm = m_odoOriginY_mm + dyW_mm;
 
-    /* ------------------------------------------------------------------
-     * 4) Heading: origin yaw + fixed frame offset + odometry delta.
-     * ------------------------------------------------------------------ */
-    thetaGlob_mrad = m_odoOriginTheta_mrad + PHI_MRAD + thetaLocal_mrad;
+    // Heading
+    thetaGlob_mrad = m_odoOriginTheta_mrad + thetaLocal_mrad;
+
+    thetaGlob_mrad = wrapAngleMrad(thetaGlob_mrad);
 }
 
 void App::publishFusionPose(uint32_t tsMs)
@@ -702,6 +689,7 @@ void App::publishGps(MqttClient& mqttClient, uint32_t tsMs)
     }
 
     bool hasOrientation = gps->getOrientation(headingMrad);
+    headingMrad         = wrapAngleMrad(headingMrad);
 
     static bool     havePrev = false;
     static int32_t  prevX    = 0;
@@ -752,7 +740,10 @@ void App::publishGps(MqttClient& mqttClient, uint32_t tsMs)
 
 void App::onVehicleData(const VehicleData& data)
 {
-    publishVehicleAndSensorSnapshot(data);
+    if (m_odoOriginInitialized && m_odoZeroInitialized)
+    {
+        publishVehicleAndSensorSnapshot(data);
+    }
 
     m_lastVehicleData = data;
     m_hasVehicleData  = true;
@@ -862,6 +853,20 @@ void App::updateFromSsr(const SpaceShipRadarPose& ssrPose)
     z_cam(4) = ssrPose.v_y;
 
     m_ekf.updateCamera(z_cam);
+}
+
+float App::wrapAngleMrad(float angleMrad) const
+{
+    constexpr float PI_MRAD     = M_PI * 1000.0F;
+    constexpr float TWO_PI_MRAD = 2.0F * PI_MRAD;
+    /* Wrap to [-pi, pi). */
+    float x = std::fmod(angleMrad + PI_MRAD, TWO_PI_MRAD);
+    if (x < 0.0F)
+    {
+        x += TWO_PI_MRAD;
+    }
+
+    return x - PI_MRAD;
 }
 
 /******************************************************************************

@@ -372,6 +372,13 @@ private:
                                  uint32_t& newestLocalTs) const;
 
     /**
+     * @brief Wrap angle in mrad to [-pi, pi).
+     *
+     * @param[in] angleMrad Angle in mrad to wrap.
+     */
+    float wrapAngleMrad(float angleMrad) const;
+
+    /**
      * @brief Initialize EKF timestamp on first data reception.
      *
      * @param[in] zumoLocalMs32 Latest vehicle data timestamp [ms] (local time base).
