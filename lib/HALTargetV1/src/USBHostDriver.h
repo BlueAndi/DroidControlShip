@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef USBHOST_H
-#define USBHOST_H
+#ifndef USBHOSTDRIVER_H
+#define USBHOSTDRIVER_H
 
 /******************************************************************************
  * Compile Switches
@@ -243,5 +243,5 @@ private:
  * Functions
  *****************************************************************************/
 
-#endif /* USBHOST_H */
+#endif /* USBHOSTDRIVER_H */
 /** @} */
