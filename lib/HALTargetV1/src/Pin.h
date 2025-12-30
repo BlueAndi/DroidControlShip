@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Abstraction of the GPIOs of the device.
+ * @brief  Pin definition for the target board.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup HALTarget
  *
  * @{
  */
-
-#ifndef GPIO_H
-#define GPIO_H
+#ifndef PIN_H
+#define PIN_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,9 +42,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
+
 #include <Arduino.h>
-#include <Logging.h>
-#include <Io.hpp>
 
 /******************************************************************************
  * Macros
@@ -55,74 +53,32 @@
  * Types and Classes
  *****************************************************************************/
 
-/**
- * Namespace containg access to all device GPIOs.
- */
-namespace GpioPins
+/** Pin number of all used pins. */
+namespace Pin
 {
-    /** Pin number of all used pins. */
-    namespace Pin
-    {
-        /** Pin for push button for system reset/AP mode start (ACTIVE LOW) */
-        constexpr uint8_t PIN_WIFI_AND_RESET_KEY = 4;
+    /** Pin for push button for system reset/AP mode start (ACTIVE LOW) */
+    constexpr uint8_t PIN_WIFI_AND_RESET_KEY = 4U;
 
-        /** Pin for resetting the attached Zumo robot (ACTIVE LOW) */
-        constexpr uint8_t PIN_DEVICE_RESET = 27;
+    /** Pin for resetting the attached Zumo robot (ACTIVE LOW) */
+    constexpr uint8_t PIN_DEVICE_RESET = 27U;
 
-        /** Pin for info LED RGB channel RED (ACTIVE LOW) */
-        constexpr uint8_t INFO_LED_R = 16;
+    /** Pin for info LED RGB channel RED (ACTIVE LOW) */
+    constexpr uint8_t INFO_LED_R = 16U;
 
-        /** Pin for info LED RGB channel GREEN (ACTIVE LOW) */
-        constexpr uint8_t INFO_LED_G = 22;
+    /** Pin for info LED RGB channel GREEN (ACTIVE LOW) */
+    constexpr uint8_t INFO_LED_G = 22U;
 
-        /** Pin for info LED RGB channel BLUE (ACTIVE LOW) */
-        constexpr uint8_t INFO_LED_B = 21;
+    /** Pin for info LED RGB channel BLUE (ACTIVE LOW) */
+    constexpr uint8_t INFO_LED_B = 21U;
 
-        /** Pin for analog measurement of battery voltage */
-        constexpr uint8_t PIN_BATT_MEASUREMENT = 35;
+    /** Pin for analog measurement of battery voltage */
+    constexpr uint8_t PIN_BATT_MEASUREMENT = 35U;
 
-    }; // namespace Pin
-
-    /**
-     * Digital input pin: Reset Button.
-     */
-    extern const DInPin<Pin::PIN_WIFI_AND_RESET_KEY, INPUT_PULLUP> resetButtonPin;
-
-    /**
-     * Digital output pin: Reset Device.
-     */
-    extern const DOutPin<Pin::PIN_DEVICE_RESET> resetDevicePin;
-
-    /**
-     * Digital output pin: Info LED channel RED.
-     */
-    extern const DOutPin<Pin::INFO_LED_R> infoLedRedPin;
-
-    /**
-     * Digital output pin: Info LED channel GREEN.
-     */
-    extern const DOutPin<Pin::INFO_LED_G> infoLedGreenPin;
-
-    /**
-     * Digital output pin: Info LED channel BLUE.
-     */
-    extern const DOutPin<Pin::INFO_LED_B> infoLedBluePin;
-
-    /**
-     * Analog input pin: Battery voltage measurement.
-     */
-    extern const AnalogPin<Pin::PIN_BATT_MEASUREMENT> batteryVoltagePin;
-
-    /**
-     * Initialize all i/o pins.
-     */
-    extern void init();
-
-}; // namespace GpioPins
+}; // namespace Pin
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* GPIO_H */
+#endif /* PIN_H */
 /** @} */
