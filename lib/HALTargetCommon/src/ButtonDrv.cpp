@@ -62,6 +62,9 @@ static void IRAM_ATTR isrButton(void* arg);
 
 const IoPin* ButtonDrv::BUTTON_PIN[BUTTON_ID_CNT] = {
     &GpioPins::resetButtonPin,
+    &GpioPins::buttonAPin,
+    &GpioPins::buttonBPin,
+    &GpioPins::buttonCPin,
 };
 
 /**
@@ -71,6 +74,9 @@ const IoPin* ButtonDrv::BUTTON_PIN[BUTTON_ID_CNT] = {
  */
 static ButtonId gButtonId[BUTTON_ID_CNT] = {
     BUTTON_ID_OK,
+    BUTTON_ID_A,
+    BUTTON_ID_B,
+    BUTTON_ID_C,
 };
 
 /** Number of elements in the button id queue. */
@@ -271,10 +277,7 @@ void ButtonDrv::attachButtonsToInterrupt()
     {
         if (IoPin::NC != BUTTON_PIN[buttonIdx]->getPinNo())
         {
-            attachInterruptArg(BUTTON_PIN[buttonIdx]->getPinNo(),
-                isrButton,
-                &gButtonId[buttonIdx],
-                CHANGE);
+            attachInterruptArg(BUTTON_PIN[buttonIdx]->getPinNo(), isrButton, &gButtonId[buttonIdx], CHANGE);
 
             /* Start the debouncing to get a stable initial button state. */
             m_timer[buttonIdx].start(DEBOUNCING_TIME);
@@ -324,8 +327,7 @@ void ButtonDrv::buttonTaskMainLoop()
     /* Debounce buttons */
     while (BUTTON_ID_CNT > buttonIdx)
     {
-        if ((true == m_timer[buttonIdx].isTimerRunning()) &&
-            (true == m_timer[buttonIdx].isTimeout()))
+        if ((true == m_timer[buttonIdx].isTimerRunning()) && (true == m_timer[buttonIdx].isTimeout()))
         {
             ButtonState buttonState = BUTTON_STATE_UNKNOWN;
             uint8_t     buttonValue = HIGH;
