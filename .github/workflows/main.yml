@@ -46,6 +46,7 @@ jobs:
                       "ConvoyFollowerTarget",
                       "LineFollowerTarget",
                       "RemoteControlTarget",
+                      "RemoteControlTargetV2",
                       "SensorFusionTarget",
                       "TurtleTarget"]
 
@@ -136,6 +137,7 @@ jobs:
                       "LineFollowerTarget",
                       "LineFollowerSim",
                       "RemoteControlTarget",
+                      "RemoteControlTargetV2",
                       "RemoteControlSim",
                       "SensorFusionTarget",
                       "SensorFusionSim",
