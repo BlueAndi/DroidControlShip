@@ -86,7 +86,7 @@ public:
     void process() final;
 
     /**
-     * Get comunication stream.
+     * Get communication stream.
      *
      * @return Robot data stream.
      */

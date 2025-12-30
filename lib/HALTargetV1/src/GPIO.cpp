@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Abtraction of the GPIOs of the device.
+ *  @brief  Abstraction of the GPIOs of the device.
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 

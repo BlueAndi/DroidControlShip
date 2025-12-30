@@ -75,7 +75,7 @@ public:
      *
      * @param[in] filename Name of file to read.
      *
-     * @returns true if configuration succesfully loaded. Otherwise, false.
+     * @returns true if configuration successfully loaded. Otherwise, false.
      */
     bool loadConfigurationFile(const String& filename);
 
@@ -84,7 +84,7 @@ public:
      *
      * @param[in] filename Name of file to write.
      *
-     * @returns true if configuration succesfully saved. Otherwise, false.
+     * @returns true if configuration successfully saved. Otherwise, false.
      */
     bool saveConfigurationFile(const String& filename);
 

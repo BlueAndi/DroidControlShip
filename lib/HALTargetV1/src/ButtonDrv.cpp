@@ -81,7 +81,7 @@ static const uint32_t QUEUE_SIZE = 10U;
  * Every time the task detects a pin level change, it will notify the task
  * about it by sending the corresponding button id via queue.
  */
-static QueueHandle_t gxQueue     = nullptr;
+static QueueHandle_t gxQueue = nullptr;
 
 /******************************************************************************
  * Public Methods
@@ -94,7 +94,7 @@ bool ButtonDrv::init()
     /* Create semaphore to protect the button trigger array, which is accessed
      * by the task and the ISR.
      */
-    gxQueue           = xQueueCreate(QUEUE_SIZE, sizeof(ButtonId));
+    gxQueue = xQueueCreate(QUEUE_SIZE, sizeof(ButtonId));
 
     if (nullptr == gxQueue)
     {
@@ -174,7 +174,7 @@ void ButtonDrv::registerObserver(IButtonObserver& observer)
     {
         uint8_t buttonIndex = 0U;
 
-        m_observer          = &observer;
+        m_observer = &observer;
 
         while (BUTTON_ID_CNT > buttonIndex)
         {
@@ -223,6 +223,9 @@ bool ButtonDrv::enableWakeUpSources()
     /* If no button is pressed anymore, enable them as wakeup source. */
     if (true == allButtonsReleased)
     {
+        /* Reset button index. */
+        buttonIdx = 0U;
+
         /* Use all available buttons as wakeup sources. */
         while (BUTTON_ID_CNT > buttonIdx)
         {

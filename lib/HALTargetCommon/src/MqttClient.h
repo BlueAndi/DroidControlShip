@@ -98,7 +98,7 @@ public:
      * This method does not necessarily wait for the connection to be established, it just starts the connection
      * process. Check `isConnected()` for the current connection status.
      *
-     * @return If connection has been succesfully started, returns true. Otherwise, false.
+     * @return If connection has been successfully started, returns true. Otherwise, false.
      */
     bool connect() final;
 
@@ -181,7 +181,7 @@ private:
 
     /**
      * Max. MQTT client buffer size in byte.
-     * Received MQTT messages greather than this will be skipped.
+     * Received MQTT messages greater than this will be skipped.
      */
     static const size_t MAX_BUFFER_SIZE = 1024U;
 

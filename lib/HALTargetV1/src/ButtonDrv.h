@@ -146,7 +146,7 @@ public:
     ButtonState getState(ButtonId buttonId);
 
     /**
-     * Register an observer to get notifyed about button
+     * Register an observer to get notified about button
      * state changes. Only one observer is supported!
      *
      * @param[in] observer  The button observer
@@ -162,7 +162,7 @@ public:
      * Enable all buttons as wakeup sources.
      * A low level of the wakeup source will trigger the wakeup.
      * Ensure that all buttons are released at the time of calling it,
-     * otherwise the wakeup will occurre immediately.
+     * otherwise the wakeup will occur immediately.
      *
      * @return If not all buttons are released, it will return false and the
      *          wakeup sources are not enabled. Otherwise it will return true
@@ -189,7 +189,7 @@ private:
     IButtonObserver*      m_observer;             /**< Observer for button state changes */
 
     /** Button task stack size in bytes. */
-    static const uint32_t BUTTON_TASK_STACKE_SIZE = 2048U;
+    static const uint32_t BUTTON_TASK_STACK_SIZE = 2048U;
 
     /** Button task priority. */
     static const UBaseType_t BUTTON_TASK_PRIORITY  = 1U;
@@ -207,7 +207,7 @@ private:
      * Constructs the button driver instance.
      */
     ButtonDrv() :
-        m_buttonTask("buttonTask", buttonTask, BUTTON_TASK_STACKE_SIZE, BUTTON_TASK_PRIORITY, BUTTON_TASK_RUN_CORE),
+        m_buttonTask("buttonTask", buttonTask, BUTTON_TASK_STACK_SIZE, BUTTON_TASK_PRIORITY, BUTTON_TASK_RUN_CORE),
         m_xSemaphore(nullptr),
         m_state(),
         m_timer(),

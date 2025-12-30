@@ -94,7 +94,7 @@ public:
      * @param[in] subscriber Pointer to a new subscriber. It shall be instanced using new. The MicroRosClient will
      *                       delete the pointer once it is no longer used. Checks if the instance is nullptr.
      *
-     * @returns If succesfully created, returns true. Otherwise, false.
+     * @returns If successfully created, returns true. Otherwise, false.
      */
     bool registerSubscriber(BaseSubscriber* subscriber);
 
@@ -202,7 +202,7 @@ private:
      *
      * @param[in] ipAddress The Micro-ROS agent IP-address.
      * @param[in] port      The Micro-ROS agent port.
-     * 
+     *
      * @return If successful it will return true otherwise false.
      */
     bool setupCustomTransport(const IPAddress& ipAddress, uint16_t port);

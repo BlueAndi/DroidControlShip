@@ -134,7 +134,7 @@ private:
     /** WiFi Access Point Mode SSID */
     String m_apSSID;
 
-    /** WiFi Access Poit Mode Password */
+    /** WiFi Access Point Mode Password */
     String m_apPassword;
 
     /** WiFi Timeout Timer. */

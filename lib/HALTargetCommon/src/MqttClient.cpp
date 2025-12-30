@@ -415,7 +415,7 @@ void MqttClient::handleConnectingState()
 
         if (false == m_birthTopic.isEmpty())
         {
-            /* Publish birth message. Should succesfully publish if connected to broker. */
+            /* Publish birth message. Should successfully publish if connected to broker. */
             (void)publish(m_birthTopic, false, m_birthMessage);
         }
     }

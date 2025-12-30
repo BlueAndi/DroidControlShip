@@ -232,13 +232,13 @@ int USBHost::available()
 int USBHost::read()
 {
     /* Not implemented. */
-    return 0;
+    return -1;
 }
 
 int USBHost::peek()
 {
     /* Not implemented. */
-    return 0;
+    return -1;
 }
 
 size_t USBHost::readBytes(uint8_t* buffer, size_t length)
