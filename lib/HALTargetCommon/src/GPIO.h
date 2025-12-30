@@ -91,6 +91,36 @@ namespace GpioPins
     extern const AnalogPin<Pin::PIN_BATT_MEASUREMENT> batteryVoltagePin;
 
     /**
+     * Digital input pin: Button A.
+     */
+    extern const DInPin<Pin::PIN_BUTTON_A, INPUT_PULLUP> buttonAPin;
+
+    /**
+     * Digital input pin: Button B.
+     */
+    extern const DInPin<Pin::PIN_BUTTON_B, INPUT_PULLUP> buttonBPin;
+
+    /**
+     * Digital input pin: Button C.
+     */
+    extern const DInPin<Pin::PIN_BUTTON_C, INPUT_PULLUP> buttonCPin;
+
+    /**
+     * Digital output pin: LED A.
+     */
+    extern const DOutPin<Pin::PIN_LED_A> ledAPin;
+
+    /**
+     * Digital output pin: LED B.
+     */
+    extern const DOutPin<Pin::PIN_LED_B> ledBPin;
+
+    /**
+     * Digital output pin: LED C.
+     */
+    extern const DOutPin<Pin::PIN_LED_C> ledCPin;
+
+    /**
      * Initialize all i/o pins.
      */
     extern void init();

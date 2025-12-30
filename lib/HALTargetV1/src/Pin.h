@@ -44,6 +44,7 @@
  *****************************************************************************/
 
 #include <Arduino.h>
+#include <Io.hpp>
 
 /******************************************************************************
  * Macros
@@ -73,6 +74,24 @@ namespace Pin
 
     /** Pin for analog measurement of battery voltage */
     constexpr uint8_t PIN_BATT_MEASUREMENT = 35U;
+
+    /** Pin for push button A */
+    constexpr uint8_t PIN_BUTTON_A = IoPin::NC;
+
+    /** Pin for push button B */
+    constexpr uint8_t PIN_BUTTON_B = IoPin::NC;
+
+    /** Pin for push button C */
+    constexpr uint8_t PIN_BUTTON_C = IoPin::NC;
+
+    /** Pin for LED A */
+    constexpr uint8_t PIN_LED_A = IoPin::NC;
+
+    /** Pin for LED B */
+    constexpr uint8_t PIN_LED_B = IoPin::NC;
+
+    /** Pin for LED C */
+    constexpr uint8_t PIN_LED_C = IoPin::NC;
 
 }; // namespace Pin
 
