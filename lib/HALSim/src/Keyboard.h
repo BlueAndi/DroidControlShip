@@ -94,7 +94,7 @@ public:
     }
 
     /**
-     * Checks weather the button S was pressed.
+     * Checks whether the button S was pressed.
      *
      * @return Return true if button S was pressed.
      */
@@ -104,7 +104,7 @@ public:
     }
 
     /**
-     * Checks weather the button S is released.
+     * Checks whether the button S is released.
      *
      * @return Return true if button S is released.
      */
@@ -131,12 +131,144 @@ public:
         }
     }
 
+    /**
+     * Checks whether the button A was pressed.
+     *
+     * @return Return true if button A was pressed.
+     */
+    bool buttonAPressed()
+    {
+        return isButtonPressed(KEY_CODE_A_LOWER_CASE, KEY_CODE_A_UPPER_CASE);
+    }
+
+    /**
+     * Checks whether the button A is released.
+     *
+     * @return Return true if button A is released.
+     */
+    bool buttonAReleased()
+    {
+        return isButtonReleased(KEY_CODE_A_LOWER_CASE, KEY_CODE_A_UPPER_CASE);
+    }
+
+    /**
+     * Waits until Button A gets released.
+     * Needs to call the robots step() method and getPressedButtons()
+     * to update the keypresses correctly and avoid getting stuck
+     * in the while loop.
+     */
+    void waitForReleaseA()
+    {
+        while (!buttonAReleased())
+        {
+            if (false == m_simTime.step())
+            {
+                break;
+            }
+            getPressedButtons();
+        }
+    }
+
+    /**
+     * Checks whether the button B was pressed.
+     *
+     * @return Return true if button B was pressed.
+     */
+    bool buttonBPressed()
+    {
+        return isButtonPressed(KEY_CODE_B_LOWER_CASE, KEY_CODE_B_UPPER_CASE);
+    }
+
+    /**
+     * Checks whether the button B is released.
+     *
+     * @return Return true if button B is released.
+     */
+    bool buttonBReleased()
+    {
+        return isButtonReleased(KEY_CODE_B_LOWER_CASE, KEY_CODE_B_UPPER_CASE);
+    }
+
+    /**
+     * Waits until Button B gets released.
+     * Needs to call the robots step() method and getPressedButtons()
+     * to update the keypresses correctly and avoid getting stuck
+     * in the while loop.
+     */
+    void waitForReleaseB()
+    {
+        while (!buttonBReleased())
+        {
+            if (false == m_simTime.step())
+            {
+                break;
+            }
+            getPressedButtons();
+        }
+    }
+
+    /**
+     * Checks whether the button C was pressed.
+     *
+     * @return Return true if button C was pressed.
+     */
+    bool buttonCPressed()
+    {
+        return isButtonPressed(KEY_CODE_C_LOWER_CASE, KEY_CODE_C_UPPER_CASE);
+    }
+
+    /**
+     * Checks whether the button C is released.
+     *
+     * @return Return true if button C is released.
+     */
+    bool buttonCReleased()
+    {
+        return isButtonReleased(KEY_CODE_C_LOWER_CASE, KEY_CODE_C_UPPER_CASE);
+    }
+
+    /**
+     * Waits until Button C gets released.
+     * Needs to call the robots step() method and getPressedButtons()
+     * to update the keypresses correctly and avoid getting stuck
+     * in the while loop.
+     */
+    void waitForReleaseC()
+    {
+        while (!buttonCReleased())
+        {
+            if (false == m_simTime.step())
+            {
+                break;
+            }
+            getPressedButtons();
+        }
+    }
+
 private:
-    /** The key code of the lower case s character, which simulates the button. */
+    /** The key code of the lower case s character, which simulates the button "Reset". */
     static const char KEY_CODE_S_LOWER_CASE = 's';
 
-    /** The key code of the upper case S character, which simulates the button. */
+    /** The key code of the upper case S character, which simulates the button "Reset". */
     static const char KEY_CODE_S_UPPER_CASE = 'S';
+
+    /** The key code of the lower case s character, which simulates the button "A". */
+    static const char KEY_CODE_A_LOWER_CASE = 'a';
+
+    /** The key code of the upper case S character, which simulates the button "A". */
+    static const char KEY_CODE_A_UPPER_CASE = 'A';
+
+    /** The key code of the lower case s character, which simulates the button "B". */
+    static const char KEY_CODE_B_LOWER_CASE = 'b';
+
+    /** The key code of the upper case S character, which simulates the button "B". */
+    static const char KEY_CODE_B_UPPER_CASE = 'B';
+
+    /** The key code of the lower case s character, which simulates the button "C". */
+    static const char KEY_CODE_C_LOWER_CASE = 'c';
+
+    /** The key code of the upper case S character, which simulates the button "C". */
+    static const char KEY_CODE_C_UPPER_CASE = 'C';
 
     /** The maximum number of keys pressed simultaniously, that the simulation can process. */
     static const uint8_t MAX_KEY_NUMBER = 7;
