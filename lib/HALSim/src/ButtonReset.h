@@ -54,7 +54,7 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the simulation button. */
+/** This class provides access to the robot button "Reset". */
 class ButtonReset : public IButton
 {
 public:

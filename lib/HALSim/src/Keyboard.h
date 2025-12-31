@@ -85,7 +85,7 @@ public:
     void getPressedButtons()
     {
         /* Getting the new key values. Currently the limit of the simulation is seven
-         * keypresses that can be detected simultaniously.
+         * keypresses that can be detected simultaneously.
          */
         for (uint8_t keyIndex = 0; keyIndex < (sizeof(m_keys) / sizeof(*m_keys)); ++keyIndex)
         {
@@ -252,25 +252,25 @@ private:
     /** The key code of the upper case S character, which simulates the button "Reset". */
     static const char KEY_CODE_S_UPPER_CASE = 'S';
 
-    /** The key code of the lower case s character, which simulates the button "A". */
+    /** The key code of the lower case a character, which simulates the button "A". */
     static const char KEY_CODE_A_LOWER_CASE = 'a';
 
-    /** The key code of the upper case S character, which simulates the button "A". */
+    /** The key code of the upper case A character, which simulates the button "A". */
     static const char KEY_CODE_A_UPPER_CASE = 'A';
 
-    /** The key code of the lower case s character, which simulates the button "B". */
+    /** The key code of the lower case b character, which simulates the button "B". */
     static const char KEY_CODE_B_LOWER_CASE = 'b';
 
-    /** The key code of the upper case S character, which simulates the button "B". */
+    /** The key code of the upper case B character, which simulates the button "B". */
     static const char KEY_CODE_B_UPPER_CASE = 'B';
 
-    /** The key code of the lower case s character, which simulates the button "C". */
+    /** The key code of the lower case c character, which simulates the button "C". */
     static const char KEY_CODE_C_LOWER_CASE = 'c';
 
-    /** The key code of the upper case S character, which simulates the button "C". */
+    /** The key code of the upper case C character, which simulates the button "C". */
     static const char KEY_CODE_C_UPPER_CASE = 'C';
 
-    /** The maximum number of keys pressed simultaniously, that the simulation can process. */
+    /** The maximum number of keys pressed simultaneously, that the simulation can process. */
     static const uint8_t MAX_KEY_NUMBER = 7;
 
     /** The keys pressed during this update. */
