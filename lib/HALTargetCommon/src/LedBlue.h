@@ -28,7 +28,7 @@
  * @brief  Blue LED realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTarget
+ * @addtogroup HALTargetCommon
  *
  * @{
  */

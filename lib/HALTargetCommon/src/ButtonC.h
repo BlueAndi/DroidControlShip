@@ -28,7 +28,7 @@
  * @brief  Button "C" realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTarget
+ * @addtogroup HALTargetCommon
  *
  * @{
  */

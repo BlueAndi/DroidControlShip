@@ -28,7 +28,7 @@
  * @brief  Battery realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTarget
+ * @addtogroup HALTargetCommon
  *
  * @{
  */
@@ -93,7 +93,8 @@ private:
     static const uint32_t REFERENCE_VOLTAGE = 3300U;  /**< Reference voltage of the ADCs in millivolts*/
     static const uint32_t CONVERSION_FACTOR = 10000U; /**< Conversion factor from measured to real battery voltage. */
 
-    MovAvg<uint32_t, uint32_t, 2U> m_voltMovAvg; /**< The moving average of the measured voltage over 2 calling cycles. */
+    MovAvg<uint32_t, uint32_t, 2U>
+        m_voltMovAvg; /**< The moving average of the measured voltage over 2 calling cycles. */
 };
 
 /******************************************************************************

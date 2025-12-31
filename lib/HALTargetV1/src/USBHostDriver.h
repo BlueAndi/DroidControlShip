@@ -28,7 +28,7 @@
  * @brief  Abstraction and Stream implementation of USB Host
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTarget
+ * @addtogroup HALTargetV1
  *
  * @{
  */
