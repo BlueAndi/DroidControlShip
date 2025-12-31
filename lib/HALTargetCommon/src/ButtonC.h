@@ -1,0 +1,90 @@
+/* MIT License
+ *
+ * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+/*******************************************************************************
+    DESCRIPTION
+*******************************************************************************/
+/**
+ * @brief  Button "C" realization
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ *
+ * @addtogroup HALTarget
+ *
+ * @{
+ */
+
+#ifndef BUTTON_C_H
+#define BUTTON_C_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
+
+/******************************************************************************
+ * Includes
+ *****************************************************************************/
+#include "IButton.h"
+#include <stdint.h>
+
+/******************************************************************************
+ * Macros
+ *****************************************************************************/
+
+/******************************************************************************
+ * Types and Classes
+ *****************************************************************************/
+
+/** This class provides access to the robot's button. */
+class ButtonC : public IButton
+{
+public:
+    /**
+     * Constructs the button adapter.
+     */
+    ButtonC() : IButton()
+    {
+    }
+
+    /**
+     * Destroys the button adapter.
+     */
+    virtual ~ButtonC()
+    {
+    }
+
+    /**
+     * Is button pressed or released?
+     *
+     * @return If button is pressed, returns true otherwise false.
+     */
+    bool isPressed() final;
+
+private:
+};
+
+/******************************************************************************
+ * Functions
+ *****************************************************************************/
+
+#endif /* BUTTON_C_H */
+/** @} */
