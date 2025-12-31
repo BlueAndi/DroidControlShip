@@ -125,7 +125,7 @@ namespace GpioPins
      */
     extern void init();
 
-}; // namespace GpioPins
+}; /* namespace GpioPins */
 
 /******************************************************************************
  * Functions

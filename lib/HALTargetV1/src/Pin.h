@@ -93,7 +93,7 @@ namespace Pin
     /** Pin for LED C */
     constexpr uint8_t PIN_LED_C = IoPin::NC;
 
-}; // namespace Pin
+}; /* namespace Pin */
 
 /******************************************************************************
  * Functions
