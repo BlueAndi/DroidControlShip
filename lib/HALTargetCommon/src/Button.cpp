@@ -62,7 +62,7 @@
 
 bool Button::isPressed()
 {
-    return (BUTTON_STATE_PRESSED == ButtonDrv::getInstance().getState(BUTTON_ID_OK));
+    return (BUTTON_STATE_PRESSED == ButtonDrv::getInstance().getState(BUTTON_ID_RESET));
 }
 
 /******************************************************************************

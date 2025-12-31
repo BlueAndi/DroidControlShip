@@ -73,7 +73,7 @@ const IoPin* ButtonDrv::BUTTON_PIN[BUTTON_ID_CNT] = {
  * (re-)start the debounce timer.
  */
 static ButtonId gButtonId[BUTTON_ID_CNT] = {
-    BUTTON_ID_OK,
+    BUTTON_ID_RESET,
     BUTTON_ID_A,
     BUTTON_ID_B,
     BUTTON_ID_C,
@@ -334,8 +334,17 @@ void ButtonDrv::buttonTaskMainLoop()
 
             switch (buttonIdx)
             {
-            case BUTTON_ID_OK:
+            case BUTTON_ID_RESET:
                 buttonValue = GpioPins::resetButtonPin.read();
+                break;
+            case BUTTON_ID_A:
+                buttonValue = GpioPins::buttonAPin.read();
+                break;
+            case BUTTON_ID_B:
+                buttonValue = GpioPins::buttonBPin.read();
+                break;
+            case BUTTON_ID_C:
+                buttonValue = GpioPins::buttonCPin.read();
                 break;
 
             default:
