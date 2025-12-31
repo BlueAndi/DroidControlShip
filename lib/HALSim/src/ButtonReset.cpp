@@ -25,16 +25,14 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
+ * @brief  Button "Reset" realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
-#include "GPIO.h"
-#include "ButtonDrv.h"
+#include "ButtonReset.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -60,9 +58,9 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isPressed()
+bool ButtonReset::isPressed()
 {
-    return (BUTTON_STATE_PRESSED == ButtonDrv::getInstance().getState(BUTTON_ID_RESET));
+    return m_keyboard.buttonSPressed();
 }
 
 /******************************************************************************

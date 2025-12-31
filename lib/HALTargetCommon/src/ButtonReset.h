@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
+ * @brief  Button "Reset" realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup HALTarget
@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef BUTTON_H
-#define BUTTON_H
+#ifndef BUTTON_RESET_H
+#define BUTTON_RESET_H
 
 /******************************************************************************
  * Compile Switches
@@ -55,20 +55,20 @@
  *****************************************************************************/
 
 /** This class provides access to the robot's button. */
-class Button : public IButton
+class ButtonReset : public IButton
 {
 public:
     /**
      * Constructs the button adapter.
      */
-    Button() : IButton()
+    ButtonReset() : IButton()
     {
     }
 
     /**
      * Destroys the button adapter.
      */
-    virtual ~Button()
+    virtual ~ButtonReset()
     {
     }
 
@@ -86,5 +86,5 @@ private:
  * Functions
  *****************************************************************************/
 
-#endif /* BUTTON_H */
+#endif /* BUTTON_RESET_H */
 /** @} */
