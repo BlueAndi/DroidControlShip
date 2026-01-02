@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Vehicle to Vehicle (V2V) communication manager.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

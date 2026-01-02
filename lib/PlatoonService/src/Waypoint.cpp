@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Definition of a Waypoint.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

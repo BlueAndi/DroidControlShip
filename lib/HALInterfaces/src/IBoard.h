@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Board interface, which abstracts the physical board
  * @author Andreas Merkle <web@blue-andi.de>
  *

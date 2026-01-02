@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Keyboard realization
  * @author Andreas Merkle <web@blue-andi.de>
  *

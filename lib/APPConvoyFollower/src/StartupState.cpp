@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Startup State.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

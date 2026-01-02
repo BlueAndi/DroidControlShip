@@ -25,7 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief WifiClient class for ArduinoNative (Winwsock 2 variant)
+ *  @file
+ * @brief WifiClient class for ArduinoNative (Winwsock 2 variant)
  *  @author Norbert Schulz <github@schulznorbert.de>
  */
 

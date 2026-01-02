@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  FileHandler implementation.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

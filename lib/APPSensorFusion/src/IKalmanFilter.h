@@ -25,7 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Interface Class of a Kalman Filter Implementation
+ *  @file
+ * @brief  Interface Class of a Kalman Filter Implementation
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
  *
  *  @addtogroup Application

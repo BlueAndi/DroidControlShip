@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Utility
  * @author Yann Le Glaz <yann_le@web.de>
  *

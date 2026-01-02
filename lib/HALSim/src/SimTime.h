@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Simulation time
  * @author Andreas Merkle <web@blue-andi.de>
  *

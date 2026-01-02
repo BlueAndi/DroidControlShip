@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Button driver
  * @author Andreas Merkle <web@blue-andi.de>
  *

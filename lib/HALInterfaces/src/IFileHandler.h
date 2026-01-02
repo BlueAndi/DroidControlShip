@@ -25,7 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  File Handler Interface
+ *  @file
+ * @brief  File Handler Interface
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 

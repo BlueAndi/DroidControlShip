@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Line sensors
  * @author Andreas Merkle <web@blue-andi.de>
  */

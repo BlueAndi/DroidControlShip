@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  RemoteControl common constants.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

@@ -25,7 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Minimal IPAddress API
+ *  @file
+ * @brief  Minimal IPAddress API
  *  @author Norbert Schulz <schulz.norbert@gmail.com>
  *
  * @addtogroup Arduino

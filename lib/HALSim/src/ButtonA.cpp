@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Button "A" realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

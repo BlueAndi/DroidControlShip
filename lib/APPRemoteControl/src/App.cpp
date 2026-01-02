@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  RemoteControl application
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

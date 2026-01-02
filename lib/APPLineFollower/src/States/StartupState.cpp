@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Startup state
  * @author Andreas Merkle <web@blue-andi.de>
  */

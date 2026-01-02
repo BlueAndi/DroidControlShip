@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Moving average
  * @author Andreas Merkle <web@blue-andi.de>
  *

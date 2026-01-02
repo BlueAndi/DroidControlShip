@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief Custom Transport class with C-language interface for microros.
  * @author Norbert Schulz <github@schulznorbert.de>
  *

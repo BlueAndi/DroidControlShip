@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Utilities for calculation of waypoints and related quantities.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Error State.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

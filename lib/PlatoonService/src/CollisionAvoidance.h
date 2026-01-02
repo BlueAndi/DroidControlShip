@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Collision Avoidance Module.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

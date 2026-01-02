@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  UDP Client for Native platform. Emulation of WiFiUDP.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

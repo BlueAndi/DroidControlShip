@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Error state
  * @author Andreas Merkle <web@blue-andi.de>
  */

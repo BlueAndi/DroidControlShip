@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Wifi Client for Native platform. Emulation of Arduino WiFiClient.
  * @author Norbert Schulz <github@schulznorbert.de>
  *

@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Battery realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Test (some) WString functions.
  * @author Luca Dubies <luca.dubies@newtec.de>
  */

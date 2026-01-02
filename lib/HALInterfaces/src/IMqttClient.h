@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Abstract MQTT Client interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

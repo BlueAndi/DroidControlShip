@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Abstract native robot interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

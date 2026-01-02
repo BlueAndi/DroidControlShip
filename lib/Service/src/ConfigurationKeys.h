@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Keys of the JSON structure of the configuration file.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

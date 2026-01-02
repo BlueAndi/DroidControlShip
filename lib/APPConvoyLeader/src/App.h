@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  ConvoyLeader application
  * @author Andreas Merkle <web@blue-andi.de>
  *

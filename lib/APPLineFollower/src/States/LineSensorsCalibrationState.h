@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Line sensors calibration state
  * @author Andreas Merkle <web@blue-andi.de>
  *

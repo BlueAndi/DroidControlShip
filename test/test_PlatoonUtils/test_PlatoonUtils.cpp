@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Test PlatoonUtils.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

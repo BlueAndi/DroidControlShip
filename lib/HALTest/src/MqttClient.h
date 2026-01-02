@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  MQTTClient realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

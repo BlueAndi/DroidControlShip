@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  PID regulator
  * @author Andreas Merkle <web@blue-andi.de>
  *

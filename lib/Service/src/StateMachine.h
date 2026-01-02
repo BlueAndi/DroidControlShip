@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Statemachine
  * @author Andreas Merkle <web@blue-andi.de>
  *

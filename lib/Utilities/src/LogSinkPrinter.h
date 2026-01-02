@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Printer log sink
  * @author Andreas Merkle <web@blue-andi.de>
  *

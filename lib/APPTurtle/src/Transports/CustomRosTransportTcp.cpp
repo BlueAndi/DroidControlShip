@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Custom Micro-ROS transport using TCP over Arduino WifiClient.
  * @author Norbert Schulz <github@schulznorbert.de>
  */

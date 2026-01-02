@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Webots serial driver
  * @author Andreas Merkle <web@blue-andi.de>
  *

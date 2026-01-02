@@ -25,7 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief WifiClient class for ArduinoNative.
+ *  @file
+ * @brief WifiClient class for ArduinoNative.
  *  @author Norbert Schulz <github@schulznorbert.de>
  */
 

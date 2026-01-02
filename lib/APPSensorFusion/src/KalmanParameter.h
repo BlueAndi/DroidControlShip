@@ -25,7 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Struct for Parameter used for a Kalman Filter
+ *  @file
+ * @brief  Struct for Parameter used for a Kalman Filter
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
  *
  *  @addtogroup Application

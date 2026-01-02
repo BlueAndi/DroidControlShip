@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Test (some) IPAddress functions.
  * @author Norbert Schulz <schulz.norbert@gmail.com>
  */

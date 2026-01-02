@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Abstraction and Stream implementation of USB Host
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

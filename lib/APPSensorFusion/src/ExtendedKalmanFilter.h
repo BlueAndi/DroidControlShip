@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Implementation of the Extended Kalman Filter
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *

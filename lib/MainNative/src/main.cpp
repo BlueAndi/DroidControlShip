@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Main entry point
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

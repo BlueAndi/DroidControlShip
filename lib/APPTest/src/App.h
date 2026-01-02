@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Test application
  * @author Andreas Merkle <web@blue-andi.de>
  *

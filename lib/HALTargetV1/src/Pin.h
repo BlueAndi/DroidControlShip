@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Pin definition for the target board.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

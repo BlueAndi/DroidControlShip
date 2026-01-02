@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Subscriber Class.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

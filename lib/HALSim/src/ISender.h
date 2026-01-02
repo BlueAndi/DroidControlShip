@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Abstract sender interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

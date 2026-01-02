@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Custom Micro-ROS transport over UDP.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  freeRTOS queue wrapper
  * @author Andreas Merkle <web@blue-andi.de>
  *

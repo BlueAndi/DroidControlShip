@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Ready state
  * @author Andreas Merkle <web@blue-andi.de>
  *

@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Abstract battery interface
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

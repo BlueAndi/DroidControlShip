@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Heading Finder Module.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

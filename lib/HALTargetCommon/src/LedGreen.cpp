@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Green LED realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

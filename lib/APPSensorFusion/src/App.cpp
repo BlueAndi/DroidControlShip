@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  SensorFusion application
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  */

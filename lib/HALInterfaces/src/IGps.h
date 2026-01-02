@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  GPS Interface.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

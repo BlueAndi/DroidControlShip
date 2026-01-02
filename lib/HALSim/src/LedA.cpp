@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  "A" LED realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

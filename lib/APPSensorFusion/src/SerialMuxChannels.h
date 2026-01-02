@@ -26,7 +26,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Channel structure definition for the SerialMuxProt.
+ *  @file
+ * @brief  Channel structure definition for the SerialMuxProt.
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
  *
  *  @addtogroup Application

@@ -25,7 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief Mock WiFi class for ArduinoNative
+ *  @file
+ * @brief Mock WiFi class for ArduinoNative
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 

@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Line follower application
  * @author Andreas Merkle <web@blue-andi.de>
  */

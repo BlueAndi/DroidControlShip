@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Sender realization
  * @author Andreas Merkle <web@blue-andi.de>
  *

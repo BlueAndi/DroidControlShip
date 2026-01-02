@@ -25,7 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Implementation of IPAddress
+ *  @file
+ * @brief  Implementation of IPAddress
  *  @author Norbert Schulz <schulz.norbert@gmail.com>
  */
 
