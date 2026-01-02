@@ -35,3 +35,38 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r .github/workflows/requirements.txt
+
+  # Build Webots simulation targets
+  build:
+    # The type of runner that the job will run on.
+    runs-on: ubuntu-24.04
+    needs: intro
+    strategy:
+      matrix:
+        environment: ["ConvoyLeaderSim",
+                      "ConvoyFollowerSim",
+                      "LineFollowerSim",
+                      "RemoteControlSim",
+                      "SensorFusionSim"]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job.
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12.3'
+        cache: 'pip'
+        cache-dependency-path: .github/workflows/requirements.txt
+    
+    - name: Install dependencies
+      run: |
+        pip install -r .github/workflows/requirements.txt
+    
+    - name: Compile ${{ matrix.environment }} firmware
+      run: platformio run --environment ${{ matrix.environment }}
+
+    - name: Perform static checks on ${{ matrix.environment }}
+      run: platformio check --environment ${{ matrix.environment }} --fail-on-defect=medium --fail-on-defect=high
