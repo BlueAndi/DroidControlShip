@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2019 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2019 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  freeRTOS task wrapper
  * @author Andreas Merkle <web@blue-andi.de>
  *
@@ -69,11 +70,10 @@
  *
  * @tparam T
  */
-template <typename T>
+template<typename T>
 class Task
 {
 public:
-
     /**
      * Task function type, which can be used to set a custom task function.
      *
@@ -90,7 +90,8 @@ public:
      * @param[in] priority     Task priority. Optional, default is 1.
      * @param[in] core         Core on which the task shall run. Optional, default is APP_CPU_NUM.
      */
-    Task(const char* name, uint32_t stackSize = DEFAULT_STACK_SIZE, UBaseType_t priority = DEFAULT_PRIORITY, BaseType_t core = DEFAULT_CORE) :
+    Task(const char* name, uint32_t stackSize = DEFAULT_STACK_SIZE, UBaseType_t priority = DEFAULT_PRIORITY,
+         BaseType_t core = DEFAULT_CORE) :
         m_name(name),
         m_function(nullptr),
         m_stackSize(stackSize),
@@ -114,7 +115,8 @@ public:
      * @param[in] priority     Task priority. Optional, default is 1.
      * @param[in] core         Core on which the task shall run. Optional, default is APP_CPU_NUM.
      */
-    Task(const char* name, TaskFunction function, uint32_t stackSize = DEFAULT_STACK_SIZE, UBaseType_t priority = DEFAULT_PRIORITY, BaseType_t core = DEFAULT_CORE) :
+    Task(const char* name, TaskFunction function, uint32_t stackSize = DEFAULT_STACK_SIZE,
+         UBaseType_t priority = DEFAULT_PRIORITY, BaseType_t core = DEFAULT_CORE) :
         m_name(name),
         m_function(function),
         m_stackSize(stackSize),
@@ -150,7 +152,7 @@ public:
      * If the task does not exit within the default timeout, it will be aborted.
      *
      * @param[in] timeout    Timeout in ms for task stop (optional).
-     * 
+     *
      * @return If successful, it will return true otherwise false.
      */
     bool stop(uint32_t timeout = DEFAULT_TIMEOUT);
@@ -165,7 +167,7 @@ public:
     /**
      * Default stack size in bytes.
      */
-    static const uint32_t DEFAULT_STACK_SIZE  = 4096U;
+    static const uint32_t DEFAULT_STACK_SIZE = 4096U;
 
     /**
      * Default task priority.
@@ -176,16 +178,15 @@ public:
      * Default task core, which is the APP CPU core.
      * This is the default core on which the task shall run.
      */
-    static const BaseType_t DEFAULT_CORE      = APP_CPU_NUM;
+    static const BaseType_t DEFAULT_CORE = APP_CPU_NUM;
 
     /**
      * Default timeout in ms for task stop.
      * If the task does not stop within this time, it will be aborted.
      */
-    static const uint32_t DEFAULT_TIMEOUT     = 2000U;
+    static const uint32_t DEFAULT_TIMEOUT = 2000U;
 
 protected:
-
     /**
      * The default process method, which can be overridden by the derived class.
      *
@@ -197,7 +198,6 @@ protected:
     }
 
 private:
-
     const char*       m_name;          /**< Name of the task */
     TaskFunction      m_function;      /**< Task function to be called periodically, if set */
     uint32_t          m_stackSize;     /**< Stack size in bytes */
@@ -211,14 +211,14 @@ private:
     /**
      * Default constructor not allowed.
      */
-    Task()                            = delete;
+    Task() = delete;
 
     /**
      * Copy constructor not allowed.
      *
      * @param[in] task    Task to copy.
      */
-    Task(const Task& task)            = delete;
+    Task(const Task& task) = delete;
 
     /**
      * Assignment operator not allowed.
@@ -238,7 +238,7 @@ private:
     static void lowLevelTaskFunction(void* parameters);
 };
 
-template <typename T>
+template<typename T>
 bool Task<T>::start(T* parameters)
 {
     bool status = false;
@@ -246,8 +246,8 @@ bool Task<T>::start(T* parameters)
     /* Task not started yet? */
     if (nullptr == m_taskHandle)
     {
-        m_parameters    = parameters;
-        m_reqExit       = false;
+        m_parameters = parameters;
+        m_reqExit    = false;
 
         /* Create a semaphore to signal the task exit, if not created yet. */
         m_exitSemaphore = xSemaphoreCreateBinary();
@@ -258,14 +258,8 @@ bool Task<T>::start(T* parameters)
             if (pdTRUE == xSemaphoreGive(m_exitSemaphore))
             {
                 /* Create the task. */
-                BaseType_t result = xTaskCreateUniversal(
-                    lowLevelTaskFunction,
-                    m_name,
-                    m_stackSize,
-                    this,
-                    m_priority,
-                    &m_taskHandle,
-                    m_core);
+                BaseType_t result = xTaskCreateUniversal(lowLevelTaskFunction, m_name, m_stackSize, this, m_priority,
+                                                         &m_taskHandle, m_core);
 
                 if (pdPASS == result)
                 {
@@ -290,7 +284,7 @@ bool Task<T>::start(T* parameters)
     return status;
 }
 
-template <typename T>
+template<typename T>
 bool Task<T>::stop(uint32_t timeout)
 {
     bool status = false;
@@ -315,13 +309,13 @@ bool Task<T>::stop(uint32_t timeout)
         vSemaphoreDelete(m_exitSemaphore);
         m_exitSemaphore = nullptr;
 
-        status          = true;
+        status = true;
     }
 
     return status;
 }
 
-template <typename T>
+template<typename T>
 bool Task<T>::isRunning() const
 {
     bool isRunning = false;
@@ -334,13 +328,12 @@ bool Task<T>::isRunning() const
     return isRunning;
 }
 
-template <typename T>
+template<typename T>
 void Task<T>::lowLevelTaskFunction(void* parameters)
 {
     Task* task = static_cast<Task*>(parameters);
 
-    if ((nullptr != task) &&
-        (nullptr != task->m_exitSemaphore))
+    if ((nullptr != task) && (nullptr != task->m_exitSemaphore))
     {
         /* Grab the semaphore which is used later to signal that the
          * task exited.

@@ -2,7 +2,7 @@
 
 # MIT License
 #
-# Copyright (c) 2022 - 2025 Andreas Merkle (web@blue-andi.de)
+# Copyright (c) 2022 - 2026 Andreas Merkle (web@blue-andi.de)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,10 +36,10 @@ import platform
 # Variables
 ################################################################################
 
-src_path_include_c      = os.getenv('WEBOTS_HOME') + '/include/controller/c'
-src_path_include_cpp    = os.getenv('WEBOTS_HOME') + '/include/controller/cpp'
-src_path_source         = os.getenv('WEBOTS_HOME') + '/src/controller/cpp'
-src_path_lib            = os.getenv('WEBOTS_HOME') + '/lib/controller/libController'
+src_path_include_c = os.getenv('WEBOTS_HOME') + '/include/controller/c'
+src_path_include_cpp = os.getenv('WEBOTS_HOME') + '/include/controller/cpp'
+src_path_source = os.getenv('WEBOTS_HOME') + '/src/controller/cpp'
+src_path_lib = os.getenv('WEBOTS_HOME') + '/lib/controller/libController'
 
 OS_PLATFORM_TYPE_WIN = "Windows"
 OS_PLATFORM_TYPE_LINUX = "Linux"
@@ -79,6 +79,7 @@ library_json = {
 # Functions
 ################################################################################
 
+
 def copy_path_recursive(src, dst):
     """Copy all files from the source path to the destination path.
 
@@ -88,10 +89,12 @@ def copy_path_recursive(src, dst):
     """
     try:
         shutil.copytree(src, dst)
-    except OSError as exc: # python >2.5
+    except OSError as exc:  # python >2.5
         if exc.errno in (errno.ENOTDIR, errno.EINVAL):
             shutil.copy(src, dst)
-        else: raise
+        else:
+            raise
+
 
 def copy_single_file(src, dst):
     """Copy a single source file to the destination path.
@@ -106,6 +109,7 @@ def copy_single_file(src, dst):
 ################################################################################
 # Main
 ################################################################################
+
 
 if os.path.exists(DST_PATH) is False:
     print(f'Create WEBOTS library to {DST_PATH}.')

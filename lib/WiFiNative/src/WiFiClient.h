@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Wifi Client for Native platform. Emulation of Arduino WiFiClient.
  * @author Norbert Schulz <github@schulznorbert.de>
  *
@@ -55,14 +56,13 @@
  *****************************************************************************/
 
 /**
- * WiFiClient client class compatible with Arduino. 
- * 
+ * WiFiClient client class compatible with Arduino.
+ *
  * Only a subset of API functions is supported, based on the actual demand.
  */
 class WiFiClient
 {
-    public:
-
+public:
     /**
      * Default constructor.
      */
@@ -77,7 +77,7 @@ class WiFiClient
 
     /**
      * Establish a connection.
-     * 
+     *
      * @param[in] addr Port number.
      * @param[in] port Port number.
      * @return If successful returns 1, otherwise 0.
@@ -86,7 +86,7 @@ class WiFiClient
 
     /**
      * Indicate if client is connected.
-     * 
+     *
      * @return If successful returns 1, otherwise 0.
      */
     uint8_t connected() const;
@@ -101,20 +101,19 @@ class WiFiClient
      *
      * The write uses non blocking socket mode, but retries on a
      * EWOULDBLOCK result. The constants SOCK_WRITE_RETRY and
-     * SOCK_WRITE_TMO_US define how often to retry and the 
+     * SOCK_WRITE_TMO_US define how often to retry and the
      * time delay in between.
-     * 
+     *
      * @param[in] buffer Byte Array to send.
      * @param[in] size Length of Buffer.
-     * 
+     *
      * @returns Number of bytes written or 0 on error.
      */
     size_t write(const uint8_t* buffer, size_t size);
 
-
     /**
      * Check if there are available bytes in the Stream.
-     * 
+     *
      * @returns Number of available bytes.
      */
     int available() const;
@@ -130,7 +129,7 @@ class WiFiClient
     int read(uint8_t* buffer, size_t size);
 
 private:
-    static const uint32_t SOCK_WRITE_RETRY = 4U;    /**< How often to retry sending.  */
+    static const uint32_t SOCK_WRITE_RETRY  = 4U;   /**< How often to retry sending.  */
     static const uint32_t SOCK_WRITE_TMO_US = 250U; /**< Delay between write attemps. */
 };
 

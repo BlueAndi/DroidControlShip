@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Custom Transport class with C-language interface for microros.
  * @author Norbert Schulz <github@schulznorbert.de>
  */
@@ -53,7 +54,7 @@
 
 /**
  * Unwrap pointer to CustomRosTransportBase from uxrCustomTransport structure.
- * 
+ *
  * This is used by the static C-Languge entry points to forward the request
  * to the matching C++ member function.
  *
@@ -73,26 +74,27 @@ static inline CustomRosTransportBase* toThis(const uxrCustomTransport* transport
 
 bool CustomRosTransportBase::open(uxrCustomTransport* transport)
 {
-    CustomRosTransportBase * tp = toThis(transport);
+    CustomRosTransportBase* tp = toThis(transport);
     return (nullptr != tp) ? tp->open() : false;
 }
 
 bool CustomRosTransportBase::close(uxrCustomTransport* transport)
 {
-    CustomRosTransportBase * tp = toThis(transport);
+    CustomRosTransportBase* tp = toThis(transport);
     return (nullptr != tp) ? tp->close() : false;
 }
 
-size_t CustomRosTransportBase::write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size, uint8_t* errorCode)
+size_t CustomRosTransportBase::write(uxrCustomTransport* transport, const uint8_t* buffer, size_t size,
+                                     uint8_t* errorCode)
 {
-    CustomRosTransportBase * tp = toThis(transport);
+    CustomRosTransportBase* tp = toThis(transport);
     return (nullptr != tp) ? tp->write(buffer, size, errorCode) : 0U;
 }
 
 size_t CustomRosTransportBase::read(uxrCustomTransport* transport, uint8_t* buffer, size_t size, int timeout,
-                                uint8_t* errorCode)
+                                    uint8_t* errorCode)
 {
-    CustomRosTransportBase * tp = toThis(transport);
+    CustomRosTransportBase* tp = toThis(transport);
     return (nullptr != tp) ? tp->read(buffer, size, timeout, errorCode) : 0U;
 }
 
@@ -115,7 +117,7 @@ size_t CustomRosTransportBase::read(uxrCustomTransport* transport, uint8_t* buff
 static inline CustomRosTransportBase* toThis(const uxrCustomTransport* transport)
 {
     CustomRosTransportBase* transportClass = nullptr;
-    
+
     if (nullptr == transport)
     {
         LOG_FATAL("Invalid uxrCustomTransport pointer.");

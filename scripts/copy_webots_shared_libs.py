@@ -2,7 +2,7 @@
 
 # MIT License
 #
-# Copyright (c) 2022 - 2025 Andreas Merkle (web@blue-andi.de)
+# Copyright (c) 2022 - 2026 Andreas Merkle (web@blue-andi.de)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ import os
 import platform
 import sys
 
-Import("env") # pylint: disable=undefined-variable
+Import("env")  # pylint: disable=undefined-variable
 
 ################################################################################
 # Variables
@@ -72,7 +72,7 @@ else:
     print(f"OS type {OS_PLATFORM_TYPE} not supported.")
     sys.exit(1)
 
-PIO_ENV_NAME = env["PIOENV"] # pylint: disable=undefined-variable
+PIO_ENV_NAME = env["PIOENV"]  # pylint: disable=undefined-variable
 
 ################################################################################
 # Classes

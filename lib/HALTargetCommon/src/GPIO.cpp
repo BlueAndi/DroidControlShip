@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Abstraction of the GPIOs of the device.
+ *  @file
+ * @brief  Abstraction of the GPIOs of the device.
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
@@ -118,20 +119,9 @@ const DOutPin<Pin::PIN_LED_C> GpioPins::ledCPin;
  *****************************************************************************/
 
 /** A list of all used i/o pins, used for initialization. */
-static const IoPin* ioPinList[] =
-{
-    &resetButtonPin,
-    &resetDevicePin,
-    &infoLedRedPin,
-    &infoLedGreenPin,
-    &infoLedBluePin,
-    &batteryVoltagePin,
-    &buttonAPin,
-    &buttonBPin,
-    &buttonCPin,
-    &ledAPin,
-    &ledBPin,
-    &ledCPin,
+static const IoPin* ioPinList[] = {
+    &resetButtonPin, &resetDevicePin, &infoLedRedPin, &infoLedGreenPin, &infoLedBluePin, &batteryVoltagePin,
+    &buttonAPin,     &buttonBPin,     &buttonCPin,    &ledAPin,         &ledBPin,        &ledCPin,
 };
 
 /******************************************************************************

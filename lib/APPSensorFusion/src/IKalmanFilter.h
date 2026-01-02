@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,8 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Interface Class of a Kalman Filter Implementation
+ *  @file
+ * @brief  Interface Class of a Kalman Filter Implementation
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
  *
  *  @addtogroup Application
@@ -74,7 +75,7 @@ public:
 
     /**
      * Prediction of the covariance and the state of the Kalman Filter.
-     * 
+     *
      * @param[in] timeStep Measured Time Step in ms.
      * @param[in] kalmanParameter   Input Parameters for the Kalman Filter
      */
@@ -82,7 +83,7 @@ public:
 
     /**
      * Update of the covariance and the state of the Kalman Filter.
-     * 
+     *
      * @return Estimated Position as a PositionData struct.
      *
      */

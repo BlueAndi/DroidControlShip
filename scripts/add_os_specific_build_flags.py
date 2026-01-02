@@ -2,7 +2,7 @@
 
 # MIT License
 #
-# Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+# Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
 ################################################################################
 import platform
 
-Import("env") # pylint: disable=undefined-variable
+Import("env")  # pylint: disable=undefined-variable
 
 ################################################################################
 # Variables
@@ -52,4 +52,5 @@ WINDOWS_BUILD_FLAGS = ['-lws2_32']
 ################################################################################
 
 if OS_PLATFORM_TYPE == OS_PLATFORM_TYPE_WIN:
-    env.Append(BUILD_FLAGS=WINDOWS_BUILD_FLAGS) # pylint: disable=undefined-variable
+    env.Append(
+        BUILD_FLAGS=WINDOWS_BUILD_FLAGS)  # pylint: disable=undefined-variable
