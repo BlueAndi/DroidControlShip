@@ -97,7 +97,7 @@ public:
      *
      * @return Button driver.
      */
-    virtual IButton& getButton() = 0;
+    virtual IButton& getButtonReset() = 0;
 
     /**
      * Get button "A" driver.
