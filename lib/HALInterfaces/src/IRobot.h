@@ -78,7 +78,7 @@ public:
     virtual void process() = 0;
 
     /**
-     * Get comunication stream.
+     * Get communication stream.
      *
      * @return Robot data stream.
      */

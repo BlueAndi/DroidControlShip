@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Red LED realization
+ * @brief  Button "A" realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup HALTargetCommon
@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef LEDRED_H
-#define LEDRED_H
+#ifndef BUTTON_A_H
+#define BUTTON_A_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "ILed.h"
+#include "IButton.h"
+#include <stdint.h>
 
 /******************************************************************************
  * Macros
@@ -53,30 +54,30 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the red LED. */
-class LedRed : public ILed
+/** This class provides access to the robot button "A". */
+class ButtonA : public IButton
 {
 public:
     /**
-     * Constructs the red LED adapter.
+     * Constructs the button adapter.
      */
-    LedRed() : ILed()
+    ButtonA() : IButton()
     {
     }
 
     /**
-     * Destroys the red LED adapter.
+     * Destroys the button adapter.
      */
-    virtual ~LedRed()
+    virtual ~ButtonA()
     {
     }
 
     /**
-     * Enables/Disables the LED.
+     * Is button pressed or released?
      *
-     * @param[in] enableIt  Enable LED with true, disable it with false.
+     * @return If button is pressed, returns true otherwise false.
      */
-    void enable(bool enableIt) final;
+    bool isPressed() final;
 
 private:
 };
@@ -85,5 +86,5 @@ private:
  * Functions
  *****************************************************************************/
 
-#endif /* LEDRED_H */
+#endif /* BUTTON_A_H */
 /** @} */

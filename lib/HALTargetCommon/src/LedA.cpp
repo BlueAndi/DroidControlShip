@@ -25,14 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Button realization
+ * @brief  "A" LED realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "Button.h"
+#include "LedA.h"
+#include "GPIO.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -58,9 +59,17 @@
  * Public Methods
  *****************************************************************************/
 
-bool Button::isPressed()
+void LedA::enable(bool enableIt)
 {
-    return m_keyboard.buttonSPressed();
+    uint8_t value = HIGH;
+
+    /* LED is active-low. */
+    if (true == enableIt)
+    {
+        value = LOW;
+    }
+
+    GpioPins::ledAPin.write(value);
 }
 
 /******************************************************************************

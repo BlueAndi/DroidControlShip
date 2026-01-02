@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Red LED realization
+ * @brief  "A" LED realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup HALTargetCommon
@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef LEDRED_H
-#define LEDRED_H
+#ifndef LED_A_H
+#define LED_A_H
 
 /******************************************************************************
  * Compile Switches
@@ -53,21 +53,21 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the red LED. */
-class LedRed : public ILed
+/** This class provides access to the "A" LED. */
+class LedA : public ILed
 {
 public:
     /**
-     * Constructs the red LED adapter.
+     * Constructs the "A" LED adapter.
      */
-    LedRed() : ILed()
+    LedA() : ILed()
     {
     }
 
     /**
-     * Destroys the red LED adapter.
+     * Destroys the "A" LED adapter.
      */
-    virtual ~LedRed()
+    virtual ~LedA()
     {
     }
 
@@ -85,5 +85,5 @@ private:
  * Functions
  *****************************************************************************/
 
-#endif /* LEDRED_H */
+#endif /* LED_A_H */
 /** @} */

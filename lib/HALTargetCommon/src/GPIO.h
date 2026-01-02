@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Red LED realization
+ * @brief  Abstraction of the GPIOs of the device.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
  * @addtogroup HALTargetCommon
@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef LEDRED_H
-#define LEDRED_H
+#ifndef GPIO_H
+#define GPIO_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "ILed.h"
+#include <Logging.h>
+#include <Io.hpp>
+#include <Pin.h>
 
 /******************************************************************************
  * Macros
@@ -53,37 +55,81 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the red LED. */
-class LedRed : public ILed
+/**
+ * Namespace containg access to all device GPIOs.
+ */
+namespace GpioPins
 {
-public:
     /**
-     * Constructs the red LED adapter.
+     * Digital input pin: Reset Button.
      */
-    LedRed() : ILed()
-    {
-    }
+    extern const DInPin<Pin::PIN_WIFI_AND_RESET_KEY, INPUT_PULLUP> resetButtonPin;
 
     /**
-     * Destroys the red LED adapter.
+     * Digital output pin: Reset Device.
      */
-    virtual ~LedRed()
-    {
-    }
+    extern const DOutPin<Pin::PIN_DEVICE_RESET> resetDevicePin;
 
     /**
-     * Enables/Disables the LED.
-     *
-     * @param[in] enableIt  Enable LED with true, disable it with false.
+     * Digital output pin: Info LED channel RED.
      */
-    void enable(bool enableIt) final;
+    extern const DOutPin<Pin::INFO_LED_R> infoLedRedPin;
 
-private:
-};
+    /**
+     * Digital output pin: Info LED channel GREEN.
+     */
+    extern const DOutPin<Pin::INFO_LED_G> infoLedGreenPin;
+
+    /**
+     * Digital output pin: Info LED channel BLUE.
+     */
+    extern const DOutPin<Pin::INFO_LED_B> infoLedBluePin;
+
+    /**
+     * Analog input pin: Battery voltage measurement.
+     */
+    extern const AnalogPin<Pin::PIN_BATT_MEASUREMENT> batteryVoltagePin;
+
+    /**
+     * Digital input pin: Button A.
+     */
+    extern const DInPin<Pin::PIN_BUTTON_A, INPUT_PULLUP> buttonAPin;
+
+    /**
+     * Digital input pin: Button B.
+     */
+    extern const DInPin<Pin::PIN_BUTTON_B, INPUT_PULLUP> buttonBPin;
+
+    /**
+     * Digital input pin: Button C.
+     */
+    extern const DInPin<Pin::PIN_BUTTON_C, INPUT_PULLUP> buttonCPin;
+
+    /**
+     * Digital output pin: LED A.
+     */
+    extern const DOutPin<Pin::PIN_LED_A> ledAPin;
+
+    /**
+     * Digital output pin: LED B.
+     */
+    extern const DOutPin<Pin::PIN_LED_B> ledBPin;
+
+    /**
+     * Digital output pin: LED C.
+     */
+    extern const DOutPin<Pin::PIN_LED_C> ledCPin;
+
+    /**
+     * Initialize all i/o pins.
+     */
+    extern void init();
+
+}; /* namespace GpioPins */
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* LEDRED_H */
+#endif /* GPIO_H */
 /** @} */

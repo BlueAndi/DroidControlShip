@@ -25,16 +25,15 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Red LED realization
+ * @brief  Pin definition for the target board.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTargetCommon
+ * @addtogroup HALTargetV1
  *
  * @{
  */
-
-#ifndef LEDRED_H
-#define LEDRED_H
+#ifndef PIN_H
+#define PIN_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +42,9 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "ILed.h"
+
+#include <stdint.h>
+#include <Io.hpp>
 
 /******************************************************************************
  * Macros
@@ -53,37 +54,50 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the red LED. */
-class LedRed : public ILed
+/** Pin number of all used pins. */
+namespace Pin
 {
-public:
-    /**
-     * Constructs the red LED adapter.
-     */
-    LedRed() : ILed()
-    {
-    }
+    /** Pin for push button for system reset/AP mode start (ACTIVE LOW) */
+    constexpr uint8_t PIN_WIFI_AND_RESET_KEY = 4U;
 
-    /**
-     * Destroys the red LED adapter.
-     */
-    virtual ~LedRed()
-    {
-    }
+    /** Pin for resetting the attached Zumo robot (ACTIVE LOW) */
+    constexpr uint8_t PIN_DEVICE_RESET = 27U;
 
-    /**
-     * Enables/Disables the LED.
-     *
-     * @param[in] enableIt  Enable LED with true, disable it with false.
-     */
-    void enable(bool enableIt) final;
+    /** Pin for info LED RGB channel RED (ACTIVE LOW) */
+    constexpr uint8_t INFO_LED_R = 16U;
 
-private:
-};
+    /** Pin for info LED RGB channel GREEN (ACTIVE LOW) */
+    constexpr uint8_t INFO_LED_G = 22U;
+
+    /** Pin for info LED RGB channel BLUE (ACTIVE LOW) */
+    constexpr uint8_t INFO_LED_B = 21U;
+
+    /** Pin for analog measurement of battery voltage */
+    constexpr uint8_t PIN_BATT_MEASUREMENT = 35U;
+
+    /** Pin for push button A */
+    constexpr uint8_t PIN_BUTTON_A = IoPin::NC;
+
+    /** Pin for push button B */
+    constexpr uint8_t PIN_BUTTON_B = IoPin::NC;
+
+    /** Pin for push button C */
+    constexpr uint8_t PIN_BUTTON_C = IoPin::NC;
+
+    /** Pin for LED A */
+    constexpr uint8_t PIN_LED_A = IoPin::NC;
+
+    /** Pin for LED B */
+    constexpr uint8_t PIN_LED_B = IoPin::NC;
+
+    /** Pin for LED C */
+    constexpr uint8_t PIN_LED_C = IoPin::NC;
+
+}; /* namespace Pin */
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* LEDRED_H */
+#endif /* PIN_H */
 /** @} */

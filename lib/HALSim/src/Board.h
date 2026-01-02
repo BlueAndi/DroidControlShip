@@ -45,7 +45,7 @@
 #include <IBoard.h>
 #include <WString.h>
 #include "Battery.h"
-#include "Button.h"
+#include "ButtonReset.h"
 #include "LedBlue.h"
 #include "LedGreen.h"
 #include "LedRed.h"
@@ -210,8 +210,8 @@ private:
     /** Battery driver */
     Battery m_battery;
 
-    /** Button driver */
-    Button m_button;
+    /** Button "Reset" driver */
+    ButtonReset m_button;
 
     /** Blue LED driver */
     LedBlue m_ledBlue;

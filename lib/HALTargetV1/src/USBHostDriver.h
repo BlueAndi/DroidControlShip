@@ -28,7 +28,7 @@
  * @brief  Abstraction and Stream implementation of USB Host
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTarget
+ * @addtogroup HALTargetV1
  *
  * @{
  */
@@ -215,7 +215,7 @@ private:
     /**
      * Get a Byte from the receiving buffer, if any.
      * @param[out] byte buffer to write the byte to.
-     * @returns If a received byte has been succesfully written to the buffer, returns true. Otherwise, false.
+     * @returns If a received byte has been successfully written to the buffer, returns true. Otherwise, false.
      */
     bool getByte(uint8_t& byte);
 

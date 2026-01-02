@@ -111,7 +111,7 @@ public:
      * This method does not necessarily wait for the connection to be established, it just starts the connection
      * process. Check `isConnected()` for the current connection status.
      *
-     * @return If connection has been succesfully started, returns true. Otherwise, false.
+     * @return If connection has been successfully started, returns true. Otherwise, false.
      */
     virtual bool connect() = 0;
 

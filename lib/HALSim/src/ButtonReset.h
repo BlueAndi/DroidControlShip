@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Red LED realization
+ * @brief  Button "Reset" realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTargetCommon
+ * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef LEDRED_H
-#define LEDRED_H
+#ifndef BUTTON_RESET_H
+#define BUTTON_RESET_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "ILed.h"
+#include "IButton.h"
+#include "Keyboard.h"
 
 /******************************************************************************
  * Macros
@@ -53,37 +54,40 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the red LED. */
-class LedRed : public ILed
+/** This class provides access to the robot button "Reset". */
+class ButtonReset : public IButton
 {
 public:
     /**
-     * Constructs the red LED adapter.
-     */
-    LedRed() : ILed()
-    {
-    }
-
-    /**
-     * Destroys the red LED adapter.
-     */
-    virtual ~LedRed()
-    {
-    }
-
-    /**
-     * Enables/Disables the LED.
+     * Constructs the button adapter.
      *
-     * @param[in] enableIt  Enable LED with true, disable it with false.
+     * @param[in] keyboard The keyboard to use for button simulation.
      */
-    void enable(bool enableIt) final;
+    ButtonReset(Keyboard& keyboard) : IButton(), m_keyboard(keyboard)
+    {
+    }
+
+    /**
+     * Destroys the button adapter.
+     */
+    virtual ~ButtonReset()
+    {
+    }
+
+    /**
+     * Is button pressed or released?
+     *
+     * @return If button is pressed, returns true otherwise false.
+     */
+    bool isPressed() final;
 
 private:
+    Keyboard& m_keyboard; /**< Robot keyboard */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* LEDRED_H */
+#endif /* BUTTON_RESET_H */
 /** @} */

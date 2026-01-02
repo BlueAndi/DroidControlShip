@@ -28,7 +28,7 @@
  * @brief  Button driver
  * @author Andreas Merkle <web@blue-andi.de>
  *
- * @addtogroup HALTarget
+ * @addtogroup HALTargetCommon
  *
  * @{
  */
@@ -61,8 +61,11 @@
  */
 typedef enum
 {
-    BUTTON_ID_OK = 0, /**< Button "ok" */
-    BUTTON_ID_CNT     /**< Number of buttons */
+    BUTTON_ID_RESET = 0, /**< Button "reset" */
+    BUTTON_ID_A,         /**< Button "A" */
+    BUTTON_ID_B,         /**< Button "B" */
+    BUTTON_ID_C,         /**< Button "C" */
+    BUTTON_ID_CNT        /**< Number of buttons */
 
 } ButtonId;
 
@@ -84,7 +87,6 @@ typedef enum
 class IButtonObserver
 {
 public:
-
     /**
      * Destroys the button observer interface.
      */
@@ -101,7 +103,6 @@ public:
     virtual void notify(ButtonId buttonId, ButtonState state) = 0;
 
 protected:
-
     /**
      * Creates the button observer interface.
      */
@@ -116,7 +117,6 @@ protected:
 class ButtonDrv
 {
 public:
-
     /**
      * Get the button driver instance.
      *
@@ -146,7 +146,7 @@ public:
     ButtonState getState(ButtonId buttonId);
 
     /**
-     * Register an observer to get notifyed about button
+     * Register an observer to get notified about button
      * state changes. Only one observer is supported!
      *
      * @param[in] observer  The button observer
@@ -162,7 +162,7 @@ public:
      * Enable all buttons as wakeup sources.
      * A low level of the wakeup source will trigger the wakeup.
      * Ensure that all buttons are released at the time of calling it,
-     * otherwise the wakeup will occurre immediately.
+     * otherwise the wakeup will occur immediately.
      *
      * @return If not all buttons are released, it will return false and the
      *          wakeup sources are not enabled. Otherwise it will return true
@@ -171,7 +171,6 @@ public:
     bool enableWakeUpSources();
 
 private:
-
     /**
      * The digital input buttons.
      */
@@ -182,32 +181,32 @@ private:
      */
     static const uint32_t DEBOUNCING_TIME = 100U;
 
-    Task<ButtonDrv>       m_buttonTask;           /**< Button task. */
-    SemaphoreHandle_t     m_xSemaphore;           /**< Semaphore to protect button state member. */
-    ButtonState           m_state[BUTTON_ID_CNT]; /**< Current button states */
-    SimpleTimer           m_timer[BUTTON_ID_CNT]; /**< Timer used for debouncing */
-    IButtonObserver*      m_observer;             /**< Observer for button state changes */
+    Task<ButtonDrv>   m_buttonTask;           /**< Button task. */
+    SemaphoreHandle_t m_xSemaphore;           /**< Semaphore to protect button state member. */
+    ButtonState       m_state[BUTTON_ID_CNT]; /**< Current button states */
+    SimpleTimer       m_timer[BUTTON_ID_CNT]; /**< Timer used for debouncing */
+    IButtonObserver*  m_observer;             /**< Observer for button state changes */
 
     /** Button task stack size in bytes. */
-    static const uint32_t BUTTON_TASK_STACKE_SIZE = 2048U;
+    static const uint32_t BUTTON_TASK_STACK_SIZE = 2048U;
 
     /** Button task priority. */
-    static const UBaseType_t BUTTON_TASK_PRIORITY  = 1U;
+    static const UBaseType_t BUTTON_TASK_PRIORITY = 1U;
 
     /** MCU core where the button task shall run. */
-    static const BaseType_t BUTTON_TASK_RUN_CORE  = APP_CPU_NUM;
+    static const BaseType_t BUTTON_TASK_RUN_CORE = APP_CPU_NUM;
 
     /** Task period in ms. */
-    static const uint32_t BUTTON_TASK_PERIOD      = 10U;
+    static const uint32_t BUTTON_TASK_PERIOD = 10U;
 
     /** Button debouncing time in ms. */
-    static const uint32_t BUTTON_DEBOUNCE_TIME    = 100U;
+    static const uint32_t BUTTON_DEBOUNCE_TIME = 100U;
 
     /**
      * Constructs the button driver instance.
      */
     ButtonDrv() :
-        m_buttonTask("buttonTask", buttonTask, BUTTON_TASK_STACKE_SIZE, BUTTON_TASK_PRIORITY, BUTTON_TASK_RUN_CORE),
+        m_buttonTask("buttonTask", buttonTask, BUTTON_TASK_STACK_SIZE, BUTTON_TASK_PRIORITY, BUTTON_TASK_RUN_CORE),
         m_xSemaphore(nullptr),
         m_state(),
         m_timer(),

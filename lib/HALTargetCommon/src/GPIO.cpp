@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @brief  Abtraction of the GPIOs of the device.
+ *  @brief  Abstraction of the GPIOs of the device.
  *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
 
@@ -83,6 +83,36 @@ const DOutPin<Pin::INFO_LED_B> GpioPins::infoLedBluePin;
  */
 const AnalogPin<Pin::PIN_BATT_MEASUREMENT> GpioPins::batteryVoltagePin;
 
+/**
+ * Digital input pin: Button A.
+ */
+const DInPin<Pin::PIN_BUTTON_A, INPUT_PULLUP> GpioPins::buttonAPin;
+
+/**
+ * Digital input pin: Button B.
+ */
+const DInPin<Pin::PIN_BUTTON_B, INPUT_PULLUP> GpioPins::buttonBPin;
+
+/**
+ * Digital input pin: Button C.
+ */
+const DInPin<Pin::PIN_BUTTON_C, INPUT_PULLUP> GpioPins::buttonCPin;
+
+/**
+ * Digital output pin: LED A.
+ */
+const DOutPin<Pin::PIN_LED_A> GpioPins::ledAPin;
+
+/**
+ * Digital output pin: LED B.
+ */
+const DOutPin<Pin::PIN_LED_B> GpioPins::ledBPin;
+
+/**
+ * Digital output pin: LED C.
+ */
+const DOutPin<Pin::PIN_LED_C> GpioPins::ledCPin;
+
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -96,6 +126,12 @@ static const IoPin* ioPinList[] =
     &infoLedGreenPin,
     &infoLedBluePin,
     &batteryVoltagePin,
+    &buttonAPin,
+    &buttonBPin,
+    &buttonCPin,
+    &ledAPin,
+    &ledBPin,
+    &ledCPin,
 };
 
 /******************************************************************************
@@ -127,4 +163,3 @@ extern void GpioPins::init()
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
-

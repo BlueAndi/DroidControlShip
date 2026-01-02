@@ -28,7 +28,7 @@
  * @brief  Network realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTarget
+ * @addtogroup HALTargetCommon
  *
  * @{
  */
@@ -134,7 +134,7 @@ private:
     /** WiFi Access Point Mode SSID */
     String m_apSSID;
 
-    /** WiFi Access Poit Mode Password */
+    /** WiFi Access Point Mode Password */
     String m_apPassword;
 
     /** WiFi Timeout Timer. */

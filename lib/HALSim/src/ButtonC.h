@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  Red LED realization
+ * @brief  Button "C" realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTargetCommon
+ * @addtogroup HALSim
  *
  * @{
  */
 
-#ifndef LEDRED_H
-#define LEDRED_H
+#ifndef BUTTON_C_H
+#define BUTTON_C_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,7 +43,8 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include "ILed.h"
+#include "IButton.h"
+#include "Keyboard.h"
 
 /******************************************************************************
  * Macros
@@ -53,37 +54,40 @@
  * Types and Classes
  *****************************************************************************/
 
-/** This class provides access to the red LED. */
-class LedRed : public ILed
+/** This class provides access to the robot button "C". */
+class ButtonC : public IButton
 {
 public:
     /**
-     * Constructs the red LED adapter.
-     */
-    LedRed() : ILed()
-    {
-    }
-
-    /**
-     * Destroys the red LED adapter.
-     */
-    virtual ~LedRed()
-    {
-    }
-
-    /**
-     * Enables/Disables the LED.
+     * Constructs the button adapter.
      *
-     * @param[in] enableIt  Enable LED with true, disable it with false.
+     * @param[in] keyboard The keyboard to use for button simulation.
      */
-    void enable(bool enableIt) final;
+    ButtonC(Keyboard& keyboard) : IButton(), m_keyboard(keyboard)
+    {
+    }
+
+    /**
+     * Destroys the button adapter.
+     */
+    virtual ~ButtonC()
+    {
+    }
+
+    /**
+     * Is button pressed or released?
+     *
+     * @return If button is pressed, returns true otherwise false.
+     */
+    bool isPressed() final;
 
 private:
+    Keyboard& m_keyboard; /**< Robot keyboard */
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* LEDRED_H */
+#endif /* BUTTON_C_H */
 /** @} */

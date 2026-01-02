@@ -62,6 +62,9 @@ static void IRAM_ATTR isrButton(void* arg);
 
 const IoPin* ButtonDrv::BUTTON_PIN[BUTTON_ID_CNT] = {
     &GpioPins::resetButtonPin,
+    &GpioPins::buttonAPin,
+    &GpioPins::buttonBPin,
+    &GpioPins::buttonCPin,
 };
 
 /**
@@ -70,7 +73,10 @@ const IoPin* ButtonDrv::BUTTON_PIN[BUTTON_ID_CNT] = {
  * (re-)start the debounce timer.
  */
 static ButtonId gButtonId[BUTTON_ID_CNT] = {
-    BUTTON_ID_OK,
+    BUTTON_ID_RESET,
+    BUTTON_ID_A,
+    BUTTON_ID_B,
+    BUTTON_ID_C,
 };
 
 /** Number of elements in the button id queue. */
@@ -81,7 +87,7 @@ static const uint32_t QUEUE_SIZE = 10U;
  * Every time the task detects a pin level change, it will notify the task
  * about it by sending the corresponding button id via queue.
  */
-static QueueHandle_t gxQueue     = nullptr;
+static QueueHandle_t gxQueue = nullptr;
 
 /******************************************************************************
  * Public Methods
@@ -94,7 +100,7 @@ bool ButtonDrv::init()
     /* Create semaphore to protect the button trigger array, which is accessed
      * by the task and the ISR.
      */
-    gxQueue           = xQueueCreate(QUEUE_SIZE, sizeof(ButtonId));
+    gxQueue = xQueueCreate(QUEUE_SIZE, sizeof(ButtonId));
 
     if (nullptr == gxQueue)
     {
@@ -174,7 +180,7 @@ void ButtonDrv::registerObserver(IButtonObserver& observer)
     {
         uint8_t buttonIndex = 0U;
 
-        m_observer          = &observer;
+        m_observer = &observer;
 
         while (BUTTON_ID_CNT > buttonIndex)
         {
@@ -223,6 +229,9 @@ bool ButtonDrv::enableWakeUpSources()
     /* If no button is pressed anymore, enable them as wakeup source. */
     if (true == allButtonsReleased)
     {
+        /* Reset button index. */
+        buttonIdx = 0U;
+
         /* Use all available buttons as wakeup sources. */
         while (BUTTON_ID_CNT > buttonIdx)
         {
@@ -268,10 +277,7 @@ void ButtonDrv::attachButtonsToInterrupt()
     {
         if (IoPin::NC != BUTTON_PIN[buttonIdx]->getPinNo())
         {
-            attachInterruptArg(BUTTON_PIN[buttonIdx]->getPinNo(),
-                isrButton,
-                &gButtonId[buttonIdx],
-                CHANGE);
+            attachInterruptArg(BUTTON_PIN[buttonIdx]->getPinNo(), isrButton, &gButtonId[buttonIdx], CHANGE);
 
             /* Start the debouncing to get a stable initial button state. */
             m_timer[buttonIdx].start(DEBOUNCING_TIME);
@@ -321,16 +327,24 @@ void ButtonDrv::buttonTaskMainLoop()
     /* Debounce buttons */
     while (BUTTON_ID_CNT > buttonIdx)
     {
-        if ((true == m_timer[buttonIdx].isTimerRunning()) &&
-            (true == m_timer[buttonIdx].isTimeout()))
+        if ((true == m_timer[buttonIdx].isTimerRunning()) && (true == m_timer[buttonIdx].isTimeout()))
         {
             ButtonState buttonState = BUTTON_STATE_UNKNOWN;
             uint8_t     buttonValue = HIGH;
 
             switch (buttonIdx)
             {
-            case BUTTON_ID_OK:
+            case BUTTON_ID_RESET:
                 buttonValue = GpioPins::resetButtonPin.read();
+                break;
+            case BUTTON_ID_A:
+                buttonValue = GpioPins::buttonAPin.read();
+                break;
+            case BUTTON_ID_B:
+                buttonValue = GpioPins::buttonBPin.read();
+                break;
+            case BUTTON_ID_C:
+                buttonValue = GpioPins::buttonCPin.read();
                 break;
 
             default:

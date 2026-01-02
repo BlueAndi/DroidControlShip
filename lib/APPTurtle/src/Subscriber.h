@@ -82,7 +82,7 @@ public:
      * @param[in] node      Pointer to the RCL node.
      * @param[in] executor  Pointer to the RCLC executor.
      *
-     * @returns If succesfully initialized, returns true. Otherwise, false.
+     * @returns If successfully initialized, returns true. Otherwise, false.
      */
     virtual bool init(rcl_node_t* node, rclc_executor_t* executor) = 0;
 
@@ -174,7 +174,7 @@ public:
      * @param[in] node      Pointer to the RCL node.
      * @param[in] executor  Pointer to the RCLC executor.
      *
-     * @returns If succesfully initialized, returns true. Otherwise, false.
+     * @returns If successfully initialized, returns true. Otherwise, false.
      */
     bool init(rcl_node_t* node, rclc_executor_t* executor) final
     {
