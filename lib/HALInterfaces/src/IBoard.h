@@ -95,7 +95,7 @@ public:
     /**
      * Get button "Reset" driver.
      *
-     * @return Button driver.
+     * @return Button "Reset" driver.
      */
     virtual IButton& getButtonReset() = 0;
 

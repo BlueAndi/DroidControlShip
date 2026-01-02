@@ -113,9 +113,9 @@ public:
     }
 
     /**
-     * Get button driver.
+     * Get button "Reset" driver.
      *
-     * @return Button driver.
+     * @return Button "Reset" driver.
      */
     IButton& getButtonReset() final
     {
