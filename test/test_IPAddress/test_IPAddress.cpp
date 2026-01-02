@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -154,12 +154,12 @@ static void testIPAddrString(void)
 static void testIPAddrOperator(void)
 {
     IPAddress ip0;
-    
+
     TEST_ASSERT_TRUE(ip0 == IPAddress());
 
-    IPAddress ip1(11,12,19,94);
-    IPAddress ip2(25,04,19,68);
-    
+    IPAddress ip1(11, 12, 19, 94);
+    IPAddress ip2(25, 04, 19, 68);
+
     TEST_ASSERT_TRUE(ip1 != ip2);
     TEST_ASSERT_FALSE(ip1 == ip2);
 

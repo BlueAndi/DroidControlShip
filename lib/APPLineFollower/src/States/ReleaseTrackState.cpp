@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -80,7 +80,6 @@ void ReleaseTrackState::entry()
 void ReleaseTrackState::process(StateMachine& sm)
 {
     IButton& button = Board::getInstance().getButton();
-
 
     /* Change parameter set? */
     if (true == Util::isButtonTriggered(button, m_isButtonPressed))

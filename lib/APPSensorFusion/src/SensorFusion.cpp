@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -133,11 +133,12 @@ void SensorFusion::estimateNewState(const SensorData& newSensorData)
         /* Perform the Prediction Step and the Update Step of the Kalman Filter. */
         m_kalmanFilter.predictionStep(newSensorData.timePeriod, kalmanParameter);
 
-        /* The Odometry is not necessarily updated in every time step. Only Perform the Update step if there are new Odometry values available. */
+        /* The Odometry is not necessarily updated in every time step. Only Perform the Update step if there are new
+         * Odometry values available. */
         bool newOdometryValues = (euclideanDistance > 0.0F);
         if (true == newOdometryValues)
         {
-            m_estimatedPosition = m_kalmanFilter.updateStep();
+            m_estimatedPosition      = m_kalmanFilter.updateStep();
             m_timeSinceLastOdoUpdate = 0.0F;
         }
     }

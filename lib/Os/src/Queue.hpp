@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2019 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2019 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,16 +59,14 @@
  *
  * @tparam T    Item type
  */
-template < typename T >
+template<typename T>
 class Queue
 {
 public:
-
     /**
      * Create queue wrapper.
      */
-    Queue() :
-        m_queueHandle(nullptr)
+    Queue() : m_queueHandle(nullptr)
     {
     }
 
@@ -206,7 +204,6 @@ public:
     }
 
 private:
-
     QueueHandle_t m_queueHandle; /**< Queue handle */
 
     Queue(const Queue& queue);

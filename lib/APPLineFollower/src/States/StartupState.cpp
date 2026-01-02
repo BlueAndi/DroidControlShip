@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,7 +81,8 @@ void StartupState::process(StateMachine& sm)
         {
             LOG_INFO("Synchronization with RU established.");
 
-            SerMuxChannelProvider::MaxMotorSpeedFunc maxMotorSpeedFunc = [this](SMPChannelPayload::RspId status, int16_t maxMotorSpeed) -> void
+            SerMuxChannelProvider::MaxMotorSpeedFunc maxMotorSpeedFunc = [this](SMPChannelPayload::RspId status,
+                                                                                int16_t maxMotorSpeed) -> void
             {
                 if (nullptr == m_motors)
                 {
@@ -95,7 +96,7 @@ void StartupState::process(StateMachine& sm)
                 else if (SMPChannelPayload::RSP_ID_OK == status)
                 {
                     m_motors->setMaxSpeed(maxMotorSpeed);
-                    
+
                     LOG_INFO("Press button to start line sensors calibration.");
                     m_subState = SUB_STATE_FINISHED;
                 }
