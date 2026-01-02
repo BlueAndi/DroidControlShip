@@ -113,7 +113,7 @@ public:
      */
     IButton& getButton() final
     {
-        return m_button;
+        return m_buttonReset;
     }
 
     /**
@@ -212,7 +212,7 @@ private:
     Battery m_battery;
 
     /** Button "Reset" driver */
-    ButtonReset m_button;
+    ButtonReset m_buttonReset;
 
     /** Blue LED driver */
     LedBlue m_ledBlue;
