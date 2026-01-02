@@ -54,6 +54,7 @@
  * Macros
  *****************************************************************************/
 
+/** Configuration of the logging severity if not previously defined. */
 #ifndef CONFIG_LOG_SEVERITY
 #define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
 #endif /* CONFIG_LOG_SEVERITY */
