@@ -46,9 +46,15 @@
 #include <IBoard.h>
 #include "Battery.h"
 #include "ButtonReset.h"
+#include "ButtonA.h"
+#include "ButtonB.h"
+#include "ButtonC.h"
 #include "LedBlue.h"
 #include "LedGreen.h"
 #include "LedRed.h"
+#include "LedA.h"
+#include "LedB.h"
+#include "LedC.h"
 #include "Network.h"
 #include "ButtonDrv.h"
 #include "Robot.h"
@@ -102,13 +108,43 @@ public:
     }
 
     /**
-     * Get button driver.
+     * Get button "Reset" driver.
      *
-     * @return Button driver.
+     * @return Button "Reset" driver.
      */
-    IButton& getButton() final
+    IButton& getButtonReset() final
     {
-        return m_button;
+        return m_buttonReset;
+    }
+
+    /**
+     * Get button "A" driver.
+     *
+     * @return Button "A" driver.
+     */
+    IButton& getButtonA() final
+    {
+        return m_buttonA;
+    }
+
+    /**
+     * Get button "B" driver.
+     *
+     * @return Button "B" driver.
+     */
+    IButton& getButtonB() final
+    {
+        return m_buttonB;
+    }
+
+    /**
+     * Get button "C" driver.
+     *
+     * @return Button "C" driver.
+     */
+    IButton& getButtonC() final
+    {
+        return m_buttonC;
     }
 
     /**
@@ -139,6 +175,36 @@ public:
     ILed& getRedLed() final
     {
         return m_ledRed;
+    }
+
+    /**
+     * Get LED "A" driver.
+     *
+     * @return LED "A" driver.
+     */
+    ILed& getLedA() final
+    {
+        return m_ledA;
+    }
+
+    /**
+     * Get LED "B" driver.
+     *
+     * @return LED "B" driver.
+     */
+    ILed& getLedB() final
+    {
+        return m_ledB;
+    }
+
+    /**
+     * Get LED "C" driver.
+     *
+     * @return LED "C" driver.
+     */
+    ILed& getLedC() final
+    {
+        return m_ledC;
     }
 
     /**
@@ -187,7 +253,16 @@ private:
     Battery m_battery;
 
     /** Button "Reset" driver */
-    ButtonReset m_button;
+    ButtonReset m_buttonReset;
+
+    /** Button "A" driver */
+    ButtonA m_buttonA;
+
+    /** Button "B" driver */
+    ButtonB m_buttonB;
+
+    /** Button "C" driver */
+    ButtonC m_buttonC;
 
     /** Blue LED driver */
     LedBlue m_ledBlue;
@@ -197,6 +272,15 @@ private:
 
     /** Red LED driver */
     LedRed m_ledRed;
+
+    /** LED "A" driver */
+    LedA m_ledA;
+
+    /** LED "B" driver */
+    LedB m_ledB;
+
+    /** LED "C" driver */
+    LedC m_ledC;
 
     /** Network driver */
     Network m_network;

@@ -93,11 +93,32 @@ public:
     virtual IBattery& getBattery() = 0;
 
     /**
-     * Get button driver.
+     * Get button "Reset" driver.
      *
-     * @return Button driver.
+     * @return Button "Reset" driver.
      */
-    virtual IButton& getButton() = 0;
+    virtual IButton& getButtonReset() = 0;
+
+    /**
+     * Get button "A" driver.
+     *
+     * @return Button "A" driver.
+     */
+    virtual IButton& getButtonA() = 0;
+
+    /**
+     * Get button "B" driver.
+     *
+     * @return Button "B" driver.
+     */
+    virtual IButton& getButtonB() = 0;
+
+    /**
+     * Get button "C" driver.
+     *
+     * @return Button "C" driver.
+     */
+    virtual IButton& getButtonC() = 0;
 
     /**
      * Get red LED driver.
@@ -119,6 +140,27 @@ public:
      * @return Yellow LED driver.
      */
     virtual ILed& getBlueLed() = 0;
+
+    /**
+     * Get LED "A" driver.
+     *
+     * @return LED "A" driver.
+     */
+    virtual ILed& getLedA() = 0;
+
+    /**
+     * Get LED "B" driver.
+     *
+     * @return LED "B" driver.
+     */
+    virtual ILed& getLedB() = 0;
+
+    /**
+     * Get LED "C" driver.
+     *
+     * @return LED "C" driver.
+     */
+    virtual ILed& getLedC() = 0;
 
     /**
      * Get Network driver.

@@ -117,10 +117,16 @@ void Board::process()
 Board::Board() :
     IBoard(),
     m_battery(),
-    m_button(),
+    m_buttonReset(),
+    m_buttonA(),
+    m_buttonB(),
+    m_buttonC(),
     m_ledBlue(),
     m_ledGreen(),
     m_ledRed(),
+    m_ledA(),
+    m_ledB(),
+    m_ledC(),
     m_network(),
     m_hostRobot(),
     m_configFilePath(CONFIG_FILE_PATH)
