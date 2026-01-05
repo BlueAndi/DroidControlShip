@@ -995,6 +995,7 @@ INPUT                  = mainpage.dox \
                          ../../src \
                          ../../lib/HALTargetCommon \
                          ../../lib/HALTargetV1 \
+                         ../../lib/HALTargetV2 \
                          ../../lib/HALInterfaces \
                          ../../lib/APPConvoyFollower \
                          ../../lib/Service \

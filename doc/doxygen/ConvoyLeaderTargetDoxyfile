@@ -997,6 +997,7 @@ INPUT                  = mainpage.dox \
                          ../../lib/HALInterfaces \
                          ../../lib/HALTargetCommon \
                          ../../lib/HALTargetV1 \
+                         ../../lib/HALTargetV2 \
                          ../../lib/PlatoonService \
                          ../../lib/Service \
                          ../../lib/Utilities

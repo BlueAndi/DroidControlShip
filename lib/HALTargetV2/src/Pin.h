@@ -29,7 +29,7 @@
  * @brief  Pin definition for the target board.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- * @addtogroup HALTargetV1
+ * @addtogroup HALTargetV2
  *
  * @{
  */
