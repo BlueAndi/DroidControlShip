@@ -170,7 +170,7 @@ void USBHost::reset()
 
 bool USBHost::isBootloaderModeActive() const
 {
-    return (true == m_isBootloaderModeActive);
+    return m_isBootloaderModeActive;
 }
 
 /******************************************************************************

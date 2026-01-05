@@ -1,7 +1,7 @@
 {
     "name": "HALTargetV2",
     "version": "0.1.0",
-    "description": "...",
+    "description": "Hardware abstraction layer for the ZumoComSystemV2.",
     "authors": [{
         "name": "Andreas Merkle",
         "email": "web@blue-andi.de",

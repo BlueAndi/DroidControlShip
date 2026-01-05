@@ -16,7 +16,7 @@ The HAL interface abstraction, which every kind of HAL needs to provide.
 @}
 
 @defgroup HALTargetCommon Hardware abstraction of the common components of the ZumoComSystem.
-Abstracts the physical hardware of the ZumoComSystemV1.
+Abstracts the physical hardware of the common components of the ZumoComSystem.
 @{
 @}
 
