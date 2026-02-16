@@ -80,8 +80,6 @@ node "PC" {
         over TCP/IP socket.
     end note
 
-    cloud "ROS2 Logical Network" as ros2LogicalNetwork
-
     wbsim -u-() Socket
     turtleApp --( Socket : To ZumoComSystem proto
     radonUlzerRc --( Socket : To Zumo proto
