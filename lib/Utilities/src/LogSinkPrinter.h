@@ -138,7 +138,7 @@ public:
     static const uint32_t LOG_LEVEL_LEN = 7U;
 
     /** Maximum filename string length. */
-    static const uint32_t FILENAME_LEN = 30U;
+    static const uint32_t FILENAME_LEN = 32U;
 
     /** Maximum line number string length. */
     static const uint32_t LINE_LEN = 5U;
