@@ -26,11 +26,11 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @file
+ * @file   SerialMuxChannels.h
  * @brief  Channel structure definition for the SerialMuxProt.
- *  @author Juliane Kerpe <juliane.kerpe@web.de>
+ * @author Juliane Kerpe <juliane.kerpe@web.de>
  *
- *  @addtogroup Application
+ * @addtogroup Application
  *
  * @{
  */
