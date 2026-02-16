@@ -78,7 +78,7 @@ void ReadyState::entry()
 
 void ReadyState::process(StateMachine& sm)
 {
-    IButton& button = Board::getInstance().getButton();
+    IButton& button = Board::getInstance().getButtonReset();
 
     if (nullptr == m_lineSensors)
     {

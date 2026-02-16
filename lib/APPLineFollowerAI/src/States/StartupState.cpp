@@ -72,7 +72,7 @@ void StartupState::entry()
 
 void StartupState::process(StateMachine& sm)
 {
-    IButton& button = Board::getInstance().getButton();
+    IButton& button = Board::getInstance().getButtonReset();
 
     switch (m_subState)
     {

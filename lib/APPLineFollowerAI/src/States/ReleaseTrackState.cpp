@@ -79,7 +79,7 @@ void ReleaseTrackState::entry()
 
 void ReleaseTrackState::process(StateMachine& sm)
 {
-    IButton& button = Board::getInstance().getButton();
+    IButton& button = Board::getInstance().getButtonReset();
 
 
     /* Change parameter set? */
