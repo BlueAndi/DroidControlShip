@@ -68,8 +68,10 @@ node "PC" {
         dcs <-> agent : \n\nXRCE protocol over UDP
     }
 
-    Package "RadonUlzer" {
-        component "RemoteControl" <<executable>> as radonUlzerRc
+    package "RadonUlzer" {
+        node "RemoteControl" <<executable>> as radonUlzerRc {
+            package "RemoteControlApp" <<app>> as AppRadonUlzerRc
+        }
     }
 
     interface Socket
@@ -84,7 +86,7 @@ node "PC" {
     turtleApp --( Socket : To ZumoComSystem proto
     radonUlzerRc --( Socket : To Zumo proto
 
-    turtleApp <-> radonUlzerRc : SerMux over simulated serial comm in Webots
+    turtleApp <-> AppRadonUlzerRc : SerMux over simulated serial comm in Webots
 
     wbRos2Proto ---- ros2SupervisorNode
 
