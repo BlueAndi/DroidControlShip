@@ -48,8 +48,8 @@
 #include <SimpleTimer.hpp>
 #include "LineSensors.h"
 #include "Motors.h"
-#include <CNN/CNNModelH1.h>
-#include <CNN/ActivationFunctionLeakyReLU.h>
+#include <NN/NNModelH1.h>
+#include <NN/ActivationFunctionLeakyReLU.h>
 
 /******************************************************************************
  * Macros
@@ -179,27 +179,27 @@ private:
     static const int16_t POSITION_MIDDLE_MAX;
 
     /**
-     * Number of input neurons for the CNN model.
+     * Number of input neurons for the NN model.
      * The number of input neurons is equal to the number of line sensors.
      */
     static constexpr int INPUT_NEURONS = 5;
 
     /**
-     * Number of hidden neurons for the CNN model.
+     * Number of hidden neurons for the NN model.
      * The number of hidden neurons is arbitrary chosen.
      */
     static constexpr int HIDDEN_NEURONS = 5;
 
     /**
-     * Number of output neurons for the CNN model.
+     * Number of output neurons for the NN model.
      * The number of output neurons is equal to the number of motors.
      */
     static constexpr int OUTPUT_NEURONS = 2;
 
     /**
-     * Type definition of the used CNN model.
+     * Type definition of the used NN model.
      */
-    typedef CNNModelH1<INPUT_NEURONS, HIDDEN_NEURONS, OUTPUT_NEURONS> CNNModelType;
+    typedef NNModelH1<INPUT_NEURONS, HIDDEN_NEURONS, OUTPUT_NEURONS> NNModelType;
 
     /**
      * Type definition for weights and biases matrices.
@@ -252,8 +252,8 @@ private:
     uint8_t                     m_lastSensorIdSawTrack; /**< The sensor id of the sensor which saw the track as last. */
     int16_t                     m_lastPosition; /**< Last position, used to decide strategy in case of a track gap. */
     bool                        m_isTrackLost;  /**< Is the track lost? Lost means the line sensors didn't detect it. */
-    ActivationFunctionLeakyReLU m_activationFuncLeakyReLU; /**< Activation function for the CNN model. */
-    CNNModelType                m_cnnModel;                /**< Convolutional Neural Network model instance. */
+    ActivationFunctionLeakyReLU m_activationFuncLeakyReLU; /**< Activation function for the NN model. */
+    NNModelType                 m_neuronalNetworkModel;    /**< Neuronal Network model instance. */
 
     /**
      * Default constructor.
@@ -332,7 +332,7 @@ private:
     bool isNoLineDetected(const uint16_t* lineSensorValues, uint8_t length) const;
 
     /**
-     * Adapt driving by using a CNN algorithm, depended on the line sensor values.
+     * Adapt driving by using a NN algorithm, depended on the line sensor values.
      *
      * @param[in] position  Position in digits
      */

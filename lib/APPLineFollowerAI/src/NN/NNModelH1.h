@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @brief  CNN Model with one hidden layer
+ * @brief  Neuronal Network (NN) Model with one hidden layer
  * @author Andreas Merkle <web@blue-andi.de>
  *
  * @addtogroup Application
@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef CNN_MODEL_H1_H
-#define CNN_MODEL_H1_H
+#ifndef NN_MODEL_H1_H
+#define NN_MODEL_H1_H
 
 /******************************************************************************
  * Compile Switches
@@ -57,17 +57,16 @@
 /**
  * Convolutional Neural Network Model H1 with one hidden layer.
  */
-template < int inputNeurons, int hiddenNeurons, int outputNeurons >
-class CNNModelH1
+template<int inputNeurons, int hiddenNeurons, int outputNeurons>
+class NNModelH1
 {
 public:
-
     /**
      * Default constructor.
-     * 
+     *
      * @param[in] activationFunc Activation function for hidden layer.
      */
-    CNNModelH1(IActivationFunction& activationFunc) :
+    NNModelH1(IActivationFunction& activationFunc) :
         m_activationFunc(activationFunc),
         m_weightsInputHidden(Eigen::Matrix<float, hiddenNeurons, inputNeurons>::Zero()),
         m_biasesHidden(Eigen::Matrix<float, hiddenNeurons, 1>::Zero()),
@@ -78,18 +77,18 @@ public:
 
     /**
      * Parameterized constructor.
-     * 
+     *
      * @param[in] activationFunc        Activation function for hidden layer.
      * @param[in] weightsInputHidden    Weights between input layer and hidden layer.
      * @param[in] biasesHidden          Biases of hidden layer.
      * @param[in] weightsHiddenOutput   Weights between hidden layer and output layer.
      * @param[in] biasesOutput          Biases of output layer.
      */
-    CNNModelH1(IActivationFunction& activationFunc,
-               const Eigen::Matrix<float, hiddenNeurons, inputNeurons>& weightsInputHidden,
-               const Eigen::Matrix<float, hiddenNeurons, 1>& biasesHidden,
-               const Eigen::Matrix<float, outputNeurons, hiddenNeurons>& weightsHiddenOutput,
-               const Eigen::Matrix<float, outputNeurons, 1>& biasesOutput) :
+    NNModelH1(IActivationFunction&                                      activationFunc,
+              const Eigen::Matrix<float, hiddenNeurons, inputNeurons>&  weightsInputHidden,
+              const Eigen::Matrix<float, hiddenNeurons, 1>&             biasesHidden,
+              const Eigen::Matrix<float, outputNeurons, hiddenNeurons>& weightsHiddenOutput,
+              const Eigen::Matrix<float, outputNeurons, 1>&             biasesOutput) :
         m_activationFunc(activationFunc),
         m_weightsInputHidden(weightsInputHidden),
         m_biasesHidden(biasesHidden),
@@ -100,10 +99,10 @@ public:
 
     /**
      * Copy constructor.
-     * 
-     * @param[in] other Other CNN model to copy from.
+     *
+     * @param[in] other Other NN model to copy from.
      */
-    CNNModelH1(const CNNModelH1& other) :
+    NNModelH1(const NNModelH1& other) :
         m_activationFunc(other.m_activationFunc),
         m_weightsInputHidden(other.m_weightsInputHidden),
         m_biasesHidden(other.m_biasesHidden),
@@ -115,11 +114,11 @@ public:
     /**
      * Default destructor.
      */
-    ~CNNModelH1() = default;
+    ~NNModelH1() = default;
 
     /**
      * Get input to hidden layer weights.
-     * 
+     *
      * @param[out] weights Weights matrix.
      */
     void getWeightsInputHidden(Eigen::Ref<Eigen::Matrix<float, hiddenNeurons, inputNeurons>> weights) const
@@ -129,7 +128,7 @@ public:
 
     /**
      * Set input to hidden layer weights.
-     * 
+     *
      * @param[in] weights Weights matrix.
      */
     void setWeightsInputHidden(const Eigen::Matrix<float, hiddenNeurons, inputNeurons>& weights)
@@ -139,7 +138,7 @@ public:
 
     /**
      * Get hidden layer biases.
-     * 
+     *
      * @param[out] biases Biases matrix.
      */
     void getBiasesHidden(Eigen::Ref<Eigen::Matrix<float, hiddenNeurons, 1>> biases) const
@@ -149,7 +148,7 @@ public:
 
     /**
      * Set hidden layer biases.
-     * 
+     *
      * @param[in] biases Biases matrix.
      */
     void setBiasesHidden(const Eigen::Matrix<float, hiddenNeurons, 1>& biases)
@@ -159,7 +158,7 @@ public:
 
     /**
      * Get hidden to output layer weights.
-     * 
+     *
      * @param[out] weights Weights matrix.
      */
     void getWeightsHiddenOutput(Eigen::Ref<Eigen::Matrix<float, outputNeurons, hiddenNeurons>> weights) const
@@ -169,7 +168,7 @@ public:
 
     /**
      * Set hidden to output layer weights.
-     * 
+     *
      * @param[in] weights Weights matrix.
      */
     void setWeightsHiddenOutput(const Eigen::Matrix<float, outputNeurons, hiddenNeurons>& weights)
@@ -179,7 +178,7 @@ public:
 
     /**
      * Get output layer biases.
-     * 
+     *
      * @param[out] biases Biases matrix.
      */
     void getBiasesOutput(Eigen::Ref<Eigen::Matrix<float, outputNeurons, 1>> biases) const
@@ -189,7 +188,7 @@ public:
 
     /**
      * Set output layer biases.
-     * 
+     *
      * @param[in] biases Biases matrix.
      */
     void setBiasesOutput(const Eigen::Matrix<float, outputNeurons, 1>& biases)
@@ -204,7 +203,7 @@ public:
      * @param[out] outputData  Output data as Eigen vector.
      */
     void forward(const Eigen::Ref<const Eigen::Matrix<float, inputNeurons, 1>>& inputData,
-                 Eigen::Ref<Eigen::Matrix<float, outputNeurons, 1>> outputData)
+                 Eigen::Ref<Eigen::Matrix<float, outputNeurons, 1>>             outputData)
     {
         Eigen::Matrix<float, hiddenNeurons, 1> hiddenLayer;
 
@@ -220,7 +219,6 @@ public:
     }
 
 private:
-
     /** Activation function for hidden layer. */
     IActivationFunction& m_activationFunc;
 
@@ -237,12 +235,12 @@ private:
     Eigen::Matrix<float, outputNeurons, 1> m_biasesOutput;
 
     /** Disable default constructor. */
-    CNNModelH1() = delete;
+    NNModelH1() = delete;
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* CNN_MODEL_H1_H */
+#endif /* NN_MODEL_H1_H */
 /** @} */

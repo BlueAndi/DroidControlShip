@@ -292,8 +292,8 @@ DrivingState::DrivingState() :
     m_lastPosition(0),
     m_isTrackLost(false),
     m_activationFuncLeakyReLU(),
-    m_cnnModel(m_activationFuncLeakyReLU, HIDDEN_LAYER_WEIGHTS, HIDDEN_LAYER_BIASES, OUTPUT_LAYER_WEIGHTS,
-               OUTPUT_LAYER_BIASES)
+    m_neuronalNetworkModel(m_activationFuncLeakyReLU, HIDDEN_LAYER_WEIGHTS, HIDDEN_LAYER_BIASES, OUTPUT_LAYER_WEIGHTS,
+                           OUTPUT_LAYER_BIASES)
 {
 }
 
@@ -435,7 +435,7 @@ void DrivingState::adaptDriving(int16_t position)
     int16_t       leftSpeed       = 0; /* [digits] */
     int16_t       rightSpeed      = 0; /* [digits] */
 
-    /* Calculate motor speeds based on CNN output. */
+    /* Calculate motor speeds based on NN output. */
     const uint16_t* lineSensorValues = m_lineSensors->getSensorValues();
     const size_t    lineSensorCount  = LineSensors::getNumLineSensors();
 
@@ -457,7 +457,7 @@ void DrivingState::adaptDriving(int16_t position)
         }
 
         /* Perform forward pass through the network. */
-        m_cnnModel.forward(inputLayer, outputLayer);
+        m_neuronalNetworkModel.forward(inputLayer, outputLayer);
 
         /* Map output to motor speeds. */
         leftSpeed  = static_cast<int16_t>(outputLayer(0, 0) * TOP_SPEED_F);
