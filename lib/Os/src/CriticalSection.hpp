@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2019 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2019 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,10 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  freeRTOS critical section wrapper
  * @author Andreas Merkle <web@blue-andi.de>
- * 
+ *
  * @addtogroup OPERATING_SYSTEM
  *
  * @{
@@ -61,12 +62,10 @@
 class CriticalSection
 {
 public:
-
     /**
      * Create critical section wrapper.
      */
-    CriticalSection() :
-        m_spinlock(portMUX_INITIALIZER_UNLOCKED)
+    CriticalSection() : m_spinlock(portMUX_INITIALIZER_UNLOCKED)
     {
     }
 
@@ -94,12 +93,10 @@ public:
     }
 
 private:
-
-    portMUX_TYPE    m_spinlock; /**< Spinlock */
+    portMUX_TYPE m_spinlock; /**< Spinlock */
 
     CriticalSection(const CriticalSection& CriticalSection);
     CriticalSection& operator=(const CriticalSection& CriticalSection);
-
 };
 
 /**
@@ -109,14 +106,12 @@ private:
 class CriticalSectionGuard
 {
 public:
-
     /**
      * Creates the critical section guard and enters it.
-     * 
+     *
      * @param[in] critSec The guard uses this critical section for protection.
      */
-    CriticalSectionGuard(CriticalSection& critSec) :
-        m_criticalSection(critSec)
+    CriticalSectionGuard(CriticalSection& critSec) : m_criticalSection(critSec)
     {
         m_criticalSection.enter();
     }
@@ -130,19 +125,17 @@ public:
     }
 
 private:
-
-    CriticalSection&    m_criticalSection;  /**< Critical section used for the guard. */
+    CriticalSection& m_criticalSection; /**< Critical section used for the guard. */
 
     CriticalSectionGuard();
     CriticalSectionGuard(const CriticalSectionGuard& guard);
-    CriticalSectionGuard&  operator=(const CriticalSectionGuard& guard);
-
+    CriticalSectionGuard& operator=(const CriticalSectionGuard& guard);
 };
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif  /* CRITICAL_SECTION_HPP */
+#endif /* CRITICAL_SECTION_HPP */
 
 /** @} */

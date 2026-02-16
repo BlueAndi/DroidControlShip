@@ -17,7 +17,8 @@ component "ConvoyFollower" <<lib>> as convoyFollower
 component "target:esp32" <<pio>> as targetEsp32
 component "target:Sim" <<pio>> as targetSim
 
-component "HALTarget" <<lib>> as halTarget
+component "HALTargetCommon" <<lib>> as halTarget
+component "HALTargetV1" <<lib>> as halTargetV1
 component "HALSim" <<lib>> as halSim
 
 envConvoyLeader ..> appConvoyLeader
@@ -36,6 +37,7 @@ appConvoyLeader ..> convoyLeader
 appConvoyFollower ..> convoyFollower
 
 targetEsp32 ..> halTarget
+targetEsp32 ..> halTargetV1
 targetSim ..> halSim
 
 @enduml

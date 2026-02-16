@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,10 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Abstract receiver interface
  * @author Andreas Merkle <web@blue-andi.de>
- * 
+ *
  * @addtogroup HALInterfaces
  *
  * @{
@@ -66,7 +67,7 @@ public:
 
     /**
      * Set channel which to receive data from.
-     * 
+     *
      * @param[in] channel   The channel which to use.
      */
     virtual void setChannel(int32_t channel) = 0;
@@ -76,7 +77,7 @@ public:
      *
      * @param[in] data  Data buffer.
      * @param[in] size  Data buffer size in bytes.
-     * 
+     *
      * @return Number of bytes read from stream.
      */
     virtual size_t receive(void* data, size_t size) = 0;

@@ -15,8 +15,18 @@ The HAL interface abstraction, which every kind of HAL needs to provide.
 @{
 @}
 
-@defgroup HALTarget Hardware abstraction on the Zumo32U4
-Abstracts the the physical hardware of the Zumo32U4.
+@defgroup HALTargetCommon Hardware abstraction of the common components of the ZumoComSystem.
+Abstracts the physical hardware of the common components of the ZumoComSystem.
+@{
+@}
+
+@defgroup HALTargetV1 Hardware abstraction of the ZumoComSystemV1
+Abstracts the physical hardware of the ZumoComSystemV1.
+@{
+@}
+
+@defgroup HALTargetV2 Hardware abstraction of the ZumoComSystemV2
+Abstracts the physical hardware of the ZumoComSystemV2.
 @{
 @}
 

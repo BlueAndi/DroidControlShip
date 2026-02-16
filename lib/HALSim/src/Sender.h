@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Sender realization
  * @author Andreas Merkle <web@blue-andi.de>
  *
@@ -90,7 +91,7 @@ public:
      *
      * @param[in] data  Data buffer.
      * @param[in] size  Data buffer size in bytes.
-     * 
+     *
      * @return Number of bytes sent.
      */
     size_t send(const void* data, size_t size) const override;
@@ -99,7 +100,7 @@ public:
      * Sends string to the configured channel.
      *
      * @param[in] str   String which to send.
-     * 
+     *
      * @return Number of bytes sent.
      */
     size_t send(const char* str) const override;

@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Abstract MQTT Client interface
  * @author Andreas Merkle <web@blue-andi.de>
  *
@@ -111,7 +112,7 @@ public:
      * This method does not necessarily wait for the connection to be established, it just starts the connection
      * process. Check `isConnected()` for the current connection status.
      *
-     * @return If connection has been succesfully started, returns true. Otherwise, false.
+     * @return If connection has been successfully started, returns true. Otherwise, false.
      */
     virtual bool connect() = 0;
 

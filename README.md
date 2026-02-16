@@ -96,7 +96,7 @@ Together with [Radon Ulzer](https://github.com/BlueAndi/RadonUlzer) it can be ru
 1. Build the firmware using the ```Build``` task in the "PlatformIO Project Tasks"
     - For the target use only the applications with "Target" as postfix, e.g. LineFollowerTarget.
 2. Upload the firmware to the ZumoComSystem using the ```Upload``` task in the "PlatformIO Project Tasks" tab, or the arrow on the bottom task bar.
-3. After succesfully uploading the firmware, the configuration has to be uploaded to the filesystem. Make sure that the information in ```data/config/config.json``` matches your setup. Upload the configuration using the ```Upload Filesystem Image``` task in the "PlatformIO Project Tasks" tab.
+3. After successfully uploading the firmware, the configuration has to be uploaded to the filesystem. Make sure that the information in ```data/config/config.json``` matches your setup. Upload the configuration using the ```Upload Filesystem Image``` task in the "PlatformIO Project Tasks" tab.
 
 Note that the robotName can be left empty in case you want the MAC address of the hardware to be used as the name. In case you prefer to give the robot a more descriptive name, can set the name. Beware, if you use multiple robots, you will have to give each a different name manually.
 

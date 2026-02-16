@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  The simulation board realization.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */
@@ -112,10 +113,16 @@ Board::Board() :
                 m_robot.getReceiver(RobotDeviceNames::RECEIVER_NAME_SERIAL)),
     m_keyboard(m_simTime, m_robot.getKeyboard()),
     m_battery(),
-    m_button(m_keyboard),
+    m_buttonReset(m_keyboard),
+    m_buttonA(m_keyboard),
+    m_buttonB(m_keyboard),
+    m_buttonC(m_keyboard),
     m_ledBlue(),
     m_ledGreen(),
     m_ledRed(),
+    m_ledA(),
+    m_ledB(),
+    m_ledC(),
     m_network(),
     m_hostRobot(m_serialDrv),
     m_configFilePath(),

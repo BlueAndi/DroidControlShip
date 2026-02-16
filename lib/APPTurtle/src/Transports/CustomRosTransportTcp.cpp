@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Custom Micro-ROS transport using TCP over Arduino WifiClient.
  * @author Norbert Schulz <github@schulznorbert.de>
  */
@@ -60,14 +61,9 @@
 
 const String CustomRosTransportTcp::m_protocolName("TCP");
 
-const CustomRosTransportTcp::ReadFunc
-CustomRosTransportTcp::m_readFunction[InputState::INPUT_STATE_MAX] = 
-{
-    &CustomRosTransportTcp::readSizePrefix, 
-    &CustomRosTransportTcp::readPendingSizePrefix,
-    &CustomRosTransportTcp::readPayload, 
-    &CustomRosTransportTcp::readFinish
-};
+const CustomRosTransportTcp::ReadFunc CustomRosTransportTcp::m_readFunction[InputState::INPUT_STATE_MAX] = {
+    &CustomRosTransportTcp::readSizePrefix, &CustomRosTransportTcp::readPendingSizePrefix,
+    &CustomRosTransportTcp::readPayload, &CustomRosTransportTcp::readFinish};
 
 /******************************************************************************
  * Public Methods
@@ -163,7 +159,7 @@ size_t CustomRosTransportTcp::read(uint8_t* buffer, size_t size, int timeout, ui
                 ReadFunc stateReadFunc = m_readFunction[m_inputState];
 
                 /* Read message portion based on reveiver state. */
-                loop = (this->*stateReadFunc)(timeout, errorCode);  
+                loop = (this->*stateReadFunc)(timeout, errorCode);
             }
             else
             {

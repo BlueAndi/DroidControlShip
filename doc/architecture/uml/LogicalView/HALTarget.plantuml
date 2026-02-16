@@ -2,8 +2,41 @@
 
 Title Target HAL Class Diagram
 
-package "HALTarget" as hal {
+package "Interfaces" as interfaces {
+    interface "IButton" as iButton {
+        + {abstract} isShortPressed() : bool
+        + {abstract} isLongPressed()  : bool
+        + {abstract} waitForRelease() : void
+    }
 
+    interface "IBattery" as iBattery {
+        + {abstract} getBatteryVoltage() : uint32_t
+        + {abstract} getChargeLevel()    : uint8_t
+    }
+
+    interface "IRobot" as iRobot {
+        + {abstract} init() : bool
+        + {abstract} process() : bool
+        + {abstract} getStream() : Stream
+        + {abstract} reset() : void
+    }
+
+    interface "INetwork" as iNetwork {
+        + {abstract} init() : bool
+        + {abstract} process() : bool
+        + {abstract} getStream() : Stream
+    }
+
+    interface "ILed" as iLed {
+        + {abstract} enable(enableIt : bool) : void
+    }
+
+    interface "IGps" as iGps {
+        + {abstract} getGpsData() : GpsData
+    }
+}
+
+package "HALTargetV1" as halV1 {
     class Board << namespace >> {
         + getButton() : IButton&
         + getBattery() : IBattery&
@@ -15,49 +48,16 @@ package "HALTarget" as hal {
         + getGps() : nullptr
     }
 
-    package "Interfaces" as interfaces {
-        interface "IButton" as iButton {
-            + {abstract} isShortPressed() : bool
-            + {abstract} isLongPressed()  : bool
-            + {abstract} waitForRelease() : void
-        }
+    class "USB-Host" as Robot
+}
 
-        interface "IBattery" as iBattery {
-            + {abstract} getBatteryVoltage() : uint32_t
-            + {abstract} getChargeLevel()    : uint8_t
-        }
-
-        interface "IRobot" as iRobot {
-            + {abstract} init() : bool
-            + {abstract} process() : bool
-            + {abstract} getStream() : Stream
-            + {abstract} reset() : void
-        }
-
-        interface "INetwork" as iNetwork {
-            + {abstract} init() : bool
-            + {abstract} process() : bool
-            + {abstract} getStream() : Stream
-        }
-
-        interface "ILed" as iLed {
-            + {abstract} enable(enableIt : bool) : void
-        }
-
-        interface "IGps" as iGps {
-            + {abstract} getGpsData() : GpsData
-        }
-    }
-
-    package "Target" as target {
-        class "Button" as Button
-        class "Battery" as Battery
-        class "USB-Host" as Robot
-        class "MQTT" as Network
-        class "LedRed" as LedRed
-        class "LedGreen" as LedGreen
-        class "LedBlue" as LedBlue
-    }
+package "HALTargetCommon" as halCommon {
+    class "Button" as Button
+    class "Battery" as Battery
+    class "MQTT" as Network
+    class "LedRed" as LedRed
+    class "LedGreen" as LedGreen
+    class "LedBlue" as LedBlue
 
     iButton <|... Button : <<realize>>
     iBattery <|... Battery : <<realize>>
@@ -66,7 +66,6 @@ package "HALTarget" as hal {
     iLed <|... LedRed : <<realize>>
     iLed <|... LedGreen : <<realize>>
     iLed <|... LedBlue : <<realize>>
-
 }
 
 package "Libraries" as libs
@@ -79,6 +78,14 @@ package "Libraries" as libs
         class "Stream" as Stream
     }
 }
+
+Board *--> Button
+Board *--> Battery
+Board *--> Robot
+Board *--> Network
+Board *--> LedRed
+Board *--> LedGreen
+Board *--> LedBlue
 
 Robot *--> RobotLib
 Network *--> NetworkLib

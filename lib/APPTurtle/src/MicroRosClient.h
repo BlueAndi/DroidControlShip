@@ -1,6 +1,6 @@
 /* MIT License
  *
- * Copyright (c) 2023 - 2025 Andreas Merkle <web@blue-andi.de>
+ * Copyright (c) 2023 - 2026 Andreas Merkle <web@blue-andi.de>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
+ * @file
  * @brief  Abstraction of Micro-ROS Client.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
@@ -94,7 +95,7 @@ public:
      * @param[in] subscriber Pointer to a new subscriber. It shall be instanced using new. The MicroRosClient will
      *                       delete the pointer once it is no longer used. Checks if the instance is nullptr.
      *
-     * @returns If succesfully created, returns true. Otherwise, false.
+     * @returns If successfully created, returns true. Otherwise, false.
      */
     bool registerSubscriber(BaseSubscriber* subscriber);
 
@@ -202,7 +203,7 @@ private:
      *
      * @param[in] ipAddress The Micro-ROS agent IP-address.
      * @param[in] port      The Micro-ROS agent port.
-     * 
+     *
      * @return If successful it will return true otherwise false.
      */
     bool setupCustomTransport(const IPAddress& ipAddress, uint16_t port);
