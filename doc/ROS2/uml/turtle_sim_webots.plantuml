@@ -42,8 +42,8 @@ node "PC" {
                 RemoteControl SerMux protocol.
             end note
 
-            component "/dcs" <<ros2-node>> as dcs_node
-            note bottom of dcs_node
+            component "/dcs" <<ros2-node>> as dcsNode
+            note bottom of dcsNode
                 Not used for TurtleSim.
                 Only shown as an example for
                 cs specific node.
@@ -57,15 +57,15 @@ node "PC" {
             that acts as a webots controller.
         end note
 
-        node "micro-ROS\nAgent" <<executable>> as agent
+        node "micro-ROS\nAgent" <<executable>> as uRosAgent
 
-        turtleApp .u.> dcs_node
+        turtleApp .u.> dcsNode
         turtleApp .u.> dcs_zumo_node
 
         teleopTurtleNode ---> dcs_zumo_node : geometry_msgs/Twist
 
-        agent -u-> ros2LogicalNetwork
-        dcs <-> agent : \n\nXRCE protocol over UDP
+        uRosAgent -u-> ros2LogicalNetwork
+        dcs <-> uRosAgent : \n\nXRCE protocol over UDP
     }
 
     package "RadonUlzer" {
@@ -74,15 +74,15 @@ node "PC" {
         }
     }
 
-    interface Socket
-    note left of Socket
+    interface iSocket
+    note left of iSocket
         Webots Controller API Messages
         over TCP/IP socket.
     end note
 
-    wbsim -u-() Socket
-    turtleApp --( Socket : To ZumoComSystem proto
-    radonUlzerRc --( Socket : To Zumo proto
+    wbsim -u-() iSocket
+    turtleApp --( iSocket : To ZumoComSystem proto
+    radonUlzerRc --( iSocket : To Zumo proto
 
     turtleApp <-> AppRadonUlzerRc : SerMux over simulated serial comm in Webots
 
