@@ -68,13 +68,11 @@ node "PC" {
         dcs <-> uRosAgent : \n\nXRCE protocol over UDP
     }
 
-    package "RadonUlzer" {
-        node "RemoteControl" <<executable>> as radonUlzerRc {
-            package "RemoteControlApp" <<app>> as AppRadonUlzerRc
-        }
+    node "RadonUlzer" <<executable>> as radonUlzer {
+        component "RemoteControl" <<app>> as radonUlzerRcApp
     }
 
-    interface iSocket
+    interface Socket as iSocket
     note left of iSocket
         Webots Controller API Messages
         over TCP/IP socket.
@@ -82,9 +80,9 @@ node "PC" {
 
     wbsim -u-() iSocket
     turtleApp --( iSocket : To ZumoComSystem proto
-    radonUlzerRc --( iSocket : To Zumo proto
+    radonUlzer --( iSocket : To Zumo proto
 
-    turtleApp <-> AppRadonUlzerRc : SerMux over simulated serial comm in Webots
+    turtleApp <-> radonUlzerRcApp : SerMux over simulated serial comm in Webots
 
     wbRos2Proto ---- ros2SupervisorNode
 
