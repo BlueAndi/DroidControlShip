@@ -1,10 +1,10 @@
 # Installation of WSL for ROS2 Jazzy
 
-Each ROS2 distribution targets a specific Linux environment. 
-For Jazzy it is *Ubuntu 24.04*. To run it on Windows 10/11, 
+Each ROS2 distribution targets a specific Linux environment.
+For Jazzy it is *Ubuntu 24.04*. To run it on Windows 10/11,
 the WSL2 feature will be used.
 
-## Install WSL 
+## Install WSL
 
 Installing WSL (Linux on Windows) is officially supported by Microsoft.
 For details refer to the following
@@ -18,7 +18,7 @@ But all you need is this from a windows power shell:
 ```
 
 > **_NOTE:_**
-A Windows message dialog may popup in the background, to ask for elevated rights. 
+A Windows message dialog may popup in the background, to ask for elevated rights.
 Check for such a window if the installation does not progress.
 
 ## First time use
@@ -62,12 +62,11 @@ Check that you have the right distribution installed (Ubuntu 24.04 LTS):
 
 ## New Terminal Window
 
-Is is recommended to install the new Microsoft Terminal Window 
-if not done already. It is available from
+Is is recommended to install the new Microsoft Terminal Window if not done already. It is available from
 
-[Github Microsoft Terminal](https://github.com/microsoft/terminal).
+[Github Microsoft Terminal](https://github.com/microsoft/terminal)
 
-It offers tabs, history and embedds all kinds of shells (cmd, powershell, Ubuntu, git ...)
+It offers tabs, history and embeds all kinds of shells (cmd, powershell, Ubuntu, git ...)
 
 ![New Shell](./img/new_shell.png)
 

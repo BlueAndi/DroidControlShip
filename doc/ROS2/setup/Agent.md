@@ -2,13 +2,13 @@
 
 Sources: [here](https://micro-xrce-dds.docs.eprosima.com/en/latest/index.html)
 
-* [Micro XRCE-DDS Agent](#micro-xrce-dds-agent)
-  * [Installation](#installation)
-  * [Using the agent with the serial interface](#using-the-agent-with-the-serial-interface)
-  * [Using the agent with the UDP interface](#using-the-agent-with-the-udp-interface)
-  * [Using the agent with the TCP interface](#using-the-agent-with-the-tcp-interface)
-  * [Troubleshooting on WSL environment](#troubleshooting-on-wsl-environment)
-  * [Testing the node](#testing-the-node)
+- [Micro XRCE-DDS Agent](#micro-xrce-dds-agent)
+  - [Installation](#installation)
+  - [Using the agent with the serial interface](#using-the-agent-with-the-serial-interface)
+  - [Using the agent with the TCP interface](#using-the-agent-with-the-tcp-interface)
+  - [Using the agent with the UDP interface](#using-the-agent-with-the-udp-interface)
+  - [Troubleshooting on WSL environment](#troubleshooting-on-wsl-environment)
+  - [Testing the node](#testing-the-node)
 
 ## Installation
 
@@ -57,7 +57,7 @@ Start the MicroXRCEAgent binary to listen to **TCP** connections:
 
 ## Using the agent with the UDP interface
 
-> [!WARNING]  
+> [!WARNING]
 > Note: UDP ports on WSL are not working properly if you need to access them outside of the WSL VM (Status 2024-10-31). Use TCP with WSL instead.
 > See [https://github.com/micro-ROS/micro-ROS-Agent/issues/194](https://github.com/micro-ROS/micro-ROS-Agent/issues/194) for further details.
 > The mentioned ```netsh`` tool for port proxy forwarding only supports TCP.

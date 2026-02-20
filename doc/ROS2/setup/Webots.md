@@ -2,7 +2,7 @@
 
 ## Webots Setup Procedure
 
-Follow the official installation guide for Webots on Linux with APT on the 
+Follow the official installation guide for Webots on Linux with APT on the
 [Webots installation Page](https://cyberbotics.com/doc/guide/installation-procedure#installing-the-debian-package-with-the-advanced-packaging-tool-apt).
 
 > **_NOTE:_**
@@ -62,7 +62,7 @@ transcript:
 
 ## Running Webots ROS2 Universal Robot
 
-See Task 2 from this [Jazzy documentaion page](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Installation-Ubuntu.html#launch-the-webots-ros2-universal-robot-example)
+See Task 2 from this [Jazzy documentation page](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Installation-Ubuntu.html#launch-the-webots-ros2-universal-robot-example)
 
 ```bash
     export WEBOTS_HOME=/usr/local/webots

@@ -1,6 +1,6 @@
 # Using DCS with Webots under ROS2
 
-The page discussed how to integrate DCS with Webots and ROS2.
+This page discusses how to integrate DCS with Webots and ROS2.
 
 ## Deployment for TurtleSim Example
 
@@ -13,6 +13,7 @@ The page discussed how to integrate DCS with Webots and ROS2.
 1. Run the following command in the terminal:
 
 ```bash
+cd ~/RadonUlzer
 pio run -e RemoteControlSim -t webots_launcher_zumo_com_system
 ```
 
@@ -22,6 +23,7 @@ pio run -e RemoteControlSim -t webots_launcher_zumo_com_system
 2. Run the following command in the terminal:
 
 ```bash
+cd ~/DroidControlShip
 pio run -e TurtleSim -t webots_launcher
 ```
 
@@ -29,7 +31,7 @@ pio run -e TurtleSim -t webots_launcher
 
 Use the ROS2 Package wrapper `ros2_dcs_turtlesim` to build and launch
 the TurtleSim demo with DroidControlShip and RadonUlzer robots.
-The `ros2_dcs_turtlesim` package is availabe from it's own GIT repository at
+The `ros2_dcs_turtlesim` package is available from it's own GIT repository at
 [https://github.com/nhjschulz/ros2_dcs_turtlesim](https://github.com/nhjschulz/ros2_dcs_turtlesim).
 
 Create a Webots ros2 workspace as described in [setup/Webots.md](../setup/Webots.md),
