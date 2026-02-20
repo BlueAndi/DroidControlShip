@@ -94,12 +94,12 @@ Required change:
 ```python
 def is_wsl():
     # return 'microsoft-standard' in uname().release
-    return False                                                                                                        
+    return False
 ```
 
 ### Running Webots ROS2 Universal Robot (on Linux)
 
-See Task 2 from this [Jazzy documentaion page](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Installation-Ubuntu.html#launch-the-webots-ros2-universal-robot-example)
+See Task 2 from this [Jazzy documentation page](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Installation-Ubuntu.html#launch-the-webots-ros2-universal-robot-example)
 
 ```bash
     export WEBOTS_HOME=/usr/local/webots

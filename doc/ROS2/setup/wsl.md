@@ -67,12 +67,11 @@ In the Ubuntu terminal:
 
 ## New Terminal Window
 
-Is is recommended to install the new Microsoft Terminal Window
-if not done already. It is available from
+Is is recommended to install the new Microsoft Terminal Window if not done already. It is available from
 
-[Github Microsoft Terminal](https://github.com/microsoft/terminal).
+[Github Microsoft Terminal](https://github.com/microsoft/terminal)
 
-It offers tabs, history and embedds all kinds of shells (cmd, powershell, Ubuntu, git ...)
+It offers tabs, history and embeds all kinds of shells (cmd, powershell, Ubuntu, git ...)
 
 ![New Shell](./img/new_shell.png)
 
