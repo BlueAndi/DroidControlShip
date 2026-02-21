@@ -76,28 +76,38 @@ const int16_t DrivingState::POSITION_MIDDLE_MAX = POSITION_SET_POINT + (SENSOR_V
 
 /**
  * Pre-trained neural network hidden layer weights.
+ * Each row represents one hidden neuron's weights for the 5 input sensors.
+ * Hidden neurons act as position detectors: left-most, left-center, center, right-center, right-most.
+ * Designed for velocity-independent behavior through balanced activation.
  */
-const DrivingState::WeightsInputHiddenType DrivingState::HIDDEN_LAYER_WEIGHTS({{0.12F, 0.0F, 0.0F, 0.0F, 0.0F},
-                                                                               {0.0F, 0.20F, 0.0F, 0.0F, 0.0F},
-                                                                               {0.0F, 0.0F, 1.0F, 0.0F, 0.0F},
-                                                                               {0.0F, 0.0F, 0.0F, 0.20F, 0.0F},
-                                                                               {0.0F, 0.0F, 0.0F, 0.0F, 0.12F}});
+const DrivingState::WeightsInputHiddenType DrivingState::HIDDEN_LAYER_WEIGHTS({{2.5F, 0.6F, -0.5F, -0.5F, -0.8F},
+                                                                               {0.6F, 2.0F, -0.2F, -0.4F, -0.6F},
+                                                                               {-0.5F, -0.2F, 3.5F, -0.2F, -0.5F},
+                                                                               {-0.6F, -0.4F, -0.2F, 2.0F, 0.6F},
+                                                                               {-0.8F, -0.5F, -0.5F, 0.6F, 2.5F}});
 
 /**
  * Pre-trained neural network hidden layer biases.
+ * Configured for consistent activation patterns across all velocities.
  */
-const DrivingState::BiasesHiddenType DrivingState::HIDDEN_LAYER_BIASES({{0.0F}, {0.0F}, {0.0F}, {0.0F}, {0.0F}});
+const DrivingState::BiasesHiddenType DrivingState::HIDDEN_LAYER_BIASES({{-0.7F}, {-0.6F}, {-0.2F}, {-0.6F}, {-0.7F}});
 
 /**
  * Pre-trained neural network output layer weights.
+ * Creates velocity-independent steering ratios by maintaining proportional wheel speed differences.
+ * Reduced magnitude ensures outputs stay within [0.4, 1.0] range to avoid saturation.
+ * Row 0 (left motor): Speed ratio relative to base speed.
+ * Row 1 (right motor): Speed ratio relative to base speed.
  */
-const DrivingState::WeightsHiddenOutputType DrivingState::OUTPUT_LAYER_WEIGHTS({{1.0F, 0.5F, 0.0F, -0.5F, -1.0F},
-                                                                                {-1.0F, -0.5F, 0.0F, 0.5F, 1.0F}});
+const DrivingState::WeightsHiddenOutputType DrivingState::OUTPUT_LAYER_WEIGHTS({{-0.22F, -0.05F, 0.0F, 0.05F, 0.22F},
+                                                                                {0.22F, 0.05F, 0.0F, -0.05F, -0.22F}});
 
 /**
  * Pre-trained neural network output layer biases.
+ * Base speed at 75% provides symmetric headroom (±25%) for steering corrections at any velocity.
+ * This prevents saturation and ensures consistent behavior across the full velocity range.
  */
-const DrivingState::BiasesOutputType DrivingState::OUTPUT_LAYER_BIASES({{0.25F}, {0.25F}});
+const DrivingState::BiasesOutputType DrivingState::OUTPUT_LAYER_BIASES({{0.75F}, {0.75F}});
 
 /******************************************************************************
  * Public Methods
