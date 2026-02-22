@@ -19,8 +19,12 @@ It provides different kind of exclusive applications, used for educational purpo
 
 - [The ZumoComSystem Shield](#the-zumocomsystem-shield)
 - [The simulation](#the-simulation)
-- [Installation for simulation](#installation-for-simulation)
+  - [Installation for simulation](#installation-for-simulation)
   - [How to start?](#how-to-start)
+  - [Run](#run)
+    - [Run with Webots launcher (recommended)](#run-with-webots-launcher-recommended)
+    - [Run without Webots launcher](#run-without-webots-launcher)
+    - [Run via terminal](#run-via-terminal)
 - [The target](#the-target)
   - [Installation for target](#installation-for-target)
   - [Build and flash procedure](#build-and-flash-procedure)
@@ -48,7 +52,7 @@ The simulation is based on the open source robot simulator *Webots*. The applica
 
 ![simulation-deployment](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/main/doc/architecture/uml/PhysicalView/SimulationDeployment.plantuml)
 
-## Installation for simulation
+### Installation for simulation
 
 1. Install the native compiler toolchain:
     - Linux
@@ -64,7 +68,7 @@ The simulation is based on the open source robot simulator *Webots*. The applica
 
 ### How to start?
 
-After you built the application, you will find in in ```.pio/build/<APPLICATION-NAME>/program.exe```. It provides several command line arguments to configure certain features. Use -h or --help to get a short user friendly overview about them.
+After you built the application, you will find it in ```.pio/build/<APPLICATION-NAME>/program[.exe]```. It provides several command line arguments to configure certain features. Use -h or --help to get a short user friendly overview about them.
 
 The applications are using a configuration file in JSON format to retrieve certain settings. In the very first run, such a configuration file will be automatically be created. If there exists already one, it will be loaded without modifications (regardless of any other program arguments).
 
@@ -77,6 +81,42 @@ A complete deployment, including MQTT server, would be started in the following 
 MQTT Broker --> Webots World --> RadonUlzer --> DroidControlShip
 
 In order to simplify this process, the [Launcher](https://github.com/gabryelreyes/Launcher) project is under active development.
+
+### Run
+
+There are 3 ways how to run now the application. Choose according to your needs.
+
+#### Run with Webots launcher (recommended)
+
+The Webots launcher is recommended to connect to the simulation.
+
+It is mandatory if the simulation contains more than one robot. The robot is identified by its name. Adapt the robot name in the [platformio_override.ini](./platformio_override.ini), see *webots_robot_name*.
+
+The Webots documentation has more details about [Single Simulation and Multiple Local Extern Robot Controllers](https://cyberbotics.com/doc/guide/running-extern-robot-controllers?tab-os=windows#single-simulation-and-multiple-local-extern-robot-controllers).
+
+It is mandatory too if the simulation runs not locally (e.g. Webots run on windows host and RadonUlzer in WSL).
+Set the ip-address and the port in [platformio_override.ini](./platformio_override.ini), see *webots_ip_address* and *webots_protocol*.
+
+Use *ipc* as *webots_protocol* for local connections and *tcp* for remote connections.
+
+| Key | Description |
+| --- | ----------- |
+| webots\_ip\_address | The IP address of the Webots simulation, which is used for TCP communication. |
+| webots\_protocol | \[ipc\|tcp\] - ipc is faster but only works on the same machine, tcp works also over network. |
+| webots\_robot\_name | The robot name used to identify the robot in the Webots world. See Webots world robot prototype. |
+
+PlatformIO project tasks --> &lt;APP-NAME&gt; --> Custom --> Launch
+
+#### Run without Webots launcher
+
+This can be choosen in case the simulation waits just for one robot.
+
+PlatformIO project tasks --> &lt;APP-NAME&gt; --> General --> Upload
+
+#### Run via terminal
+
+1. Open a command line (shell) and change to the folder with the built executable in ```.pio/build/LineFollowerSim```. This folder contains all necessary shared libraries as well.
+2. Start the executable.
 
 ## The target
 
