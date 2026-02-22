@@ -29,6 +29,7 @@ import os
 import sys
 import platform
 
+# pyright: reportUndefinedVariable=false
 Import("env")  # pylint: disable=undefined-variable
 
 ################################################################################
@@ -39,21 +40,28 @@ OS_PLATFORM_TYPE_LINUX = "Linux"
 OS_PLATFORM_TYPE_MACOS = "Darwin"
 OS_PLATFORM_TYPE = platform.system()
 
-ROBOT_NAME = env.GetProjectOption(
-    "webots_robot_name")  # pylint: disable=undefined-variable
+WEBOTS_IP_ADDRESS = env.GetProjectOption("webots_ip_address")  # pylint: disable=undefined-variable
+WEBOTS_PROTOCOL = env.GetProjectOption("webots_protocol")  # pylint: disable=undefined-variable
 
-ROBOT_SERIAL_RX_CHANNEL = env.GetProjectOption(
-    "webots_robot_serial_rx_channel")  # pylint: disable=undefined-variable
-ROBOT_SERIAL_TX_CHANNEL = env.GetProjectOption(
-    "webots_robot_serial_tx_channel")  # pylint: disable=undefined-variable
+ROBOT_NAME = env.GetProjectOption("webots_robot_name")  # pylint: disable=undefined-variable
+
+ROBOT_SERIAL_RX_CHANNEL = env.GetProjectOption("webots_robot_serial_rx_channel")  # pylint: disable=undefined-variable
+ROBOT_SERIAL_TX_CHANNEL = env.GetProjectOption("webots_robot_serial_tx_channel")  # pylint: disable=undefined-variable
 
 PROGRAM_PATH = "$BUILD_DIR/"
 PROGRAM_OPTIONS = '--cfgFilePath "../../../data/config/config.json" ' \
     + '--serialRxCh ' + ROBOT_SERIAL_RX_CHANNEL + ' ' \
     + '--serialTxCh ' + ROBOT_SERIAL_TX_CHANNEL + ' ' \
     + '-v'
-WEBOTS_CONTROLLER_OPTIONS = '--robot-name=' + ROBOT_NAME + ' --stdout-redirect'
+WEBOTS_CONTROLLER_OPTIONS = '--robot-name=' + ROBOT_NAME + ' ' \
+                            '--stdout-redirect' + ' ' \
+                            '--ip-address=' + WEBOTS_IP_ADDRESS + ' --protocol=' + WEBOTS_PROTOCOL
 WEBOTS_HOME = os.getenv('WEBOTS_HOME')
+
+if WEBOTS_HOME is None:
+    print("WEBOTS_HOME environment variable is not set. "
+          "Please set it to the Webots installation directory.")
+    sys.exit(1)
 
 if OS_PLATFORM_TYPE == OS_PLATFORM_TYPE_WIN:
 
