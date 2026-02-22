@@ -73,7 +73,7 @@ MicroRosClient::MicroRosClient() :
     m_subscribers{nullptr},
     m_numberOfHandles(0U),
     m_timer(),
-    m_connectingAttempts(0U),
+    m_numberOfConnectionAttempts(0U),
     m_isSupportInitialized(false),
     m_isNodeInitialized(false),
     m_isExecutorInitialized(false)
@@ -324,7 +324,7 @@ void MicroRosClient::waitingForAgentState()
             {
                 m_timer.stop();
                 m_state = STATE_CONNECTING;
-                m_connectingAttempts = MAX_CONNECTING_ATTEMPTS;
+                m_numberOfConnectionAttempts = MAX_CONNECTING_ATTEMPTS;
             }
             else if (false == m_timer.isTimerRunning())
             {
@@ -347,9 +347,9 @@ void MicroRosClient::connectingState()
 
     if (false == createEntities())
     {
-        if (0U < m_connectingAttempts)
+        if (0U < m_numberOfConnectionAttempts)
         {
-            --m_connectingAttempts;
+            --m_numberOfConnectionAttempts;
         }
         else
         {

@@ -71,7 +71,7 @@ The following diagram illustrates the component deployment of micro-ROS in the D
 
 ## Installation Steps
 
-The installation procedure handles how the WSL in windows is used to install the Ubuntu linux distribution, the ROS2, Webots and micro-ROS parts.
+The installation procedure handles how the WSL in Windows is used to install the Ubuntu Linux distribution, the ROS2, Webots and micro-ROS parts.
 
 1. [WSL with Ubuntu](./setup/wsl.md)
 2. [ROS2 Jazzy](./setup/ROS2_Jazzy.md)

@@ -207,7 +207,7 @@ private:
     /**
      * Counter of connecting attempts.
      */
-    uint8_t m_connectingAttempts;
+    uint8_t m_numberOfConnectionAttempts;
 
     /**
      * Tracks if support structure was successfully initialized.

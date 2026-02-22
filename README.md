@@ -95,7 +95,7 @@ It is mandatory if the simulation contains more than one robot. The robot is ide
 The Webots documentation has more details about [Single Simulation and Multiple Local Extern Robot Controllers](https://cyberbotics.com/doc/guide/running-extern-robot-controllers?tab-os=windows#single-simulation-and-multiple-local-extern-robot-controllers).
 
 It is mandatory too if the simulation runs not locally (e.g. Webots run on windows host and RadonUlzer in WSL).
-Set the ip-address and the port in [platformio_override.ini](./platformio_override.ini), see *webots_ip_address* and *webots_protocol*.
+Set the IP address and the port in [platformio_override.ini](./platformio_override.ini), see *webots_ip_address* and *webots_protocol*.
 
 Use *ipc* as *webots_protocol* for local connections and *tcp* for remote connections.
 

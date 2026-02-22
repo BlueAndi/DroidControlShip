@@ -26,4 +26,4 @@ Install now the PlatformIO extension (extension id: platformio.platformio-ide) i
 
 After that a VSCode restart is required and VSCode is ready.
 
-Install additional the C/C++ Extension Pack (extension id: ms-vscode.cpptools-extension-pack).
+Install additionally the C/C++ Extension Pack (extension id: ms-vscode.cpptools-extension-pack).
