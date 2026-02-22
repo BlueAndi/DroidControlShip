@@ -382,7 +382,11 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             }
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "cwd"))
             {
-                chdir(optarg);
+                if (0 != chdir(optarg))
+                {
+                    printf("Failed to change working directory to %s.\n", optarg);
+                    status = -1;
+                }
             }
             else
             {
