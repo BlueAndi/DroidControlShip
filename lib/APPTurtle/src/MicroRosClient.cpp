@@ -71,7 +71,12 @@ MicroRosClient::MicroRosClient() :
     m_executor(),
     m_allocator(),
     m_subscribers{nullptr},
-    m_numberOfHandles(0U)
+    m_numberOfHandles(0U),
+    m_timer(),
+    m_connectingAttempts(0U),
+    m_isSupportInitialized(false),
+    m_isNodeInitialized(false),
+    m_isExecutorInitialized(false)
 {
 }
 
@@ -198,17 +203,28 @@ bool MicroRosClient::createEntities()
         {
             LOG_ERROR("Failed to initialize support structure.");
         }
-        else if (RCL_RET_OK != rclc_node_init_default(&m_node, m_nodeName.c_str(), m_nodeNamespace.c_str(), &m_support))
-        {
-            LOG_ERROR("Failed to initialize node.");
-        }
-        else if (RCL_RET_OK != rclc_executor_init(&m_executor, &m_support.context, m_numberOfHandles, &m_allocator))
-        {
-            LOG_ERROR("Failed to initialize executor.");
-        }
         else
         {
-            isSuccessful = true;
+            m_isSupportInitialized = true;
+
+            if (RCL_RET_OK != rclc_node_init_default(&m_node, m_nodeName.c_str(), m_nodeNamespace.c_str(), &m_support))
+            {
+                LOG_ERROR("Failed to initialize node.");
+            }
+            else
+            {
+                m_isNodeInitialized = true;
+
+                if (RCL_RET_OK != rclc_executor_init(&m_executor, &m_support.context, m_numberOfHandles, &m_allocator))
+                {
+                    LOG_ERROR("Failed to initialize executor.");
+                }
+                else
+                {
+                    m_isExecutorInitialized = true;
+                    isSuccessful = true;
+                }
+            }
         }
 
         /* If necessary, it will be cleaned-up. */
@@ -223,10 +239,26 @@ bool MicroRosClient::createEntities()
 
 void MicroRosClient::destroyEntities()
 {
-    rcl_ret_t ret = rclc_executor_fini(&m_executor);
+    rcl_ret_t ret = RCL_RET_OK;
 
-    ret += rcl_node_fini(&m_node);
-    ret += rclc_support_fini(&m_support);
+    /* Clean up entities in reverse order of initialization. */
+    if (true == m_isExecutorInitialized)
+    {
+        ret = rclc_executor_fini(&m_executor);
+        m_isExecutorInitialized = false;
+    }
+
+    if (true == m_isNodeInitialized)
+    {
+        ret += rcl_node_fini(&m_node);
+        m_isNodeInitialized = false;
+    }
+
+    if (true == m_isSupportInitialized)
+    {
+        ret += rclc_support_fini(&m_support);
+        m_isSupportInitialized = false;
+    }
 
     if (RCL_RET_OK != ret)
     {
@@ -292,6 +324,7 @@ void MicroRosClient::waitingForAgentState()
             {
                 m_timer.stop();
                 m_state = STATE_CONNECTING;
+                m_connectingAttempts = MAX_CONNECTING_ATTEMPTS;
             }
             else if (false == m_timer.isTimerRunning())
             {
@@ -314,7 +347,14 @@ void MicroRosClient::connectingState()
 
     if (false == createEntities())
     {
-        m_state = STATE_WAIT_FOR_AGENT;
+        if (0U < m_connectingAttempts)
+        {
+            --m_connectingAttempts;
+        }
+        else
+        {
+            m_state = STATE_WAIT_FOR_AGENT;
+        }
     }
     else
     {
@@ -351,6 +391,11 @@ void MicroRosClient::connectedState()
         {
             m_timer.restart();
         }
+    }
+    else
+    {
+        /* Nothing to do. */
+        ;
     }
 
     /* Connection lost? */
