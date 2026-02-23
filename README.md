@@ -94,7 +94,7 @@ It is mandatory if the simulation contains more than one robot. The robot is ide
 
 The Webots documentation has more details about [Single Simulation and Multiple Local Extern Robot Controllers](https://cyberbotics.com/doc/guide/running-extern-robot-controllers?tab-os=windows#single-simulation-and-multiple-local-extern-robot-controllers).
 
-It is mandatory too if the simulation runs not locally (e.g. Webots runs on windows host and RadonUlzer in WSL).
+It is mandatory too if the simulation does not run locally (e.g. Webots runs on windows host and RadonUlzer in WSL).
 Set the IP address and the port in [platformio_override.ini](./platformio_override.ini), see *webots_ip_address* and *webots_protocol*.
 
 Use *ipc* as *webots_protocol* for local connections and *tcp* for remote connections.
@@ -115,7 +115,7 @@ PlatformIO project tasks --> &lt;APP-NAME&gt; --> General --> Upload
 
 #### Run via terminal
 
-1. Open a command line (shell) and change to the folder with the built executable in ```.pio/build/LineFollowerSim```. This folder contains all necessary shared libraries as well.
+1. Open a command line (shell) and change to the folder with the built executable in ```.pio/build/<APP-NAME>```. This folder contains all necessary shared libraries as well.
 2. Start the executable.
 
 ## The target
