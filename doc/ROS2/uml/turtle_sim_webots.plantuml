@@ -28,7 +28,7 @@ node "PC" {
             component "/Ros2SuperVisor/Ros2SuperVisor" <<ros2-node>> as ros2SupervisorNode
             note bottom of ros2SupervisorNode
                 Simulation time through /clock topic.
-                May not be required.
+                May not be required. Currently disabled.
             end note
         }
 
