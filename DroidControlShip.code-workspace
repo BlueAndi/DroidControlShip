@@ -16,6 +16,9 @@
 			"XRCE",
 			"zumo",
 			"Zumo"
+		],
+		"conventionalCommits.scopes": [
+			"Logging"
 		]
 	}
 }

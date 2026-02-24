@@ -88,7 +88,7 @@ void App::setup()
     /* Register serial log sink and select it per default. */
     if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
     {
-        (void)Logging::getInstance().selectSink("Serial");
+        (void)Logging::getInstance().selectSink(gLogSinkSerial.getName());
 
         /* Set severity of logging system. */
         Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
@@ -296,7 +296,7 @@ void App::handleTurtle()
         RobotSpeed    payload;
         const int32_t MILLI_CONVERSION_FACTOR = 1000;
         int32_t       linearSpeed = m_turtleSpeedSetpoint.linear.x * MILLI_CONVERSION_FACTOR; /* Linear speed in mm/s */
-        int32_t       angularSpeed = m_turtleSpeedSetpoint.angular.z * MILLI_CONVERSION_FACTOR; /* Angular speed in mrad/s */
+        int32_t angularSpeed = m_turtleSpeedSetpoint.angular.z * MILLI_CONVERSION_FACTOR; /* Angular speed in mrad/s */
 
         payload.linearCenter = linearSpeed;
         payload.angular      = angularSpeed;
