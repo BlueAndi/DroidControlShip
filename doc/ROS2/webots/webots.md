@@ -16,7 +16,7 @@ This page discusses how to integrate DCS with Webots and ROS2.
 
 ### RadonUlzer
 
-1. Run the following command in the terminal:
+1. Run the following commands in the terminal:
 
 ```bash
 cd ~/RadonUlzer
@@ -25,8 +25,8 @@ pio run -e RemoteControlSim -t webots_launcher_zumo_com_system
 
 ### DroidControlShip
 
-1. Set micro-ROS agent ip address and port in ```data/config.json``` in microROSAgent section.
-2. Run the following command in the terminal:
+1. Check/adapt micro-ROS agent host/port in the microROSAgent section of ```data/config.json```.
+2. Run the following commands in the terminal:
 
 ```bash
 cd ~/DroidControlShip
