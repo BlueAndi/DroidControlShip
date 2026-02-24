@@ -34,13 +34,3 @@ The `ros2_dcs_turtlesim` package is availabe from it's own GIT repository at
 
 Create a Webots ros2 workspace as described in [setup/Webots.md](../setup/Webots.md),
 then follow the instructions in `ros2_dcs_turtlesim` readme.md for building and launching.
-
-## Notes
-
-If the robot display shows an MCAL error, the calibration for the RadonUlzer is missing. Perform it first or manipulate the settings:
-
-```bash
-nano .pio/build/RemoteControlSim/settings.json
-```
-
-Set the maxSpeed value to 4200.

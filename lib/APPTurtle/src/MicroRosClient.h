@@ -110,6 +110,7 @@ private:
      * This is the period time in ms.
      */
     static const uint32_t MICRO_ROS_AGENT_PING_PERIOD_LONG = 500U;
+
     /**
      * The Micro-ROS agent will be periodically pinged to detect connection loss.
      * This is the period time in ms.
@@ -126,6 +127,11 @@ private:
      * retry mechanism is handled by our client.
      */
     static const uint8_t MICRO_ROS_AGENT_PING_ATTEMPTS = 1U;
+
+    /**
+     * Maximum number of connection retries before going back to waiting state.
+     */
+    static const uint8_t MAX_CONNECTION_RETRIES = 1U;
 
     /**
      * DDS queue check timeout in ms.
@@ -197,6 +203,26 @@ private:
      * Timer used for periodically operations.
      */
     SimpleTimer m_timer;
+
+    /**
+     * Number of connection retries.
+     */
+    uint8_t m_numberOfConnectionRetries;
+
+    /**
+     * Tracks if support structure was successfully initialized.
+     */
+    bool m_isSupportInitialized;
+
+    /**
+     * Tracks if node was successfully initialized.
+     */
+    bool m_isNodeInitialized;
+
+    /**
+     * Tracks if executor was successfully initialized.
+     */
+    bool m_isExecutorInitialized;
 
     /**
      * Setup the custom transport protocol.

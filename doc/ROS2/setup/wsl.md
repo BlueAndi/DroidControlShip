@@ -1,10 +1,10 @@
 # Installation of WSL for ROS2 Jazzy
 
-Each ROS2 distribution targets a specific Linux environment. 
-For Jazzy it is *Ubuntu 24.04*. To run it on Windows 10/11, 
+Each ROS2 distribution targets a specific Linux environment.
+For Jazzy it is *Ubuntu 24.04*. To run it on Windows 10/11,
 the WSL2 feature will be used.
 
-## Install WSL 
+## Install WSL
 
 Installing WSL (Linux on Windows) is officially supported by Microsoft.
 For details refer to the following
@@ -18,8 +18,11 @@ But all you need is this from a windows power shell:
 ```
 
 > **_NOTE:_**
-A Windows message dialog may popup in the background, to ask for elevated rights. 
+A Windows message dialog may popup in the background, to ask for elevated rights.
 Check for such a window if the installation does not progress.
+
+> **_NOTE:_**
+If windows requests to restart after trying to install Ubuntu, do so and try to install again.
 
 ## First time use
 
@@ -51,6 +54,8 @@ Configure Ubuntu to login by default with your user in the windows power shell:
 
 Check that you have the right distribution installed (Ubuntu 24.04 LTS):
 
+In the Ubuntu terminal:
+
 ```bash
     $  lsb_release -a
     No LSB modules are available.
@@ -62,7 +67,7 @@ Check that you have the right distribution installed (Ubuntu 24.04 LTS):
 
 ## New Terminal Window
 
-Is is recommended to install the new Microsoft Terminal Window 
+Is is recommended to install the new Microsoft Terminal Window
 if not done already. It is available from
 
 [Github Microsoft Terminal](https://github.com/microsoft/terminal).
@@ -71,20 +76,31 @@ It offers tabs, history and embedds all kinds of shells (cmd, powershell, Ubuntu
 
 ![New Shell](./img/new_shell.png)
 
-## Exposing WSL UDP Ports to the Network
+## Exposing WSL Ports to the Network
 
-To make UDP ports listening in WSL accessible from your local network, follow these steps:
-Find your WSL IP address by running this command in WSL:
+To make TCP/UDP ports listening in WSL accessible from your local network, follow these steps:
+
+Find your WSL IP address by running this command **in WSL**:
 
 ```bash
 ip addr show eth0
 ```
 
+or this **in a windows powershell**:
+
+```bat
+wsl hostname -I
+```
+
 > **_NOTE:_**
-UDP port forwarding to wsl is not supported without mirrored networking (WSL 2.0.0 on win11)
+TCP/UDP port forwarding to WSL is not supported without mirrored networking (WSL 2.0.0 on win11)
 
 Open a terminal in an administrator shell on Windows.
-Run the following command to forward the UDP port, replacing [PORT] with your desired port number (usually 8888) and [WSL_IP] with the IP address:
+Run the following commands to forward the TCP/UDP port, replacing [PORT] with your desired port number and [WSL_IP] with the IP address.
+
+| Port | Description        |
+| ---- | ------------------ |
+| 8888 | ROS2 network port  |
 
 ```bat
 netsh interface portproxy add v4tov4 listenport=[PORT] listenaddress=0.0.0.0 connectport=[PORT] connectaddress=[WSL_IP]

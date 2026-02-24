@@ -222,7 +222,7 @@ private:
     {
         INPUT_STATE_INIT = 0, /**< Input buffer ready for new record.          */
         INPUT_STATE_PREFIX_1, /**< First byte of 2 -Byte size prefix received. */
-        INPUT_STATE_PLAYLOAD, /**< Collecting payload bytes.                   */
+        INPUT_STATE_PAYLOAD,  /**< Collecting payload bytes.                   */
         INPUT_STATE_FINISH,   /**< Payload record is complete.                 */
         INPUT_STATE_MAX       /**< Enum Range value, not a true state.         */
     };

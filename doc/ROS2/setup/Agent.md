@@ -2,17 +2,17 @@
 
 Sources: [here](https://micro-xrce-dds.docs.eprosima.com/en/latest/index.html)
 
-* [Micro XRCE-DDS Agent](#micro-xrce-dds-agent)
-  * [Installation](#installation)
-  * [Using the agent with the serial interface](#using-the-agent-with-the-serial-interface)
-  * [Using the agent with the UDP interface](#using-the-agent-with-the-udp-interface)
-  * [Using the agent with the TCP interface](#using-the-agent-with-the-tcp-interface)
-  * [Troubleshooting on WSL environment](#troubleshooting-on-wsl-environment)
-  * [Testing the node](#testing-the-node)
+- [Micro XRCE-DDS Agent](#micro-xrce-dds-agent)
+  - [Installation](#installation)
+  - [Using the agent with the serial interface](#using-the-agent-with-the-serial-interface)
+  - [Using the agent with the TCP interface (recommended)](#using-the-agent-with-the-tcp-interface-recommended)
+  - [Using the agent with the UDP interface](#using-the-agent-with-the-udp-interface)
+  - [Troubleshooting on WSL environment](#troubleshooting-on-wsl-environment)
+  - [Testing the node](#testing-the-node)
 
 ## Installation
 
-Follow the instructions detailed [here](https://micro-xrce-dds.docs.eprosima.com/en/latest/installation.html). It has only been tested as standalone executable (without Docker neither using Snap).
+Follow the instructions detailed in [eProsima Micro XRCE-DDS documentation](https://micro-xrce-dds.docs.eprosima.com/en/latest/installation.html). It has only been tested as standalone executable (without Docker neither using Snap).
 `cmake` and `make` are required to build the Agent.
 
 ## Using the agent with the serial interface
@@ -38,7 +38,7 @@ Once the Agent and the Client are connected, the terminal should show something 
 [1723186868.574254] info     | ProxyClient.cpp       | create_datawriter        | datawriter created     | client_key: 0x64C59DFF, datawriter_id: 0x000(5), publisher_id: 0x000(3)
 ```
 
-## Using the agent with the TCP interface
+## Using the agent with the TCP interface (recommended)
 
 Start the MicroXRCEAgent binary to listen to **TCP** connections:
 
@@ -60,7 +60,7 @@ Start the MicroXRCEAgent binary to listen to **TCP** connections:
 > [!WARNING]  
 > Note: UDP ports on WSL are not working properly if you need to access them outside of the WSL VM (Status 2024-10-31). Use TCP with WSL instead.
 > See [https://github.com/micro-ROS/micro-ROS-Agent/issues/194](https://github.com/micro-ROS/micro-ROS-Agent/issues/194) for further details.
-> The mentioned ```netsh`` tool for port proxy forwarding only supports TCP.
+> The mentioned ```netsh``` tool for port proxy forwarding only supports TCP.
 
 Start the MicroXRCEAgent binary to listen to UDP connections:
 
@@ -87,6 +87,7 @@ Update: 2024-10-30: TCP transport is available in DroidControlShip, making UDP u
 In order to test your node, you can use `ros2 topic list` to list all topics used, or `ros2 topic echo <topic_name>` to listen to incoming data in a specific topic.
 
 Publish some test messages (1Hz twist message):
+
 ```bash
 ros2 topic pub -r 1.0 cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}"
 ```
