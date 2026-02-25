@@ -23,7 +23,7 @@ The setup procedure is described on [this page](https://docs.ros.org/en/jazzy/Tu
 
 ### Running Webots ROS2 Universal Robot (on Windows)
 
-See Task 2 from this [Jazzy documentaion page](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Installation-Ubuntu.html#launch-the-webots-ros2-universal-robot-example)
+See Task 2 from this [Jazzy documentation page](https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Installation-Ubuntu.html#launch-the-webots-ros2-universal-robot-example)
 
 Replace ```<DRIVE>/<WEBOTS-INSTALLATION_DIRECTORY>``` in the following terminal commands:
 

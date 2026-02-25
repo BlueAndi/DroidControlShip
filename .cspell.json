@@ -1,7 +1,10 @@
 {
   "version": "0.2",
   "words": [
+    "Allman",
     "cppcheck",
+    "mrad",
+    "multirobot",
     "pacman",
     "teleop",
     "Ulzer",

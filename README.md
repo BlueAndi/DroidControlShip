@@ -109,7 +109,7 @@ PlatformIO project tasks --> &lt;APP-NAME&gt; --> Custom --> Launch
 
 #### Run without Webots launcher
 
-This can be choosen in case the simulation waits just for one robot.
+This can be chosen in case the simulation waits just for one robot.
 
 PlatformIO project tasks --> &lt;APP-NAME&gt; --> General --> Upload
 
