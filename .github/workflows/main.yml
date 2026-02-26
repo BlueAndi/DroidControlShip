@@ -62,7 +62,7 @@ jobs:
           ~/.platformio/.cache
           ~/.platformio/packages
           ~/.platformio/platforms
-        key: ${{ runner.os }}-pio-${{ hashFiles('platformio.ini') }}
+        key: ${{ runner.os }}-pio-${{ hashFiles('platformio*.ini') }}
 
     # Run cppcheck and clang-tidy.
     - name: Perform static checks on ${{ matrix.environment }}
@@ -101,7 +101,7 @@ jobs:
           ~/.platformio/.cache
           ~/.platformio/packages
           ~/.platformio/platforms
-        key: ${{ runner.os }}-pio-${{ hashFiles('platformio.ini') }}
+        key: ${{ runner.os }}-pio-${{ hashFiles('platformio*.ini') }}
 
     # Run cppcheck and clang-tidy.
     - name: Perform static checks on ${{ matrix.environment }}
@@ -134,7 +134,7 @@ jobs:
           ~/.platformio/.cache
           ~/.platformio/packages
           ~/.platformio/platforms
-        key: ${{ runner.os }}-pio-${{ hashFiles('platformio.ini') }}
+        key: ${{ runner.os }}-pio-${{ hashFiles('platformio*.ini') }}
 
     - name: Run tests on native environment
       run: platformio test --environment Test -vvv
