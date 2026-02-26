@@ -6,16 +6,8 @@
 	],
 	"settings": {
 		"editor.formatOnSave": true,
-		"cSpell.words": [
-			"cppcheck",
-			"teleop",
-			"Ulzer",
-			"wbsim",
-			"webots",
-			"Webots",
-			"XRCE",
-			"zumo",
-			"Zumo"
+		"conventionalCommits.scopes": [
+			"Logging"
 		]
 	}
 }

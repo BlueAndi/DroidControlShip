@@ -99,24 +99,24 @@ Set the IP address and the port in [platformio_override.ini](./platformio_overri
 
 Use *ipc* as *webots_protocol* for local connections and *tcp* for remote connections.
 
-| Key | Description |
-| --- | ----------- |
-| webots\_ip\_address | The IP address of the Webots simulation, which is used for TCP communication. |
-| webots\_protocol | \[ipc\|tcp\] - ipc is faster but only works on the same machine, tcp works also over network. |
+| Key                 | Description                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
+| webots\_ip\_address | The IP address of the Webots simulation, which is used for TCP communication.                    |
+| webots\_protocol    | \[ipc\|tcp\] - ipc is faster but only works on the same machine, tcp works also over network.    |
 | webots\_robot\_name | The robot name used to identify the robot in the Webots world. See Webots world robot prototype. |
 
 PlatformIO project tasks --> &lt;APP-NAME&gt; --> Custom --> Launch
 
 #### Run without Webots launcher
 
-This can be choosen in case the simulation waits just for one robot.
+This can be chosen in case the simulation waits just for one robot.
 
 PlatformIO project tasks --> &lt;APP-NAME&gt; --> General --> Upload
 
 #### Run via terminal
 
-1. Open a command line (shell) and change to the folder with the built executable in ```.pio/build/<APP-NAME>```. This folder contains all necessary shared libraries as well.
-2. Start the executable.
+1. Open a command line (shell) and change to the folder with the built executable in ```.pio/build/<APPLICATION-NAME>```. This folder contains all necessary shared libraries as well.
+2. Start the ```program[.exe]``` executable.
 
 ## The target
 
@@ -144,15 +144,15 @@ In a similar way, not providing a WiFi configuration will force the target into 
 
 ## The Applications
 
-| Application | Standalone | Zumo32U4 Robot Required | RadonUlzer Application | MQTT Broker Required |
-| - | - | - | - | - |
-| ConvoyLeader | No | Yes | ConvoyLeader | Yes |
-| ConvoyFollower | No | Yes | RemoteControl | Yes |
-| LineFollower | No | Yes | RemoteControl | No |
-| RemoteControl | No | Yes | RemoteControl | Yes |
-| SensorFusion | No | Yes | SensorFusion | Yes |
-| Test | Yes | No | N/A | No |
-| Turtle | No | Yes | RemoteControl | Yes (ROS2 + Micro-ROS Agent) |
+| Application    | Standalone | Zumo32U4 Robot Required | RadonUlzer Application | MQTT Broker Required         |
+| -------------- | ---------- | ----------------------- | ---------------------- | ---------------------------- |
+| ConvoyLeader   | No         | Yes                     | ConvoyLeader           | Yes                          |
+| ConvoyFollower | No         | Yes                     | RemoteControl          | Yes                          |
+| LineFollower   | No         | Yes                     | RemoteControl          | No                           |
+| RemoteControl  | No         | Yes                     | RemoteControl          | Yes                          |
+| SensorFusion   | No         | Yes                     | SensorFusion           | Yes                          |
+| Test           | Yes        | No                      | N/A                    | No                           |
+| Turtle         | No         | Yes                     | RemoteControl          | Yes (ROS2 + Micro-ROS Agent) |
 
 ## Documentation
 

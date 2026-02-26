@@ -20,7 +20,7 @@ node "PC" {
     package "ROS2" {
         cloud "ROS2 Logical Network" as ros2LogicalNetwork
 
-        node "teleop_turtle" <<executable>> as teleopTurtle {
+        node "turtle_teleop_key" <<executable>> as teleopTurtle {
             component "/teleop_turtle" <<ros2-node>> as teleopTurtleNode
         }
 
@@ -28,7 +28,7 @@ node "PC" {
             component "/Ros2SuperVisor/Ros2SuperVisor" <<ros2-node>> as ros2SupervisorNode
             note bottom of ros2SupervisorNode
                 Simulation time through /clock topic.
-                May not be required.
+                May not be required. Currently disabled.
             end note
         }
 

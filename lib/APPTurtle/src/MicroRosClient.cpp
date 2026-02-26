@@ -222,7 +222,7 @@ bool MicroRosClient::createEntities()
                 else
                 {
                     m_isExecutorInitialized = true;
-                    isSuccessful = true;
+                    isSuccessful            = true;
                 }
             }
         }
@@ -244,7 +244,7 @@ void MicroRosClient::destroyEntities()
     /* Clean up entities in reverse order of initialization. */
     if (true == m_isExecutorInitialized)
     {
-        ret = rclc_executor_fini(&m_executor);
+        ret                     = rclc_executor_fini(&m_executor);
         m_isExecutorInitialized = false;
     }
 
@@ -323,7 +323,7 @@ void MicroRosClient::waitingForAgentState()
             if (RMW_RET_OK == rmw_uros_ping_agent(MICRO_ROS_AGENT_PING_TIMEOUT, MICRO_ROS_AGENT_PING_ATTEMPTS))
             {
                 m_timer.stop();
-                m_state = STATE_CONNECTING;
+                m_state                     = STATE_CONNECTING;
                 m_numberOfConnectionRetries = MAX_CONNECTION_RETRIES;
             }
             else if (false == m_timer.isTimerRunning())

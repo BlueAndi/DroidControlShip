@@ -195,7 +195,7 @@ private:
     BaseSubscriber* m_subscribers[RMW_UXRCE_MAX_SUBSCRIPTIONS];
 
     /**
-     * Counter of subscribtions.
+     * Counter of subscriptions.
      */
     size_t m_numberOfHandles;
 
