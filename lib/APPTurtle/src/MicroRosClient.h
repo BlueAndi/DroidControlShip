@@ -129,9 +129,9 @@ private:
     static const uint8_t MICRO_ROS_AGENT_PING_ATTEMPTS = 1U;
 
     /**
-     * Maximum number of connecting attempts before going back to waiting state.
+     * Maximum number of connection retries before going back to waiting state.
      */
-    static const uint8_t MAX_CONNECTING_ATTEMPTS = 2U;
+    static const uint8_t MAX_CONNECTION_RETRIES = 1U;
 
     /**
      * DDS queue check timeout in ms.
@@ -205,9 +205,9 @@ private:
     SimpleTimer m_timer;
 
     /**
-     * Counter of connecting attempts.
+     * Number of connection retries.
      */
-    uint8_t m_numberOfConnectionAttempts;
+    uint8_t m_numberOfConnectionRetries;
 
     /**
      * Tracks if support structure was successfully initialized.

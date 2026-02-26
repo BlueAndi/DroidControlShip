@@ -73,7 +73,7 @@ MicroRosClient::MicroRosClient() :
     m_subscribers{nullptr},
     m_numberOfHandles(0U),
     m_timer(),
-    m_numberOfConnectionAttempts(0U),
+    m_numberOfConnectionRetries(0U),
     m_isSupportInitialized(false),
     m_isNodeInitialized(false),
     m_isExecutorInitialized(false)
@@ -323,8 +323,8 @@ void MicroRosClient::waitingForAgentState()
             if (RMW_RET_OK == rmw_uros_ping_agent(MICRO_ROS_AGENT_PING_TIMEOUT, MICRO_ROS_AGENT_PING_ATTEMPTS))
             {
                 m_timer.stop();
-                m_state                      = STATE_CONNECTING;
-                m_numberOfConnectionAttempts = MAX_CONNECTING_ATTEMPTS;
+                m_state                     = STATE_CONNECTING;
+                m_numberOfConnectionRetries = MAX_CONNECTION_RETRIES;
             }
             else if (false == m_timer.isTimerRunning())
             {
@@ -347,9 +347,9 @@ void MicroRosClient::connectingState()
 
     if (false == createEntities())
     {
-        if (0U < m_numberOfConnectionAttempts)
+        if (0U < m_numberOfConnectionRetries)
         {
-            --m_numberOfConnectionAttempts;
+            --m_numberOfConnectionRetries;
         }
         else
         {
