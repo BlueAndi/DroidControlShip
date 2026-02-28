@@ -40,7 +40,6 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
 #include <Arduino.h>
 #include <SerialMuxProtServer.hpp>
 
@@ -171,6 +170,9 @@ typedef struct _Command
 
 } __attribute__((packed)) Command;
 
+static_assert(sizeof(Command) <= MAX_DATA_LEN,
+              "Command struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
+
 /** Struct of the "Command Response" channel payload. */
 typedef struct _CommandResponse
 {
@@ -184,6 +186,9 @@ typedef struct _CommandResponse
     };
 } __attribute__((packed)) CommandResponse;
 
+static_assert(sizeof(CommandResponse) <= MAX_DATA_LEN,
+              "CommandResponse struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
+
 /** Struct of the "Motor Speed Setpoints" channel payload. */
 typedef struct _MotorSpeed
 {
@@ -191,12 +196,18 @@ typedef struct _MotorSpeed
     int32_t right; /**< Right motor speed [mm/s] */
 } __attribute__((packed)) MotorSpeed;
 
+static_assert(sizeof(MotorSpeed) <= MAX_DATA_LEN,
+              "MotorSpeed struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
+
 /** Struct of the "Robot Speed Setpoints" channel payload. */
 typedef struct _RobotSpeed
 {
     int32_t linearCenter; /**< Linear speed of the vehicle center. [mm/s] */
     int32_t angular;      /**< Angular speed. [mrad/s] */
 } __attribute__((packed)) RobotSpeed;
+
+static_assert(sizeof(RobotSpeed) <= MAX_DATA_LEN,
+              "RobotSpeed struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
 
 /** Struct of the "Current Vehicle Data" channel payload. */
 typedef struct _VehicleData
@@ -210,17 +221,26 @@ typedef struct _VehicleData
     SMPChannelPayload::Range proximity;   /**< Range at which object is found [range]. */
 } __attribute__((packed)) VehicleData;
 
+static_assert(sizeof(VehicleData) <= MAX_DATA_LEN,
+              "VehicleData struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
+
 /** Struct of the "Status" channel payload. */
 typedef struct _Status
 {
     SMPChannelPayload::Status status; /**< Status */
 } __attribute__((packed)) Status;
 
+static_assert(sizeof(Status) <= MAX_DATA_LEN,
+              "Status struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
+
 /** Struct of the "Line Sensor" channel payload. */
 typedef struct _LineSensorData
 {
     uint16_t lineSensorData[5U]; /**< Line sensor data [digits] normalized to max 1000 digits. */
 } __attribute__((packed)) LineSensorData;
+
+static_assert(sizeof(LineSensorData) <= MAX_DATA_LEN,
+              "LineSensorData struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
 
 /******************************************************************************
  * Functions
