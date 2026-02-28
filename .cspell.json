@@ -5,6 +5,7 @@
     "cppcheck",
     "doxyfile",
     "graphviz",
+    "libmicroros",
     "mattnotmitt",
     "mrad",
     "multirobot",
