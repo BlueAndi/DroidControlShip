@@ -37,7 +37,6 @@
 #include <Logging.h>
 #include <ArduinoJson.h>
 
-
 /******************************************************************************
  * Local Variables / Constants
  *****************************************************************************/
@@ -88,8 +87,7 @@ void TimeSync::begin()
     m_pingTimer.start(m_pingPeriodMs);
 
     /* Register time sync response callback. */
-    m_serMuxProvider.registerTimeSyncResponseCallback(
-        [this](const TimeSyncResponse& rsp) { onTimeSyncResponse(rsp); });
+    m_serMuxProvider.registerTimeSyncResponseCallback([this](const TimeSyncResponse& rsp) { onTimeSyncResponse(rsp); });
 
     m_lastStatusLogMs = localNowMs();
 }
@@ -122,8 +120,7 @@ void TimeSync::process()
         logZumoStatus();
         if (m_hostSyncValid)
         {
-            LOG_INFO("Host sync: offset=%ld ms, last RTT=%lu ms",
-                     static_cast<long>(m_hostOffsetMs),
+            LOG_INFO("Host sync: offset=%ld ms, last RTT=%lu ms", static_cast<long>(m_hostOffsetMs),
                      static_cast<unsigned long>(m_lastHostRttMs));
         }
         else
@@ -174,8 +171,7 @@ uint64_t TimeSync::hostToEspLocalMs(uint64_t hostMs) const
  * Host <-> ESP MQTT TimeSync
  *****************************************************************************/
 
-void TimeSync::sendHostTimeSyncRequest(MqttClient& mqttClient,
-                                       const char* topic)
+void TimeSync::sendHostTimeSyncRequest(MqttClient& mqttClient, const char* topic)
 {
     if (nullptr == topic)
     {
@@ -198,11 +194,7 @@ void TimeSync::sendHostTimeSyncRequest(MqttClient& mqttClient,
     }
 }
 
-
-void TimeSync::onHostTimeSyncResponse(uint32_t seq,
-                                      uint64_t t1EspMs,
-                                      uint64_t t2HostMs,
-                                      uint64_t t3HostMs,
+void TimeSync::onHostTimeSyncResponse(uint32_t seq, uint64_t t1EspMs, uint64_t t2HostMs, uint64_t t3HostMs,
                                       uint64_t t4EspMs)
 {
     /* NTP-style formulas: */
@@ -217,15 +209,13 @@ void TimeSync::onHostTimeSyncResponse(uint32_t seq,
     LOG_INFO("t2=%llu ms", t2HostMs);
     LOG_INFO("t3=%llu ms", t3HostMs);
     LOG_INFO("t4=%llu ms", t4EspMs);
-    
 
-    const int64_t d1 = static_cast<int64_t>(t2HostMs) - static_cast<int64_t>(t1EspMs);
-    const int64_t d2 = static_cast<int64_t>(t3HostMs) - static_cast<int64_t>(t4EspMs);
+    const int64_t d1 = t2HostMs - t1EspMs;
+    const int64_t d2 = t3HostMs - t4EspMs;
 
     const int64_t offset = (d1 + d2) / 2;
 
-    const int64_t rtt = (static_cast<int64_t>(t4EspMs) - static_cast<int64_t>(t1EspMs))
-                      - (static_cast<int64_t>(t3HostMs) - static_cast<int64_t>(t2HostMs));
+    const int64_t rtt = (t4EspMs - t1EspMs) - (t3HostMs - t2HostMs);
 
     m_hostOffsetMs  = offset;
     m_lastHostRttMs = (rtt >= 0) ? static_cast<uint32_t>(rtt) : 0U;
@@ -233,10 +223,8 @@ void TimeSync::onHostTimeSyncResponse(uint32_t seq,
 
     const float offset_s = static_cast<float>(m_hostOffsetMs) / 1000.0F;
 
-    LOG_INFO("Host sync: seq=%u offset=%.3f s rtt=%lu ms",
-            static_cast<unsigned>(seq),
-            offset_s,
-            static_cast<unsigned long>(m_lastHostRttMs));
+    LOG_INFO("Host sync: seq=%u offset=%.3f s rtt=%lu ms", static_cast<unsigned>(seq), offset_s,
+             static_cast<unsigned long>(m_lastHostRttMs));
 }
 
 /******************************************************************************
@@ -247,8 +235,7 @@ void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
 {
     if (rsp.sequenceNumber != m_pendingSeq)
     {
-        LOG_WARNING("TimeSync: seq mismatch (expected=%u, got=%u) – using last T1",
-                    static_cast<unsigned>(m_pendingSeq),
+        LOG_WARNING("TimeSync: seq mismatch (expected=%u, got=%u) – using last T1", static_cast<unsigned>(m_pendingSeq),
                     rsp.sequenceNumber);
     }
 
@@ -261,8 +248,7 @@ void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
 
     if (delta_local < delta_zumo)
     {
-        LOG_WARNING("TimeSync: invalid deltas (delta_local=%u, delta_zumo=%u)",
-                    delta_local, delta_zumo);
+        LOG_WARNING("TimeSync: invalid deltas (delta_local=%u, delta_zumo=%u)", delta_local, delta_zumo);
         return;
     }
 
@@ -326,12 +312,10 @@ void TimeSync::logZumoStatus() const
     const uint32_t bestRttMs = (TSYNC_MIN_RTT_INITIAL == m_minRttMs) ? 0U : m_minRttMs;
     const uint32_t estAccuMs = bestRttMs / 2U;
 
-    LOG_INFO("Zumo sync: lastSeq=%u goodSamples=%u",
-             static_cast<unsigned>(m_pendingSeq),
+    LOG_INFO("Zumo sync: lastSeq=%u goodSamples=%u", static_cast<unsigned>(m_pendingSeq),
              static_cast<unsigned>(m_zumoGoodSamples));
 
-    LOG_INFO("Zumo sync: lastRTT=%lu ms minRTT=%lu ms",
-             static_cast<unsigned long>(m_lastAcceptedRttMs),
+    LOG_INFO("Zumo sync: lastRTT=%lu ms minRTT=%lu ms", static_cast<unsigned long>(m_lastAcceptedRttMs),
              static_cast<unsigned long>(bestRttMs));
 
     if (m_zumoGoodSamples > 0U)
@@ -342,8 +326,7 @@ void TimeSync::logZumoStatus() const
         const long span32      = maxOffset32 - minOffset32;
         const long absSpan32   = (span32 >= 0) ? span32 : -span32;
 
-        LOG_INFO("Zumo sync: offsetZ2E=%ld ms span=[%ld .. %ld] ms",
-                 offset32, minOffset32, maxOffset32);
+        LOG_INFO("Zumo sync: offsetZ2E=%ld ms span=[%ld .. %ld] ms", offset32, minOffset32, maxOffset32);
         LOG_INFO("Zumo sync: est. accuracy=+/- %lu ms (from minRTT/2, span=%ld ms)",
                  static_cast<unsigned long>(estAccuMs), absSpan32);
     }
@@ -359,8 +342,7 @@ void TimeSync::logStatus() const
     logZumoStatus();
     if (m_hostSyncValid)
     {
-        LOG_INFO("Host sync: offset=%ld ms, last RTT=%lu ms",
-                 static_cast<long>(m_hostOffsetMs),
+        LOG_INFO("Host sync: offset=%ld ms, last RTT=%lu ms", static_cast<long>(m_hostOffsetMs),
                  static_cast<unsigned long>(m_lastHostRttMs));
     }
     else

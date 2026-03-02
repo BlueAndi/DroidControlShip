@@ -466,7 +466,7 @@ void App::publishVehicleAndSensorSnapshot(const VehicleData& data)
 
 void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRadarPose& ssrPose)
 {
-    /* Local variables (all declared at top as requested). */
+    /* Local variables. */
     uint32_t zumoTs32      = 0U;
     uint32_t zumoLocalMs32 = 0U;
     uint32_t ssrLocalMs32  = 0U;
