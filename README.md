@@ -158,6 +158,7 @@ In a similar way, not providing a WiFi configuration will force the target into 
 
 - [SW Architecture](./doc/architecture/README.md)
 - [SW Configuration](./doc/configuration/README.md)
+- [Coding Guideline](./doc/CodingGuideline.md)
 
 ## Used Libraries
 
