@@ -1,8 +1,23 @@
-# Coding Guideline
+# Coding Guideline <!-- omit in toc -->
 
 Derived from existing source code in this repository.
 
----
+## Table of Contents <!-- omit in toc -->
+
+- [File Structure](#file-structure)
+- [Naming](#naming)
+- [Headers](#headers)
+- [Doxygen](#doxygen)
+- [Class Layout](#class-layout)
+- [Patterns](#patterns)
+  - [Singleton](#singleton)
+  - [State Machine](#state-machine)
+- [Formatting](#formatting)
+- [Conditionals](#conditionals)
+  - [Switch](#switch)
+- [Parameters](#parameters)
+- [Logging](#logging)
+- [Tests](#tests)
 
 ## File Structure
 
@@ -48,8 +63,6 @@ Each section uses a 80-character comment banner:
 Close every header file with:
 
 ```cpp
-#endif /* FILENAME_H */
-
 /** @} */
 ```
 
@@ -57,16 +70,16 @@ Close every header file with:
 
 ## Naming
 
-| Element | Convention | Example |
-|---|---|---|
-| Class | PascalCase | `StateMachine`, `StartupState` |
-| Interface / abstract base | Prefix `I` | `IState`, `IBoard` |
-| Method | camelCase | `setup()`, `getInstance()` |
-| Private member variable | `m_` prefix + camelCase | `m_isActive`, `m_duration` |
-| Constant / `static const` member | `UPPER_SNAKE_CASE` | `MIN_BATTERY_LEVEL`, `SEND_WAYPOINT_TIMER_INTERVAL` |
-| File-scope static variable | `g` prefix + camelCase | `gLogSinkSerial` |
-| Macro parameter | double-underscore prefix | `SIMPLE_TIMER_SECONDS(__timeInS)` |
-| Enum value | `UPPER_SNAKE_CASE` | `CMD_GET_MAX_SPEED`, `CMD_NONE` |
+| Element                          | Convention               | Example                                             |
+| -------------------------------- | ------------------------ | --------------------------------------------------- |
+| Class                            | PascalCase               | `StateMachine`, `StartupState`                      |
+| Interface / abstract base        | Prefix `I`               | `IState`, `IBoard`                                  |
+| Method                           | camelCase                | `setup()`, `getInstance()`                          |
+| Private member variable          | `m_` prefix + camelCase  | `m_isActive`, `m_duration`                          |
+| Constant / `static const` member | `UPPER_SNAKE_CASE`       | `MIN_BATTERY_LEVEL`, `SEND_WAYPOINT_TIMER_INTERVAL` |
+| File-scope static variable       | `g` prefix + camelCase   | `gLogSinkSerial`                                    |
+| Macro parameter                  | double-underscore prefix | `SIMPLE_TIMER_SECONDS(__timeInS)`                   |
+| Enum value                       | `UPPER_SNAKE_CASE`       | `CMD_GET_MAX_SPEED`, `CMD_NONE`                     |
 
 Use `uint8_t`, `uint16_t`, `uint32_t` etc. for sized integer types. Append `U` to unsigned integer literals (`50U`, `1000U`).
 
