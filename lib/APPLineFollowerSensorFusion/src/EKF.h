@@ -63,7 +63,7 @@ class ExtendedKalmanFilter4D
 {
 public:
     /** State dimension. */
-    static constexpr std::uint8_t STATE_DIM    = 4U;
+    static constexpr std::uint8_t STATE_DIM = 4U;
     /** Camera measurement dimension: [x, y, theta]. */
     static constexpr std::uint8_t CAM_MEAS_DIM = 3U;
     /** Odometry measurement dimension: [v]. */
@@ -78,15 +78,20 @@ public:
     /** @brief Camera measurement vector z_cam = [p_x, p_y, theta]^T. */
     using CamMeasurementVector = Eigen::Matrix<float, CAM_MEAS_DIM, 1>;
     /** @brief Camera measurement covariance matrix R_cam. */
-    using CamMeasMatrix        = Eigen::Matrix<float, CAM_MEAS_DIM, CAM_MEAS_DIM>;
+    using CamMeasMatrix = Eigen::Matrix<float, CAM_MEAS_DIM, CAM_MEAS_DIM>;
 
     /** @brief Odometry measurement vector z_odo = [v]^T. */
     using OdoMeasurementVector = Eigen::Matrix<float, ODO_MEAS_DIM, 1>;
     /** @brief Odometry measurement covariance matrix R_odo. */
-    using OdoMeasMatrix        = Eigen::Matrix<float, ODO_MEAS_DIM, ODO_MEAS_DIM>;
+    using OdoMeasMatrix = Eigen::Matrix<float, ODO_MEAS_DIM, ODO_MEAS_DIM>;
 
     /**
      * @brief Last valid NIS information for one sensor.
+     *
+     * @param value NIS value.
+     * @param timestampMs Timestamp of the measurement associated with the NIS value in local ms.
+     * @param isValid Flag indicating if the NIS value is valid (i.e., if an update step with this sensor has been
+     * performed since the last initialization).
      */
     struct NisData
     {
@@ -217,15 +222,15 @@ private:
     StateMatrix m_covariance;
 
     /** Process noise covariance Q. */
-    StateMatrix   m_Q;
+    StateMatrix m_Q;
     /** Camera measurement noise covariance R_cam. */
     CamMeasMatrix m_R_cam;
     /** Odometry measurement noise covariance R_odo. */
     OdoMeasMatrix m_R_odo;
     /** Last valid odometry NIS. */
-    NisData       m_lastNisOdometry;
+    NisData m_lastNisOdometry;
     /** Last valid camera NIS. */
-    NisData       m_lastNisCamera;
+    NisData m_lastNisCamera;
 
 private:
     /**
