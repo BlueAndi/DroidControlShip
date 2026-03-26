@@ -194,8 +194,8 @@ void TimeSync::sendHostTimeSyncRequest(MqttClient& mqttClient, const char* topic
     }
 }
 
-void TimeSync::onHostTimeSyncResponse(uint32_t seq, uint64_t t1EspMs, uint64_t t2HostMs, uint64_t t3HostMs,
-                                      uint64_t t4EspMs)
+void TimeSync::onHostTimeSyncResponse(uint32_t seq, int64_t t1EspMs, int64_t t2HostMs, int64_t t3HostMs,
+                                      int64_t t4EspMs)
 {
     /* NTP-style formulas: */
     /* offset = ((T2 - T1) + (T3 - T4)) / 2 */
@@ -205,10 +205,10 @@ void TimeSync::onHostTimeSyncResponse(uint32_t seq, uint64_t t1EspMs, uint64_t t
     /* T3 = t3HostMs  (Host) */
     /* T4 = t4EspMs   (ESP) */
     LOG_INFO("Host sync: seq=%u", static_cast<unsigned>(seq));
-    LOG_INFO("t1=%llu ms", t1EspMs);
-    LOG_INFO("t2=%llu ms", t2HostMs);
-    LOG_INFO("t3=%llu ms", t3HostMs);
-    LOG_INFO("t4=%llu ms", t4EspMs);
+    LOG_INFO("t1=%lls ms", t1EspMs);
+    LOG_INFO("t2=%lls ms", t2HostMs);
+    LOG_INFO("t3=%lls ms", t3HostMs);
+    LOG_INFO("t4=%lls ms", t4EspMs);
 
     const int64_t d1 = t2HostMs - t1EspMs;
     const int64_t d2 = t3HostMs - t4EspMs;

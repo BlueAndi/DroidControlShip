@@ -136,7 +136,6 @@ public:
      *  - ESP records T4_esp_ms on reception and computes offset + RTT
      *********************************************************************/
 
-
     /**
      * @brief Send a host time sync request message via MQTT.
      *
@@ -149,8 +148,7 @@ public:
      * @param[in] mqttClient  MQTT instance.
      * @param[in] topic      MQTT topic for the request message.
      */
-    void sendHostTimeSyncRequest(MqttClient& mqttClient,
-                                 const char* topic);
+    void sendHostTimeSyncRequest(MqttClient& mqttClient, const char* topic);
 
     /**
      * @brief Handle a host time sync response received via MQTT.
@@ -172,11 +170,7 @@ public:
      * @param[in] t3HostMs    T3 on host side [ms].
      * @param[in] t4EspMs     T4 on ESP side [ms].
      */
-    void onHostTimeSyncResponse(uint32_t seq,
-                                uint64_t t1EspMs,
-                                uint64_t t2HostMs,
-                                uint64_t t3HostMs,
-                                uint64_t t4EspMs);
+    void onHostTimeSyncResponse(uint32_t seq, int64_t t1EspMs, int64_t t2HostMs, int64_t t3HostMs, int64_t t4EspMs);
 
     /**
      * @brief Returns whether a valid host synchronization offset is available.

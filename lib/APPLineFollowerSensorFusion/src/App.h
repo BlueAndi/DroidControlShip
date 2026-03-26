@@ -72,8 +72,6 @@ struct SpaceShipRadarPose
     float    x;         /**< X position in mm. */
     float    y;         /**< Y position in mm. */
     float    theta;     /**< Heading in mrad. */
-    float    v_x;       /**< Velocity in X direction in mm/s. */
-    float    v_y;       /**< Velocity in Y direction in mm/s. */
 };
 
 /**
@@ -82,7 +80,7 @@ struct SpaceShipRadarPose
 enum class Source
 {
     None,          /**< No new data available (no newer timestamp than last EKF update). */
-    Vehicle,       /**< Newest data comes from vehicle (odometry / IMU). */
+    Vehicle,       /**< Newest data comes from vehicle (odometry / IMU control input). */
     SSR,           /**< Newest data comes from Space Ship Radar (SSR). */
     VehicleAndSSR  /**< Both vehicle and SSR provide newer data; use both updates. */
 };
@@ -186,9 +184,9 @@ private:
     MqttClient m_mqttClient;
 
     /**
-     * @brief Extended Kalman Filter handler (5D state).
+     * @brief Extended Kalman Filter handler (fixed 4D state).
      */
-    ExtendedKalmanFilter5D m_ekf;
+    ExtendedKalmanFilter4D m_ekf;
 
     /**
      * @brief Last time the EKF was updated [ms] (local time base).
@@ -214,21 +212,6 @@ private:
      * @brief Flag indicating if at least one valid SSR pose has been received.
      */
     bool m_hasSsrPose;
-
-    /**
-     * @brief Flag indicating if the odometry origin in the global frame is initialized.
-     */
-    bool  m_odoOriginInitialized;
-
-    /**
-     * @brief Odometry origin X coordinate in mm in global (SSR) frame.
-     */
-    float m_odoOriginX_mm;
-
-    /**
-     * @brief Odometry origin Y coordinate in mm in global (SSR) frame.
-     */
-    float m_odoOriginY_mm;
 
     /**
      * @brief Flag indicating if the EKF has been initialized from SSR.
@@ -279,7 +262,7 @@ private:
      *
      * This function:
      * - selects the newest data source (vehicle or SSR),
-     * - performs the EKF prediction step,
+     * - performs the EKF prediction step with gyro yaw rate as control input,
      * - applies the corresponding measurement update(s),
      * - and publishes the fused pose via MQTT.
      *
@@ -289,24 +272,6 @@ private:
     void filterLocationData(const VehicleData& data, const SpaceShipRadarPose& ssrPose);
 
     /**
-     * @brief Transform odometry from local Zumo frame into global (SSR) frame.
-     *
-     * The transformation:
-     * - applies a configurable origin offset (initialized from SSR),
-     * - flips the Y axis to match the SSR convention,
-     * - flips the heading sign to match the SSR rotation direction.
-     *
-     * @param[in]  vehicleData     Raw odometry from Zumo.
-     * @param[out] xGlob_mm        Global X position in mm.
-     * @param[out] yGlob_mm        Global Y position in mm.
-     * @param[out] thetaGlob_mrad  Global heading in mrad.
-     */
-    void transformOdometryToGlobal(const VehicleData& vehicleData,
-                                   float&             xGlob_mm,
-                                   float&             yGlob_mm,
-                                   float&             thetaGlob_mrad) const;
-
-    /**
      * @brief Publish the current EKF fusion pose via MQTT.
      *
      * @param[in] tsMs Timestamp in ms (local time base) associated with the EKF state.
@@ -314,15 +279,15 @@ private:
     void publishFusionPose(uint32_t tsMs);
 
     /**
-     * @brief Update EKF from vehicle data (odometry + IMU).
-     * 
+     * @brief Update EKF from vehicle odometry.
+     *
      * @param[in] vehicleData Vehicle data received via SerialMux.
      */
     void updateFromVehicle(const VehicleData& vehicleData);
 
     /**
      * @brief Update EKF from Space Ship Radar pose.
-     * 
+     *
      * @param[in] ssrPose Latest Space Ship Radar pose (global frame).
      */
     void updateFromSsr(const SpaceShipRadarPose& ssrPose);
@@ -330,30 +295,27 @@ private:
     /**
      * @brief Determine which sensor source has the newest data for EKF update.
      *
-     * @param[in]  zumoLocalMs32     Latest vehicle data timestamp [ms] (local time base).
-     * @param[in]  ssrLocalMs32      Latest SSR pose timestamp [ms] (local time base).
-     * @param[in]  lastEkfUpdateMs   Last EKF update timestamp [ms] (local time base).
-     * @param[out] newestLocalTs     Newest local timestamp [ms] among the sources.
+     * @param[in]  zumoLocalMs32    Latest vehicle data timestamp [ms] (local time base).
+     * @param[in]  ssrLocalMs32     Latest SSR pose timestamp [ms] (local time base).
+     * @param[in]  lastEkfUpdateMs  Last EKF update timestamp [ms] (local time base).
+     * @param[out] newestLocalTs    Newest local timestamp [ms] among the sources.
      *
      * @return Source enum indicating which sensor has the newest data.
      */
     Source determineNewestSource(uint32_t zumoLocalMs32,
-                                  uint32_t ssrLocalMs32,
-                                  uint32_t lastEkfUpdateMs,
-                                  uint32_t& newestLocalTs) const;
-
+                                 uint32_t ssrLocalMs32,
+                                 uint32_t lastEkfUpdateMs,
+                                 uint32_t& newestLocalTs) const;
 
     /**
      * @brief Initialize EKF timestamp on first data reception.
-     * 
+     *
      * @param[in] zumoLocalMs32 Latest vehicle data timestamp [ms] (local time base).
-     * @param[in] ssrLocalMs32  Latest SSR pose timestamp [ms]
-     * 
+     * @param[in] ssrLocalMs32  Latest SSR pose timestamp [ms] (local time base).
+     *
      * @return true if EKF timestamp is initialized, otherwise false.
-    */
-    bool initializeEkfTimestamp(uint32_t zumoLocalMs32,
-                                   uint32_t ssrLocalMs32); 
-
+     */
+    bool initializeEkfTimestamp(uint32_t zumoLocalMs32, uint32_t ssrLocalMs32);
 
     /**
      * @brief Copy construction of an instance (not allowed).
