@@ -196,9 +196,8 @@ float ExtendedKalmanFilter4D::gyroDigitsToMradPerSec(int16_t rawGyroZ)
  * Private Methods
  *****************************************************************************/
 
-ExtendedKalmanFilter4D::StateVector ExtendedKalmanFilter4D::processModel(const StateVector& x,
-                                                                         float              omegaMradPerSec,
-                                                                         float              dt) const
+ExtendedKalmanFilter4D::StateVector ExtendedKalmanFilter4D::processModel(const StateVector& x, float omegaMradPerSec,
+                                                                         float dt) const
 {
     const float px        = x(0);
     const float py        = x(1);
@@ -245,8 +244,8 @@ ExtendedKalmanFilter4D::CamMeasurementVector ExtendedKalmanFilter4D::cameraModel
     return z;
 }
 
-Eigen::Matrix<float, ExtendedKalmanFilter4D::CAM_MEAS_DIM, ExtendedKalmanFilter4D::STATE_DIM>
-ExtendedKalmanFilter4D::cameraJacobianH(const StateVector& /*x*/) const
+Eigen::Matrix<float, ExtendedKalmanFilter4D::CAM_MEAS_DIM, ExtendedKalmanFilter4D::STATE_DIM> ExtendedKalmanFilter4D::
+    cameraJacobianH(const StateVector& /*x*/) const
 {
     Eigen::Matrix<float, CAM_MEAS_DIM, STATE_DIM> H;
     H.setZero();
@@ -265,8 +264,8 @@ ExtendedKalmanFilter4D::OdoMeasurementVector ExtendedKalmanFilter4D::odometryMod
     return z;
 }
 
-Eigen::Matrix<float, ExtendedKalmanFilter4D::ODO_MEAS_DIM, ExtendedKalmanFilter4D::STATE_DIM>
-ExtendedKalmanFilter4D::odometryJacobianH(const StateVector& /*x*/) const
+Eigen::Matrix<float, ExtendedKalmanFilter4D::ODO_MEAS_DIM, ExtendedKalmanFilter4D::STATE_DIM> ExtendedKalmanFilter4D::
+    odometryJacobianH(const StateVector& /*x*/) const
 {
     Eigen::Matrix<float, ODO_MEAS_DIM, STATE_DIM> H;
     H.setZero();
