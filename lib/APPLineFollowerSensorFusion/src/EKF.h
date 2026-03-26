@@ -87,17 +87,12 @@ public:
 
     /**
      * @brief Last valid NIS information for one sensor.
-     *
-     * @param value NIS value.
-     * @param timestampMs Timestamp of the measurement associated with the NIS value in local ms.
-     * @param isValid Flag indicating if the NIS value is valid (i.e., if an update step with this sensor has been
-     * performed since the last initialization).
      */
     struct NisData
     {
-        float    value;
-        uint32_t timestampMs;
-        bool     isValid;
+        float    value;       /**< Last computed NIS value. */
+        uint32_t timestampMs; /**< Timestamp of NIS computation in milliseconds. */
+        bool     isValid;     /**< True if the NIS value is valid and up to date. */
     };
 
 public:
