@@ -33,7 +33,9 @@
  * Includes
  *****************************************************************************/
 #include "TimeSync.h"
+#include <Arduino.h>
 #include <Logging.h>
+#include <ArduinoJson.h>
 
 /******************************************************************************
  * Local Variables / Constants
@@ -41,7 +43,7 @@
 namespace
 {
     /** Default ping period for time synchronization (ms). */
-    constexpr uint32_t TSYNC_DEFAULT_PING_PERIOD_MS = 10000U;
+    constexpr uint32_t TSYNC_DEFAULT_PING_PERIOD_MS = 1000U;
 
     /** Initial value for the minimum RTT (max uint32_t). */
     constexpr uint32_t TSYNC_MIN_RTT_INITIAL = 0xFFFFFFFFUL;
@@ -52,13 +54,6 @@ namespace
     /** RTT margin: accept RTTs up to 20% above the best recorded RTT.*/
     constexpr uint32_t TSYNC_RTT_MARGIN_NUM = 6U;
     constexpr uint32_t TSYNC_RTT_MARGIN_DEN = 5U;
-
-    /** Default NTP client configuration. */
-    constexpr const char*   TSYNC_DEFAULT_NTP_SERVER     = "pool.ntp.org";
-    constexpr unsigned long TSYNC_NTP_UPDATE_INTERVAL_MS = 60000UL;
-
-    /** Timezone config for NTP client (example: GMT+1). */
-    constexpr long TSYNC_GMT_OFFSET_SEC = 3600L;
 } // namespace
 
 /******************************************************************************
@@ -67,28 +62,23 @@ namespace
 
 TimeSync::TimeSync(SerMuxChannelProvider& serMuxProvider) :
     m_serMuxProvider(serMuxProvider),
-    m_ntpUdp(),
-    m_ntpClient(m_ntpUdp, TSYNC_DEFAULT_NTP_SERVER, TSYNC_GMT_OFFSET_SEC, TSYNC_NTP_UPDATE_INTERVAL_MS),
-    m_rtcSynced(false),
-    m_epochToLocalOffsetMs(0),
-    m_rtcRefreshMs(TSYNC_NTP_UPDATE_INTERVAL_MS),
-    m_rtcTimer(),
     m_pingTimer(),
     m_pingPeriodMs(TSYNC_DEFAULT_PING_PERIOD_MS),
     m_seq(0U),
-    m_pendingSeq(0U),
     m_pendingT1_32(0U),
     m_minRttMs(TSYNC_MIN_RTT_INITIAL),
     m_zumoToEspOffsetMs(0),
     m_zumoGoodSamples(0U),
-    m_lastStatusLogMs(0),
-    m_lastRtcUpdateLocalMs(0),
-    m_lastRtcCorrectionMs(0),
-    m_maxRtcCorrectionMs(0),
-    m_lastAcceptedRttMs(0),
+    m_pendingSeq(0U),
+    m_lastStatusLogMs(0ULL),
+    m_lastAcceptedRttMs(0U),
     m_lastOffsetEstMs(0),
     m_minOffsetMs(0),
-    m_maxOffsetMs(0)
+    m_maxOffsetMs(0),
+    m_hostSeq(0U),
+    m_hostSyncValid(false),
+    m_hostOffsetMs(0),
+    m_lastHostRttMs(0U)
 {
 }
 
@@ -99,14 +89,12 @@ void TimeSync::begin()
     /* Register time sync response callback. */
     m_serMuxProvider.registerTimeSyncResponseCallback([this](const TimeSyncResponse& rsp) { onTimeSyncResponse(rsp); });
 
-    m_ntpClient.begin();
-
-    /* Establish initial epoch-to-local mapping if possible. */
-    refreshRtcMapping();
+    m_lastStatusLogMs = localNowMs();
 }
 
 void TimeSync::process()
 {
+    /* Periodically send ping to Zumo for time sync. */
     if ((true == m_serMuxProvider.isInSync()) && (true == m_pingTimer.isTimeout()))
     {
         const uint64_t now64 = localNowMs();
@@ -124,21 +112,38 @@ void TimeSync::process()
         }
         m_pingTimer.restart();
     }
-    refreshRtcMapping();
+
+    /* Periodically log status. */
+    const uint64_t nowMs = localNowMs();
+    if ((nowMs - m_lastStatusLogMs) >= 10000ULL)
+    {
+        logZumoStatus();
+        if (m_hostSyncValid)
+        {
+            LOG_INFO("Host sync: offset=%ld ms, last RTT=%lu ms", static_cast<long>(m_hostOffsetMs),
+                     static_cast<unsigned long>(m_lastHostRttMs));
+        }
+        else
+        {
+            LOG_INFO("Host sync: not yet valid");
+        }
+        m_lastStatusLogMs = nowMs;
+    }
 }
 
 uint64_t TimeSync::mapZumoToLocalMs(uint32_t zumoTsMs) const
 {
     /* Apply last known offset (no skew correction yet). */
-    int64_t local = static_cast<int64_t>(zumoTsMs) - m_zumoToEspOffsetMs;
+    int64_t local32 = static_cast<int64_t>(zumoTsMs) - m_zumoToEspOffsetMs;
 
     /* Normalize to 64-bit local by referencing current time high word. */
-    uint64_t now64 = localNowMs();
-    uint32_t now32 = static_cast<uint32_t>(now64);
+    const uint64_t now64 = localNowMs();
+    const uint32_t now32 = static_cast<uint32_t>(now64);
 
     /* Reconstruct 64-bit around now: choose the 32-bit epoch closest to now32. */
-    int32_t  diff   = static_cast<int32_t>(local - static_cast<int64_t>(now32));
-    uint64_t base64 = now64 - static_cast<int64_t>(now32);
+    const int32_t  diff   = static_cast<int32_t>(local32 - static_cast<int64_t>(now32));
+    const uint64_t base64 = now64 - static_cast<int64_t>(now32);
+
     return base64 + static_cast<uint32_t>(static_cast<int32_t>(now32) + diff);
 }
 
@@ -147,16 +152,84 @@ uint64_t TimeSync::localNowMs() const
     return static_cast<uint64_t>(millis());
 }
 
-uint64_t TimeSync::nowEpochMs() const
+uint64_t TimeSync::hostToEspLocalMs(uint64_t hostMs) const
 {
-    if (false == m_rtcSynced)
+    if (false == m_hostSyncValid)
     {
-        return 0ULL;
+        /* Fallback: keine Host-Sync-Info, einfach aktuelle Local-Time. */
+        return localNowMs();
     }
 
-    const int64_t epochMs = static_cast<int64_t>(localNowMs()) + m_epochToLocalOffsetMs;
-    return (epochMs >= 0) ? static_cast<uint64_t>(epochMs) : 0ULL;
+    /* host_time_ms ≈ esp_local_ms + offsetHostMinusEsp
+     * => esp_local_ms ≈ host_time_ms - offsetHostMinusEsp
+     */
+    const int64_t localMs = static_cast<int64_t>(hostMs) - m_hostOffsetMs;
+    return (localMs >= 0) ? static_cast<uint64_t>(localMs) : 0ULL;
 }
+
+/******************************************************************************
+ * Host <-> ESP MQTT TimeSync
+ *****************************************************************************/
+
+void TimeSync::sendHostTimeSyncRequest(MqttClient& mqttClient, const char* topic)
+{
+    if (nullptr == topic)
+    {
+        return;
+    }
+
+    const uint32_t seq = m_hostSeq++;
+    const uint64_t t1  = millis();
+
+    JsonDocument doc;
+    doc["seq"]       = seq;
+    doc["t1_esp_ms"] = t1;
+
+    String payload;
+    serializeJson(doc, payload);
+
+    if (!mqttClient.publish(topic, true, payload))
+    {
+        LOG_WARNING("HostTimeSync: Failed to publish sync request to topic %s.", topic);
+    }
+}
+
+void TimeSync::onHostTimeSyncResponse(uint32_t seq, int64_t t1EspMs, int64_t t2HostMs, int64_t t3HostMs,
+                                      int64_t t4EspMs)
+{
+    /* NTP-style formulas: */
+    /* offset = ((T2 - T1) + (T3 - T4)) / 2 */
+    /* rtt    = (T4 - T1) - (T3 - T2) */
+    /* T1 = t1EspMs   (ESP) */
+    /* T2 = t2HostMs  (Host) */
+    /* T3 = t3HostMs  (Host) */
+    /* T4 = t4EspMs   (ESP) */
+    LOG_INFO("Host sync: seq=%u", static_cast<unsigned>(seq));
+    LOG_INFO("t1=%lls ms", t1EspMs);
+    LOG_INFO("t2=%lls ms", t2HostMs);
+    LOG_INFO("t3=%lls ms", t3HostMs);
+    LOG_INFO("t4=%lls ms", t4EspMs);
+
+    const int64_t d1 = t2HostMs - t1EspMs;
+    const int64_t d2 = t3HostMs - t4EspMs;
+
+    const int64_t offset = (d1 + d2) / 2;
+
+    const int64_t rtt = (t4EspMs - t1EspMs) - (t3HostMs - t2HostMs);
+
+    m_hostOffsetMs  = offset;
+    m_lastHostRttMs = (rtt >= 0) ? static_cast<uint32_t>(rtt) : 0U;
+    m_hostSyncValid = true;
+
+    const float offset_s = static_cast<float>(m_hostOffsetMs) / 1000.0F;
+
+    LOG_INFO("Host sync: seq=%u offset=%.3f s rtt=%lu ms", static_cast<unsigned>(seq), offset_s,
+             static_cast<unsigned long>(m_lastHostRttMs));
+}
+
+/******************************************************************************
+ * Zumo <-> ESP SerialMux TimeSync
+ *****************************************************************************/
 
 void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
 {
@@ -231,60 +304,8 @@ void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
 }
 
 /******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-void TimeSync::refreshRtcMapping()
-{
-    /* Try to update NTP time; if it fails, mark RTC as not synced. */
-    if (false == m_ntpClient.update())
-    {
-        if (true == m_rtcSynced)
-        {
-            LOG_WARNING("TimeSync: NTP update failed; RTC mapping unavailable");
-        }
-        m_rtcSynced = false;
-        return;
-    }
-
-    /* On success, compute epoch-to-local mapping in milliseconds. */
-    const unsigned long epochSec = m_ntpClient.getEpochTime();
-    const uint64_t      epochMs  = static_cast<uint64_t>(epochSec) * 1000ULL;
-    const uint64_t      localMs  = localNowMs();
-
-    /* Log correction info for diagnostics. */
-    if (true == m_rtcSynced)
-    {
-        const int64_t  oldOffset        = m_epochToLocalOffsetMs;
-        const uint64_t predictedEpoch   = static_cast<uint64_t>(static_cast<int64_t>(localMs) + oldOffset);
-        const int64_t  correction       = static_cast<int64_t>(epochMs) - static_cast<int64_t>(predictedEpoch);
-        const int64_t  absCorrection    = (correction >= 0) ? correction : -correction;
-        const int64_t  absMaxCorrection = (m_maxRtcCorrectionMs >= 0) ? m_maxRtcCorrectionMs : -m_maxRtcCorrectionMs;
-
-        m_lastRtcCorrectionMs = correction;
-        if (absCorrection > absMaxCorrection)
-        {
-            m_maxRtcCorrectionMs = correction;
-        }
-    }
-
-    m_epochToLocalOffsetMs = static_cast<int64_t>(epochMs) - static_cast<int64_t>(localMs);
-    m_lastRtcUpdateLocalMs = localMs;
-    m_rtcSynced            = true;
-}
-
-/******************************************************************************
  * Diagnostic Logging
  *****************************************************************************/
-
-void TimeSync::logRtcStatus() const
-{
-    LOG_INFO("RTC / NTP Status");
-    LOG_INFO("RTC Synced:            %s", m_rtcSynced ? "yes" : "no");
-    LOG_INFO("Epoch to Local Offset: %lld ms", static_cast<long long>(m_epochToLocalOffsetMs));
-    LOG_INFO("Local/Epoch time now:   %llu / %llu ms", static_cast<unsigned long long>(localNowMs()),
-             static_cast<unsigned long long>(nowEpochMs()));
-}
 
 void TimeSync::logZumoStatus() const
 {
@@ -318,7 +339,15 @@ void TimeSync::logZumoStatus() const
 void TimeSync::logStatus() const
 {
     LOG_INFO("================= TimeSync Detailed Status =================");
-    logRtcStatus();
     logZumoStatus();
+    if (m_hostSyncValid)
+    {
+        LOG_INFO("Host sync: offset=%ld ms, last RTT=%lu ms", static_cast<long>(m_hostOffsetMs),
+                 static_cast<unsigned long>(m_lastHostRttMs));
+    }
+    else
+    {
+        LOG_INFO("Host sync: not yet valid");
+    }
     LOG_INFO("============================================================");
 }
