@@ -458,10 +458,11 @@ void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payload
 }
 
 /**
- * Receives current position and heading of the robot over SerialMuxProt channel.
+ * Receives current position, heading and IMU of the robot over SerialMuxProt channel.
  *
- * @param[in] payload       Current vehicle data. Two coordinates, one orientation and two motor speeds.
- * @param[in] payloadSize   Size of two coordinates, one orientation and two motor speeds.
+ * @param[in] payload       Current vehicle data: Timestamp, two coordinates, one orientation,
+ *                          three motor speeds and raw IMU data (X acceleration, Z axis turn rate).
+ * @param[in] payloadSize   The size of the received payload data.
  * @param[in] userData      Instance of App class.
  */
 void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
@@ -472,9 +473,10 @@ void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t pay
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
 
-        LOG_DEBUG("X: %d Y: %d Heading: %d Left: %d Right: %d Center: %d", currentVehicleData->xPos,
-                  currentVehicleData->yPos, currentVehicleData->orientation, currentVehicleData->left,
-                  currentVehicleData->right, currentVehicleData->center);
+        LOG_DEBUG("Timestamp: %d X: %d Y: %d Heading: %d Left: %d Right: %d Center: %d AccX: %d TurnZ: %d ",
+                  currentVehicleData->timestamp, currentVehicleData->xPos, currentVehicleData->yPos,
+                  currentVehicleData->orientation, currentVehicleData->left, currentVehicleData->right,
+                  currentVehicleData->center, currentVehicleData->accelerationX, currentVehicleData->turnRateZ);
     }
     else
     {
