@@ -178,7 +178,7 @@ void App::loop()
         /* Process SerialMuxProt. */
         m_smpServer.process(millis());
 
-        if (false == m_initialDataSent)
+        if ((false == m_initialDataSent) && (true == m_smpServer.isSynced()))
         {
             SettingsHandler& settings = SettingsHandler::getInstance();
             Command          cmd      = {SMPChannelPayload::CMD_ID_SET_INIT_POS, settings.getInitialXPosition(),
@@ -188,6 +188,10 @@ void App::loop()
             {
                 LOG_DEBUG("Initial vehicle data sent.");
                 m_initialDataSent = true;
+            }
+            else
+            {
+                LOG_WARNING("Failed to send initial vehicle data.");
             }
         }
 
@@ -231,6 +235,8 @@ bool App::setupSerialMuxProtServer()
     m_serialMuxProtChannelIdRemoteCtrl = m_smpServer.createChannel(COMMAND_CHANNEL_NAME, COMMAND_CHANNEL_DLC);
     m_serialMuxProtChannelIdMotorSpeeds =
         m_smpServer.createChannel(MOTOR_SPEED_SETPOINT_CHANNEL_NAME, MOTOR_SPEED_SETPOINT_CHANNEL_DLC);
+    m_serialMuxProtChannelIdRobotSpeeds =
+        m_smpServer.createChannel(ROBOT_SPEED_SETPOINT_CHANNEL_NAME, ROBOT_SPEED_SETPOINT_CHANNEL_DLC);
     m_serialMuxProtChannelIdStatus = m_smpServer.createChannel(STATUS_CHANNEL_NAME, STATUS_CHANNEL_DLC);
 
     m_smpServer.subscribeToChannel(COMMAND_RESPONSE_CHANNEL_NAME, App_cmdRspChannelCallback);
@@ -238,7 +244,7 @@ bool App::setupSerialMuxProtServer()
     m_smpServer.subscribeToChannel(CURRENT_VEHICLE_DATA_CHANNEL_NAME, App_currentVehicleChannelCallback);
 
     if ((0U == m_serialMuxProtChannelIdRemoteCtrl) || (0U == m_serialMuxProtChannelIdMotorSpeeds) ||
-        (0U == m_serialMuxProtChannelIdStatus))
+        (0U == m_serialMuxProtChannelIdRobotSpeeds) || (0U == m_serialMuxProtChannelIdStatus))
     {
         LOG_ERROR("Failed to create SerialMuxProt channels.");
     }
@@ -278,13 +284,13 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
         else if (false == m_mqttClient.subscribe(TOPIC_NAME_CMD, true,
                                                  [this](const String& payload) { cmdTopicCallback(payload); }))
         {
-            LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_CMD);
+            LOG_FATAL("Could not subscribe to MQTT topic: %s.", TOPIC_NAME_CMD);
         }
         /* Subscribe to Motor Speeds Topic. */
         else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, true,
                                                  [this](const String& payload) { motorSpeedsTopicCallback(payload); }))
         {
-            LOG_FATAL("Could not subcribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
+            LOG_FATAL("Could not subscribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
         }
         else
         {
@@ -341,10 +347,25 @@ void App::cmdTopicCallback(const String& payload)
                 break;
 
             case 6U:
-                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_SET_INIT_POS;
-                LOG_WARNING("Setting initial position is not supported.");
-                isValid = false;
+            {
+                JsonVariantConst xPos       = jsonPayload["X"];
+                JsonVariantConst yPos       = jsonPayload["Y"];
+                JsonVariantConst heading    = jsonPayload["HEADING"];
+
+                if (xPos.isNull() || yPos.isNull() || heading.isNull())
+                {
+                    LOG_WARNING("CMD_ID_SET_INIT_POS requires X, Y and HEADING fields.");
+                    isValid = false;
+                }
+                else
+                {
+                    cmd.commandId   = SMPChannelPayload::CmdId::CMD_ID_SET_INIT_POS;
+                    cmd.xPos        = xPos.as<int32_t>();
+                    cmd.yPos        = yPos.as<int32_t>();
+                    cmd.orientation = heading.as<int32_t>();
+                }
                 break;
+            }
 
             default:
                 isValid = false;
