@@ -348,9 +348,9 @@ void App::cmdTopicCallback(const String& payload)
 
             case 6U:
             {
-                JsonVariantConst xPos       = jsonPayload["X"];
-                JsonVariantConst yPos       = jsonPayload["Y"];
-                JsonVariantConst heading    = jsonPayload["HEADING"];
+                JsonVariantConst xPos    = jsonPayload["X"];
+                JsonVariantConst yPos    = jsonPayload["Y"];
+                JsonVariantConst heading = jsonPayload["HEADING"];
 
                 if (xPos.isNull() || yPos.isNull() || heading.isNull())
                 {
@@ -374,16 +374,16 @@ void App::cmdTopicCallback(const String& payload)
 
             if (false == isValid)
             {
-                LOG_ERROR("Invalid command ID %d.", cmdId);
+                LOG_ERROR("Got invalid payload in command with ID %d.", cmdId);
             }
             else if (true == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, reinterpret_cast<uint8_t*>(&cmd),
                                                   sizeof(cmd)))
             {
-                LOG_DEBUG("Command %d sent.", cmd.commandId);
+                LOG_DEBUG("Command with ID %d successfully sent.", cmd.commandId);
             }
             else
             {
-                LOG_WARNING("Failed to send command %d.", cmd.commandId);
+                LOG_WARNING("Failed to send command with ID %d.", cmd.commandId);
             }
         }
         else
