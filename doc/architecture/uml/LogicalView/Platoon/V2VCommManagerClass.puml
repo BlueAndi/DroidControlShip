@@ -23,7 +23,7 @@ package "PlatoonService" as serv {
 package "HAL" as hal {
     class "MQTT Client" as mqtt {
         + publish(String topic, String payload) : bool
-        + subcribe(String topic, TopicCallback callback) : bool
+        + subscribe(String topic, TopicCallback callback) : bool
     }
 }
 
