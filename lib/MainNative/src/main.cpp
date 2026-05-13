@@ -291,7 +291,12 @@ extern int main(int argc, char** argv)
         }
     }
 
-    return status;
+    /* Use exit() instead of return to skip C++ static destructor teardown.
+     * ~webots::Robot() calls wb_robot_cleanup() and ~MqttClient() calls
+     * mosquitto_loop_stop(), both of which crash or block when Webots has
+     * already closed the connection.
+     */
+    exit(status);
 }
 
 /******************************************************************************

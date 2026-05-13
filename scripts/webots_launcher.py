@@ -85,7 +85,7 @@ else:
     print(f"OS type {OS_PLATFORM_TYPE} not supported.")
     sys.exit(1)
 
-WEBOTS_LAUNCHER_ACTION = WEBOTS_CONTROLLER + ' '\
+WEBOTS_LAUNCHER_CMD = WEBOTS_CONTROLLER + ' '\
     + WEBOTS_CONTROLLER_OPTIONS + ' ' \
     + PROGRAM_PATH + PROGRAM_NAME + ' ' \
     + PROGRAM_OPTIONS
@@ -147,6 +147,21 @@ def check_webots_ready(source, target, env):  # pylint: disable=unused-argument
     _abort_missing_slot(protocol, ip, robot_name)
 
 
+def launch_webots_controller(source, target, env):  # pylint: disable=unused-argument
+    """Run webots-controller, tolerating SIGSEGV (exit 139) on TCP disconnect.
+
+    webots-controller segfaults in libController.so when the remote Webots host
+    closes the TCP connection. The DCS process itself exits cleanly; the crash
+    is inside the launcher binary and is harmless.
+    """
+    import subprocess
+    cmd = env.subst(WEBOTS_LAUNCHER_CMD)
+    print(cmd)
+    result = subprocess.run(cmd, shell=True)
+    if result.returncode not in (0, -11, 139):  # 139 = 128 + SIGSEGV(11)
+        env.Exit(result.returncode)
+
+
 ################################################################################
 # Main
 ################################################################################
@@ -157,7 +172,7 @@ env.AddCustomTarget(
     dependencies=PROGRAM_PATH + PROGRAM_NAME,
     actions=[
         check_webots_ready,
-        WEBOTS_LAUNCHER_ACTION
+        launch_webots_controller,
     ],
     title="Launch",
     description="Launch application with Webots launcher."
