@@ -58,10 +58,8 @@
 /** TCP server IP address if not defined by the build configuration. */
 #define APPSLAM_TCP_SERVER_IP "127.0.0.1"
 
-
 /** TCP server port if not defined by the build configuration. */
 #define APPSLAM_TCP_SERVER_PORT 8888U
-
 
 /******************************************************************************
  * Types and classes
@@ -75,7 +73,6 @@ static void App_cmdRspChannelCallback(const uint8_t* payload, const uint8_t payl
 static void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 static void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData);
 
-
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -88,7 +85,6 @@ static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 
 /** TCP reconnect interval in milliseconds. */
 static const uint32_t TCP_RECONNECT_INTERVAL = 2000U;
-
 
 /******************************************************************************
  * Public Methods
@@ -273,7 +269,7 @@ bool App::setupSerialMuxProtServer()
 
 bool App::connectToServer()
 {
-    bool     isSuccessful = false;
+    bool      isSuccessful = false;
     IPAddress serverIp;
 
     if (false == serverIp.fromString(APPSLAM_TCP_SERVER_IP))
@@ -307,7 +303,7 @@ void App::sendPacket(const String& payload)
 void App::receivePackets()
 {
     uint8_t buffer[128U];
-    int      bytesRead = 0;
+    int     bytesRead = 0;
 
     do
     {
@@ -357,7 +353,7 @@ void App::processIncomingLine(const String& line)
 
     /* Handle velocity command via ArduinoJson */
     {
-        JsonDocument doc;
+        JsonDocument         doc;
         DeserializationError err = deserializeJson(doc, line.c_str());
 
         if (DeserializationError::Ok == err)
@@ -365,7 +361,7 @@ void App::processIncomingLine(const String& line)
             if ((!doc["linear"].isNull()) && (!doc["angular"].isNull()))
             {
                 int32_t linearCenter = doc["linear"].as<int32_t>();
-                int32_t angular = doc["angular"].as<int32_t>();
+                int32_t angular      = doc["angular"].as<int32_t>();
 
                 RobotSpeed robotSpeed = {linearCenter, angular};
                 LOG_INFO("Received velocity command - Linear: %d mm/s, Angular: %d mrad/s", linearCenter, angular);
@@ -397,15 +393,15 @@ void App::handleVehicleData(const VehicleData* vehicleData)
         /* Format vehicle data as JSON using ArduinoJson and send via TCP */
         JsonDocument doc;
         doc["type"] = "vehicle_data";
-        doc["t"] = vehicleData->timestamp;
-        doc["x"] = vehicleData->xPos;
-        doc["y"] = vehicleData->yPos;
-        doc["h"] = vehicleData->orientation;
-        doc["l"] = vehicleData->left;
-        doc["r"] = vehicleData->right;
-        doc["c"] = vehicleData->center;
-        doc["ax"] = vehicleData->accelerationX;
-        doc["tz"] = vehicleData->turnRateZ;
+        doc["t"]    = vehicleData->timestamp;
+        doc["x"]    = vehicleData->xPos;
+        doc["y"]    = vehicleData->yPos;
+        doc["h"]    = vehicleData->orientation;
+        doc["l"]    = vehicleData->left;
+        doc["r"]    = vehicleData->right;
+        doc["c"]    = vehicleData->center;
+        doc["ax"]   = vehicleData->accelerationX;
+        doc["tz"]   = vehicleData->turnRateZ;
 
         String out;
         serializeJson(doc, out);
