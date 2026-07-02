@@ -434,7 +434,7 @@ void App::handleVehicleData(const VehicleData* vehicleData)
         String out;
         if (0U < serializeJson(doc, out))
         {
-        sendPacket(out);
+            sendPacket(out);
         }
         else
         {
