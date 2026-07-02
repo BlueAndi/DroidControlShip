@@ -54,12 +54,12 @@
 #define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
 #endif /* CONFIG_LOG_SEVERITY */
 
-/** ROS2 server IP address. */
+/** ROS2 server IP address if not defined by the build configuration */
 #ifndef APPSLAM_TCP_SERVER_IP
 #define APPSLAM_TCP_SERVER_IP "127.0.0.1"
 #endif /* APPSLAM_TCP_SERVER_IP */
 
-/** ROS2 server port. */
+/** ROS2 server port if not defined by the build configuration */
 #ifndef APPSLAM_TCP_SERVER_PORT
 #define APPSLAM_TCP_SERVER_PORT 8888U
 #endif /* APPSLAM_TCP_SERVER_PORT */
@@ -157,8 +157,9 @@ void App::setup()
         {
             if (false == connectToROS2Server())
             {
-                LOG_WARNING("Initial ROS2 server connection failed.");
+                LOG_WARNING("Initial ROS2 server connection failed. Will retry in loop().");
             }
+
             m_statusTimer.start(1000U);
             isSuccessful = true;
         }
@@ -285,7 +286,6 @@ bool App::setupSerialMuxProtServer()
 bool App::connectToROS2Server()
 {
     bool      isSuccessful = false;
-    bool      isSuccessful = false;
     IPAddress serverIp;
 
     if (false == serverIp.fromString(APPSLAM_TCP_SERVER_IP))
@@ -330,7 +330,6 @@ void App::sendPacket(const String& payload)
 void App::receivePackets()
 {
     uint8_t buffer[128U];
-    int     bytesRead = 0;
     int     bytesRead = 0;
 
     do
@@ -380,7 +379,6 @@ void App::processIncomingLine(const String& line)
 
     /* Handle velocity command via ArduinoJson */
     {
-        JsonDocument         doc;
         JsonDocument         doc;
         DeserializationError err = deserializeJson(doc, line.c_str());
 
@@ -440,7 +438,7 @@ void App::handleVehicleData(const VehicleData* vehicleData)
         {
             LOG_WARNING("Failed to serialize vehicle data.");
         }
-
+        
     }
 }
 

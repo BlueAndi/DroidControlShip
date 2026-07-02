@@ -99,7 +99,7 @@ public:
     void loop();
 
     /**
-     * Handle vehicle data received from SerialMuxProt and forward to ROS2 server.
+     * Handles vehicle data received from SerialMuxProt and forwards it to the ROS2 server.
      *
      * @param[in] vehicleData Pointer to vehicle data.
      */
