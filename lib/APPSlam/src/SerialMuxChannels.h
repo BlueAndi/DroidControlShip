@@ -27,7 +27,7 @@
 /**
  * @file
  * @brief  Channel structure definition for the SerialMuxProt.
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @author Jonas Hochhaus<jonas.hochhaus01@gmail.com>
  *
  * @addtogroup Application
  *

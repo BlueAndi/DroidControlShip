@@ -27,7 +27,7 @@
 /**
  * @file
  * @brief  SLAM application
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @author Jonas Hochhaus<jonas.hochhaus01@gmail.com>
  */
 
 /******************************************************************************
@@ -38,9 +38,8 @@
 #include <LogSinkPrinter.h>
 #include <Util.h>
 #include <SettingsHandler.h>
-#include <WiFi.h>
-#include <WiFiClient.h>
 #include <ArduinoJson.h>
+#include <WiFi.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -55,11 +54,15 @@
 #define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
 #endif /* CONFIG_LOG_SEVERITY */
 
-/** TCP server IP address if not defined by the build configuration. */
+/** ROS2 server IP address. */
+#ifndef APPSLAM_TCP_SERVER_IP
 #define APPSLAM_TCP_SERVER_IP "127.0.0.1"
+#endif /* APPSLAM_TCP_SERVER_IP */
 
-/** TCP server port if not defined by the build configuration. */
+/** ROS2 server port. */
+#ifndef APPSLAM_TCP_SERVER_PORT
 #define APPSLAM_TCP_SERVER_PORT 8888U
+#endif /* APPSLAM_TCP_SERVER_PORT */
 
 /******************************************************************************
  * Types and classes
@@ -84,7 +87,16 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 
 /** TCP reconnect interval in milliseconds. */
-static const uint32_t TCP_RECONNECT_INTERVAL = 2000U;
+static const uint32_t TCP_RECONNECT_INTERVAL_MS = 2000U;
+
+/** JSON key for linear velocity. */
+static const char* JSON_KEY_LINEAR = "linear";
+
+/** JSON key for angular velocity. */
+static const char* JSON_KEY_ANGULAR = "angular";
+
+/** Maximum length of a TCP receive line in characters. */
+static const size_t MAX_LINE_LEN = 512U;
 
 /******************************************************************************
  * Public Methods
@@ -143,7 +155,10 @@ void App::setup()
         }
         else
         {
-            (void)connectToServer();
+            if (false == connectToROS2Server())
+            {
+                LOG_WARNING("Initial ROS2 server connection failed.");
+            }
             m_statusTimer.start(1000U);
             isSuccessful = true;
         }
@@ -172,16 +187,16 @@ void App::loop()
         {
             uint32_t now = millis();
 
-            if ((now - m_lastReconnectAttempt) >= TCP_RECONNECT_INTERVAL)
+            if ((now - m_lastReconnectAttemptTimeMs) >= TCP_RECONNECT_INTERVAL_MS)
             {
-                m_lastReconnectAttempt = now;
+                m_lastReconnectAttemptTimeMs = now;
 
-                LOG_INFO("TCP server disconnected.");
+                LOG_INFO("ROS2 server disconnected. Attempting reconnect...");
                 m_tcpClient.stop();
 
-                if (false == connectToServer())
+                if (false == connectToROS2Server())
                 {
-                    LOG_WARNING("TCP reconnect attempt failed.");
+                    LOG_WARNING("ROS2 server reconnect attempt failed.");
                 }
             }
         }
@@ -267,23 +282,24 @@ bool App::setupSerialMuxProtServer()
     return isSuccessful;
 }
 
-bool App::connectToServer()
+bool App::connectToROS2Server()
 {
+    bool      isSuccessful = false;
     bool      isSuccessful = false;
     IPAddress serverIp;
 
     if (false == serverIp.fromString(APPSLAM_TCP_SERVER_IP))
     {
-        LOG_ERROR("Invalid APPSlam TCP server IP: %s", APPSLAM_TCP_SERVER_IP);
+        LOG_ERROR("Invalid APPSlam ROS2 server IP: %s", APPSLAM_TCP_SERVER_IP);
     }
     else if (true == m_tcpClient.connect(serverIp, APPSLAM_TCP_SERVER_PORT))
     {
-        LOG_INFO("TCP server connected to %s:%u", APPSLAM_TCP_SERVER_IP, APPSLAM_TCP_SERVER_PORT);
+        LOG_INFO("ROS2 server connected at %s:%u", APPSLAM_TCP_SERVER_IP, APPSLAM_TCP_SERVER_PORT);
         isSuccessful = true;
     }
     else
     {
-        LOG_WARNING("Failed to connect to TCP server %s:%u", APPSLAM_TCP_SERVER_IP, APPSLAM_TCP_SERVER_PORT);
+        LOG_WARNING("Failed to connect to ROS2 server %s:%u", APPSLAM_TCP_SERVER_IP, APPSLAM_TCP_SERVER_PORT);
     }
 
     return isSuccessful;
@@ -293,16 +309,28 @@ void App::sendPacket(const String& payload)
 {
     if (true == m_tcpClient.connected())
     {
-        String packet = payload + '\n';
-        (void)m_tcpClient.write(reinterpret_cast<const uint8_t*>(packet.c_str()), packet.length());
+        String packet       = payload + '\n';
+        size_t bytesWritten = m_tcpClient.write(reinterpret_cast<const uint8_t*>(packet.c_str()), packet.length());
 
-        LOG_DEBUG("TX: %s", payload.c_str());
+        if (bytesWritten != packet.length())
+        {
+            LOG_WARNING("TCP write incomplete: wrote %u of %u bytes.", bytesWritten, packet.length());
+        }
+        else
+        {
+            LOG_DEBUG("TX: %s", payload.c_str());
+        }
+    }
+    else
+    {
+        LOG_WARNING("Attempted to send packet while not connected to ROS2 server.");
     }
 }
 
 void App::receivePackets()
 {
     uint8_t buffer[128U];
+    int     bytesRead = 0;
     int     bytesRead = 0;
 
     do
@@ -317,13 +345,6 @@ void App::receivePackets()
 
                 if ('\n' == c)
                 {
-                    const int newlineIndex = m_tcpRxBuffer.lastIndexOf(String("\n"));
-
-                    if (newlineIndex >= 0)
-                    {
-                        m_tcpRxBuffer = m_tcpRxBuffer.substring(0U, static_cast<unsigned int>(newlineIndex));
-                    }
-
                     if (0 != m_tcpRxBuffer.length())
                     {
                         processIncomingLine(m_tcpRxBuffer);
@@ -334,6 +355,12 @@ void App::receivePackets()
                 else
                 {
                     m_tcpRxBuffer += c;
+
+                    if (m_tcpRxBuffer.length() >= MAX_LINE_LEN)
+                    {
+                        LOG_WARNING("TCP line too long, discarding.");
+                        m_tcpRxBuffer = String();
+                    }
                 }
             }
         }
@@ -354,14 +381,15 @@ void App::processIncomingLine(const String& line)
     /* Handle velocity command via ArduinoJson */
     {
         JsonDocument         doc;
+        JsonDocument         doc;
         DeserializationError err = deserializeJson(doc, line.c_str());
 
         if (DeserializationError::Ok == err)
         {
-            if ((!doc["linear"].isNull()) && (!doc["angular"].isNull()))
+            if ((!doc[JSON_KEY_LINEAR].isNull()) && (!doc[JSON_KEY_ANGULAR].isNull()))
             {
-                int32_t linearCenter = doc["linear"].as<int32_t>();
-                int32_t angular      = doc["angular"].as<int32_t>();
+                int32_t linearCenter = doc[JSON_KEY_LINEAR].as<int32_t>();
+                int32_t angular      = doc[JSON_KEY_ANGULAR].as<int32_t>();
 
                 RobotSpeed robotSpeed = {linearCenter, angular};
                 LOG_INFO("Received velocity command - Linear: %d mm/s, Angular: %d mrad/s", linearCenter, angular);
@@ -371,7 +399,7 @@ void App::processIncomingLine(const String& line)
                 }
                 else
                 {
-                    LOG_DEBUG("Velocity command sent - Linear: %d mm/s, Angular: %d mrad/s", linearCenter, angular);
+                    LOG_DEBUG("Velocity command sent.");
                 }
             }
             else
@@ -404,8 +432,15 @@ void App::handleVehicleData(const VehicleData* vehicleData)
         doc["tz"]   = vehicleData->turnRateZ;
 
         String out;
-        serializeJson(doc, out);
+        if (0U < serializeJson(doc, out))
+        {
         sendPacket(out);
+        }
+        else
+        {
+            LOG_WARNING("Failed to serialize vehicle data.");
+        }
+
     }
 }
 

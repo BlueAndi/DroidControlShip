@@ -27,7 +27,7 @@
 /**
  * @file
  * @brief  SLAM application
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @author Jonas Hochhaus<jonas.hochhaus01@gmail.com>
  *
  * @addtogroup Application
  *
@@ -75,7 +75,7 @@ public:
         m_serialMuxProtChannelIdStatus(0U),
         m_initialDataSent(false),
         m_tcpRxBuffer(),
-        m_lastReconnectAttempt(0U),
+        m_lastReconnectAttemptTimeMs(0U),
         m_statusTimer(),
         m_isFatalError(false)
     {
@@ -100,7 +100,7 @@ public:
     void loop();
 
     /**
-     * Handle vehicle data received from SerialMuxProt and forward to TCP.
+     * Handle vehicle data received from SerialMuxProt and forward to ROS2 server.
      *
      * @param[in] vehicleData Pointer to vehicle data.
      */
@@ -119,7 +119,7 @@ private:
     /** SerialMuxProt Channel ID for sending system status. */
     uint8_t m_serialMuxProtChannelIdStatus;
 
-    /** TCP client for communication with the companion service. */
+    /** TCP client for communication with the ROS2 server. */
     WiFiClient m_tcpClient;
 
     /**
@@ -130,15 +130,15 @@ private:
     SMPServer m_smpServer;
 
     /**
-        * Flag for setting initial data through SMP.
-        */
+     * Flag for setting initial data through SMP.
+     */
     bool m_initialDataSent;
 
     /** TCP receive buffer. */
     String m_tcpRxBuffer;
 
-    /** Last reconnect attempt time. */
-    uint32_t m_lastReconnectAttempt;
+    /** Timestamp of the last TCP reconnect attempt [ms]. */
+    uint32_t m_lastReconnectAttemptTimeMs;
 
     /**
      * Timer for sending system status to RU.
@@ -164,28 +164,31 @@ private:
     bool setupSerialMuxProtServer();
 
     /**
-     * Connect to the TCP server.
+     * Connect to the ROS2 server via TCP.
      *
      * @returns true if successful, otherwise false.
      */
-    bool connectToServer();
+    bool connectToROS2Server();
 
     /**
-     * Send a TCP packet.
+     * Send a newline-terminated TCP packet to the ROS2 server.
      *
      * @param[in] payload Payload to send.
      */
     void sendPacket(const String& payload);
 
     /**
-     * Receive TCP packets.
+     * Receive and buffer TCP packets from the ROS2 server.
+     * Processes complete newline-terminated lines.
      */
     void receivePackets();
 
     /**
-     * Process one incoming TCP line.
+     * Parse and process one incoming JSON line from the ROS2 server.
+     * Expects a JSON object with "linear" (mm/s) and "angular" (mrad/s) velocity fields.
+     * Logs a warning if parsing fails or the expected fields are missing.
      *
-     * @param[in] line Incoming line.
+     * @param[in] line JSON string to parse and process.
      */
     void processIncomingLine(const String& line);
 
