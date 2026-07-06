@@ -64,7 +64,7 @@ class App
 {
 public:
     /**
-     * Construct the SLAM application.
+        * Constructs the SLAM application.
      */
     App() :
         m_smpServer(Board::getInstance().getRobot().getStream()),
@@ -82,19 +82,19 @@ public:
     }
 
     /**
-     * Destroy the SLAM application.
+        * Destroys the SLAM application.
      */
     ~App()
     {
     }
 
     /**
-     * Setup the application.
+        * Sets up the application.
      */
     void setup();
 
     /**
-     * Process the application periodically.
+        * Processes the application periodically.
      */
     void loop();
 
@@ -151,39 +151,39 @@ private:
 
 private:
     /**
-     * Handler of fatal errors in the Application.
+        * Handles fatal errors in the application.
      */
     void fatalErrorHandler();
 
     /**
-     * Setup the SerialMuxProt Server.
+        * Sets up the SerialMuxProt Server.
      *
      * @returns true if successful, otherwise false.
      */
     bool setupSerialMuxProtServer();
 
     /**
-     * Connect to the ROS2 server via TCP.
+        * Connects to the ROS2 server via TCP.
      *
      * @returns true if successful, otherwise false.
      */
     bool connectToROS2Server();
 
     /**
-     * Send a newline-terminated TCP packet to the ROS2 server.
+        * Sends a newline-terminated TCP packet to the ROS2 server.
      *
      * @param[in] payload Payload to send.
      */
     void sendPacket(const String& payload);
 
     /**
-     * Receive and buffer TCP packets from the ROS2 server.
-     * Processes complete newline-terminated lines.
+        * Receives and buffers TCP packets from the ROS2 server.
+        * Processes complete newline-terminated lines.
      */
     void receivePackets();
 
     /**
-     * Parse and process one incoming JSON line from the ROS2 server.
+     * Parses and processes one incoming JSON line from the ROS2 server.
      * Expects a JSON object with "linear" (mm/s) and "angular" (mrad/s) velocity fields.
      * Logs a warning if parsing fails or the expected fields are missing.
      *
@@ -192,16 +192,14 @@ private:
     void processIncomingLine(const String& line);
 
     /**
-     * Copy construction of an instance.
-     * Not allowed.
+        * Prohibits copy construction of an instance.
      *
      * @param[in] app Source instance.
      */
     App(const App& app);
 
     /**
-     * Assignment of an instance.
-     * Not allowed.
+        * Prohibits assignment of an instance.
      *
      * @param[in] app Source instance.
      *

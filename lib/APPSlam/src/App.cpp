@@ -438,7 +438,6 @@ void App::handleVehicleData(const VehicleData* vehicleData)
         {
             LOG_WARNING("Failed to serialize vehicle data.");
         }
-        
     }
 }
 
