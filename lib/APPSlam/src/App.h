@@ -64,7 +64,7 @@ class App
 {
 public:
     /**
-        * Constructs the SLAM application.
+     * Constructs the SLAM application.
      */
     App() :
         m_smpServer(Board::getInstance().getRobot().getStream()),
@@ -82,19 +82,19 @@ public:
     }
 
     /**
-        * Destroys the SLAM application.
+     * Destroys the SLAM application.
      */
     ~App()
     {
     }
 
     /**
-        * Sets up the application.
+     * Sets up the application.
      */
     void setup();
 
     /**
-        * Processes the application periodically.
+     * Processes the application periodically.
      */
     void loop();
 
@@ -151,34 +151,34 @@ private:
 
 private:
     /**
-        * Handles fatal errors in the application.
+     * Handles fatal errors in the application.
      */
     void fatalErrorHandler();
 
     /**
-        * Sets up the SerialMuxProt Server.
+     * Sets up the SerialMuxProt Server.
      *
      * @returns true if successful, otherwise false.
      */
     bool setupSerialMuxProtServer();
 
     /**
-        * Connects to the ROS2 server via TCP.
+     * Connects to the ROS2 server via TCP.
      *
      * @returns true if successful, otherwise false.
      */
     bool connectToROS2Server();
 
     /**
-        * Sends a newline-terminated TCP packet to the ROS2 server.
+     * Sends a newline-terminated TCP packet to the ROS2 server.
      *
      * @param[in] payload Payload to send.
      */
     void sendPacket(const String& payload);
 
     /**
-        * Receives and buffers TCP packets from the ROS2 server.
-        * Processes complete newline-terminated lines.
+     * Receives and buffers TCP packets from the ROS2 server.
+     * Processes complete newline-terminated lines.
      */
     void receivePackets();
 
@@ -192,14 +192,14 @@ private:
     void processIncomingLine(const String& line);
 
     /**
-        * Prohibits copy construction of an instance.
+     * Prohibits copy construction of an instance.
      *
      * @param[in] app Source instance.
      */
     App(const App& app);
 
     /**
-        * Prohibits assignment of an instance.
+     * Prohibits assignment of an instance.
      *
      * @param[in] app Source instance.
      *
