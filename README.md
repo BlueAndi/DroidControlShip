@@ -128,7 +128,7 @@ Together with [Radon Ulzer](https://github.com/BlueAndi/RadonUlzer) it can be ru
 
 ### Installation for target
 
-1. Make sure that the hardware version of your [ZumoComSystem](https://github.com/NewTec-GmbH/ZumoComSystem) is supported. Currently, only v1.1 and v1.2 are supported.
+1. Make sure that the hardware version of your [ZumoComSystem](https://github.com/NewTec-GmbH/ZumoComSystem) is supported. Currently, v1 (v1.1 and v1.2), v2 and [v3](https://github.com/NewTec-GmbH/ZumoComSystemHW) are supported. Select the hardware version in the ```[target:esp32]``` section of ```platformio.ini```.
 2. Install the [drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) for the CP2102 USB-UART converter if required. The "CP210x Universal Windows Driver" is recommended, as it enables the automatic bootloader mode.
 
 ### Build and flash procedure
