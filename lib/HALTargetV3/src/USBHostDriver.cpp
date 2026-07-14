@@ -72,12 +72,21 @@ USBHost::~USBHost()
 
 bool USBHost::init()
 {
-    (void)m_robotSerial.setRxBufferSize(UART_RX_BUFFER_SIZE);
-    m_robotSerial.begin(BAUD_RATE, SERIAL_8N1, Pin::PIN_ROBOT_UART_RX, Pin::PIN_ROBOT_UART_TX);
+    bool isSuccess = false;
 
-    LOG_DEBUG("Robot UART driver has been successfully initialized.");
+    if (0U == m_robotSerial.setRxBufferSize(UART_RX_BUFFER_SIZE))
+    {
+        LOG_ERROR("Could not set the UART RX buffer size.");
+    }
+    else
+    {
+        m_robotSerial.begin(BAUD_RATE, SERIAL_8N1, Pin::PIN_ROBOT_UART_RX, Pin::PIN_ROBOT_UART_TX);
 
-    return true;
+        LOG_DEBUG("Robot UART driver has been successfully initialized.");
+        isSuccess = true;
+    }
+
+    return isSuccess;
 }
 
 void USBHost::process()

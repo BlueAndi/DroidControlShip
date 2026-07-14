@@ -80,63 +80,72 @@ public:
     bool init();
 
     /**
-     * Process the device connection.
+     * Processes the device connection.
      */
     void process();
 
     /**
-     * Print single byte.
+     * Writes a single byte.
+     *
      * @param[in] value Byte to send.
+     *
      * @returns Number of bytes written
      */
     size_t write(uint8_t value) final;
 
     /**
-     * Write bytes.
+     * Writes bytes.
+     *
      * @param[in] buffer Byte Array to send.
      * @param[in] length Length of Buffer.
+     *
      * @returns Number of bytes written
      */
     size_t write(const uint8_t* buffer, size_t length) final;
 
     /**
-     * Check if there are available bytes in the Stream.
+     * Checks if there are available bytes in the Stream.
+     *
      * @returns Number of available bytes.
      */
     int available() final;
 
     /**
-     * Read a byte from the Stream.
+     * Reads a byte from the Stream.
+     *
      * @returns The first byte of incoming data available (or -1 if no data is available).
      */
     int read() final;
 
     /**
-     * Peek a byte from the Stream.
+     * Peeks a byte from the Stream.
+     *
      * @returns The first byte of incoming data available (or -1 if no data is available).
      */
     int peek() final;
 
     /**
-     * Read bytes into a buffer.
+     * Reads bytes into a buffer.
+     *
      * @param[in] buffer Array to write bytes to.
      * @param[in] length number of bytes to be read.
+     *
      * @returns Number of bytes read from Stream.
      */
     size_t readBytes(uint8_t* buffer, size_t length) final;
 
     /**
-     * Request to enter the bootloader mode.
+     * Requests to enter the bootloader mode.
      */
     void requestBootloaderMode();
 
     /**
-     * Reset the flags and flush the receive buffer.
+     * Resets the flags and flushes the receive buffer.
      */
     void reset();
 
     /**
-     * Check if the bootloader mode is active.
+     * Checks if the bootloader mode is active.
      *
      * @return If the bootloader mode is active, returns true. Otherwise, false.
      */
