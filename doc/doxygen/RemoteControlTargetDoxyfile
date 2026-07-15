@@ -996,6 +996,7 @@ INPUT                  = mainpage.dox \
                          ../../lib/HALTargetCommon \
                          ../../lib/HALTargetV1 \
                          ../../lib/HALTargetV2 \
+                         ../../lib/HALTargetV3 \
                          ../../lib/HALInterfaces \
                          ../../lib/APPRemoteControl \
                          ../../lib/Service \

@@ -30,6 +30,11 @@ Abstracts the physical hardware of the ZumoComSystemV2.
 @{
 @}
 
+@defgroup HALTargetV3 Hardware abstraction of the ZumoComSystemV3
+Abstracts the physical hardware of the ZumoComSystemV3.
+@{
+@}
+
 @defgroup HALSim Hardware abstraction in Webots simulation
 Abstracts the the hardware in the Webots simulation.
 @{
