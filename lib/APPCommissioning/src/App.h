@@ -105,7 +105,7 @@ public:
     void setup();
 
     /**
-     * Process the application periodically.
+     * Processes the application periodically.
      */
     void loop();
 
