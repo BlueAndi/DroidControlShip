@@ -75,7 +75,7 @@ class App
 {
 public:
     /**
-     * Construct the commissioning application.
+     * Constructs the commissioning application.
      */
     App() :
         m_isFatalError(false),
@@ -93,14 +93,14 @@ public:
     }
 
     /**
-     * Destroy the commissioning application.
+     * Destroys the commissioning application.
      */
     ~App()
     {
     }
 
     /**
-     * Setup the application.
+     * Sets up the application.
      */
     void setup();
 
@@ -162,34 +162,34 @@ private:
     uint32_t m_pingCounter;
 
     /**
-     * Process the LED walking light pattern.
+     * Processes the LED walking light pattern.
      */
     void processLeds();
 
     /**
-     * Process the buttons and light the associated LED as long as a button
+     * Processes the buttons and lights the associated LED as long as a button
      * is kept pressed.
      */
     void processButtons();
 
     /**
-     * Process the robot communication interface by sending a test pattern
+     * Processes the robot communication interface by sending a test pattern
      * periodically and showing every received byte on the console.
      */
     void processRobotStream();
 
     /**
-     * Process the periodical robot reset line pulse.
+     * Processes the periodical robot reset line pulse.
      */
     void processRobotReset();
 
     /**
-     * Process the periodical battery voltage measurement.
+     * Processes the periodical battery voltage measurement.
      */
     void processBattery();
 
     /**
-     * Enable exactly one LED of the walking light pattern.
+     * Enables exactly one LED of the walking light pattern.
      *
      * @param[in] index Index of the LED to enable. All other LEDs are disabled.
      */
