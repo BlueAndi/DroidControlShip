@@ -33,7 +33,8 @@ jobs:
     needs: intro
     strategy:
       matrix:
-        environment: ["ConvoyLeaderTarget",
+        environment: ["CommissioningTarget",
+                      "ConvoyLeaderTarget",
                       "ConvoyFollowerTarget",
                       "LineFollowerTarget",
                       "RemoteControlTarget",
@@ -145,7 +146,8 @@ jobs:
     needs: intro
     strategy:
       matrix:
-        environment: ["ConvoyLeaderTarget",
+        environment: ["CommissioningTarget",
+                      "ConvoyLeaderTarget",
                       "ConvoyFollowerTarget",
                       "ConvoyLeaderSim",
                       "ConvoyFollowerSim",

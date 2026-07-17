@@ -14,6 +14,7 @@ It provides different kind of exclusive applications, used for educational purpo
 - Remote Control - Receives commands and motor speeds from an external source through MQTT.
 - APPTurtle - A [ROS2](https://docs.ros.org/en/jazzy/index.html) Robot controller that uses Twist messages like the ROS2 TurtleSim demo.
 - Line follower - Follows a track by a black line until the start/end line is passed twice.
+- Commissioning - Exercises the board peripherals in an observable way for hardware bring-up and validation.
 
 ## Table of content <!-- omit in toc -->
 
@@ -146,6 +147,7 @@ In a similar way, not providing a WiFi configuration will force the target into 
 
 | Application    | Standalone | Zumo32U4 Robot Required | RadonUlzer Application | MQTT Broker Required         |
 | -------------- | ---------- | ----------------------- | ---------------------- | ---------------------------- |
+| Commissioning  | Yes        | No                      | N/A                    | No                           |
 | ConvoyLeader   | No         | Yes                     | ConvoyLeader           | Yes                          |
 | ConvoyFollower | No         | Yes                     | RemoteControl          | Yes                          |
 | LineFollower   | No         | Yes                     | RemoteControl          | No                           |
