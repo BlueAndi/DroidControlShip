@@ -1,0 +1,15 @@
+{
+    "name": "APPSlam",
+    "version": "0.1.0",
+    "description": "SLAM application",
+    "authors": [{
+        "name": "Jonas Hochhaus",
+        "email": "jonas.hochhaus01@gmail.com",
+        "url": "https://github.com/jonpg01",
+        "maintainer": true
+    }],
+    "license": "MIT",
+    "dependencies": [],
+    "frameworks": "*",
+    "platforms": "*"
+}

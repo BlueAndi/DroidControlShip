@@ -85,7 +85,7 @@ else:
     print(f"OS type {OS_PLATFORM_TYPE} not supported.")
     sys.exit(1)
 
-WEBOTS_LAUNCHER_ACTION = WEBOTS_CONTROLLER + ' '\
+WEBOTS_LAUNCHER_CMD = WEBOTS_CONTROLLER + ' '\
     + WEBOTS_CONTROLLER_OPTIONS + ' ' \
     + PROGRAM_PATH + PROGRAM_NAME + ' ' \
     + PROGRAM_OPTIONS
@@ -98,6 +98,70 @@ WEBOTS_LAUNCHER_ACTION = WEBOTS_CONTROLLER + ' '\
 # Functions
 ################################################################################
 
+def _abort_missing_slot(protocol, ip, robot_name):
+    """Check the robot has an extern slot in Webots, print a clear error and exit if not."""
+    import socket
+
+    if protocol == "tcp":
+        try:
+            s = socket.create_connection((ip, 1234), timeout=2)
+            s.close()
+        except OSError:
+            print(f"Error: Cannot reach Webots at {ip}:1234 via TCP. Is Webots running?")
+            raise SystemExit(1)
+        print(f"Warning: Cannot verify extern slot for '{robot_name}' over TCP — "
+              "make sure the correct world is loaded.")
+        return
+
+    import getpass
+    ipc_dir = f"/tmp/webots/{getpass.getuser()}/1234/ipc"
+    if not os.path.isdir(ipc_dir):
+        print("Error: Webots is not running or no world is loaded.")
+        raise SystemExit(1)
+
+    ipc_socket = f"{ipc_dir}/{robot_name}/extern"
+    if not os.path.exists(ipc_socket):
+        available = [n for n in os.listdir(ipc_dir)
+                     if os.path.exists(os.path.join(ipc_dir, n, "extern"))]
+        slots = ", ".join(available) if available else "(none)"
+        print(f"Error: Robot '{robot_name}' has no extern controller slot in the loaded world.")
+        print(f"       Available extern slots: {slots}")
+        print("       Load a world where the robot has controller \"<extern>\".")
+        raise SystemExit(1)
+
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(1)
+        s.connect(ipc_socket)
+        s.close()
+    except OSError:
+        print(f"Error: Extern slot for '{robot_name}' exists but is already claimed by another controller.")
+        raise SystemExit(1)
+
+
+def check_webots_ready(source, target, env):  # pylint: disable=unused-argument
+    """Check that Webots is running and the robot has a free extern controller slot."""
+    protocol = env.GetProjectOption("custom_webots_protocol")
+    ip = env.GetProjectOption("custom_webots_ip_address")
+    robot_name = env.GetProjectOption("custom_webots_robot_name")
+    _abort_missing_slot(protocol, ip, robot_name)
+
+
+def launch_webots_controller(source, target, env):  # pylint: disable=unused-argument
+    """Run webots-controller, tolerating SIGSEGV (exit 139) on TCP disconnect.
+
+    webots-controller segfaults in libController.so when the remote Webots host
+    closes the TCP connection. The DCS process itself exits cleanly; the crash
+    is inside the launcher binary and is harmless.
+    """
+    import subprocess
+    cmd = env.subst(WEBOTS_LAUNCHER_CMD)
+    print(cmd)
+    result = subprocess.run(cmd, shell=True)
+    if result.returncode not in (0, -11, 139):  # 139 = 128 + SIGSEGV(11)
+        env.Exit(result.returncode)
+
+
 ################################################################################
 # Main
 ################################################################################
@@ -107,7 +171,8 @@ env.AddCustomTarget(
     name="webots_launcher",
     dependencies=PROGRAM_PATH + PROGRAM_NAME,
     actions=[
-        WEBOTS_LAUNCHER_ACTION
+        check_webots_ready,
+        launch_webots_controller,
     ],
     title="Launch",
     description="Launch application with Webots launcher."

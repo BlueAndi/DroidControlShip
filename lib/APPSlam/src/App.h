@@ -26,8 +26,8 @@
 *******************************************************************************/
 /**
  * @file
- * @brief  RemoteControl application
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  SLAM application
+ * @author Jonas Hochhaus<jonas.hochhaus01@gmail.com>
  *
  * @addtogroup Application
  *
@@ -46,10 +46,10 @@
  *****************************************************************************/
 #include <Arduino.h>
 #include <Board.h>
-#include <MqttClient.h>
 #include <SerialMuxProtServer.hpp>
 #include "SerialMuxChannels.h"
 #include <SimpleTimer.hpp>
+#include <WiFiClient.h>
 
 /******************************************************************************
  * Macros
@@ -59,12 +59,12 @@
  * Types and Classes
  *****************************************************************************/
 
-/** The Remote Control application. */
+/** The SLAM application. */
 class App
 {
 public:
     /**
-     * Construct the Remote Control application.
+     * Constructs the SLAM application.
      */
     App() :
         m_smpServer(Board::getInstance().getRobot().getStream()),
@@ -72,8 +72,9 @@ public:
         m_serialMuxProtChannelIdMotorSpeeds(0U),
         m_serialMuxProtChannelIdRobotSpeeds(0U),
         m_serialMuxProtChannelIdStatus(0U),
-        m_mqttClient(),
         m_initialDataSent(false),
+        m_tcpRxBuffer(),
+        m_lastReconnectAttemptTimeMs(0U),
         m_statusTimer(),
         m_isFatalError(false)
     {
@@ -81,35 +82,30 @@ public:
     }
 
     /**
-     * Destroy the Remote Control application.
+     * Destroys the SLAM application.
      */
     ~App()
     {
     }
 
     /**
-     * Setup the application.
+     * Sets up the application.
      */
     void setup();
 
     /**
-     * Process the application periodically.
+     * Processes the application periodically.
      */
     void loop();
 
+    /**
+     * Handles vehicle data received from SerialMuxProt and forwards it to the ROS2 server.
+     *
+     * @param[in] vehicleData Pointer to vehicle data.
+     */
+    void handleVehicleData(const VehicleData* vehicleData);
+
 private:
-    /** MQTT topic name for birth messages. */
-    static const char* TOPIC_NAME_BIRTH;
-
-    /** MQTT topic name for will messages. */
-    static const char* TOPIC_NAME_WILL;
-
-    /** MQTT topic name for receiving commands. */
-    static const char* TOPIC_NAME_CMD;
-
-    /** MQTT topic name for receiving motor speeds. */
-    static const char* TOPIC_NAME_MOTOR_SPEEDS;
-
     /** SerialMuxProt Channel ID for sending remote control commands. */
     uint8_t m_serialMuxProtChannelIdRemoteCtrl;
 
@@ -122,6 +118,9 @@ private:
     /** SerialMuxProt Channel ID for sending system status. */
     uint8_t m_serialMuxProtChannelIdStatus;
 
+    /** TCP client for communication with the ROS2 server. */
+    WiFiClient m_tcpClient;
+
     /**
      * SerialMuxProt Server Instance
      *
@@ -130,12 +129,15 @@ private:
     SMPServer m_smpServer;
 
     /**
-     * MQTTClient Instance
+     * Flag for setting initial data through SMP.
      */
-    MqttClient m_mqttClient;
-
-    /** Flag for setting initial data through SMP. */
     bool m_initialDataSent;
+
+    /** TCP receive buffer. */
+    String m_tcpRxBuffer;
+
+    /** Timestamp of the last TCP reconnect attempt [ms]. */
+    uint32_t m_lastReconnectAttemptTimeMs;
 
     /**
      * Timer for sending system status to RU.
@@ -149,51 +151,55 @@ private:
 
 private:
     /**
-     * Handler of fatal errors in the Application.
+     * Handles fatal errors in the application.
      */
     void fatalErrorHandler();
 
     /**
-     * Setup the SerialMuxProt Server.
+     * Sets up the SerialMuxProt Server.
      *
      * @returns true if successful, otherwise false.
      */
     bool setupSerialMuxProtServer();
 
     /**
-     * Setup the MQTT connection.
+     * Connects to the ROS2 server via TCP.
      *
-     * @param[in] clientId      The MQTT client id.
-     * @param[in] brokerAddr    The address of the MQTT broker.
-     * @param[in] brokerPort    The port of the MQTT broker.
+     * @returns true if successful, otherwise false.
+     */
+    bool connectToROS2Server();
+
+    /**
+     * Sends a newline-terminated TCP packet to the ROS2 server.
      *
-     * @return true if successful, otherwise false.
+     * @param[in] payload Payload to send.
      */
-    bool setupMqtt(const String& clientId, const String& brokerAddr, uint16_t brokerPort);
+    void sendPacket(const String& payload);
 
     /**
-     * Callback for Command MQTT Topic.
-     * @param[in] payload   Payload of the MQTT message.
+     * Receives and buffers TCP packets from the ROS2 server.
+     * Processes complete newline-terminated lines.
      */
-    void cmdTopicCallback(const String& payload);
+    void receivePackets();
 
     /**
-     * Callback for Motor Speeds MQTT Topic.
-     * @param[in] payload   Payload of the MQTT message.
+     * Parses and processes one incoming JSON line from the ROS2 server.
+     * Expects a JSON object with "linear" (mm/s) and "angular" (mrad/s) velocity fields.
+     * Logs a warning if parsing fails or the expected fields are missing.
+     *
+     * @param[in] line JSON string to parse and process.
      */
-    void motorSpeedsTopicCallback(const String& payload);
+    void processIncomingLine(const String& line);
 
     /**
-     * Copy construction of an instance.
-     * Not allowed.
+     * Prohibits copy construction of an instance.
      *
      * @param[in] app Source instance.
      */
     App(const App& app);
 
     /**
-     * Assignment of an instance.
-     * Not allowed.
+     * Prohibits assignment of an instance.
      *
      * @param[in] app Source instance.
      *

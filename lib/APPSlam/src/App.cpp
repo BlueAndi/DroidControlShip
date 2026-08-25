@@ -26,8 +26,8 @@
 *******************************************************************************/
 /**
  * @file
- * @brief  RemoteControl application
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  SLAM application
+ * @author Jonas Hochhaus<jonas.hochhaus01@gmail.com>
  */
 
 /******************************************************************************
@@ -40,7 +40,6 @@
 #include <SettingsHandler.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
-#include "RemoteControl.h"
 
 /******************************************************************************
  * Compiler Switches
@@ -54,6 +53,16 @@
 #ifndef CONFIG_LOG_SEVERITY
 #define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
 #endif /* CONFIG_LOG_SEVERITY */
+
+/** ROS2 server IP address if not defined by the build configuration */
+#ifndef APPSLAM_TCP_SERVER_IP
+#define APPSLAM_TCP_SERVER_IP "127.0.0.1"
+#endif /* APPSLAM_TCP_SERVER_IP */
+
+/** ROS2 server port if not defined by the build configuration */
+#ifndef APPSLAM_TCP_SERVER_PORT
+#define APPSLAM_TCP_SERVER_PORT 8888U
+#endif /* APPSLAM_TCP_SERVER_PORT */
 
 /******************************************************************************
  * Types and classes
@@ -77,20 +86,17 @@ static const uint32_t SERIAL_BAUDRATE = 115200U;
 /** Serial log sink */
 static LogSinkPrinter gLogSinkSerial("Serial", &Serial);
 
-/* MQTT topic name for birth messages. */
-const char* App::TOPIC_NAME_BIRTH = "birth";
+/** TCP reconnect interval in milliseconds. */
+static const uint32_t TCP_RECONNECT_INTERVAL_MS = 2000U;
 
-/* MQTT topic name for will messages. */
-const char* App::TOPIC_NAME_WILL = "will";
+/** JSON key for linear velocity. */
+static const char* JSON_KEY_LINEAR = "linear";
 
-/* MQTT topic name for receiving commands. */
-const char* App::TOPIC_NAME_CMD = "cmd";
+/** JSON key for angular velocity. */
+static const char* JSON_KEY_ANGULAR = "angular";
 
-/* MQTT topic name for receiving motor speeds. */
-const char* App::TOPIC_NAME_MOTOR_SPEEDS = "motorSpeeds";
-
-/** Buffer size for JSON serialization of birth / will message */
-static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
+/** Maximum length of a TCP receive line in characters. */
+static const size_t MAX_LINE_LEN = 512U;
 
 /******************************************************************************
  * Public Methods
@@ -147,12 +153,13 @@ void App::setup()
         {
             LOG_FATAL("SerialMuxProt server could not be setup.");
         }
-        else if (false == setupMqtt(settings.getRobotName(), settings.getMqttBrokerAddress(), settings.getMqttPort()))
-        {
-            LOG_FATAL("MQTT connection could not be setup.");
-        }
         else
         {
+            if (false == connectToROS2Server())
+            {
+                LOG_WARNING("Initial ROS2 server connection failed. Will retry in loop().");
+            }
+
             m_statusTimer.start(1000U);
             isSuccessful = true;
         }
@@ -172,8 +179,28 @@ void App::loop()
         /* Process Battery, Device and Network. */
         Board::getInstance().process();
 
-        /* Process MQTT Communication */
-        m_mqttClient.process();
+        /* Handle TCP communication. */
+        if (true == m_tcpClient.connected())
+        {
+            receivePackets();
+        }
+        else
+        {
+            uint32_t now = millis();
+
+            if ((now - m_lastReconnectAttemptTimeMs) >= TCP_RECONNECT_INTERVAL_MS)
+            {
+                m_lastReconnectAttemptTimeMs = now;
+
+                LOG_INFO("ROS2 server disconnected. Attempting reconnect...");
+                m_tcpClient.stop();
+
+                if (false == connectToROS2Server())
+                {
+                    LOG_WARNING("ROS2 server reconnect attempt failed.");
+                }
+            }
+        }
 
         /* Process SerialMuxProt. */
         m_smpServer.process(millis());
@@ -256,176 +283,160 @@ bool App::setupSerialMuxProtServer()
     return isSuccessful;
 }
 
-bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t brokerPort)
+bool App::connectToROS2Server()
 {
-    bool         isSuccessful = false;
-    JsonDocument jsonBirthDoc;
-    char         birthMsgArray[JSON_BIRTHMESSAGE_MAX_SIZE];
-    String       birthMessage;
+    bool      isSuccessful = false;
+    IPAddress serverIp;
 
-    jsonBirthDoc["name"] = clientId.c_str();
-    (void)serializeJson(jsonBirthDoc, birthMsgArray);
-    birthMessage = birthMsgArray;
-
-    if (false == m_mqttClient.init())
+    if (false == serverIp.fromString(APPSLAM_TCP_SERVER_IP))
     {
-        LOG_FATAL("Failed to initialize MQTT client.");
+        LOG_ERROR("Invalid APPSlam ROS2 server IP: %s", APPSLAM_TCP_SERVER_IP);
+    }
+    else if (true == m_tcpClient.connect(serverIp, APPSLAM_TCP_SERVER_PORT))
+    {
+        LOG_INFO("ROS2 server connected at %s:%u", APPSLAM_TCP_SERVER_IP, APPSLAM_TCP_SERVER_PORT);
+        isSuccessful = true;
     }
     else
     {
-        MqttSettings mqttSettings = {clientId,     brokerAddr,      brokerPort,   TOPIC_NAME_BIRTH,
-                                     birthMessage, TOPIC_NAME_WILL, birthMessage, true};
-
-        if (false == m_mqttClient.setConfig(mqttSettings))
-        {
-            LOG_FATAL("MQTT configuration could not be set.");
-        }
-        /* Subscribe to Command Topic. */
-        else if (false == m_mqttClient.subscribe(TOPIC_NAME_CMD, true,
-                                                 [this](const String& payload) { cmdTopicCallback(payload); }))
-        {
-            LOG_FATAL("Could not subscribe to MQTT topic: %s.", TOPIC_NAME_CMD);
-        }
-        /* Subscribe to Motor Speeds Topic. */
-        else if (false == m_mqttClient.subscribe(TOPIC_NAME_MOTOR_SPEEDS, true,
-                                                 [this](const String& payload) { motorSpeedsTopicCallback(payload); }))
-        {
-            LOG_FATAL("Could not subscribe to MQTT topic: %s.", TOPIC_NAME_MOTOR_SPEEDS);
-        }
-        else
-        {
-            isSuccessful = true;
-        }
+        LOG_WARNING("Failed to connect to ROS2 server %s:%u", APPSLAM_TCP_SERVER_IP, APPSLAM_TCP_SERVER_PORT);
     }
 
     return isSuccessful;
 }
 
-void App::cmdTopicCallback(const String& payload)
+void App::sendPacket(const String& payload)
 {
-    JsonDocument         jsonPayload;
-    DeserializationError error = deserializeJson(jsonPayload, payload.c_str());
-
-    if (error != DeserializationError::Ok)
+    if (true == m_tcpClient.connected())
     {
-        LOG_ERROR("JSON Deserialization Error %d.", error);
+        String packet       = payload + '\n';
+        size_t bytesWritten = m_tcpClient.write(reinterpret_cast<const uint8_t*>(packet.c_str()), packet.length());
+
+        if (bytesWritten != packet.length())
+        {
+            LOG_WARNING("TCP write incomplete: wrote %u of %u bytes.", bytesWritten, packet.length());
+        }
+        else
+        {
+            LOG_DEBUG("TX: %s", payload.c_str());
+        }
     }
     else
     {
-        JsonVariantConst command = jsonPayload["CMD_ID"];
+        LOG_WARNING("Attempted to send packet while not connected to ROS2 server.");
+    }
+}
 
-        if (false == command.isNull())
+void App::receivePackets()
+{
+    uint8_t buffer[128U];
+    int     bytesRead = 0;
+
+    do
+    {
+        bytesRead = m_tcpClient.read(buffer, sizeof(buffer));
+
+        if (bytesRead > 0)
         {
-            bool    isValid = true;
-            Command cmd;
-            uint8_t cmdId = command.as<uint8_t>();
-
-            switch (cmdId)
+            for (int i = 0; i < bytesRead; ++i)
             {
-            case 0U:
-                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_IDLE;
-                break;
+                char c = static_cast<char>(buffer[i]);
 
-            case 1U:
-                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_START_LINE_SENSOR_CALIB;
-                break;
-
-            case 2U:
-                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_START_MOTOR_SPEED_CALIB;
-                break;
-
-            case 3U:
-                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_REINIT_BOARD;
-                break;
-
-            case 4U:
-                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_GET_MAX_SPEED;
-                break;
-
-            case 5U:
-                cmd.commandId = SMPChannelPayload::CmdId::CMD_ID_START_DRIVING;
-                break;
-
-            case 6U:
-            {
-                JsonVariantConst xPos    = jsonPayload["X"];
-                JsonVariantConst yPos    = jsonPayload["Y"];
-                JsonVariantConst heading = jsonPayload["HEADING"];
-
-                if (xPos.isNull() || yPos.isNull() || heading.isNull())
+                if ('\n' == c)
                 {
-                    LOG_WARNING("CMD_ID_SET_INIT_POS requires X, Y and HEADING fields.");
-                    isValid = false;
+                    if (0 != m_tcpRxBuffer.length())
+                    {
+                        processIncomingLine(m_tcpRxBuffer);
+                    }
+
+                    m_tcpRxBuffer = String();
                 }
                 else
                 {
-                    cmd.commandId   = SMPChannelPayload::CmdId::CMD_ID_SET_INIT_POS;
-                    cmd.xPos        = xPos.as<int32_t>();
-                    cmd.yPos        = yPos.as<int32_t>();
-                    cmd.orientation = heading.as<int32_t>();
+                    m_tcpRxBuffer += c;
+
+                    if (m_tcpRxBuffer.length() >= MAX_LINE_LEN)
+                    {
+                        LOG_WARNING("TCP line too long, discarding.");
+                        m_tcpRxBuffer = String();
+                    }
                 }
-                break;
             }
+        }
+    } while (bytesRead > 0);
 
-            default:
-                isValid = false;
-                break;
-            }
+    if (bytesRead < 0)
+    {
+        /* Error reading from TCP client. Close connection. */
+        LOG_WARNING("TCP read error: %d", bytesRead);
+        m_tcpClient.stop();
+    }
+}
 
-            if (false == isValid)
+void App::processIncomingLine(const String& line)
+{
+    LOG_DEBUG("RX: %s", line.c_str());
+
+    /* Handle velocity command via ArduinoJson */
+    {
+        JsonDocument         doc;
+        DeserializationError err = deserializeJson(doc, line.c_str());
+
+        if (DeserializationError::Ok == err)
+        {
+            if ((!doc[JSON_KEY_LINEAR].isNull()) && (!doc[JSON_KEY_ANGULAR].isNull()))
             {
-                LOG_ERROR("Got invalid payload in command with ID %d.", cmdId);
-            }
-            else if (true == m_smpServer.sendData(m_serialMuxProtChannelIdRemoteCtrl, reinterpret_cast<uint8_t*>(&cmd),
-                                                  sizeof(cmd)))
-            {
-                LOG_DEBUG("Command with ID %d successfully sent.", cmd.commandId);
+                int32_t linearCenter = doc[JSON_KEY_LINEAR].as<int32_t>();
+                int32_t angular      = doc[JSON_KEY_ANGULAR].as<int32_t>();
+
+                RobotSpeed robotSpeed = {linearCenter, angular};
+                LOG_INFO("Received velocity command - Linear: %d mm/s, Angular: %d mrad/s", linearCenter, angular);
+                if (false == m_smpServer.sendData(m_serialMuxProtChannelIdRobotSpeeds, &robotSpeed, sizeof(robotSpeed)))
+                {
+                    LOG_WARNING("Failed to send velocity command to RU.");
+                }
+                else
+                {
+                    LOG_DEBUG("Velocity command sent.");
+                }
             }
             else
             {
-                LOG_WARNING("Failed to send command with ID %d.", cmd.commandId);
+                LOG_WARNING("JSON does not contain expected fields 'linear' and 'angular'.");
             }
         }
         else
         {
-            LOG_WARNING("Received invalid command.");
+            LOG_WARNING("Failed to parse JSON: %s", err.c_str());
         }
     }
 }
 
-void App::motorSpeedsTopicCallback(const String& payload)
+void App::handleVehicleData(const VehicleData* vehicleData)
 {
-    JsonDocument         jsonPayload;
-    DeserializationError error = deserializeJson(jsonPayload, payload.c_str());
-
-    if (error != DeserializationError::Ok)
+    if ((nullptr != vehicleData) && (true == m_tcpClient.connected()))
     {
-        LOG_ERROR("JSON deserialization error %d.", error);
-    }
-    else
-    {
-        JsonVariantConst leftSpeed  = jsonPayload["LEFT"];
-        JsonVariantConst rightSpeed = jsonPayload["RIGHT"];
+        /* Format vehicle data as JSON using ArduinoJson and send via TCP */
+        JsonDocument doc;
+        doc["type"] = "vehicle_data";
+        doc["t"]    = vehicleData->timestamp;
+        doc["x"]    = vehicleData->xPos;
+        doc["y"]    = vehicleData->yPos;
+        doc["h"]    = vehicleData->orientation;
+        doc["l"]    = vehicleData->left;
+        doc["r"]    = vehicleData->right;
+        doc["c"]    = vehicleData->center;
+        doc["ax"]   = vehicleData->accelerationX;
+        doc["tz"]   = vehicleData->turnRateZ;
 
-        if ((false == leftSpeed.isNull()) && (false == rightSpeed.isNull()))
+        String out;
+        if (0U < serializeJson(doc, out))
         {
-            MotorSpeed motorSetpoints;
-            motorSetpoints.left  = leftSpeed.as<int32_t>();
-            motorSetpoints.right = rightSpeed.as<int32_t>();
-
-            if (true == m_smpServer.sendData(m_serialMuxProtChannelIdMotorSpeeds,
-                                             reinterpret_cast<uint8_t*>(&motorSetpoints), sizeof(motorSetpoints)))
-            {
-                LOG_DEBUG("Motor speeds sent");
-            }
-            else
-            {
-                LOG_WARNING("Failed to send motor speeds");
-            }
+            sendPacket(out);
         }
         else
         {
-            LOG_WARNING("Received invalid motor speeds.");
+            LOG_WARNING("Failed to serialize vehicle data.");
         }
     }
 }
@@ -488,16 +499,18 @@ void App_lineSensorChannelCallback(const uint8_t* payload, const uint8_t payload
  */
 void App_currentVehicleChannelCallback(const uint8_t* payload, const uint8_t payloadSize, void* userData)
 {
-    UTIL_NOT_USED(userData);
-
-    if ((nullptr != payload) && (CURRENT_VEHICLE_DATA_CHANNEL_DLC == payloadSize))
+    if ((nullptr != payload) && (CURRENT_VEHICLE_DATA_CHANNEL_DLC == payloadSize) && (nullptr != userData))
     {
         const VehicleData* currentVehicleData = reinterpret_cast<const VehicleData*>(payload);
+        App*               appInstance        = reinterpret_cast<App*>(userData);
 
         LOG_DEBUG("Timestamp: %d X: %d Y: %d Heading: %d Left: %d Right: %d Center: %d AccX: %d TurnZ: %d ",
                   currentVehicleData->timestamp, currentVehicleData->xPos, currentVehicleData->yPos,
                   currentVehicleData->orientation, currentVehicleData->left, currentVehicleData->right,
                   currentVehicleData->center, currentVehicleData->accelerationX, currentVehicleData->turnRateZ);
+
+        /* Forward vehicle data to TCP connection */
+        appInstance->handleVehicleData(currentVehicleData);
     }
     else
     {
