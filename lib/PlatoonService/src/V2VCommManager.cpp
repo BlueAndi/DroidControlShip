@@ -611,12 +611,12 @@ bool V2VCommManager::setupCommonTopics(uint8_t platoonId, uint8_t vehicleId)
             /* Subscribe to Input Topic. */
             if (false == m_mqttClient.subscribe(m_waypointInputTopic, false, lambdaWaypointInputTopicCallback))
             {
-                LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_waypointInputTopic.c_str());
+                LOG_ERROR("Could not subscribe to MQTT Topic: %s.", m_waypointInputTopic.c_str());
             }
             /* Subscribe to emergency topic. */
             else if (false == m_mqttClient.subscribe(m_emergencyTopic, false, lambdaWaypointInputTopicCallback))
             {
-                LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_emergencyTopic);
+                LOG_ERROR("Could not subscribe to MQTT Topic: %s.", m_emergencyTopic);
             }
             else
             {
@@ -667,7 +667,7 @@ bool V2VCommManager::setupHeartbeatTopics(uint8_t platoonId, uint8_t vehicleId)
             /* Subscribe to platoon heartbeat Topic. */
             if (false == m_mqttClient.subscribe(m_platoonHeartbeatTopic, false, lambdaHeartbeatInputTopicCallback))
             {
-                LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_platoonHeartbeatTopic.c_str());
+                LOG_ERROR("Could not subscribe to MQTT Topic: %s.", m_platoonHeartbeatTopic.c_str());
             }
             {
                 isSuccessful = true;
@@ -700,17 +700,17 @@ bool V2VCommManager::setupLeaderTopics()
     /* Subscribe to Vehicles Heartbeat Topics. */
     else if (false == m_mqttClient.subscribe(m_heartbeatResponseTopic, false, lambdaEventCallback))
     {
-        LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_platoonHeartbeatTopic.c_str());
+        LOG_ERROR("Could not subscribe to MQTT Topic: %s.", m_platoonHeartbeatTopic.c_str());
     }
     /* Subscribe to Last Vehicle Feedback Topic. */
     else if (false == m_mqttClient.subscribe(m_feedbackTopic, false, lambdaEventCallback))
     {
-        LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_feedbackTopic.c_str());
+        LOG_ERROR("Could not subscribe to MQTT Topic: %s.", m_feedbackTopic.c_str());
     }
     /* Subscribe to IVS Topic. */
     else if (false == m_mqttClient.subscribe(m_ivsTopic, false, lambdaEventCallback))
     {
-        LOG_ERROR("Could not subcribe to MQTT Topic: %s.", m_ivsTopic.c_str());
+        LOG_ERROR("Could not subscribe to MQTT Topic: %s.", m_ivsTopic.c_str());
     }
     else
     {

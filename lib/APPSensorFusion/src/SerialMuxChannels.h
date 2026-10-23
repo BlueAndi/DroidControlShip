@@ -41,7 +41,6 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
 #include <stdint.h>
 #include <SerialMuxProtServer.hpp>
 
@@ -93,6 +92,9 @@ typedef struct _SensorData
     uint16_t timePeriod;
 
 } __attribute__((packed)) SensorData;
+
+static_assert(sizeof(SensorData) <= MAX_DATA_LEN,
+              "SensorData struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
 
 /******************************************************************************
  * Functions

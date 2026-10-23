@@ -71,11 +71,14 @@ The following diagram illustrates the component deployment of micro-ROS in the D
 
 ## Installation Steps
 
+The installation procedure handles how the WSL in Windows is used to install the Ubuntu Linux distribution, the ROS2, Webots and micro-ROS parts.
+
 1. [WSL with Ubuntu](./setup/wsl.md)
 2. [ROS2 Jazzy](./setup/ROS2_Jazzy.md)
 3. [Webots](./setup/Webots.md)
-4. [micro-ROS Native](./setup/microROS_Native.md)
-5. [micro-ROS Agent](./setup/Agent.md)
+4. [VSCode in WSL](./setup/vscode.md)
+5. [micro-ROS Native](./setup/microROS_Native.md)
+6. [micro-ROS Agent](./setup/Agent.md)
 
 ## Execution Steps
 

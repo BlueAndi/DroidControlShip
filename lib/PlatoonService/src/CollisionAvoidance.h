@@ -69,7 +69,7 @@ public:
      */
     CollisionAvoidance(Telemetry::Range closestProximityRangeValue, Telemetry::Range rangeThreshold) :
         m_closestProximityRangeValue(closestProximityRangeValue),
-        m_rangeThreshold(rangeThreshold) {};
+        m_rangeThreshold(rangeThreshold){};
 
     /**
      * Default Destructor.

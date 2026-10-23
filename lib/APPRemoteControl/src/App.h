@@ -70,6 +70,7 @@ public:
         m_smpServer(Board::getInstance().getRobot().getStream()),
         m_serialMuxProtChannelIdRemoteCtrl(0U),
         m_serialMuxProtChannelIdMotorSpeeds(0U),
+        m_serialMuxProtChannelIdRobotSpeeds(0U),
         m_serialMuxProtChannelIdStatus(0U),
         m_mqttClient(),
         m_initialDataSent(false),
@@ -109,13 +110,16 @@ private:
     /** MQTT topic name for receiving motor speeds. */
     static const char* TOPIC_NAME_MOTOR_SPEEDS;
 
-    /** SerialMuxProt Channel id for sending remote control commands. */
+    /** SerialMuxProt Channel ID for sending remote control commands. */
     uint8_t m_serialMuxProtChannelIdRemoteCtrl;
 
-    /** SerialMuxProt Channel id for sending motor speeds. */
+    /** SerialMuxProt Channel ID for sending motor speeds. */
     uint8_t m_serialMuxProtChannelIdMotorSpeeds;
 
-    /** SerialMuxProt Channel id for sending system status. */
+    /** SerialMuxProt Channel ID for sending robot speed setpoints (linear + angular). */
+    uint8_t m_serialMuxProtChannelIdRobotSpeeds;
+
+    /** SerialMuxProt Channel ID for sending system status. */
     uint8_t m_serialMuxProtChannelIdStatus;
 
     /**

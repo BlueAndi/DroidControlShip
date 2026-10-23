@@ -171,7 +171,7 @@ size_t CustomRosTransportTcp::read(uint8_t* buffer, size_t size, int timeout, ui
 
         if (InputState::INPUT_STATE_FINISH == m_inputState)
         {
-            if (readBytes > size)
+            if (m_payloadLen > size)
             {
                 /* Internal error, request buffer would be overrun. */
                 close();
@@ -262,7 +262,7 @@ bool CustomRosTransportTcp::readSizePrefix(int timeout, uint8_t* errorCode)
     case 2U: /* 2 byte prefix received */
         m_payloadLen = static_cast<size_t>(prefix[0]) + (static_cast<size_t>(prefix[1]) << 8);
         m_received   = 0U;
-        m_inputState = InputState::INPUT_STATE_PLAYLOAD;
+        m_inputState = InputState::INPUT_STATE_PAYLOAD;
         loop         = true;
         break;
 
@@ -293,7 +293,7 @@ bool CustomRosTransportTcp::readPendingSizePrefix(int timeout, uint8_t* errorCod
     case 1U: /* High byte received. */
         m_payloadLen |= (static_cast<size_t>(prefix[0]) << 8);
         m_received   = 0U;
-        m_inputState = InputState::INPUT_STATE_PLAYLOAD;
+        m_inputState = InputState::INPUT_STATE_PAYLOAD;
         loop         = true;
         break;
 

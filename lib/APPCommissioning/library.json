@@ -1,0 +1,24 @@
+{
+    "name": "APPCommissioning",
+    "version": "0.1.0",
+    "description": "Application for hardware commissioning of the ZumoComSystem board.",
+    "authors": [
+        {
+            "name": "Andreas Merkle",
+            "email": "web@blue-andi.de",
+            "url": "https://github.com/BlueAndi",
+            "maintainer": true
+        }
+    ],
+    "license": "MIT",
+    "dependencies": [
+        {
+            "name": "HALInterfaces"
+        },
+        {
+            "name": "Utilities"
+        }
+    ],
+    "frameworks": "*",
+    "platforms": "*"
+}

@@ -291,7 +291,12 @@ extern int main(int argc, char** argv)
         }
     }
 
-    return status;
+    /* Use exit() instead of return to skip C++ static destructor teardown.
+     * ~webots::Robot() calls wb_robot_cleanup() and ~MqttClient() calls
+     * mosquitto_loop_stop(), both of which crash or block when Webots has
+     * already closed the connection.
+     */
+    exit(status);
 }
 
 /******************************************************************************
@@ -382,8 +387,11 @@ static int handleCommandLineArguments(PrgArguments& prgArguments, int argc, char
             }
             else if (0 == strcmp(LONG_OPTIONS[optionIndex].name, "cwd"))
             {
-                int ret = chdir(optarg);
-                ret = ret; /* Suppress compiler warning. */
+                if (0 != chdir(optarg))
+                {
+                    printf("Failed to change working directory to %s.\n", optarg);
+                    status = -1;
+                }
             }
             else
             {

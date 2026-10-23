@@ -14,13 +14,18 @@ It provides different kind of exclusive applications, used for educational purpo
 - Remote Control - Receives commands and motor speeds from an external source through MQTT.
 - APPTurtle - A [ROS2](https://docs.ros.org/en/jazzy/index.html) Robot controller that uses Twist messages like the ROS2 TurtleSim demo.
 - Line follower - Follows a track by a black line until the start/end line is passed twice.
+- Commissioning - Exercises the board peripherals in an observable way for hardware bring-up and validation.
 
 ## Table of content <!-- omit in toc -->
 
 - [The ZumoComSystem Shield](#the-zumocomsystem-shield)
 - [The simulation](#the-simulation)
-- [Installation for simulation](#installation-for-simulation)
+  - [Installation for simulation](#installation-for-simulation)
   - [How to start?](#how-to-start)
+  - [Run](#run)
+    - [Run with Webots launcher (recommended)](#run-with-webots-launcher-recommended)
+    - [Run without Webots launcher](#run-without-webots-launcher)
+    - [Run via terminal](#run-via-terminal)
 - [The target](#the-target)
   - [Installation for target](#installation-for-target)
   - [Build and flash procedure](#build-and-flash-procedure)
@@ -48,7 +53,7 @@ The simulation is based on the open source robot simulator *Webots*. The applica
 
 ![simulation-deployment](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/main/doc/architecture/uml/PhysicalView/SimulationDeployment.plantuml)
 
-## Installation for simulation
+### Installation for simulation
 
 1. Install the native compiler toolchain:
     - Linux
@@ -64,7 +69,7 @@ The simulation is based on the open source robot simulator *Webots*. The applica
 
 ### How to start?
 
-After you built the application, you will find in in ```.pio/build/<APPLICATION-NAME>/program.exe```. It provides several command line arguments to configure certain features. Use -h or --help to get a short user friendly overview about them.
+After you built the application, you will find it in ```.pio/build/<APPLICATION-NAME>/program[.exe]```. It provides several command line arguments to configure certain features. Use -h or --help to get a short user friendly overview about them.
 
 The applications are using a configuration file in JSON format to retrieve certain settings. In the very first run, such a configuration file will be automatically be created. If there exists already one, it will be loaded without modifications (regardless of any other program arguments).
 
@@ -78,6 +83,42 @@ MQTT Broker --> Webots World --> RadonUlzer --> DroidControlShip
 
 In order to simplify this process, the [Launcher](https://github.com/gabryelreyes/Launcher) project is under active development.
 
+### Run
+
+There are 3 ways how to run now the application. Choose according to your needs.
+
+#### Run with Webots launcher (recommended)
+
+The Webots launcher is recommended to connect to the simulation.
+
+It is mandatory if the simulation contains more than one robot. The robot is identified by its name. Adapt the robot name in the [platformio_override.ini](./platformio_override.ini), see *webots_robot_name*.
+
+The Webots documentation has more details about [Single Simulation and Multiple Local Extern Robot Controllers](https://cyberbotics.com/doc/guide/running-extern-robot-controllers?tab-os=windows#single-simulation-and-multiple-local-extern-robot-controllers).
+
+It is mandatory too if the simulation does not run locally (e.g. Webots runs on windows host and RadonUlzer in WSL).
+Set the IP address and the port in [platformio_override.ini](./platformio_override.ini), see *webots_ip_address* and *webots_protocol*.
+
+Use *ipc* as *webots_protocol* for local connections and *tcp* for remote connections.
+
+| Key                 | Description                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
+| webots\_ip\_address | The IP address of the Webots simulation, which is used for TCP communication.                    |
+| webots\_protocol    | \[ipc\|tcp\] - ipc is faster but only works on the same machine, tcp works also over network.    |
+| webots\_robot\_name | The robot name used to identify the robot in the Webots world. See Webots world robot prototype. |
+
+PlatformIO project tasks --> &lt;APP-NAME&gt; --> Custom --> Launch
+
+#### Run without Webots launcher
+
+This can be chosen in case the simulation waits just for one robot.
+
+PlatformIO project tasks --> &lt;APP-NAME&gt; --> General --> Upload
+
+#### Run via terminal
+
+1. Open a command line (shell) and change to the folder with the built executable in ```.pio/build/<APPLICATION-NAME>```. This folder contains all necessary shared libraries as well.
+2. Start the ```program[.exe]``` executable.
+
 ## The target
 
 The main target of the firmware is the [ZumoComSystem](https://github.com/NewTec-GmbH/ZumoComSystem) from NewTec GmbH, which is a shield for the [Pololu 32U4 Zumo](https://www.pololu.com/product/2510) robot.
@@ -88,7 +129,7 @@ Together with [Radon Ulzer](https://github.com/BlueAndi/RadonUlzer) it can be ru
 
 ### Installation for target
 
-1. Make sure that the hardware version of your [ZumoComSystem](https://github.com/NewTec-GmbH/ZumoComSystem) is supported. Currently, only v1.1 and v1.2 are supported.
+1. Make sure that the hardware version of your [ZumoComSystem](https://github.com/NewTec-GmbH/ZumoComSystem) is supported. Currently, v1 (v1.1 and v1.2), v2 and [v3](https://github.com/NewTec-GmbH/ZumoComSystemHW) are supported. Select the hardware version in the ```[target:esp32]``` section of ```platformio.ini```.
 2. Install the [drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) for the CP2102 USB-UART converter if required. The "CP210x Universal Windows Driver" is recommended, as it enables the automatic bootloader mode.
 
 ### Build and flash procedure
@@ -104,15 +145,16 @@ In a similar way, not providing a WiFi configuration will force the target into 
 
 ## The Applications
 
-| Application | Standalone | Zumo32U4 Robot Required | RadonUlzer Application | MQTT Broker Required |
-| - | - | - | - | - |
-| ConvoyLeader | No | Yes | ConvoyLeader | Yes |
-| ConvoyFollower | No | Yes | RemoteControl | Yes |
-| LineFollower | No | Yes | RemoteControl | No |
-| RemoteControl | No | Yes | RemoteControl | Yes |
-| SensorFusion | No | Yes | SensorFusion | Yes |
-| Test | Yes | No | N/A | No |
-| Turtle | No | Yes | RemoteControl | Yes (ROS2 + Micro-ROS Agent) |
+| Application    | Standalone | Zumo32U4 Robot Required | RadonUlzer Application | MQTT Broker Required         |
+| -------------- | ---------- | ----------------------- | ---------------------- | ---------------------------- |
+| Commissioning  | Yes        | No                      | N/A                    | No                           |
+| ConvoyLeader   | No         | Yes                     | ConvoyLeader           | Yes                          |
+| ConvoyFollower | No         | Yes                     | RemoteControl          | Yes                          |
+| LineFollower   | No         | Yes                     | RemoteControl          | No                           |
+| RemoteControl  | No         | Yes                     | RemoteControl          | Yes                          |
+| SensorFusion   | No         | Yes                     | SensorFusion           | Yes                          |
+| Test           | Yes        | No                      | N/A                    | No                           |
+| Turtle         | No         | Yes                     | RemoteControl          | Yes (ROS2 + Micro-ROS Agent) |
 
 ## Documentation
 

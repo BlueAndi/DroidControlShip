@@ -258,11 +258,11 @@ public:
     void unregisterSink(LogSink* sink);
 
     /**
-     * Select log sink.
+     * Selects a log sink by name.
      *
      * @param[in] name Log sink name
      *
-     * @return If sink is selected, it will return true otherwise false.
+     * @return True if the sink has been selected successfully; false otherwise.
      */
     bool selectSink(const String& name);
 

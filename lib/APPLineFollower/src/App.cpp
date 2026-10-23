@@ -108,7 +108,7 @@ void App::setup()
     /* Register serial log sink and select it per default. */
     if (true == Logging::getInstance().registerSink(&gLogSinkSerial))
     {
-        (void)Logging::getInstance().selectSink("Serial");
+        (void)Logging::getInstance().selectSink(gLogSinkSerial.getName());
 
         /* Set severity of logging system. */
         Logging::getInstance().setLogLevel(CONFIG_LOG_SEVERITY);
