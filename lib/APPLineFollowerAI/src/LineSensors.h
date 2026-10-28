@@ -104,6 +104,24 @@ public:
     const uint16_t* getSensorValues() const;
 
     /**
+     * Check whether a received measurement has not yet been used for a driving action.
+     *
+     * @return True if new sensor data is available.
+     */
+    bool getHasNewSensorData() const
+    {
+        return m_hasNewSensorData;
+    }
+
+    /**
+     * Mark the current measurement as used without clearing its sensor values.
+     */
+    void setSensorDataConsumed()
+    {
+        m_hasNewSensorData = false;
+    }
+
+    /**
      * Get number of used line sensors.
      *
      * @return Number of used line sensors
@@ -151,6 +169,9 @@ private:
      * Line sensor data [digits] normalized to max. 1000 digits.
      */
     uint16_t m_lineSensorData[MAX_SENSORS];
+
+    /** Whether a received measurement is available for a new driving action. */
+    bool m_hasNewSensorData;
 
     /**
      * Last valid line sensor position value.

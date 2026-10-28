@@ -252,7 +252,12 @@ void DrivingState::process(StateMachine& sm)
      */
     if (TRACK_STATUS_FINISHED != nextTrackStatus)
     {
-        adaptDriving(position);
+        /* Send one driving action per received measurement. */
+        if ((nullptr != m_lineSensors) && (true == m_lineSensors->getHasNewSensorData()))
+        {
+            adaptDriving(position);
+            m_lineSensors->setSensorDataConsumed();
+        }
     }
     /* Finished. */
     else

@@ -62,6 +62,7 @@
 LineSensors::LineSensors(SerMuxChannelProvider& serMuxChannelProvider) :
     m_serMuxChannelProvider(serMuxChannelProvider),
     m_lineSensorData{0, 0, 0, 0, 0},
+    m_hasNewSensorData(false),
     m_lastPosValue(0)
 {
     /* Register the line sensor channel callback. */
@@ -140,6 +141,8 @@ void LineSensors::serMuxLineSensorChannelCallback(const LineSensorData& data)
     {
         m_lineSensorData[idx] = data.lineSensorData[idx];
     }
+
+    m_hasNewSensorData = true;
 }
 
 /******************************************************************************

@@ -82,11 +82,12 @@ void LineSensorsCalibrationState::entry()
             }
             else if (SMPChannelPayload::RSP_ID_OK == status)
             {
-                LOG_INFO("Line sensor calibration completed.");
+                LOG_INFO("Line sensor calibration completed successfully.");
                 m_isFinished = true;
             }
             else
             {
+                LOG_ERROR("Line sensor calibration failed.");
                 m_isError = true;
             }
         };
