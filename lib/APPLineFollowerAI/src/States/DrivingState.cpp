@@ -108,7 +108,7 @@ const DrivingState::WeightsHiddenOutputType DrivingState::OUTPUT_LAYER_WEIGHTS({
 
 /**
  * Pre-trained neural network output layer biases.
- * Base speed at 75% provides symmetric headroom (±25%) for steering corrections at any velocity.
+ * Base speed at ~50% provides symmetric headroom (±~50%) for steering corrections at any velocity.
  * This prevents saturation and ensures consistent behavior across the full velocity range.
  */
 const DrivingState::BiasesOutputType DrivingState::OUTPUT_LAYER_BIASES({{0.4825313687324524},
