@@ -9,9 +9,6 @@ Derived from existing source code in this repository.
 - [Headers](#headers)
 - [Doxygen](#doxygen)
 - [Class Layout](#class-layout)
-- [Patterns](#patterns)
-  - [Singleton](#singleton)
-  - [State Machine](#state-machine)
 - [Formatting](#formatting)
 - [Conditionals](#conditionals)
   - [Switch](#switch)
@@ -46,7 +43,7 @@ Every file starts with the full MIT license header, followed by a `DESCRIPTION` 
 
 Section separators inside `.cpp` files appear in this fixed order:
 
-```
+```plain
 Includes / Compiler Switches / Macros / Types and classes /
 Prototypes / Local Variables / Public Methods / Protected Methods /
 Private Methods / External Functions / Local Functions
@@ -81,7 +78,7 @@ Close every header file with:
 | Macro parameter                  | double-underscore prefix | `SIMPLE_TIMER_SECONDS(__timeInS)`                   |
 | Enum value                       | `UPPER_SNAKE_CASE`       | `CMD_GET_MAX_SPEED`, `CMD_NONE`                     |
 
-Use `uint8_t`, `uint16_t`, `uint32_t` etc. for sized integer types. Append `U` to unsigned integer literals (`50U`, `1000U`).
+Use the platform independent types from `stdint.h`. Append `U` to unsigned integer literals (`50U`, `1000U`).
 
 ---
 
@@ -98,10 +95,15 @@ Use `#ifndef` include guards — not `#pragma once`:
 
 Template/header-only implementations use `.hpp`, all others use `.h` / `.cpp`.
 
+- Use `.hpp` only for headers that contain templates.
+- Headers `.h` shall only include a minimum to allow compilation or to ensure inlining of code.
+
 Include order (within a file):
+
 1. Own header (`"App.h"`)
-2. Project headers (`<Board.h>`, `<Logging.h>`)
-3. Third-party / Arduino headers (`<ArduinoJson.h>`)
+2. Standard headers (`<stdint.h>`, `<string.h>`)
+3. Project headers (`<Board.h>`, `<Logging.h>`)
+4. Third-party / Arduino headers (`<ArduinoJson.h>`)
 
 ---
 
@@ -141,47 +143,6 @@ Ordering within a class: `public` → `protected` → `private`. Group within ea
 4. Static constants
 5. Member variables
 6. Deleted copy constructor / assignment operator
-
----
-
-## Patterns
-
-### Singleton
-
-```cpp
-class StartupState : public IState
-{
-public:
-    static StartupState& getInstance()
-    {
-        static StartupState instance;
-        /* Singleton idiom to force initialization during first usage. */
-        return instance;
-    }
-
-private:
-    StartupState() : IState(), m_isActive(false) { }
-    virtual ~StartupState() { }
-    StartupState(const StartupState& state);             // Not allowed.
-    StartupState& operator=(const StartupState& state);  // Not allowed.
-};
-```
-
-### State Machine
-
-States implement `IState` with three lifecycle methods:
-
-```cpp
-class IState
-{
-public:
-    virtual void entry()                 = 0;
-    virtual void process(StateMachine& sm) = 0;
-    virtual void exit()                  = 0;
-};
-```
-
-Concrete states mark the overrides `final` and are themselves singletons.
 
 ---
 
@@ -249,6 +210,8 @@ Pass non-trivial input arguments as `const` reference; output arguments as non-c
 ```cpp
 void process(const Waypoint& in, Result& out);
 ```
+
+For optional parameters use pointers that may be nullptr.
 
 ---
 
