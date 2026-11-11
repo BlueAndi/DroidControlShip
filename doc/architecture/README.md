@@ -9,6 +9,7 @@
     - [Application](#application)
     - [HAL](#hal)
 - [Process View](#process-view)
+  - [LineFollowerAI: driving sequence](#linefollowerai-current-driving-sequence)
 - [Issues, Ideas And Bugs](#issues-ideas-and-bugs)
 - [License](#license)
 - [Contribution](#contribution)
@@ -53,7 +54,19 @@ The hardware abstraction layer (HAL) for the target is shown. For the simulation
 
 ## Process View
 
-TODO
+TODO: Complete the process view.
+
+### LineFollowerAI: driving sequence
+
+The sequence diagram shows when observations and motor setpoints are exchanged during normal driving.
+
+![LineFollowerAI driving sequence](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/BlueAndi/DroidControlShip/feature/LineSensorAI/doc/architecture/uml/ProcessView/LineFollowerAI/CurrentDrivingSequence.puml)
+
+Observations are transmitted from RadonUlzer to the ESP32 over the SMP channel `LINE_SENS`; motor setpoints are sent back over the SMP channel `MOTOR_SET`.
+
+RadonUlzer sends observations on its own timer. The ESP32 computes at most one action per received sensor frame. The `alt` fragment shows the two possible orders: RadonUlzer sends the next observation either before or after it applies the previous motor setpoint.
+
+Serial buffering depends on the target, interface (e.g. UART or USB) and driver configuration. Received bytes may remain buffered before SMP processes them and invokes the receive callback. Buffer sizes can therefore differ between targets. The diagram does not specify these details.
 
 ## Issues, Ideas And Bugs
 

@@ -1,0 +1,34 @@
+@startuml LineFollowerAICurrentDrivingSequence
+title Sequence: observation and motor action
+
+participant "Zumo\nRadonUlzer RemoteControl" as RU
+participant "ESP32\nDroidControlShip LineFollowerAI" as DCS
+
+note over RU, DCS
+Precondition: SMP is synchronized and driving is active.
+The sensor transmission interval does not wait for a motor action.
+end note
+
+RU ->> DCS : Observation n
+RU -> RU : Next sensor transmission interval runs
+activate DCS
+DCS -> DCS : Compute action n from observation n
+DCS ->> RU : Motor setpoint n
+deactivate DCS
+
+alt [transmission interval ends before setpoint n is applied]
+    RU ->> DCS : Observation n+1
+    RU -> RU ++ : Apply setpoint n in the next control cycle
+    deactivate RU
+else [else]
+    RU -> RU ++ : Apply setpoint n in the next control cycle
+    deactivate RU
+    RU ->> DCS : Observation n+1
+end
+
+note over RU, DCS
+There is no acknowledgment when setpoint n is applied.
+Observations n and n+1 may have identical values.
+end note
+
+@enduml
