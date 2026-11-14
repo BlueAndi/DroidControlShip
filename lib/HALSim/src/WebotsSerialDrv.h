@@ -89,109 +89,13 @@ public:
     void setTxChannel(int32_t channelId);
 
     /**
-     * Print argument to the output stream.
+     * Write a single byte to serial.
      *
-     * @param[in] str Argument to print.
-     */
-    void print(const char str[]) final;
-
-    /**
-     * Print argument to the output stream.
+     * @param[in] data Byte to send.
      *
-     * @param[in] value Argument to print.
+     * @return Number of bytes written.
      */
-    void print(uint8_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     *
-     * @param[in] value Argument to print.
-     */
-    void print(uint16_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     *
-     * @param[in] value Argument to print.
-     */
-    void print(uint32_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     *
-     * @param[in] value Argument to print.
-     */
-    void print(int8_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     *
-     * @param[in] value Argument to print.
-     */
-    void print(int16_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     *
-     * @param[in] value Argument to print.
-     */
-    void print(int32_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     * Appends carriage return at the end of the argument.
-     *
-     * @param[in] str Argument to print.
-     */
-    void println(const char str[]) final;
-
-    /**
-     * Print argument to the output stream.
-     * Appends carriage return at the end of the argument.
-     *
-     * @param[in] value Argument to print.
-     */
-    void println(uint8_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     * Appends carriage return at the end of the argument.
-     *
-     * @param[in] value Argument to print.
-     */
-    void println(uint16_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     * Appends carriage return at the end of the argument.
-     *
-     * @param[in] value Argument to print.
-     */
-    void println(uint32_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     * Appends carriage return at the end of the argument.
-     *
-     * @param[in] value Argument to print.
-     */
-    void println(int8_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     * Appends carriage return at the end of the argument.
-     *
-     * @param[in] value Argument to print.
-     */
-    void println(int16_t value) final;
-
-    /**
-     * Print argument to the output stream.
-     * Appends carriage return at the end of the argument.
-     *
-     * @param[in] value Argument to print.
-     */
-    void println(int32_t value) final;
+    size_t write(uint8_t data) final;
 
     /**
      * Write data buffer to serial.
@@ -208,21 +112,26 @@ public:
      *
      * @return Number of available bytes.
      */
-    int available() const final;
+    int available() final;
 
     /**
-     * Read data from serial.
+     * Read a single byte from serial.
      *
-     * @param[in] buffer Array to read data in.
-     * @param[in] length Number of bytes to be read.
-     *
-     * @return Number of bytes read from stream.
+     * @return The received byte or -1 if no data is available.
      */
-    size_t readBytes(uint8_t* buffer, size_t length) final;
+    int read() final;
+
+    /**
+     * Read a single byte from serial without removing it.
+     *
+     * @return The received byte or -1 if no data is available.
+     */
+    int peek() final;
 
 private:
     Sender   m_sender;   /**< The sender to send data over simulated serial. */
     Receiver m_receiver; /**< The receiver to receive data over simulated serial. */
+    int      m_peeked;   /**< Byte which was peeked, but not read yet. Its -1 if there is none. */
 
     /**
      * Default constructor.

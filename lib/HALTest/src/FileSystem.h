@@ -26,15 +26,15 @@
 *******************************************************************************/
 /**
  * @file
- * @brief  FileHandler implementation.
- * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @brief  Filesystem selection.
+ * @author Andreas Merkle <web@blue-andi.de>
  *
- * @addtogroup HALTargetCommon
+ * @addtogroup HALTest
  *
  * @{
  */
-#ifndef FILE_HANDLER_H_
-#define FILE_HANDLER_H_
+#ifndef FILE_SYSTEM_H
+#define FILE_SYSTEM_H
 
 /******************************************************************************
  * Compile Switches
@@ -43,73 +43,25 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <IFileHandler.h>
+#include <FS.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
+/**
+ * The filesystem which is used for all file accesses.
+ * It maps the files to the working directory of the host.
+ */
+#define FILESYSTEM NativeFS
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
-
-/**
- * File Handler class.
- */
-class FileHandler : public IFileHandler
-{
-public:
-    /**
-     * Constructs the concrete FileHandler.
-     */
-    FileHandler();
-
-    /**
-     * Destroys the concrete FileHandler.
-     */
-    virtual ~FileHandler();
-
-    /**
-     * Read a file from the filesystem.
-     * @param[in] fileName Name of the file to read. Name must be an absolute path.
-     * @param[out] outBuffer Buffer to write file to.
-     * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     * @returns number of bytes read.
-     */
-    size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const final;
-
-    /**
-     * Write a file to the filesystem.
-     * @param[in] fileName Name of the file to write. Name must be an absolute path.
-     * @param[in] buffer Buffer to write file from.
-     * @param[in] bufferSize Number of bytes in the buffer.
-     * @returns number of bytes written.
-     */
-    size_t writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize) final;
-
-private:
-    /**
-     * Copy construction of an instance.
-     * Not allowed.
-     *
-     * @param[in] src Source instance.
-     */
-    FileHandler(const FileHandler& src);
-
-    /**
-     * Assignment operation.
-     * Not allowed.
-     *
-     * @param[in] rhs Right hand side instance.
-     *
-     * @returns Reference to FileHandler instance.
-     */
-    FileHandler& operator=(const FileHandler& rhs);
-};
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* FILE_HANDLER_H_ */
+#endif /* FILE_SYSTEM_H */
 /** @} */

@@ -107,6 +107,13 @@ public:
     int beginPacket(IPAddress ip, uint16_t port);
 
     /**
+     * Write a single byte to stream.
+     * @param[in] data Byte to send.
+     * @returns Number of bytes written
+     */
+    size_t write(uint8_t data) final;
+
+    /**
      * Write bytes to stream.
      * @param[in] buffer Byte Array to send.
      * @param[in] length Length of Buffer.
@@ -131,7 +138,7 @@ public:
     /**
      * Flush the UDP client.
      */
-    void flush();
+    void flush() final;
 
     /**
      * Parse the incoming packet.
@@ -144,7 +151,7 @@ public:
      * Check if there are available bytes in the Stream.
      * @returns Number of available bytes.
      */
-    int available() const final;
+    int available() final;
 
     /**
      * Read bytes from the incoming packet into a buffer.
@@ -156,6 +163,20 @@ public:
      */
     int read(uint8_t* buffer, size_t size);
 
+    /**
+     * Read a single byte from the incoming packet.
+     *
+     * @return The received byte or -1 if no data is available.
+     */
+    int read() final;
+
+    /**
+     * Read a single byte from the incoming packet without removing it.
+     *
+     * @return The received byte or -1 if no data is available.
+     */
+    int peek() final;
+
 private:
     static const uint32_t WIFIUDP_MAXLINE = 1024U;      /**< Internal buffer size */
     int                   m_socket;                     /**< Socket file descriptor. */
@@ -164,106 +185,6 @@ private:
     size_t                m_outBufferLength;            /**< Length of the output buffer. */
     uint8_t               m_inBuffer[WIFIUDP_MAXLINE];  /**< Buffer for incoming packets. */
     size_t                m_inBufferLength;             /**< Length of the input buffer. */
-
-private:
-    /**
-     * Print argument to the Output Stream.
-     * @param[in] str Argument to print.
-     */
-    void print(const char str[]) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * @param[in] value Argument to print.
-     */
-    void print(uint8_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * @param[in] value Argument to print.
-     */
-    void print(uint16_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * @param[in] value Argument to print.
-     */
-    void print(uint32_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * @param[in] value Argument to print.
-     */
-    void print(int8_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * @param[in] value Argument to print.
-     */
-    void print(int16_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * @param[in] value Argument to print.
-     */
-    void print(int32_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
-     * @param[in] str Argument to print.
-     */
-    void println(const char str[]) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
-     * @param[in] value Argument to print.
-     */
-    void println(uint8_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
-     * @param[in] value Argument to print.
-     */
-    void println(uint16_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
-     * @param[in] value Argument to print.
-     */
-    void println(uint32_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
-     * @param[in] value Argument to print.
-     */
-    void println(int8_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
-     * @param[in] value Argument to print.
-     */
-    void println(int16_t value) final;
-
-    /**
-     * Print argument to the Output Stream.
-     * Appends Carriage Return at the end of the argument.
-     * @param[in] value Argument to print.
-     */
-    void println(int32_t value) final;
-
-    /**
-     * Read bytes into a buffer.
-     * @param[in] buffer Array to write bytes to.
-     * @param[in] length number of bytes to be read.
-     * @returns Number of bytes read from Stream.
-     */
-    size_t readBytes(uint8_t* buffer, size_t length) final;
 };
 
 /******************************************************************************

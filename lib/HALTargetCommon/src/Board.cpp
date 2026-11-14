@@ -35,6 +35,7 @@
  *****************************************************************************/
 #include "Board.h"
 #include "GPIO.h"
+#include <FileSystem.h>
 #include <Logging.h>
 
 /******************************************************************************
@@ -90,6 +91,11 @@ bool Board::init()
     {
         /* Log Network error */
         LOG_ERROR("Network initialization failed.");
+    }
+    else if (false == FILESYSTEM.begin(true))
+    {
+        /* Log filesystem error */
+        LOG_ERROR("Failed to mount file system.");
     }
     else
     {

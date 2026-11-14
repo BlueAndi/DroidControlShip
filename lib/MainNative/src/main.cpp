@@ -36,8 +36,8 @@
 
 #include <unistd.h>
 #include <Arduino.h>
-#include <Terminal.h>
 #include <Board.h>
+#include <FileSystem.h>
 #include <getopt.h>
 #include <sys/stat.h>
 #include <ArduinoJson.h>
@@ -80,8 +80,12 @@ static int           handleCommandLineArguments(PrgArguments& prgArguments, int 
 static void          showPrgArguments(const PrgArguments& prgArgs);
 static bool          fileExists(const char* filePath);
 static int           createConfigFile(const PrgArguments& prgArgs);
+static int           mountFileSystem(const char* cfgFilePath, String& cfgFilePathInFs);
 static int           makeDirRecursively(const char* path);
 static void          extractDirectoryPath(const char* filePath, char* buffer, size_t bufferSize);
+static bool          isPathSeparator(char character);
+static const char*   findLastPathSeparator(const char* path);
+static bool          isDirectory(const char* path);
 static unsigned long getSystemTick();
 static void          systemDelay(unsigned long ms);
 static inline bool   createDir(const char* path);
@@ -237,10 +241,17 @@ extern int main(int argc, char** argv)
 
         if (0 == status)
         {
-            /* Get simulation time handler. It will be used by millis() and delay(). */
-            gSimTime = &board.getSimTime();
+            String cfgFilePathInFs;
 
-            board.setConfigFilePath(prgArguments.cfgFilePath);
+            status = mountFileSystem(prgArguments.cfgFilePath, cfgFilePathInFs);
+
+            if (0 == status)
+            {
+                /* Get simulation time handler. It will be used by millis() and delay(). */
+                gSimTime = &board.getSimTime();
+
+                board.setConfigFilePath(cfgFilePathInFs.c_str());
+            }
         }
     }
 
@@ -519,7 +530,7 @@ static int createConfigFile(const PrgArguments& prgArgs)
     else
     {
         pathToConfigFile[0] = '\0';
-        extractDirectoryPath(prgArgs.cfgFilePath, pathToConfigFile, sizeof(pathToConfigFile));
+        extractDirectoryPath(prgArgs.cfgFilePath, pathToConfigFile, len + 1U);
 
         if (('\0' != pathToConfigFile[0]) && (0 != makeDirRecursively(pathToConfigFile)))
         {
@@ -566,6 +577,56 @@ static int createConfigFile(const PrgArguments& prgArgs)
                 (void)fclose(fd);
             }
         }
+
+        delete[] pathToConfigFile;
+    }
+
+    return retValue;
+}
+
+/**
+ * Mount the filesystem, which is used by the application.
+ *
+ * The directory of the configuration file is the root directory of the
+ * filesystem. Therefore the configuration file can be located anywhere on the
+ * host, independent of the working directory.
+ *
+ * @param[in]   cfgFilePath     Path of the configuration file on the host.
+ * @param[out]  cfgFilePathInFs Path of the configuration file inside the filesystem.
+ *
+ * @return If successful mounted, it will return 0 otherwise -1;
+ */
+static int mountFileSystem(const char* cfgFilePath, String& cfgFilePathInFs)
+{
+    int         retValue      = 0;
+    String      rootPath      = ".";
+    const char* fileName      = cfgFilePath;
+    const char* lastSeparator = findLastPathSeparator(cfgFilePath);
+
+    if (nullptr != lastSeparator)
+    {
+        size_t length = lastSeparator - cfgFilePath;
+
+        fileName = &lastSeparator[1U];
+
+        /* The configuration file may be located in the root directory of the host. */
+        if (0U == length)
+        {
+            rootPath = "/";
+        }
+        else
+        {
+            rootPath = String(cfgFilePath).substring(0U, length);
+        }
+    }
+
+    cfgFilePathInFs  = "/";
+    cfgFilePathInFs += fileName;
+
+    if (false == FILESYSTEM.begin(rootPath.c_str()))
+    {
+        printf("Failed to mount filesystem at %s.\n", rootPath.c_str());
+        retValue = -1;
     }
 
     return retValue;
@@ -582,7 +643,7 @@ static int makeDirRecursively(const char* path)
 {
     int    retVal = 0;
     size_t len    = strlen(path);
-    char*  dir    = new char[len + 1];
+    char*  dir    = new char[len + 1U];
 
     if (nullptr == dir)
     {
@@ -591,43 +652,44 @@ static int makeDirRecursively(const char* path)
     }
     else
     {
+        size_t idx = 0U;
+
         strcpy(dir, path);
 
-        for (size_t idx = 0U; idx < len; ++idx)
+        /* Create every directory of the path, beginning with the top most one.
+         * The last one is handled with the string termination.
+         */
+        for (idx = 1U; (idx <= len) && (0 == retVal); ++idx)
         {
-            if ('/' == dir[idx])
+            char character = dir[idx];
+
+            /* A path separator at the very begin (idx = 0) is the root directory
+             * of the host, which always exists.
+             */
+            if (('\0' == character) || (true == isPathSeparator(character)))
             {
                 /* Temporarily truncate the string. */
                 dir[idx] = '\0';
 
-                if ((false == createDir(dir)) && (errno != EEXIST))
+                /* A existing directory is fine, which includes e.g. ".", ".."
+                 * or a drive like "C:". Consecutive path separators or one at
+                 * the end are skipped.
+                 */
+                if ((false == isPathSeparator(dir[idx - 1U])) && (false == isDirectory(dir)) &&
+                    (false == createDir(dir)))
                 {
                     printf("Failed to create directory: %s\n", dir);
                     retVal = -1;
                 }
 
-                dir[idx] = '/';
-            }
-
-            if (0 > retVal)
-            {
-                break;
-            }
-        }
-
-        if (0 == retVal)
-        {
-            if ((false == createDir(dir)) && (errno != EEXIST))
-            {
-                printf("Failed to create directory: %s\n", dir);
-                retVal = -1;
+                dir[idx] = character;
             }
         }
 
         delete[] dir;
     }
 
-    return 0;
+    return retVal;
 }
 
 /**
@@ -642,7 +704,7 @@ static void extractDirectoryPath(const char* filePath, char* buffer, size_t buff
     if ((nullptr != buffer) && (0 < bufferSize))
     {
         /* Find the last occurrence of the directory separator character (e.g., '/') */
-        const char* lastSeparator = strrchr(filePath, '/');
+        const char* lastSeparator = findLastPathSeparator(filePath);
 
         if (lastSeparator != nullptr)
         {
@@ -656,6 +718,75 @@ static void extractDirectoryPath(const char* filePath, char* buffer, size_t buff
             }
         }
     }
+}
+
+/**
+ * Is the character a path separator?
+ *
+ * @param[in] character Character
+ *
+ * @return If its a path separator, it will return true otherwise false.
+ */
+static bool isPathSeparator(char character)
+{
+    bool isSeparator = ('/' == character);
+
+#ifdef _WIN32
+    if ('\\' == character)
+    {
+        isSeparator = true;
+    }
+#endif
+
+    return isSeparator;
+}
+
+/**
+ * Find the last path separator in a path.
+ *
+ * @param[in] path  Path
+ *
+ * @return Last path separator or nullptr if there is none.
+ */
+static const char* findLastPathSeparator(const char* path)
+{
+    const char* lastSeparator = nullptr;
+    size_t      idx           = 0U;
+
+    for (idx = 0U; '\0' != path[idx]; ++idx)
+    {
+        if (true == isPathSeparator(path[idx]))
+        {
+            lastSeparator = &path[idx];
+        }
+    }
+
+    return lastSeparator;
+}
+
+/**
+ * Is the path a existing directory?
+ *
+ * @param[in] path  Path
+ *
+ * @return If its a existing directory, it will return true otherwise false.
+ */
+static bool isDirectory(const char* path)
+{
+    struct stat info;
+    bool        isDir = (0 == stat(path, &info)) && (0 != S_ISDIR(info.st_mode));
+
+#ifdef _WIN32
+    /* A drive without path, e.g. "C:", is not found by stat(). Its handled as
+     * existing, because it can't be created anyway.
+     */
+    if ((false == isDir) && (2U == strlen(path)) && (':' == path[1U]))
+    {
+        isDir = true;
+    }
+#endif
+
+    return isDir;
 }
 
 /**
