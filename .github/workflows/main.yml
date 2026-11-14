@@ -4,6 +4,9 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 # Controls when this workflow runs.
 on:
   push:
@@ -19,18 +22,45 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel.
 jobs:
-  # Show some useful information.
-  intro:
+  # Perform static checks on test.
+  check:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        environment: ["Test"]
 
     steps:
-    - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-    - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+    - name: Checkout repository
+      uses: actions/checkout@v7
+
+    - name: Set up Python
+      uses: actions/setup-python@v7
+      with:
+        python-version: '3.12.3'
+        cache: 'pip'
+        cache-dependency-path: .github/workflows/requirements.txt
+
+    - name: Install dependencies
+      run: |
+        pip install -r .github/workflows/requirements.txt
+
+    - name: Cache PlatformIO
+      uses: actions/cache@v6
+      with:
+        path: |
+          ~/.platformio/.cache
+          ~/.platformio/packages
+          ~/.platformio/platforms
+        key: ${{ runner.os }}-pio-${{ hashFiles('platformio*.ini') }}
+
+    # Run cppcheck and clang-tidy.
+    - name: Perform static checks on ${{ matrix.environment }}
+      run: platformio check --environment ${{ matrix.environment }} # --fail-on-defect=medium --fail-on-defect=high
 
   # Build all targets and perform static checks on them.
   build:
     runs-on: ubuntu-24.04
-    needs: intro
+    needs: check
     strategy:
       matrix:
         environment: ["CommissioningTarget",
@@ -72,46 +102,10 @@ jobs:
     - name: Compile ${{ matrix.environment }} firmware
       run: platformio run --environment ${{ matrix.environment }}
 
-  # Perform static checks on test.
-  check:
-    runs-on: ubuntu-24.04
-    needs: intro
-    strategy:
-      matrix:
-        environment: ["Test"]
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v7
-
-    - name: Set up Python
-      uses: actions/setup-python@v7
-      with:
-        python-version: '3.12.3'
-        cache: 'pip'
-        cache-dependency-path: .github/workflows/requirements.txt
-
-    - name: Install dependencies
-      run: |
-        pip install -r .github/workflows/requirements.txt
-
-    - name: Cache PlatformIO
-      uses: actions/cache@v6
-      with:
-        path: |
-          ~/.platformio/.cache
-          ~/.platformio/packages
-          ~/.platformio/platforms
-        key: ${{ runner.os }}-pio-${{ hashFiles('platformio*.ini') }}
-
-    # Run cppcheck and clang-tidy.
-    - name: Perform static checks on ${{ matrix.environment }}
-      run: platformio check --environment ${{ matrix.environment }} # --fail-on-defect=medium --fail-on-defect=high
-
   # Perform tests.
   test:
     runs-on: ubuntu-24.04
-    needs: intro
+    needs: build
 
     steps:
     - name: Checkout repository
@@ -143,7 +137,7 @@ jobs:
   # Build documentation.
   doc:
     runs-on: ubuntu-24.04
-    needs: intro
+    needs: test
     strategy:
       matrix:
         environment: ["CommissioningTarget",
