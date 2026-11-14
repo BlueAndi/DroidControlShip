@@ -43,7 +43,7 @@ Every file starts with the full MIT license header, followed by a `DESCRIPTION` 
 
 Section separators inside `.cpp` files appear in this fixed order:
 
-```plain
+```text
 Includes / Compiler Switches / Macros / Types and classes /
 Prototypes / Local Variables / Public Methods / Protected Methods /
 Private Methods / External Functions / Local Functions
