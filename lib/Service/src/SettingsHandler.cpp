@@ -36,6 +36,7 @@
 
 #include "SettingsHandler.h"
 #include <ArduinoJson.h>
+#include <FileSystem.h>
 #include <Logging.h>
 #include <ConfigurationKeys.h>
 
@@ -65,18 +66,19 @@
 
 bool SettingsHandler::loadConfigurationFile(const String& filename)
 {
-    bool           isSuccessful  = false;
-    const uint32_t maxBufferSize = 1024U;
-    JsonDocument   jsonDoc;
-    char           buffer[maxBufferSize];
+    bool         isSuccessful = false;
+    JsonDocument jsonDoc;
+    File         file = FILESYSTEM.open(filename, FILE_READ);
 
-    if (0U == m_fileHandler.readFile(filename, buffer, maxBufferSize))
+    if ((false == file) || (true == file.isDirectory()))
     {
         LOG_ERROR("Unable to load configuration file \"%s\".", filename.c_str());
     }
     else
     {
-        DeserializationError error = deserializeJson(jsonDoc, buffer);
+        DeserializationError error = deserializeJson(jsonDoc, file);
+
+        file.close();
 
         if (error != DeserializationError::Ok)
         {
@@ -194,10 +196,8 @@ bool SettingsHandler::loadConfigurationFile(const String& filename)
 bool SettingsHandler::saveConfigurationFile(const String& filename)
 {
     bool         isSuccessful = false;
-    const size_t maxDocSize   = 1024U;
     JsonDocument jsonDoc;
-    size_t       jsonBufferSize = 0U;
-    size_t       bytesToWrite   = 0U;
+    File         file = FILESYSTEM.open(filename, FILE_WRITE);
 
     jsonDoc[ConfigurationKeys::ROBOT_NAME]                                              = m_robotName;
     jsonDoc[ConfigurationKeys::WIFI][ConfigurationKeys::SSID]                           = m_wifiSSID;
@@ -216,17 +216,14 @@ bool SettingsHandler::saveConfigurationFile(const String& filename)
     jsonDoc[ConfigurationKeys::MICROROS_AGENT][ConfigurationKeys::HOST]                 = m_microROSAgentAddress;
     jsonDoc[ConfigurationKeys::MICROROS_AGENT][ConfigurationKeys::PORT]                 = m_microROSAgentPort;
 
-    jsonBufferSize = measureJsonPretty(jsonDoc) + 1U;
-    char jsonBuffer[jsonBufferSize];
-    bytesToWrite = serializeJsonPretty(jsonDoc, jsonBuffer, jsonBufferSize);
-
-    if (0U == bytesToWrite)
+    if ((false == file) || (true == file.isDirectory()))
     {
-        LOG_ERROR("Unable to serialize configuration file.");
+        LOG_ERROR("Unable to save configuration file \"%s\".", filename.c_str());
     }
     else
     {
-        if (0U == m_fileHandler.writeFile(filename, jsonBuffer, bytesToWrite))
+        /* The number of written bytes must match, otherwise the file is incomplete. */
+        if (measureJsonPretty(jsonDoc) != serializeJsonPretty(jsonDoc, file))
         {
             LOG_ERROR("Unable to save configuration file \"%s\".", filename.c_str());
         }
@@ -234,6 +231,8 @@ bool SettingsHandler::saveConfigurationFile(const String& filename)
         {
             isSuccessful = true;
         }
+
+        file.close();
     }
 
     return isSuccessful;
@@ -263,8 +262,7 @@ SettingsHandler::SettingsHandler() :
     m_initialYPosition(0),
     m_initialHeading(0),
     m_microROSAgentAddress(),
-    m_microROSAgentPort(0U),
-    m_fileHandler()
+    m_microROSAgentPort(0U)
 {
 }
 

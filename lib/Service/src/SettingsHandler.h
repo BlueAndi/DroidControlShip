@@ -45,7 +45,6 @@
  *****************************************************************************/
 #include <WString.h>
 #include <stdint.h>
-#include <FileHandler.h>
 
 /******************************************************************************
  * Macros
@@ -359,11 +358,6 @@ private:
      * Micro-ROS agent port.
      */
     uint16_t m_microROSAgentPort;
-
-    /**
-     * FileHandler instance.
-     */
-    FileHandler m_fileHandler;
 
     /**
      * Settings Handler Default Constructor.

@@ -25,66 +25,44 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @file
- * @brief  File Handler
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @file
+ * @brief  Filesystem selection.
+ * @author Andreas Merkle <web@blue-andi.de>
+ *
+ * @addtogroup HALTargetCommon
+ *
+ * @{
  */
+#ifndef FILE_SYSTEM_H
+#define FILE_SYSTEM_H
+
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include "FileHandler.h"
-#include <stdio.h>
-#include <Logging.h>
-#include <Util.h>
+#include <FS.h>
+#include <LittleFS.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
+/**
+ * The filesystem which is used for all file accesses.
+ * It is mounted by the board.
+ */
+#define FILESYSTEM LittleFS
+
 /******************************************************************************
- * Prototypes
+ * Types and Classes
  *****************************************************************************/
 
 /******************************************************************************
- * Local Variables
+ * Functions
  *****************************************************************************/
 
-/******************************************************************************
- * Public Methods
- *****************************************************************************/
-
-FileHandler::FileHandler()
-{
-}
-
-FileHandler::~FileHandler()
-{
-}
-
-size_t FileHandler::readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const
-{
-    UTIL_NOT_USED(fileName);
-    UTIL_NOT_USED(outBuffer);
-    UTIL_NOT_USED(maxBufferSize);
-    LOG_WARNING("FileHandler::readFile not implemented for test environment.");
-    return 0U;
-}
-
-size_t FileHandler::writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize)
-{
-    UTIL_NOT_USED(fileName);
-    UTIL_NOT_USED(buffer);
-    UTIL_NOT_USED(bufferSize);
-    LOG_WARNING("FileHandler::writeFile not implemented for test environment.");
-    return 0U;
-}
-
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-/******************************************************************************
- * Local Functions
- *****************************************************************************/
+#endif /* FILE_SYSTEM_H */
+/** @} */

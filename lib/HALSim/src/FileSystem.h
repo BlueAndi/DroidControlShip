@@ -25,75 +25,43 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @file
- * @brief  File Handler Interface
- *  @author Gabryel Reyes <gabryelrdiaz@gmail.com>
+ * @file
+ * @brief  Filesystem selection.
+ * @author Andreas Merkle <web@blue-andi.de>
+ *
+ * @addtogroup HALSim
+ *
+ * @{
  */
+#ifndef FILE_SYSTEM_H
+#define FILE_SYSTEM_H
 
-#ifndef IFILE_HANDLER_H_
-#define IFILE_HANDLER_H_
+/******************************************************************************
+ * Compile Switches
+ *****************************************************************************/
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
-#include <stdint.h>
-#include <WString.h>
+#include <FS.h>
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
 
+/**
+ * The filesystem which is used for all file accesses.
+ * It maps the files to a directory of the host and is mounted by the main entry point.
+ */
+#define FILESYSTEM NativeFS
+
 /******************************************************************************
  * Types and Classes
  *****************************************************************************/
-
-/**
- * Abstracts the File Handler interface.
- */
-class IFileHandler
-{
-public:
-    /**
-     * Destructs the File Handler Interface.
-     */
-    virtual ~IFileHandler()
-    {
-    }
-
-    /**
-     * Read a file from the filesystem.
-     *
-     * @param[in] fileName Name of the file to read. Name must be an absolute path.
-     * @param[out] outBuffer Buffer to write file to.
-     * @param[in] maxBufferSize Max. number of bytes in the buffer.
-     *
-     * @returns Number of bytes read.
-     */
-    virtual size_t readFile(const String& fileName, char* outBuffer, const uint32_t maxBufferSize) const = 0;
-
-    /**
-     * Write a file to the filesystem.
-     *
-     * @param[in] fileName Name of the file to write. Name must be an absolute path.
-     * @param[in] buffer Buffer to write file from.
-     * @param[in] bufferSize Number of bytes in the buffer.
-     *
-     * @returns Number of bytes written.
-     */
-    virtual size_t writeFile(const String& fileName, const char* buffer, const uint32_t bufferSize) = 0;
-
-protected:
-    /**
-     * Contructs the File Handler Interface.
-     */
-    IFileHandler()
-    {
-    }
-};
 
 /******************************************************************************
  * Functions
  *****************************************************************************/
 
-#endif /* IFILE_HANDLER_H_ */
+#endif /* FILE_SYSTEM_H */
+/** @} */

@@ -114,6 +114,11 @@ int WiFiUDP::beginPacket(IPAddress ip, uint16_t port) // NOLINT(performance-unne
     return 1;
 }
 
+size_t WiFiUDP::write(uint8_t data)
+{
+    return write(&data, sizeof(data));
+}
+
 size_t WiFiUDP::write(const uint8_t* buffer, size_t length)
 {
     size_t bufferSize = sizeof(m_outBuffer);
@@ -185,116 +190,19 @@ int WiFiUDP::parsePacket()
     return packetSize;
 }
 
-int WiFiUDP::available() const
+int WiFiUDP::available()
 {
     return m_inBufferLength;
 }
 
 int WiFiUDP::read(uint8_t* buffer, size_t size)
 {
-    return readBytes(buffer, size);
-}
-
-/******************************************************************************
- * Protected Methods
- *****************************************************************************/
-
-/******************************************************************************
- * Private Methods
- *****************************************************************************/
-
-void WiFiUDP::print(const char str[])
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(str);
-}
-
-void WiFiUDP::print(uint8_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::print(uint16_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::print(uint32_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::print(int8_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::print(int16_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::print(int32_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::println(const char str[])
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(str);
-}
-
-void WiFiUDP::println(uint8_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::println(uint16_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::println(uint32_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::println(int8_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::println(int16_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-void WiFiUDP::println(int32_t value)
-{
-    /* Not implemented. */
-    UTIL_NOT_USED(value);
-}
-
-size_t WiFiUDP::readBytes(uint8_t* buffer, size_t length)
-{
-    if ((0 == m_inBufferLength) || (0 == length))
+    if ((0 == m_inBufferLength) || (0 == size))
     {
         return 0;
     }
 
-    size_t bytesToRead = std::min(length, m_inBufferLength);
+    size_t bytesToRead = std::min(size, m_inBufferLength);
 
     if (WIFIUDP_MAXLINE > bytesToRead)
     {
@@ -306,6 +214,39 @@ size_t WiFiUDP::readBytes(uint8_t* buffer, size_t length)
 
     return bytesToRead;
 }
+
+int WiFiUDP::read()
+{
+    uint8_t data   = 0U;
+    int     result = -1;
+
+    if (sizeof(data) == read(&data, sizeof(data)))
+    {
+        result = data;
+    }
+
+    return result;
+}
+
+int WiFiUDP::peek()
+{
+    int result = -1;
+
+    if (0U < m_inBufferLength)
+    {
+        result = m_inBuffer[0U];
+    }
+
+    return result;
+}
+
+/******************************************************************************
+ * Protected Methods
+ *****************************************************************************/
+
+/******************************************************************************
+ * Private Methods
+ *****************************************************************************/
 
 /******************************************************************************
  * External Functions
