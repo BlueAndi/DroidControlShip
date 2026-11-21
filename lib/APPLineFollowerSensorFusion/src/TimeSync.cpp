@@ -234,10 +234,10 @@ void TimeSync::onHostTimeSyncResponse(uint32_t seq, int64_t t1EspMs, int64_t t2H
 
 void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
 {
-    if (rsp.sequenceNumber != m_pendingSeq)
+    if (rsp.seq != m_pendingSeq)
     {
         LOG_WARNING("TimeSync: seq mismatch (expected=%u, got=%u) – using last T1", static_cast<unsigned>(m_pendingSeq),
-                    rsp.sequenceNumber);
+                    rsp.seq);
     }
 
     const uint64_t t4_64 = localNowMs();
@@ -257,8 +257,8 @@ void TimeSync::onTimeSyncResponse(const TimeSyncResponse& rsp)
     const uint32_t rtt_ms = static_cast<uint32_t>(delta_local - delta_zumo);
 
     /* Offset Zumo->ESP: ((t2 - t1) + (t3 - t4)) / 2 */
-    const int64_t d1         = static_cast<int32_t>(rsp.t2_ms - m_pendingT1_32);
-    const int64_t d2         = static_cast<int32_t>(rsp.t3_ms - t4_32);
+    const int64_t d1         = static_cast<int64_t>(rsp.t2_ms - m_pendingT1_32);
+    const int64_t d2         = static_cast<int64_t>(rsp.t3_ms - t4_32);
     const int64_t offset_est = (d1 + d2) / 2;
 
     m_lastAcceptedRttMs = rtt_ms;
