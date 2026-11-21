@@ -106,7 +106,7 @@ const char* App::TOPIC_NAME_HOST_TIMESYNC_RSP = "zumo/time_sync/response";
 static const uint32_t JSON_BIRTHMESSAGE_MAX_SIZE = 64U;
 
 /** Buffer size for JSON serialization of combined sensor snapshot. */
-static const uint32_t JSON_SENSOR_SNAPSHOT_MAX_SIZE = 256U;
+static const uint32_t JSON_SENSOR_SNAPSHOT_MAX_SIZE = 512U;
 
 /** Buffer size for JSON serialization of fusion pose including nested NIS fields. */
 static const uint32_t JSON_FUSION_POSE_MAX_SIZE = 320U;
@@ -310,8 +310,8 @@ bool App::setupMqtt(const String& clientId, const String& brokerAddr, uint16_t b
         {
             LOG_FATAL("MQTT configuration could not be set.");
         }
-        else if (false == m_mqttClient.subscribe(ssrTopic, false, [this](const String& payload)
-                                                 { ssrTopicCallback(payload); }))
+        else if (false ==
+                 m_mqttClient.subscribe(ssrTopic, false, [this](const String& payload) { ssrTopicCallback(payload); }))
         {
             LOG_FATAL("Could not subscribe to MQTT topic: %s.", TOPIC_NAME_RADAR_POSE);
         }
@@ -358,8 +358,7 @@ void App::ssrTopicCallback(const String& payload)
         const uint64_t hostEpochMs = timestamp_ms.as<uint64_t>();
 
         const bool     hostSynced   = m_timeSync.isHostSynced();
-        const uint64_t ssrLocalTsMs = hostSynced ? m_timeSync.hostToEspLocalMs(hostEpochMs)
-                                                 : m_timeSync.localNowMs();
+        const uint64_t ssrLocalTsMs = hostSynced ? m_timeSync.hostToEspLocalMs(hostEpochMs) : m_timeSync.localNowMs();
 
         LOG_INFO("SSR pose: ts_host_ms=%llu (hostSync=%s)", hostEpochMs, hostSynced ? "true" : "false");
 
@@ -407,17 +406,16 @@ void App::ssrTopicCallback(const String& payload)
 
 void App::publishVehicleAndSensorSnapshot(const VehicleData& data)
 {
-    const uint32_t zumoTs32      = static_cast<uint32_t>(data.timestamp);
-    const uint64_t mappedLocalMs = m_timeSync.mapZumoToLocalMs(zumoTs32);
-    const int64_t  offsetMs      = m_timeSync.getZumoToEspOffsetMs();
-    const bool     zumoSynced    = m_timeSync.isZumoSynced();
-    const bool     hostSynced    = m_timeSync.isHostSynced();
-
-    (void)offsetMs; /* keep for future debug if not used directly */
-
+    const uint32_t  zumoTs32         = static_cast<uint32_t>(data.timestamp);
+    const uint64_t  mappedLocalMs    = m_timeSync.mapZumoToLocalMs(zumoTs32);
+    const int64_t   offsetMs         = m_timeSync.getZumoToEspOffsetMs();
+    const bool      zumoSynced       = m_timeSync.isZumoSynced();
+    const bool      hostSynced       = m_timeSync.isHostSynced();
     const uint16_t* lineSensorValues = m_lineSensors.getSensorValues();
     JsonDocument    payloadJson;
     char            payloadArray[JSON_SENSOR_SNAPSHOT_MAX_SIZE];
+
+    (void)offsetMs; /* keep for future debug if not used directly */
 
     payloadJson["ts_local_ms"]  = mappedLocalMs;
     payloadJson["zumo_sync_ok"] = zumoSynced;
@@ -526,10 +524,10 @@ void App::filterLocationData(const VehicleData& vehicleData, const SpaceShipRada
 
 void App::publishFusionPose(uint32_t tsMs)
 {
-    const StateVector&                          state       = m_ekf.getState();
-    const ExtendedKalmanFilter4D::NisData&     odometryNis = m_ekf.getLastOdometryNis();
-    const ExtendedKalmanFilter4D::NisData&     cameraNis   = m_ekf.getLastCameraNis();
-    const float                                 omegaMradPerSec =
+    const StateVector&                     state       = m_ekf.getState();
+    const ExtendedKalmanFilter4D::NisData& odometryNis = m_ekf.getLastOdometryNis();
+    const ExtendedKalmanFilter4D::NisData& cameraNis   = m_ekf.getLastCameraNis();
+    const float                            omegaMradPerSec =
         (true == m_hasVehicleData)
             ? ExtendedKalmanFilter4D::gyroDigitsToMradPerSec(static_cast<int16_t>(m_lastVehicleData.turnRateZ))
             : 0.0F;
@@ -672,9 +670,9 @@ Source App::determineNewestSource(uint32_t zumoLocalMs32, uint32_t ssrLocalMs32,
 
 void App::updateFromVehicle(const VehicleData& vehicleData)
 {
-    const uint32_t         zumoTs32      = static_cast<uint32_t>(vehicleData.timestamp);
-    const uint32_t         zumoLocalMs32 = static_cast<uint32_t>(m_timeSync.mapZumoToLocalMs(zumoTs32));
-    OdoMeasurementVector   z_odo;
+    const uint32_t       zumoTs32      = static_cast<uint32_t>(vehicleData.timestamp);
+    const uint32_t       zumoLocalMs32 = static_cast<uint32_t>(m_timeSync.mapZumoToLocalMs(zumoTs32));
+    OdoMeasurementVector z_odo;
 
     LOG_INFO("EKF update from Vehicle.");
 
