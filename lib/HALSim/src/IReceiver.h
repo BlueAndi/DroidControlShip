@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   IReceiver.h
  * @brief  Abstract receiver interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

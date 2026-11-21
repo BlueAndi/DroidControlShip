@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   test_PlatoonUtils.cpp
  * @brief  Test PlatoonUtils.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

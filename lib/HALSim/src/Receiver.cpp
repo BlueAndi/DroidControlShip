@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Receiver.cpp
  * @brief  Receiver realization
  * @author Andreas Merkle <web@blue-andi.de>
  */

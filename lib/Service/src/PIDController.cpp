@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   PIDController.cpp
  * @brief  PID regulator
  * @author Andreas Merkle <web@blue-andi.de>
  */

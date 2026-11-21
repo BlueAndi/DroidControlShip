@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   FileSystem.h
  * @brief  Filesystem selection.
  * @author Andreas Merkle <web@blue-andi.de>
  *

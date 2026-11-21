@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   V2VEvent.h
  * @brief  V2V Events definition.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

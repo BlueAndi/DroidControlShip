@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   StartupState.cpp
  * @brief  Startup state
  * @author Andreas Merkle <web@blue-andi.de>
  */

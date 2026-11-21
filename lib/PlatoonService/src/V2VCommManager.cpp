@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   V2VCommManager.cpp
  * @brief  Vehicle to Vehicle (V2V) communication manager.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

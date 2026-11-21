@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   GPIO.h
  * @brief  Abstraction of the GPIOs of the device.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

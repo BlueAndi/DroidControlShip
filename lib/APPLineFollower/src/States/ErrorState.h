@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ErrorState.h
  * @brief  Error state
  * @author Andreas Merkle <web@blue-andi.de>
  *

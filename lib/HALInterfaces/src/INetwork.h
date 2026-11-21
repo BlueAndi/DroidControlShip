@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   INetwork.h
  * @brief  Abstract network interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

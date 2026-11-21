@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @file
+ *  @file IKalmanFilter.h
  * @brief  Interface Class of a Kalman Filter Implementation
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
  *

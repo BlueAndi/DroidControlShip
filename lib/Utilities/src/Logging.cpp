@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Logging.cpp
  * @brief  Logging
  * @author Yann Le Glaz <yann_le@web.de>
  */

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   CollisionAvoidance.h
  * @brief  Collision Avoidance Module.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

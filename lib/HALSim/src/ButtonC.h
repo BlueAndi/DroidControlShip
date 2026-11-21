@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ButtonC.h
  * @brief  Button "C" realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

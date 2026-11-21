@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   IRobotNative.h
  * @brief  Abstract native robot interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

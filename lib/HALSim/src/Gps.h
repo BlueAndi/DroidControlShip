@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Gps.h
  * @brief  Global Positioning Sensor (GPS) module.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

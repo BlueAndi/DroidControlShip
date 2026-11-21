@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Board.h
  * @brief  The simulation board realization.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

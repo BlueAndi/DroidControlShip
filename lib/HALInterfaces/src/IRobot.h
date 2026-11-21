@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   IRobot.h
  * @brief  Abstract robot interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

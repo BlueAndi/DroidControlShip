@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   App.cpp
  * @brief  ConvoyFollower application
  * @author Andreas Merkle <web@blue-andi.de>
  */

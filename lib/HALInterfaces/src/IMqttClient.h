@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   IMqttClient.h
  * @brief  Abstract MQTT Client interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

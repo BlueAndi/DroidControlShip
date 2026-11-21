@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   StartupState.h
  * @brief  Startup state
  * @author Andreas Merkle <web@blue-andi.de>
  *

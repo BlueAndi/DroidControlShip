@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   SimTime.h
  * @brief  Simulation time
  * @author Andreas Merkle <web@blue-andi.de>
  *

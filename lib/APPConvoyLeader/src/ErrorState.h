@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ErrorState.h
  * @brief  Error State.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ReadyState.cpp
  * @brief  Ready state
  * @author Andreas Merkle <web@blue-andi.de>
  */

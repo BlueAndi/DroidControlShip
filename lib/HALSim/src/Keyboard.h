@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Keyboard.h
  * @brief  Keyboard realization
  * @author Andreas Merkle <web@blue-andi.de>
  *

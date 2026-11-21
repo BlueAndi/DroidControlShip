@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   MqttClient.h
  * @brief  MQTTClient realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

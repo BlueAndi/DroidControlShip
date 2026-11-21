@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   RobotDeviceNames.h
  * @brief  Robot device names in Webots
  * @author Andreas Merkle <web@blue-andi.de>
  *

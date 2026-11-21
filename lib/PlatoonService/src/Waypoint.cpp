@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Waypoint.cpp
  * @brief  Definition of a Waypoint.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

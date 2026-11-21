@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Battery.h
  * @brief  Battery realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

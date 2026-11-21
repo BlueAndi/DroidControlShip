@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   LedC.h
  * @brief  "C" LED realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

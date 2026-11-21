@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   IButton.h
  * @brief  Abstract button interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

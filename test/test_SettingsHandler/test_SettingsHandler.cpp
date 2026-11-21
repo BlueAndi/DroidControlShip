@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   test_SettingsHandler.cpp
  * @brief  Test the settings handler.
  * @author Andreas Merkle <web@blue-andi.de>
  */

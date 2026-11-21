@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   SensorConstants.h
  * @brief  Sensor specific constants
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *

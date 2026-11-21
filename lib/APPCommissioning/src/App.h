@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   App.h
  * @brief  Hardware commissioning application
  * @author Andreas Merkle <web@blue-andi.de>
  *

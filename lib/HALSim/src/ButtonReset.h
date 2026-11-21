@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ButtonReset.h
  * @brief  Button "Reset" realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

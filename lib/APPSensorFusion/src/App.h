@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   App.h
  * @brief  SensorFusion application
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *

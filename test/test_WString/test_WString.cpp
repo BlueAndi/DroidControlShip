@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   test_WString.cpp
  * @brief  Test (some) WString functions.
  * @author Luca Dubies <luca.dubies@newtec.de>
  */

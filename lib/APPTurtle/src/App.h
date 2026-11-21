@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   App.h
  * @brief  Turtle Application.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ParameterSets.h
  * @brief  Parameter state
  * @author Andreas Merkle <web@blue-andi.de>
  *

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   SettingsHandler.cpp
  * @brief  Settings Handler for loading and managing configuration.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

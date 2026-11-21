@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ISender.h
  * @brief  Abstract sender interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

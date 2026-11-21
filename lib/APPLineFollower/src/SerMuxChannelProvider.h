@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   SerMuxChannelProvider.h
  * @brief  Serial multiplexer channel provider
  * @author Andreas Merkle <web@blue-andi.de>
  *
