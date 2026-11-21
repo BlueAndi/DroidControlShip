@@ -48,8 +48,7 @@
  *****************************************************************************/
 
 /**
- * @file   NTPClient.h
- * @brief Simulated NTP client for native builds (no actual network usage).
+ * Simulated NTP client for native builds (no actual network usage).
  */
 class NTPClient
 {

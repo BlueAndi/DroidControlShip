@@ -51,8 +51,7 @@
  *****************************************************************************/
 
 /**
- * @file   WiFiUdp.h
- * @brief Minimal stub of the Arduino WiFiUDP class.
+ * Minimal stub of the Arduino WiFiUDP class.
  *
  * This class provides only the constructor and destructor and no real
  * networking operations. It exists purely to allow code depending on
