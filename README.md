@@ -145,16 +145,17 @@ In a similar way, not providing a WiFi configuration will force the target into 
 
 ## The Applications
 
-| Application    | Standalone | Zumo32U4 Robot Required | RadonUlzer Application | MQTT Broker Required         |
-| -------------- | ---------- | ----------------------- | ---------------------- | ---------------------------- |
-| Commissioning  | Yes        | No                      | N/A                    | No                           |
-| ConvoyLeader   | No         | Yes                     | ConvoyLeader           | Yes                          |
-| ConvoyFollower | No         | Yes                     | RemoteControl          | Yes                          |
-| LineFollower   | No         | Yes                     | RemoteControl          | No                           |
-| RemoteControl  | No         | Yes                     | RemoteControl          | Yes                          |
-| SensorFusion   | No         | Yes                     | SensorFusion           | Yes                          |
-| Test           | Yes        | No                      | N/A                    | No                           |
-| Turtle         | No         | Yes                     | RemoteControl          | Yes (ROS2 + Micro-ROS Agent) |
+| Application              | Standalone | Zumo32U4 Robot Required | RadonUlzer Application | MQTT Broker Required         |
+| ------------------------ | ---------- | ----------------------- | ---------------------- | ---------------------------- |
+| Commissioning            | Yes        | No                      | N/A                    | No                           |
+| ConvoyLeader             | No         | Yes                     | ConvoyLeader           | Yes                          |
+| ConvoyFollower           | No         | Yes                     | RemoteControl          | Yes                          |
+| LineFollower             | No         | Yes                     | RemoteControl          | No                           |
+| LineFollowerSensorFusion | No         | Yes                     | RemoteControl          | Yes                          |
+| RemoteControl            | No         | Yes                     | RemoteControl          | Yes                          |
+| SensorFusion             | No         | Yes                     | SensorFusion           | Yes                          |
+| Test                     | Yes        | No                      | N/A                    | No                           |
+| Turtle                   | No         | Yes                     | RemoteControl          | Yes (ROS2 + Micro-ROS Agent) |
 
 ## Documentation
 
