@@ -80,10 +80,10 @@ struct SpaceShipRadarPose
  */
 enum class Source
 {
-    None,          /**< No new data available (no newer timestamp than last EKF update). */
-    Vehicle,       /**< Newest data comes from vehicle (odometry / IMU control input). */
-    SSR,           /**< Newest data comes from Space Ship Radar (SSR). */
-    VehicleAndSSR  /**< Both vehicle and SSR provide newer data; use both updates. */
+    None,         /**< No new data available (no newer timestamp than last EKF update). */
+    Vehicle,      /**< Newest data comes from vehicle (odometry / IMU control input). */
+    SSR,          /**< Newest data comes from Space Ship Radar (SSR). */
+    VehicleAndSSR /**< Both vehicle and SSR provide newer data; use both updates. */
 };
 
 /**
@@ -303,9 +303,7 @@ private:
      *
      * @return Source enum indicating which sensor has the newest data.
      */
-    Source determineNewestSource(uint32_t zumoLocalMs32,
-                                 uint32_t ssrLocalMs32,
-                                 uint32_t lastEkfUpdateMs,
+    Source determineNewestSource(uint32_t zumoLocalMs32, uint32_t ssrLocalMs32, uint32_t lastEkfUpdateMs,
                                  uint32_t& newestLocalTs) const;
 
     /**

@@ -620,7 +620,7 @@ static int mountFileSystem(const char* cfgFilePath, String& cfgFilePathInFs)
         }
     }
 
-    cfgFilePathInFs  = "/";
+    cfgFilePathInFs = "/";
     cfgFilePathInFs += fileName;
 
     if (false == FILESYSTEM.begin(rootPath.c_str()))
