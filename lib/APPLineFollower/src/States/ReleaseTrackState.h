@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ReleaseTrackState.h
  * @brief  Release track state
  * @author Andreas Merkle <web@blue-andi.de>
  *

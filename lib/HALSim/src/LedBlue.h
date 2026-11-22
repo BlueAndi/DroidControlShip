@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   LedBlue.h
  * @brief  Blue LED realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

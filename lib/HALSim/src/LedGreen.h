@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   LedGreen.h
  * @brief  Green LED realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

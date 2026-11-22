@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   CustomRosTransportUdp.h
  * @brief  Custom Micro-ROS transport using UDP over Arduino WiFiUdp.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   WebotsSerialDrv.cpp
  * @brief  Webots serial driver
  * @author Andreas Merkle <web@blue-andi.de>
  */

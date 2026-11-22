@@ -26,11 +26,11 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @file
+ * @file   SerialMuxChannels.h
  * @brief  Channel structure definition for the SerialMuxProt.
- *  @author Juliane Kerpe <juliane.kerpe@web.de>
+ * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
- *  @addtogroup Application
+ * @addtogroup Application
  *
  * @{
  */
@@ -90,7 +90,6 @@ typedef struct _SensorData
 
     /** Time passed since the last sensor value in milliseconds. */
     uint16_t timePeriod;
-
 } __attribute__((packed)) SensorData;
 
 static_assert(sizeof(SensorData) <= MAX_DATA_LEN,

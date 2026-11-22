@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   HeadingFinder.h
  * @brief  Heading Finder Module.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

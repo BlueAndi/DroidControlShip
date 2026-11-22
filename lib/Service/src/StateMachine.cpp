@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   StateMachine.cpp
  * @brief  Statemachine
  * @author Andreas Merkle <web@blue-andi.de>
  */

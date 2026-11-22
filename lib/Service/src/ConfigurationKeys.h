@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ConfigurationKeys.h
  * @brief  Keys of the JSON structure of the configuration file.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

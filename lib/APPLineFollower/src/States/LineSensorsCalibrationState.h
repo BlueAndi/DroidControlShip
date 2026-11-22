@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   LineSensorsCalibrationState.h
  * @brief  Line sensors calibration state
  * @author Andreas Merkle <web@blue-andi.de>
  *

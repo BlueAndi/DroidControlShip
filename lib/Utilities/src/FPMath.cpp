@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   FPMath.cpp
  * @brief  Fixpoint math
  * @author Andreas Merkle <web@blue-andi.de>
  */

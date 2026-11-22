@@ -1,0 +1,11 @@
+@startuml
+component "RadonUlzer\nSensorFusion" as Robot
+rectangle "System" {
+  component "SensorFusion\n(DroidControlShip)" as App
+}
+component "MQTT broker" as Broker
+component "MQTT consumers" as Consumers
+Robot ..> App : <<flow>>\nSerialMuxProt odometry and IMU data
+App ..> Broker : <<flow>>\nestimated position
+Broker ..> Consumers : <<flow>>\nMQTT
+@enduml

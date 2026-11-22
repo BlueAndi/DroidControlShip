@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Telemetry.h
  * @brief  Telemetry struct definition.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

@@ -1,0 +1,11 @@
+@startuml
+component "External TCP server\n(ROS 2 integration)" as Server
+rectangle "System" {
+  component "Slam\n(DroidControlShip)" as App
+}
+component "RadonUlzer\nRemoteControl" as Robot
+Server ..> App : <<flow>>\nTCP JSON velocity commands
+App ..> Server : <<flow>>\nTCP JSON telemetry
+App ..> Robot : <<flow>>\nSerialMuxProt commands
+Robot ..> App : <<flow>>\nSerialMuxProt vehicle data
+@enduml

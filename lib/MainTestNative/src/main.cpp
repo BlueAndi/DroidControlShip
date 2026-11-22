@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   main.cpp
  * @brief  Main entry point
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   DrivingState.h
  * @brief  Driving state.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

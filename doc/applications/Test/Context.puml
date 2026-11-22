@@ -1,0 +1,9 @@
+@startuml
+actor Developer
+component "PlatformIO test runner" as Runner
+rectangle "System" {
+  component "Test environment\n(APPTest and test cases)" as Test
+}
+Developer ..> Runner : run tests
+Runner ..> Test : execute
+@enduml

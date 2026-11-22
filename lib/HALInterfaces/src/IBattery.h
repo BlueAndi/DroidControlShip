@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   IBattery.h
  * @brief  Abstract battery interface
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

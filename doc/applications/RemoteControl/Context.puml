@@ -1,0 +1,12 @@
+@startuml
+component "MQTT command source" as Controller
+component "MQTT broker" as Broker
+rectangle "System" {
+  component "RemoteControl\n(DroidControlShip)" as App
+}
+component "RadonUlzer\nRemoteControl" as Robot
+Controller ..> Broker : <<flow>>\ncommands and motor speeds
+Broker ..> App : <<flow>>\nMQTT
+App ..> Robot : <<flow>>\nSerialMuxProt commands
+Robot ..> App : <<flow>>\nSerialMuxProt status
+@enduml

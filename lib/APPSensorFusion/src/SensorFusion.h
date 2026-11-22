@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   SensorFusion.h
  * @brief  Implementation of the Sensor Fusion
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  *

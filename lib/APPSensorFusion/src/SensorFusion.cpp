@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   SensorFusion.cpp
  * @brief  SensorFusion algorithm
  * @author Juliane Kerpe <juliane.kerpe@web.de>
  */

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   USBHostDriver.cpp
  * @brief  Abstraction and Stream implementation of the host connection to the
  *         robot via UART.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>

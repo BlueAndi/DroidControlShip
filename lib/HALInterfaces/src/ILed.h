@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ILed.h
  * @brief  Abstract LED interface
  * @author Andreas Merkle <web@blue-andi.de>
  *

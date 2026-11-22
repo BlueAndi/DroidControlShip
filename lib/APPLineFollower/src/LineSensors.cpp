@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   LineSensors.cpp
  * @brief  Line sensors
  * @author Andreas Merkle <web@blue-andi.de>
  */

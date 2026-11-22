@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Robot.h
  * @brief  Robot realization
  * @author Andreas Merkle <web@blue-andi.de>
  *

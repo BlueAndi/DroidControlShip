@@ -25,16 +25,16 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
- * @brief  Test (some) WString functions.
- * @author Luca Dubies <luca.dubies@newtec.de>
+ * @file   Motors.cpp
+ * @brief  Motors
+ * @author Andreas Merkle <web@blue-andi.de>
  */
 
 /******************************************************************************
  * Includes
  *****************************************************************************/
-#include <unity.h>
-#include <WString.h>
+#include "Motors.h"
+#include <Logging.h>
 
 /******************************************************************************
  * Compiler Switches
@@ -52,10 +52,6 @@
  * Prototypes
  *****************************************************************************/
 
-static void testWStringReplacement(void);
-static void testWStringAppend(void);
-static void testWStringConcat(void);
-
 /******************************************************************************
  * Local Variables
  *****************************************************************************/
@@ -63,6 +59,22 @@ static void testWStringConcat(void);
 /******************************************************************************
  * Public Methods
  *****************************************************************************/
+
+Motors::Motors(SerMuxChannelProvider& serMuxChannelProvider) :
+    m_serMuxChannelProvider(serMuxChannelProvider),
+    m_maxMotorSpeed(0)
+{
+}
+
+void Motors::setSpeeds(int16_t leftSpeed, int16_t rightSpeed)
+{
+    MotorSpeed motorSpeed;
+
+    motorSpeed.left  = leftSpeed;
+    motorSpeed.right = rightSpeed;
+
+    (void)m_serMuxChannelProvider.sendMotorSpeed(motorSpeed);
+}
 
 /******************************************************************************
  * Protected Methods
@@ -76,123 +88,6 @@ static void testWStringConcat(void);
  * External Functions
  *****************************************************************************/
 
-/**
- * Main entry point
- *
- * @param[in] argc  Number of command line arguments
- * @param[in] argv  Command line arguments
- *
- * @returns Test failure count
- */
-extern int main(int argc, char** argv)
-{
-    UNITY_BEGIN();
-
-    RUN_TEST(testWStringReplacement);
-    RUN_TEST(testWStringAppend);
-    RUN_TEST(testWStringConcat);
-
-    return UNITY_END();
-}
-
-/**
- * Setup a test. This function will be called before every test by unity.
- */
-extern void setUp(void)
-{
-    /* Not used. */
-}
-
-/**
- * Clean up test. This function will be called after every test by unity.
- */
-extern void tearDown(void)
-{
-    /* Not used. */
-}
-
 /******************************************************************************
  * Local Functions
  *****************************************************************************/
-
-/**
- * Test WString replace.
- */
-static void testWStringReplacement(void)
-{
-    String original = String("I am a long string that will feature some replacements!");
-    String tester;
-
-    /* same length replacement */
-    tester = String(original);
-    tester.replace(String("long"), String("same"));
-    TEST_ASSERT_EQUAL_STRING("I am a same string that will feature some replacements!", tester.c_str());
-
-    /* shorter replacement */
-    tester = String(original);
-    tester.replace(String("feature"), String("have"));
-    TEST_ASSERT_EQUAL_STRING("I am a long string that will have some replacements!", tester.c_str());
-    TEST_ASSERT_EQUAL(original.length() - 3, tester.length());
-
-    /* longer replacement */
-    tester = String(original);
-    tester.replace("a", "AAA");
-    TEST_ASSERT_EQUAL_STRING("I AAAm AAA long string thAAAt will feAAAture some replAAAcements!", tester.c_str());
-    TEST_ASSERT_EQUAL(original.length() + 10, tester.length());
-
-    /* replacement with empty string */
-    tester = String(original);
-    tester.replace(" ", "");
-    TEST_ASSERT_EQUAL_STRING("Iamalongstringthatwillfeaturesomereplacements!", tester.c_str());
-
-    /* test original empty string */
-    tester = String("");
-    tester.replace("never", "happens");
-    TEST_ASSERT_EQUAL_STRING("", tester.c_str());
-}
-
-/**
- * Test WString += implementation.
- */
-static void testWStringAppend(void)
-{
-    String original = String("Im short");
-    char   classic[4];
-    classic[0] = 'H';
-    classic[1] = 'I';
-    classic[2] = '!';
-    classic[3] = '\0';
-
-    original += String("- first amendment -");
-    original += classic;
-    original += '-';
-
-    TEST_ASSERT_EQUAL_STRING("Im short- first amendment -HI!-", original.c_str());
-
-    String tester = String("");
-    tester += "Im new";
-    TEST_ASSERT_EQUAL_STRING("Im new", tester.c_str());
-}
-
-/**
- * Test WString += implementation.
- */
-static void testWStringConcat(void)
-{
-    String original = String("Im short");
-    char   classic[4];
-    classic[0] = 'H';
-    classic[1] = 'I';
-    classic[2] = '!';
-    classic[3] = '\0';
-
-    original.concat(String("- first amendment -"));
-    original.concat(classic);
-    original.concat('-');
-
-    TEST_ASSERT_EQUAL_STRING("Im short- first amendment -HI!-", original.c_str());
-
-    String tester = String("");
-    tester.concat("Im new");
-    TEST_ASSERT_EQUAL_STRING("Im new", tester.c_str());
-}

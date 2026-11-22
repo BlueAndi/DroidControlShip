@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   ButtonDrv.h
  * @brief  Button driver
  * @author Andreas Merkle <web@blue-andi.de>
  *

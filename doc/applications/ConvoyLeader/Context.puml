@@ -1,0 +1,14 @@
+@startuml
+rectangle "System" {
+  component "ConvoyLeader\n(DroidControlShip)" as App
+}
+component "RadonUlzer\nConvoyLeader" as Robot
+component "MQTT broker" as Broker
+component "Convoy followers" as Followers
+App ..> Robot : <<flow>>\nSerialMuxProt commands
+Robot ..> App : <<flow>>\nSerialMuxProt telemetry
+App ..> Broker : <<flow>>\nMQTT waypoints and events
+Broker ..> App : <<flow>>\nMQTT platoon feedback
+Followers ..> Broker : <<flow>>\nMQTT
+Broker ..> Followers : <<flow>>\nMQTT
+@enduml

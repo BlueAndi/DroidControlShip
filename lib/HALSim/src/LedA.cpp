@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   LedA.cpp
  * @brief  "A" LED realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

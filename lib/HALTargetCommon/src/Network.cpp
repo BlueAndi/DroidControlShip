@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Network.cpp
  * @brief  Network realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

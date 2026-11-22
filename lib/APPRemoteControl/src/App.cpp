@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   App.cpp
  * @brief  RemoteControl application
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

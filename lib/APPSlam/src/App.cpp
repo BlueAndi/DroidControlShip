@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   App.cpp
  * @brief  SLAM application
  * @author Jonas Hochhaus<jonas.hochhaus01@gmail.com>
  */

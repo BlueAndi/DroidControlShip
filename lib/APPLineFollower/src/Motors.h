@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Motors.h
  * @brief  Motors
  * @author Andreas Merkle <web@blue-andi.de>
  *

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   IGps.h
  * @brief  GPS Interface.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

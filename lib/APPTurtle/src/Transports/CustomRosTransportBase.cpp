@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   CustomRosTransportBase.cpp
  * @brief  Custom Transport class with C-language interface for microros.
  * @author Norbert Schulz <github@schulznorbert.de>
  */

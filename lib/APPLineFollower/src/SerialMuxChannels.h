@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   SerialMuxChannels.h
  * @brief  Channel structure definition for the SerialMuxProt.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *
@@ -33,7 +33,6 @@
  *
  * @{
  */
-
 #ifndef SERIAL_MUX_CHANNELS_H_
 #define SERIAL_MUX_CHANNELS_H_
 
@@ -91,6 +90,18 @@
 
 /** DLC of Line Sensor Channel */
 #define LINE_SENSOR_CHANNEL_DLC (sizeof(LineSensorData))
+
+/** Name of the Channel to receive Time Sync Requests from. */
+#define TIME_SYNC_REQUEST_CHANNEL_NAME "TIME_SYNC_REQ"
+
+/** DLC of Time Sync Request Channel */
+#define TIME_SYNC_REQUEST_CHANNEL_DLC (sizeof(TimeSyncRequest))
+
+/** Name of the Channel to send Time Sync Responses to. */
+#define TIME_SYNC_RESPONSE_CHANNEL_NAME "TIME_SYNC_RSP"
+
+/** DLC of Time Sync Response Channel */
+#define TIME_SYNC_RESPONSE_CHANNEL_DLC (sizeof(TimeSyncResponse))
 
 /******************************************************************************
  * Types and Classes
@@ -186,8 +197,9 @@ typedef struct _CommandResponse
     };
 } __attribute__((packed)) CommandResponse;
 
-static_assert(sizeof(CommandResponse) <= MAX_DATA_LEN,
-              "CommandResponse struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
+static_assert(
+    sizeof(CommandResponse) <= MAX_DATA_LEN,
+    "CommandResponse struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
 
 /** Struct of the "Motor Speed Setpoints" channel payload. */
 typedef struct _MotorSpeed
@@ -212,13 +224,16 @@ static_assert(sizeof(RobotSpeed) <= MAX_DATA_LEN,
 /** Struct of the "Current Vehicle Data" channel payload. */
 typedef struct _VehicleData
 {
-    int32_t                  xPos;        /**< X position [mm]. */
-    int32_t                  yPos;        /**< Y position [mm]. */
-    int32_t                  orientation; /**< Orientation [mrad]. */
-    int32_t                  left;        /**< Left motor speed [mm/s]. */
-    int32_t                  right;       /**< Right motor speed [mm/s]. */
-    int32_t                  center;      /**< Center speed [mm/s]. */
-    SMPChannelPayload::Range proximity;   /**< Range at which object is found [range]. */
+    uint32_t                 timestamp;     /**< Timestamp [ms]. */
+    int32_t                  xPos;          /**< X position [mm]. */
+    int32_t                  yPos;          /**< Y position [mm]. */
+    int32_t                  orientation;   /**< Orientation [mrad]. */
+    int32_t                  left;          /**< Left motor speed [mm/s]. */
+    int32_t                  right;         /**< Right motor speed [mm/s]. */
+    int32_t                  center;        /**< Center speed [mm/s]. */
+    SMPChannelPayload::Range proximity;     /**< Range at which object is found [range]. */
+    int16_t                  accelerationX; /**< Raw acceleration in X [digit]. */
+    int16_t                  turnRateZ;     /**< Raw turn rate around Z [digit]. */
 } __attribute__((packed)) VehicleData;
 
 static_assert(sizeof(VehicleData) <= MAX_DATA_LEN,
@@ -239,8 +254,33 @@ typedef struct _LineSensorData
     uint16_t lineSensorData[5U]; /**< Line sensor data [digits] normalized to max 1000 digits. */
 } __attribute__((packed)) LineSensorData;
 
-static_assert(sizeof(LineSensorData) <= MAX_DATA_LEN,
-              "LineSensorData struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
+static_assert(
+    sizeof(LineSensorData) <= MAX_DATA_LEN,
+    "LineSensorData struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
+
+/** Struct of the "Time Sync Request" channel payload. */
+typedef struct _TimeSyncRequest
+{
+    uint32_t seq;   /**< Sequence number to match request/response. */
+    uint32_t t1_ms; /**< Timestamp at sender when request left [ms]. */
+} __attribute__((packed)) TimeSyncRequest;
+
+static_assert(
+    sizeof(TimeSyncRequest) <= MAX_DATA_LEN,
+    "TimeSyncRequest struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
+
+/** Struct of the "Time Sync Response" channel payload. */
+typedef struct _TimeSyncResponse
+{
+    uint32_t seq;   /**< Sequence number to match request/response. */
+    uint32_t t1_ms; /**< Echo of request timestamp [ms]. */
+    uint32_t t2_ms; /**< Timestamp at receiver when request arrived [ms]. */
+    uint32_t t3_ms; /**< Timestamp at receiver when response sent [ms]. */
+} __attribute__((packed)) TimeSyncResponse;
+
+static_assert(
+    sizeof(TimeSyncResponse) <= MAX_DATA_LEN,
+    "TimeSyncResponse struct size must be less than or equal to MAX_DATA_LEN to fit in the SerialMuxProt frame.");
 
 /******************************************************************************
  * Functions

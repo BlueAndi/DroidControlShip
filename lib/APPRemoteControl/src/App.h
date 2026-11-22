@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   App.h
  * @brief  RemoteControl application
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

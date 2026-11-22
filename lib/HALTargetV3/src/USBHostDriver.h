@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   USBHostDriver.h
  * @brief  Abstraction and Stream implementation of the host connection to the
  *         robot. On the ZumoComSystemV3 the Zumo robot is attached via UART
  *         instead of USB, therefore this driver realizes the host interface

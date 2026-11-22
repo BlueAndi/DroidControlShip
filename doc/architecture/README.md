@@ -43,7 +43,7 @@ TODO
 
 The following applications are supported:
 
-TODO
+See the [application overview](../../README.md#the-applications) for descriptions and context diagrams.
 
 #### HAL
 

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   MicroRosClient.h
  * @brief  Abstraction of Micro-ROS Client.
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  *

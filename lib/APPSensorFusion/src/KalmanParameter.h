@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- *  @file
+ *  @file KalmanParameter.h
  * @brief  Struct for Parameter used for a Kalman Filter
  *  @author Juliane Kerpe <juliane.kerpe@web.de>
  *

@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   LedRed.cpp
  * @brief  Red LED realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

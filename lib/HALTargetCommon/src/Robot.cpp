@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   Robot.cpp
  * @brief  Robot realization
  * @author Gabryel Reyes <gabryelrdiaz@gmail.com>
  */

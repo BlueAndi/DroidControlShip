@@ -25,7 +25,7 @@
     DESCRIPTION
 *******************************************************************************/
 /**
- * @file
+ * @file   IState.h
  * @brief  Abstract state interface
  * @author Andreas Merkle <web@blue-andi.de>
  *
