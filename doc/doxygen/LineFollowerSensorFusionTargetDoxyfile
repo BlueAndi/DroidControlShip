@@ -993,7 +993,10 @@ WARN_LOGFILE           = doxygen_warnings.txt
 
 INPUT                  = mainpage.dox \
                          ../../src \
-                         ../../lib/HALTarget \
+                         ../../lib/HALTargetCommon \
+                         ../../lib/HALTargetV1 \
+                         ../../lib/HALTargetV2 \
+                         ../../lib/HALTargetV3 \
                          ../../lib/HALInterfaces \
                          ../../lib/APPLineFollowerSensorFusion \
                          ../../lib/Service \
