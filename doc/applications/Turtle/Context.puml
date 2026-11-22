@@ -1,0 +1,12 @@
+@startuml
+component "ROS 2 publisher" as Publisher
+component "micro-ROS agent" as Agent
+rectangle "System" {
+  component "Turtle\n(DroidControlShip)" as App
+}
+component "RadonUlzer\nRemoteControl" as Robot
+Publisher ..> Agent : <<flow>>\ncmd_vel Twist
+Agent ..> App : <<flow>>\nmicro-ROS
+App ..> Robot : <<flow>>\nSerialMuxProt movement commands
+Robot ..> App : <<flow>>\nSerialMuxProt status
+@enduml

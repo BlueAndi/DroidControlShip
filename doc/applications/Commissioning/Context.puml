@@ -1,0 +1,15 @@
+@startuml
+actor Operator
+rectangle "System" {
+  component "Commissioning\n(DroidControlShip)" as App
+}
+node "Board peripherals\n(buttons, LEDs, battery)" as Board
+node "Robot interface\n(optional)" as Robot
+component "Serial console" as Console
+Operator ..> Board : <<flow>>\nbutton input
+Board ..> App : <<flow>>\nbutton and battery data
+App ..> Board : <<flow>>\nLED control
+App ..> Robot : <<flow>>\nstream and reset
+Robot ..> App : <<flow>>\nstream
+App ..> Console : <<flow>>\nlogs
+@enduml

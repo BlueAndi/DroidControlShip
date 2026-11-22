@@ -1,0 +1,10 @@
+@startuml
+rectangle "System" {
+  component "LineFollower\n(DroidControlShip)" as App
+}
+component "RadonUlzer\nRemoteControl" as Robot
+node "Track" as Track <<environment>>
+App ..> Robot : <<flow>>\nSerialMuxProt motor commands
+Robot ..> App : <<flow>>\nSerialMuxProt sensor data
+Robot -- Track : line sensing and motion
+@enduml

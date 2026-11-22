@@ -9,12 +9,16 @@ The Droid Control Ship is the firmware running on the [ZumoComSystem](https://gi
 
 It provides different kind of exclusive applications, used for educational purposes:
 
-- Convoy Leader Robot - Based on odometry information, it leads the followers to follow like a lemming trail.
-- Convoy Follower Robot - It follows the leader by mainly reacting on the received information.
-- Remote Control - Receives commands and motor speeds from an external source through MQTT.
-- APPTurtle - A [ROS2](https://docs.ros.org/en/jazzy/index.html) Robot controller that uses Twist messages like the ROS2 TurtleSim demo.
-- Line follower - Follows a track by a black line until the start/end line is passed twice.
-- Commissioning - Exercises the board peripherals in an observable way for hardware bring-up and validation.
+- [Convoy Leader Robot](./doc/applications/ConvoyLeader/README.md) - Based on odometry information, it leads the followers to follow like a lemming trail.
+- [Convoy Follower Robot](./doc/applications/ConvoyFollower/README.md) - It follows the leader by mainly reacting on the received information.
+- [Remote Control](./doc/applications/RemoteControl/README.md) - Receives commands and motor speeds from an external source through MQTT.
+- [Turtle](./doc/applications/Turtle/README.md) - A [ROS2](https://docs.ros.org/en/jazzy/index.html) robot controller that uses Twist messages like the ROS2 TurtleSim demo.
+- [Line follower](./doc/applications/LineFollower/README.md) - Follows a track by a black line until the start/end line is passed twice.
+- [LineFollowerSensorFusion](./doc/applications/LineFollowerSensorFusion/README.md) - Follows a black line and combines odometry, IMU and [SpaceShipRadar](https://github.com/NewTec-GmbH/SpaceShipRadar) data to estimate the robot's pose and velocity.
+- [SensorFusion](./doc/applications/SensorFusion/README.md) - Estimates the robot's position from odometry and IMU data.
+- [Slam](./doc/applications/Slam/README.md) - Exchanges robot telemetry and velocity commands with a TCP server.
+- [Commissioning](./doc/applications/Commissioning/README.md) - Exercises the board peripherals in an observable way for hardware bring-up and validation.
+- [Test](./doc/applications/Test/README.md) - Provides an application stub for the native test environment.
 
 ## Table of content <!-- omit in toc -->
 
@@ -73,13 +77,13 @@ After you built the application, you will find it in ```.pio/build/<APPLICATION-
 
 The applications are using a configuration file in JSON format to retrieve certain settings. In the very first run, such a configuration file will be automatically be created. If there exists already one, it will be loaded without modifications (regardless of any other program arguments).
 
-The DroidControlShip will always try to connect to the RadonUlzer, therefore its important to have the RadonUlzer executable started first! And because the RadonUlzer executable will always connect to the Webots simulation, it shall run as well having a corresponding world loaded.
+The DroidControlShip will always try to connect to [RadonUlzer](https://github.com/BlueAndi/RadonUlzer), therefore its important to have the RadonUlzer executable started first! And because the RadonUlzer executable will always connect to the Webots simulation, it shall run as well having a corresponding world loaded.
 
 Some applications require to have an MQTT server running, but it may depend on the kind of application you choose.
 
 A complete deployment, including MQTT server, would be started in the following way:
 
-MQTT Broker --> Webots World --> RadonUlzer --> DroidControlShip
+MQTT Broker --> Webots World --> [RadonUlzer](https://github.com/BlueAndi/RadonUlzer) --> DroidControlShip
 
 In order to simplify this process, the [Launcher](https://github.com/gabryelreyes/Launcher) project is under active development.
 
@@ -95,7 +99,7 @@ It is mandatory if the simulation contains more than one robot. The robot is ide
 
 The Webots documentation has more details about [Single Simulation and Multiple Local Extern Robot Controllers](https://cyberbotics.com/doc/guide/running-extern-robot-controllers?tab-os=windows#single-simulation-and-multiple-local-extern-robot-controllers).
 
-It is mandatory too if the simulation does not run locally (e.g. Webots runs on windows host and RadonUlzer in WSL).
+It is mandatory too if the simulation does not run locally (e.g. Webots runs on windows host and [RadonUlzer](https://github.com/BlueAndi/RadonUlzer) in WSL).
 Set the IP address and the port in [platformio_override.ini](./platformio_override.ini), see *webots_ip_address* and *webots_protocol*.
 
 Use *ipc* as *webots_protocol* for local connections and *tcp* for remote connections.
@@ -145,17 +149,18 @@ In a similar way, not providing a WiFi configuration will force the target into 
 
 ## The Applications
 
-| Application              | Standalone | Zumo32U4 Robot Required | RadonUlzer Application | MQTT Broker Required         |
-| ------------------------ | ---------- | ----------------------- | ---------------------- | ---------------------------- |
-| Commissioning            | Yes        | No                      | N/A                    | No                           |
-| ConvoyLeader             | No         | Yes                     | ConvoyLeader           | Yes                          |
-| ConvoyFollower           | No         | Yes                     | RemoteControl          | Yes                          |
-| LineFollower             | No         | Yes                     | RemoteControl          | No                           |
-| LineFollowerSensorFusion | No         | Yes                     | RemoteControl          | Yes                          |
-| RemoteControl            | No         | Yes                     | RemoteControl          | Yes                          |
-| SensorFusion             | No         | Yes                     | SensorFusion           | Yes                          |
-| Test                     | Yes        | No                      | N/A                    | No                           |
-| Turtle                   | No         | Yes                     | RemoteControl          | Yes (ROS2 + Micro-ROS Agent) |
+| Application                                                                       | Standalone | Zumo32U4 Robot Required | [RadonUlzer](https://github.com/BlueAndi/RadonUlzer) Application | MQTT Broker Required                 |
+| --------------------------------------------------------------------------------- | ---------- | ----------------------- | ---------------------------------------------------------------- | ------------------------------------ |
+| [Commissioning](./doc/applications/Commissioning/README.md)                       | Yes        | No                      | N/A                                                              | No                                   |
+| [ConvoyLeader](./doc/applications/ConvoyLeader/README.md)                         | No         | Yes                     | ConvoyLeader                                                     | Yes                                  |
+| [ConvoyFollower](./doc/applications/ConvoyFollower/README.md)                     | No         | Yes                     | RemoteControl                                                    | Yes                                  |
+| [LineFollower](./doc/applications/LineFollower/README.md)                         | No         | Yes                     | RemoteControl                                                    | No                                   |
+| [LineFollowerSensorFusion](./doc/applications/LineFollowerSensorFusion/README.md) | No         | Yes                     | RemoteControl                                                    | Yes                                  |
+| [RemoteControl](./doc/applications/RemoteControl/README.md)                       | No         | Yes                     | RemoteControl                                                    | Yes                                  |
+| [SensorFusion](./doc/applications/SensorFusion/README.md)                         | No         | Yes                     | SensorFusion                                                     | Yes                                  |
+| [Slam](./doc/applications/Slam/README.md)                                         | No         | Yes                     | RemoteControl                                                    | No (TCP server required)             |
+| [Test](./doc/applications/Test/README.md)                                         | Yes        | No                      | N/A                                                              | No                                   |
+| [Turtle](./doc/applications/Turtle/README.md)                                     | No         | Yes                     | RemoteControl                                                    | No (ROS2 + Micro-ROS Agent required) |
 
 ## Documentation
 
@@ -165,21 +170,21 @@ In a similar way, not providing a WiFi configuration will force the target into 
 
 ## Used Libraries
 
-| Library                                                                                        | Description                                                                                                             | License                  |
-| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| [Arduino-ESP32](https://github.com/espressif/arduino-esp32)                                   | Arduino framework for ESP32 targets.                                                                                    | LGPL-2.1                 |
-| [ArduinoEigen](https://github.com/hideakitai/ArduinoEigen)                                    | Eigen linear algebra library for Arduino, used by sensor fusion.                                                        | MPL-2.0                  |
-| [ArduinoJson](https://arduinojson.org/)                                                        | JSON handling.                                                                                                          | MIT                      |
-| [ArduinoNative](https://github.com/BlueAndi/ArduinoNative)                                    | Arduino interfaces for native simulation and tests.                                                                     | MIT                      |
-| [micro_ros_platformio](https://github.com/gabryelreyes/micro_ros_platformio)                   | PlatformIO integration for micro-ROS on the Turtle target.                                                               | Apache-2.0               |
-| [Mosquitto](https://mosquitto.org/)                                                            | MQTT client library used by the simulation.                                                                             | EPL-2.0 OR BSD-3-Clause  |
-| [NTPClient](https://github.com/arduino-libraries/NTPClient)                                    | NTP client declared for the LineFollowerSensorFusion target.                                                            | MIT                      |
-| [PlatformIO](https://platformio.org)                                                           | Cross-platform build and development tooling.                                                                           | Apache-2.0               |
-| [PlatformIO Espressif 32](https://github.com/platformio/platform-espressif32)                  | PlatformIO platform package for ESP32 targets.                                                                          | Apache-2.0               |
-| [PubSubClient3](https://github.com/hmueller01/pubsubclient3)                                   | MQTT publish/subscribe client for ESP32 targets.                                                                        | MIT                      |
-| [SerialMuxProt](https://github.com/gabryelreyes/SerialMuxProt)                                | Multiplexing communication protocol.                                                                                    | MIT                      |
-| [USB_Host_Shield_2.0](https://github.com/NewTec-GmbH/USB_Host_Shield_2.0/tree/3_Endpoints_ACM) | USB host controller driver; a fork of the [original](https://github.com/felis/USB_Host_Shield_2.0) with endpoint fixes. | GPLv2                    |
-| [Webots](https://github.com/cyberbotics/webots)                                                | Robot simulation and controller API.                                                                                    | Apache-2.0               |
+| Library                                                                                        | Description                                                                                                             | License                 |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| [Arduino-ESP32](https://github.com/espressif/arduino-esp32)                                    | Arduino framework for ESP32 targets.                                                                                    | LGPL-2.1                |
+| [ArduinoEigen](https://github.com/hideakitai/ArduinoEigen)                                     | Eigen linear algebra library for Arduino, used by sensor fusion.                                                        | MPL-2.0                 |
+| [ArduinoJson](https://arduinojson.org/)                                                        | JSON handling.                                                                                                          | MIT                     |
+| [ArduinoNative](https://github.com/BlueAndi/ArduinoNative)                                     | Arduino interfaces for native simulation and tests.                                                                     | MIT                     |
+| [micro_ros_platformio](https://github.com/gabryelreyes/micro_ros_platformio)                   | PlatformIO integration for micro-ROS on the Turtle target.                                                              | Apache-2.0              |
+| [Mosquitto](https://mosquitto.org/)                                                            | MQTT client library used by the simulation.                                                                             | EPL-2.0 OR BSD-3-Clause |
+| [NTPClient](https://github.com/arduino-libraries/NTPClient)                                    | NTP client declared for the LineFollowerSensorFusion target.                                                            | MIT                     |
+| [PlatformIO](https://platformio.org)                                                           | Cross-platform build and development tooling.                                                                           | Apache-2.0              |
+| [PlatformIO Espressif 32](https://github.com/platformio/platform-espressif32)                  | PlatformIO platform package for ESP32 targets.                                                                          | Apache-2.0              |
+| [PubSubClient3](https://github.com/hmueller01/pubsubclient3)                                   | MQTT publish/subscribe client for ESP32 targets.                                                                        | MIT                     |
+| [SerialMuxProt](https://github.com/gabryelreyes/SerialMuxProt)                                 | Multiplexing communication protocol.                                                                                    | MIT                     |
+| [USB_Host_Shield_2.0](https://github.com/NewTec-GmbH/USB_Host_Shield_2.0/tree/3_Endpoints_ACM) | USB host controller driver; a fork of the [original](https://github.com/felis/USB_Host_Shield_2.0) with endpoint fixes. | GPLv2                   |
+| [Webots](https://github.com/cyberbotics/webots)                                                | Robot simulation and controller API.                                                                                    | Apache-2.0              |
 
 ## Issues, Ideas And Bugs
 

@@ -1,0 +1,17 @@
+@startuml
+rectangle "System" {
+  component "LineFollowerSensorFusion\n(DroidControlShip)" as App
+}
+component "RadonUlzer\nRemoteControl" as Robot
+node "Track" as Track <<environment>>
+component "MQTT broker" as Broker
+component "SpaceShipRadar" as Radar
+component "MQTT consumers" as Consumers
+App ..> Robot : <<flow>>\nSerialMuxProt commands
+Robot ..> App : <<flow>>\nSerialMuxProt sensor data
+Robot -- Track : line sensing and motion
+Radar ..> Broker : <<flow>>\npose
+Broker ..> App : <<flow>>\npose
+App ..> Broker : <<flow>>\nsensor snapshot and fused pose
+Broker ..> Consumers : <<flow>>\nMQTT
+@enduml
