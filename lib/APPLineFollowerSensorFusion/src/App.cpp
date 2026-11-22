@@ -57,6 +57,7 @@
  *****************************************************************************/
 
 #ifndef CONFIG_LOG_SEVERITY
+/** Default logging severity when not configured by the build. */
 #define CONFIG_LOG_SEVERITY (Logging::LOG_LEVEL_INFO)
 #endif /* CONFIG_LOG_SEVERITY */
 
@@ -117,11 +118,17 @@ const uint16_t STATUS_SEND_INTERVAL_MS = 1000U;
 /** Host time sync interval in ms. */
 const uint16_t HOST_TIMESYNC_INTERVAL_MS = 10000U;
 
-/* Convenience aliases for EKF types. */
+/** EKF odometry measurement vector. */
 using OdoMeasurementVector = ExtendedKalmanFilter4D::OdoMeasurementVector;
+
+/** EKF camera measurement vector. */
 using CamMeasurementVector = ExtendedKalmanFilter4D::CamMeasurementVector;
-using StateVector          = ExtendedKalmanFilter4D::StateVector;
-using StateMatrix          = ExtendedKalmanFilter4D::StateMatrix;
+
+/** EKF state vector. */
+using StateVector = ExtendedKalmanFilter4D::StateVector;
+
+/** EKF state covariance matrix. */
+using StateMatrix = ExtendedKalmanFilter4D::StateMatrix;
 
 /******************************************************************************
  * Public Methods
